@@ -18,7 +18,7 @@ from src.schemas.social import (
     FollowStatusResponse,
 )
 from src.schemas.api_response import ApiResponse, ErrorResponse, ErrorDetail
-from src.utils.auth import get_current_user
+from src.api.deps import get_current_user
 from src.models.user import User
 
 
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/users", tags=["social"])
 
 @router.post(
     "/{username}/follow",
-    response_model=ApiResponse[FollowResponse],
+    response_model=FollowResponse,
     status_code=status.HTTP_200_OK,
     summary="T211: Follow a user",
     description="Follow a user. Requires authentication. Cannot follow yourself or follow someone you already follow.",
@@ -98,7 +98,7 @@ async def follow_user(
 
 @router.delete(
     "/{username}/follow",
-    response_model=ApiResponse[FollowResponse],
+    response_model=FollowResponse,
     status_code=status.HTTP_200_OK,
     summary="T212: Unfollow a user",
     description="Unfollow a user. Requires authentication. Must be currently following the user.",
@@ -166,7 +166,7 @@ async def unfollow_user(
 
 @router.get(
     "/{username}/followers",
-    response_model=ApiResponse[FollowersListResponse],
+    response_model=FollowersListResponse,
     status_code=status.HTTP_200_OK,
     summary="T213: Get followers list",
     description="Get paginated list of users who follow the target user. Public endpoint.",
@@ -175,7 +175,7 @@ async def get_followers(
     username: str,
     page: Annotated[int, Query(ge=1, description="Page number (1-indexed)")] = 1,
     limit: Annotated[int, Query(ge=1, le=50, description="Results per page (max 50)")] = 50,
-    db: Annotated[AsyncSession, Depends(get_db)] = None,
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Get followers list.
@@ -222,7 +222,7 @@ async def get_followers(
 
 @router.get(
     "/{username}/following",
-    response_model=ApiResponse[FollowingListResponse],
+    response_model=FollowingListResponse,
     status_code=status.HTTP_200_OK,
     summary="T214: Get following list",
     description="Get paginated list of users that the target user follows. Public endpoint.",
@@ -231,7 +231,7 @@ async def get_following(
     username: str,
     page: Annotated[int, Query(ge=1, description="Page number (1-indexed)")] = 1,
     limit: Annotated[int, Query(ge=1, le=50, description="Results per page (max 50)")] = 50,
-    db: Annotated[AsyncSession, Depends(get_db)] = None,
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Get following list.
@@ -278,7 +278,7 @@ async def get_following(
 
 @router.get(
     "/{target_username}/follow-status",
-    response_model=ApiResponse[FollowStatusResponse],
+    response_model=FollowStatusResponse,
     status_code=status.HTTP_200_OK,
     summary="T215: Get follow status",
     description="Check if current user follows target user. Requires authentication.",

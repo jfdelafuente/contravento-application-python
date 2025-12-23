@@ -18,7 +18,7 @@ from jose import JWTError
 
 from src.models.user import User, UserProfile
 from src.models.auth import PasswordReset
-from src.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, LoginResponse
+from src.schemas.auth import RegisterRequest, RegisterResponse, LoginRequest, TokenResponse, LoginResponse
 from src.schemas.user import UserResponse
 from src.utils.security import (
     hash_password,

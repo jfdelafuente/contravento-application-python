@@ -5,7 +5,7 @@ Loads and validates environment variables using Pydantic Settings.
 All configuration is immutable and validated at startup.
 """
 
-from typing import Any
+from typing import Any, Union
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -70,10 +70,10 @@ class Settings(BaseSettings):
     upload_max_size_mb: int = Field(default=5, ge=1, description="Maximum upload size in MB")
     profile_photo_size: int = Field(default=400, ge=100, description="Profile photo dimension (square)")
 
-    # CORS
-    cors_origins: list[str] = Field(
-        default=["http://localhost:3000", "http://localhost:5173"],
-        description="Allowed CORS origins"
+    # CORS (stored as Union to prevent automatic JSON parsing from env var)
+    cors_origins: Union[str, list[str]] = Field(
+        default="http://localhost:3000,http://localhost:5173",
+        description="Allowed CORS origins (comma-separated string or list)"
     )
 
     # Rate Limiting
@@ -101,6 +101,9 @@ class Settings(BaseSettings):
     def parse_cors_origins(cls, v: Any) -> list[str]:
         """Parse CORS origins from comma-separated string or list."""
         if isinstance(v, str):
+            # Handle empty string
+            if not v.strip():
+                return []
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 

@@ -69,18 +69,13 @@ def upgrade() -> None:
         sa.Column('user_id', sa.String(36), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
         sa.Column('achievement_id', sa.String(36), sa.ForeignKey('achievements.id', ondelete='CASCADE'), nullable=False),
         sa.Column('awarded_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        # SQLite requires unique constraints to be defined during table creation
+        sa.UniqueConstraint('user_id', 'achievement_id', name='uq_user_achievement'),
     )
 
     # Create indexes for faster queries
     op.create_index('ix_user_achievements_user_id', 'user_achievements', ['user_id'])
     op.create_index('ix_user_achievements_achievement_id', 'user_achievements', ['achievement_id'])
-
-    # Create unique constraint to prevent duplicate awards
-    op.create_unique_constraint(
-        'uq_user_achievement',
-        'user_achievements',
-        ['user_id', 'achievement_id']
-    )
 
 
 def downgrade() -> None:

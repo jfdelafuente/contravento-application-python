@@ -85,8 +85,8 @@ class PasswordReset(Base):
         doc="Token creation timestamp (UTC)",
     )
 
-    # Additional metadata
-    metadata: Mapped[Optional[str]] = mapped_column(
+    # Additional metadata (renamed from 'metadata' to avoid SQLAlchemy reserved name conflict)
+    extra_metadata: Mapped[Optional[str]] = mapped_column(
         Text,
         nullable=True,
         doc="Optional JSON metadata (e.g., IP address, user agent)",
