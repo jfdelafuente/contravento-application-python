@@ -99,6 +99,7 @@ def validate_password(value: str) -> str:
 
     Rules (FR-004):
     - Minimum 8 characters
+    - Maximum 72 bytes (bcrypt limitation)
     - At least one uppercase letter
     - At least one lowercase letter
     - At least one number
@@ -123,6 +124,10 @@ def validate_password(value: str) -> str:
 
     if len(value) < PASSWORD_MIN_LENGTH:
         raise ValueError(f"La contraseña debe tener al menos {PASSWORD_MIN_LENGTH} caracteres")
+
+    # Bcrypt has a 72-byte limitation
+    if len(value.encode('utf-8')) > 72:
+        raise ValueError("La contraseña no puede exceder 72 bytes")
 
     if not re.search(r"[A-Z]", value):
         raise ValueError("La contraseña debe contener al menos una letra mayúscula")

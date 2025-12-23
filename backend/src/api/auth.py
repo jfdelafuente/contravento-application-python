@@ -108,10 +108,11 @@ async def register(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=create_response(
-                success=False,
-                error={"code": error_code, "message": error_msg, "field": field}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": error_code, "message": error_msg, "field": field}
+            }
         )
 
 
@@ -154,10 +155,11 @@ async def verify_email(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=create_response(
-                success=False,
-                error={"code": error_code, "message": error_msg}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": error_code, "message": error_msg}
+            }
         )
 
 
@@ -198,18 +200,20 @@ async def resend_verification(
         if "demasiados" in error_msg.lower():
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=create_response(
-                    success=False,
-                    error={"code": "RATE_LIMIT_EXCEEDED", "message": error_msg}
-                )
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {"code": "RATE_LIMIT_EXCEEDED", "message": error_msg}
+                }
             )
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=create_response(
-                success=False,
-                error={"code": "VALIDATION_ERROR", "message": error_msg}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "VALIDATION_ERROR", "message": error_msg}
+            }
         )
 
 
@@ -252,28 +256,31 @@ async def login(
         if "verificar tu email" in error_msg.lower():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=create_response(
-                    success=False,
-                    error={"code": "EMAIL_NOT_VERIFIED", "message": error_msg}
-                )
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {"code": "EMAIL_NOT_VERIFIED", "message": error_msg}
+                }
             )
 
         elif "cuenta bloqueada" in error_msg.lower() or "demasiados intentos" in error_msg.lower():
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=create_response(
-                    success=False,
-                    error={"code": "ACCOUNT_LOCKED", "message": error_msg}
-                )
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {"code": "ACCOUNT_LOCKED", "message": error_msg}
+                }
             )
 
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=create_response(
-                    success=False,
-                    error={"code": "INVALID_CREDENTIALS", "message": error_msg}
-                )
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {"code": "INVALID_CREDENTIALS", "message": error_msg}
+                }
             )
 
 
@@ -311,10 +318,11 @@ async def refresh_token(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=create_response(
-                success=False,
-                error={"code": "INVALID_REFRESH_TOKEN", "message": str(e)}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "INVALID_REFRESH_TOKEN", "message": str(e)}
+            }
         )
 
 
@@ -354,10 +362,11 @@ async def logout(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=create_response(
-                success=False,
-                error={"code": "INVALID_REFRESH_TOKEN", "message": str(e)}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "INVALID_REFRESH_TOKEN", "message": str(e)}
+            }
         )
 
 
@@ -434,10 +443,11 @@ async def confirm_password_reset(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=create_response(
-                success=False,
-                error={"code": error_code, "message": error_msg, "field": field}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": error_code, "message": error_msg, "field": field}
+            }
         )
 
 
@@ -472,10 +482,11 @@ async def get_current_user_info(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=create_response(
-                success=False,
-                error={"code": "UNAUTHORIZED", "message": "Usuario no encontrado"}
-            )
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "UNAUTHORIZED", "message": "Usuario no encontrado"}
+            }
         )
 
     return create_response(
