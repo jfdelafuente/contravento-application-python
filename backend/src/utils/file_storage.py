@@ -9,7 +9,8 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, BinaryIO, Union
+from io import BytesIO
 
 import aiofiles
 from PIL import Image
@@ -24,8 +25,8 @@ logger = logging.getLogger(__name__)
 # Allowed MIME types for photos
 ALLOWED_PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
-# Max file size in bytes (from settings, converted from MB)
-MAX_FILE_SIZE = settings.upload_max_size_mb * 1024 * 1024
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 
 
 def get_storage_path(user_id: str, filename: str) -> str:
@@ -77,58 +78,82 @@ def get_full_path(relative_path: str) -> Path:
     return Path(settings.storage_path) / relative_path
 
 
-async def validate_photo(file: UploadFile) -> Tuple[bool, Optional[str]]:
+def generate_photo_filename(user_id: str, extension: str) -> str:
     """
-    Validate uploaded photo file.
+    Generate unique filename for profile photo.
+
+    Args:
+        user_id: User's ID
+        extension: File extension (without dot, e.g., 'jpg')
+
+    Returns:
+        Unique filename
+
+    Example:
+        >>> generate_photo_filename("user123", "jpg")
+        'user123_a1b2c3d4.jpg'
+    """
+    unique_id = uuid.uuid4().hex[:8]
+    # Ensure extension doesn't have a leading dot
+    ext = extension.lstrip(".")
+    return f"{user_id}_{unique_id}.{ext}"
+
+
+def validate_photo(
+    photo_bytes: BinaryIO,
+    content_type: str,
+    max_size_mb: int = 5
+) -> None:
+    """
+    Validate photo file (sync version for BytesIO).
 
     Checks:
-    - File size (max 5MB per FR-012)
     - MIME type (JPEG, PNG, WebP)
+    - File size (configurable, default 5MB)
     - Content is actually an image
 
     Args:
-        file: Uploaded file object
+        photo_bytes: Photo content as BytesIO
+        content_type: MIME type from upload
+        max_size_mb: Maximum file size in MB
 
-    Returns:
-        Tuple of (is_valid, error_message)
+    Raises:
+        ValueError: If validation fails with Spanish error message
 
     Example:
-        >>> valid, error = await validate_photo(upload_file)
-        >>> if not valid:
-        ...     raise ValueError(error)
+        >>> from io import BytesIO
+        >>> photo_bytes = BytesIO(photo_content)
+        >>> validate_photo(photo_bytes, "image/jpeg", max_size_mb=5)
     """
     # Check MIME type
-    if file.content_type not in ALLOWED_PHOTO_TYPES:
-        return False, "Solo se permiten archivos JPEG, PNG y WebP"
+    if content_type not in ALLOWED_PHOTO_TYPES:
+        raise ValueError("Solo se permiten archivos JPEG, PNG y WebP")
 
-    # Read file to check size
-    content = await file.read()
-    file_size = len(content)
+    # Check file size
+    photo_bytes.seek(0, 2)  # Seek to end
+    file_size = photo_bytes.tell()
+    photo_bytes.seek(0)  # Reset to beginning
 
-    # Reset file pointer for later use
-    await file.seek(0)
-
-    if file_size > MAX_FILE_SIZE:
-        max_mb = settings.upload_max_size_mb
-        return False, f"El archivo no puede superar {max_mb}MB"
+    max_size_bytes = max_size_mb * 1024 * 1024
+    if file_size > max_size_bytes:
+        raise ValueError(f"El archivo no puede superar {max_size_mb}MB")
 
     if file_size == 0:
-        return False, "El archivo está vacío"
+        raise ValueError("El archivo está vacío")
 
-    # Try to open as image to validate content
+    # Validate image content
     try:
-        image = Image.open(file.file)
+        image = Image.open(photo_bytes)
         image.verify()
-        await file.seek(0)  # Reset after verify
-        return True, None
+        photo_bytes.seek(0)  # Reset after verify
     except Exception as e:
         logger.warning(f"Invalid image file: {str(e)}")
-        return False, "El archivo no es una imagen válida"
+        raise ValueError("El archivo no es una imagen válida")
 
 
-async def resize_photo(file_path: Path, target_size: int = 400) -> Path:
+def resize_photo(file_path: Path, target_size: int = 400) -> Path:
     """
-    Resize photo to square dimensions.
+    Resize photo to square dimensions (sync version).
 
     Per FR-013: Profile photos are resized to 400x400px.
 
@@ -140,7 +165,7 @@ async def resize_photo(file_path: Path, target_size: int = 400) -> Path:
         Path to resized photo (same location, replaces original)
 
     Example:
-        >>> resized = await resize_photo(Path("photo.jpg"), 400)
+        >>> resized = resize_photo(Path("photo.jpg"), 400)
         >>> # Photo is now 400x400px
     """
     try:
@@ -181,6 +206,56 @@ async def resize_photo(file_path: Path, target_size: int = 400) -> Path:
         raise
 
 
+async def validate_photo_async(file: UploadFile) -> Tuple[bool, Optional[str]]:
+    """
+    Validate uploaded photo file (async version for FastAPI UploadFile).
+
+    Checks:
+    - File size (max 5MB per FR-012)
+    - MIME type (JPEG, PNG, WebP)
+    - Content is actually an image
+
+    Args:
+        file: Uploaded file object
+
+    Returns:
+        Tuple of (is_valid, error_message)
+
+    Example:
+        >>> valid, error = await validate_photo_async(upload_file)
+        >>> if not valid:
+        ...     raise ValueError(error)
+    """
+    # Check MIME type
+    if file.content_type not in ALLOWED_PHOTO_TYPES:
+        return False, "Solo se permiten archivos JPEG, PNG y WebP"
+
+    # Read file to check size
+    content = await file.read()
+    file_size = len(content)
+
+    # Reset file pointer for later use
+    await file.seek(0)
+
+    max_size_bytes = settings.upload_max_size_mb * 1024 * 1024
+    if file_size > max_size_bytes:
+        max_mb = settings.upload_max_size_mb
+        return False, f"El archivo no puede superar {max_mb}MB"
+
+    if file_size == 0:
+        return False, "El archivo está vacío"
+
+    # Try to open as image to validate content
+    try:
+        image = Image.open(file.file)
+        image.verify()
+        await file.seek(0)  # Reset after verify
+        return True, None
+    except Exception as e:
+        logger.warning(f"Invalid image file: {str(e)}")
+        return False, "El archivo no es una imagen válida"
+
+
 async def save_profile_photo(user_id: str, file: UploadFile) -> str:
     """
     Save and process a profile photo.
@@ -208,7 +283,7 @@ async def save_profile_photo(user_id: str, file: UploadFile) -> str:
         >>> # photo_url: "profile_photos/2025/12/user123_a1b2c3d4.jpg"
     """
     # Validate photo
-    is_valid, error_message = await validate_photo(file)
+    is_valid, error_message = await validate_photo_async(file)
     if not is_valid:
         raise ValueError(error_message)
 
@@ -228,7 +303,7 @@ async def save_profile_photo(user_id: str, file: UploadFile) -> str:
         logger.info(f"Saved original photo: {full_path}")
 
         # Resize photo (this replaces the original)
-        resized_path = await resize_photo(full_path, settings.profile_photo_size)
+        resized_path = resize_photo(full_path, settings.profile_photo_size)
 
         # Update relative path if extension changed
         relative_path = str(resized_path.relative_to(settings.storage_path))

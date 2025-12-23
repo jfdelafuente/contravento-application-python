@@ -128,11 +128,43 @@ class User(Base):
         doc="1-to-1 relationship with UserProfile",
     )
 
+    stats: Mapped["UserStats"] = relationship(
+        "UserStats",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        doc="1-to-1 relationship with UserStats",
+    )
+
+    user_achievements: Mapped[list["UserAchievement"]] = relationship(
+        "UserAchievement",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Achievements earned by this user",
+    )
+
     password_resets: Mapped[list["PasswordReset"]] = relationship(
         "PasswordReset",
         back_populates="user",
         cascade="all, delete-orphan",
         doc="Password reset and verification tokens",
+    )
+
+    # Social relationships (T199)
+    followers: Mapped[list["Follow"]] = relationship(
+        "Follow",
+        foreign_keys="Follow.following_id",
+        back_populates="following",
+        cascade="all, delete-orphan",
+        doc="Users who follow this user",
+    )
+
+    following: Mapped[list["Follow"]] = relationship(
+        "Follow",
+        foreign_keys="Follow.follower_id",
+        back_populates="follower",
+        cascade="all, delete-orphan",
+        doc="Users this user follows",
     )
 
     def __repr__(self) -> str:
@@ -208,6 +240,34 @@ class UserProfile(Base):
         String(255),
         nullable=True,
         doc="URL or path to profile photo",
+    )
+
+    # Privacy settings
+    show_email: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        doc="Show email in public profile",
+    )
+
+    show_location: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+        doc="Show location in public profile",
+    )
+
+    # Social counters (T199)
+    followers_count: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+        doc="Number of followers (denormalized counter)",
+    )
+
+    following_count: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+        doc="Number of users being followed (denormalized counter)",
     )
 
     # Timestamps

@@ -44,9 +44,25 @@ backend/
 
 ### 1. Instalar Poetry
 
+**Windows (PowerShell)**:
+
+```powershell
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+```
+
+**Linux/macOS**:
+
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
 ```
+
+**Verificar instalación**:
+
+```bash
+poetry --version
+```
+
+Si el comando no se reconoce en Windows, agregar al PATH: `%APPDATA%\Python\Scripts`
 
 ### 2. Instalar Dependencias
 
@@ -69,9 +85,13 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ### 4. Inicializar Base de Datos
 
+Las migraciones de Alembic se ejecutan desde el directorio `backend/`:
+
 ```bash
 poetry run alembic upgrade head
 ```
+
+> **Nota**: El archivo `alembic.ini` en la raíz de `backend/` apunta automáticamente a `src/migrations/`. No es necesario cambiar de directorio.
 
 ### 5. Ejecutar Servidor de Desarrollo
 

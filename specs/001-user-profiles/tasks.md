@@ -203,71 +203,71 @@ This project uses **Web application** structure:
 
 #### Contract Tests
 
-- [ ] T098 [P] [US2] Contract test for GET /users/{username}/profile in backend/tests/contract/test_profile_contracts.py
-- [ ] T099 [P] [US2] Contract test for PUT /users/{username}/profile in backend/tests/contract/test_profile_contracts.py
-- [ ] T100 [P] [US2] Contract test for POST /users/{username}/profile/photo in backend/tests/contract/test_profile_contracts.py
-- [ ] T101 [P] [US2] Contract test for DELETE /users/{username}/profile/photo in backend/tests/contract/test_profile_contracts.py
-- [ ] T102 [P] [US2] Contract test for PUT /users/{username}/profile/privacy in backend/tests/contract/test_profile_contracts.py
+- [X] T098 [P] [US2] Contract test for GET /users/{username}/profile in backend/tests/contract/test_profile_contracts.py
+- [X] T099 [P] [US2] Contract test for PUT /users/{username}/profile in backend/tests/contract/test_profile_contracts.py
+- [X] T100 [P] [US2] Contract test for POST /users/{username}/profile/photo in backend/tests/contract/test_profile_contracts.py
+- [X] T101 [P] [US2] Contract test for DELETE /users/{username}/profile/photo in backend/tests/contract/test_profile_contracts.py
+- [X] T102 [P] [US2] Contract test for PUT /users/{username}/profile/privacy in backend/tests/contract/test_profile_contracts.py
 
 #### Integration Tests
 
-- [ ] T103 [US2] Integration test for profile update workflow in backend/tests/integration/test_profile_management.py
-- [ ] T104 [US2] Integration test for photo upload with resize in backend/tests/integration/test_photo_upload.py
-- [ ] T105 [US2] Integration test for privacy settings (show_email, show_location) in backend/tests/integration/test_profile_management.py
-- [ ] T106 [US2] Integration test for public profile view respecting privacy in backend/tests/integration/test_profile_management.py
+- [X] T103 [US2] Integration test for profile update workflow in backend/tests/integration/test_profile_management.py
+- [X] T104 [US2] Integration test for photo upload with resize in backend/tests/integration/test_photo_upload.py
+- [X] T105 [US2] Integration test for privacy settings (show_email, show_location) in backend/tests/integration/test_profile_management.py
+- [X] T106 [US2] Integration test for public profile view respecting privacy in backend/tests/integration/test_profile_management.py
 
 #### Unit Tests
 
-- [ ] T107 [P] [US2] Unit test for photo resize to 400x400 in backend/tests/unit/test_file_storage.py
-- [ ] T108 [P] [US2] Unit test for photo MIME type validation in backend/tests/unit/test_file_storage.py
-- [ ] T109 [P] [US2] Unit test for photo size limit (5MB) validation in backend/tests/unit/test_file_storage.py
-- [ ] T110 [US2] Unit tests for ProfileService.get_profile() in backend/tests/unit/test_profile_service.py
-- [ ] T111 [US2] Unit tests for ProfileService.update_profile() in backend/tests/unit/test_profile_service.py
-- [ ] T112 [US2] Unit tests for ProfileService.upload_photo() in backend/tests/unit/test_profile_service.py
-- [ ] T113 [US2] Unit tests for ProfileService.delete_photo() in backend/tests/unit/test_profile_service.py
-- [ ] T114 [US2] Unit tests for ProfileService.update_privacy() in backend/tests/unit/test_profile_service.py
+- [X] T107 [P] [US2] Unit test for photo resize to 400x400 in backend/tests/unit/test_file_storage.py
+- [X] T108 [P] [US2] Unit test for photo MIME type validation in backend/tests/unit/test_file_storage.py
+- [X] T109 [P] [US2] Unit test for photo size limit (5MB) validation in backend/tests/unit/test_file_storage.py
+- [X] T110 [US2] Unit tests for ProfileService.get_profile() in backend/tests/unit/test_profile_service.py
+- [X] T111 [US2] Unit tests for ProfileService.update_profile() in backend/tests/unit/test_profile_service.py
+- [X] T112 [US2] Unit tests for ProfileService.upload_photo() in backend/tests/unit/test_profile_service.py
+- [X] T113 [US2] Unit tests for ProfileService.delete_photo() in backend/tests/unit/test_profile_service.py
+- [X] T114 [US2] Unit tests for ProfileService.update_privacy() in backend/tests/unit/test_profile_service.py
 
 ### Implementation for User Story 2
 
 #### Pydantic Schemas
 
-- [ ] T115 [P] [US2] Create ProfileResponse schema in backend/src/schemas/profile.py
-- [ ] T116 [P] [US2] Create ProfileUpdateRequest schema in backend/src/schemas/profile.py (bio max 500 chars, cycling_type enum)
-- [ ] T117 [P] [US2] Create PrivacySettings schema in backend/src/schemas/profile.py
+- [X] T115 [P] [US2] Create ProfileResponse schema in backend/src/schemas/profile.py
+- [X] T116 [P] [US2] Create ProfileUpdateRequest schema in backend/src/schemas/profile.py (bio max 500 chars, cycling_type enum)
+- [X] T117 [P] [US2] Create PrivacySettings schema in backend/src/schemas/profile.py
 
 #### Business Logic
 
-- [ ] T118 [US2] Implement ProfileService.get_profile() in backend/src/services/profile_service.py (respects privacy settings)
-- [ ] T119 [US2] Implement ProfileService.update_profile() in backend/src/services/profile_service.py (FR-011, FR-014, FR-015)
-- [ ] T120 [US2] Implement ProfileService.upload_photo() in backend/src/services/profile_service.py (FR-012, FR-013, async Pillow resize)
-- [ ] T121 [US2] Implement ProfileService.delete_photo() in backend/src/services/profile_service.py (FR-016)
-- [ ] T122 [US2] Implement ProfileService.update_privacy() in backend/src/services/profile_service.py (FR-018)
+- [X] T118 [US2] Implement ProfileService.get_profile() in backend/src/services/profile_service.py (respects privacy settings)
+- [X] T119 [US2] Implement ProfileService.update_profile() in backend/src/services/profile_service.py (FR-011, FR-014, FR-015)
+- [X] T120 [US2] Implement ProfileService.upload_photo() in backend/src/services/profile_service.py (FR-012, FR-013, async Pillow resize)
+- [X] T121 [US2] Implement ProfileService.delete_photo() in backend/src/services/profile_service.py (FR-016)
+- [X] T122 [US2] Implement ProfileService.update_privacy() in backend/src/services/profile_service.py (FR-018)
 
 #### API Endpoints
 
-- [ ] T123 [US2] Implement GET /users/{username}/profile endpoint in backend/src/api/profile.py (FR-016, public access)
-- [ ] T124 [US2] Implement PUT /users/{username}/profile endpoint in backend/src/api/profile.py (FR-011, authenticated, owner only)
-- [ ] T125 [US2] Implement POST /users/{username}/profile/photo endpoint in backend/src/api/profile.py (FR-012, multipart/form-data)
-- [ ] T126 [US2] Implement DELETE /users/{username}/profile/photo endpoint in backend/src/api/profile.py (FR-016)
-- [ ] T127 [US2] Implement PUT /users/{username}/profile/privacy endpoint in backend/src/api/profile.py (FR-018)
+- [X] T123 [US2] Implement GET /users/{username}/profile endpoint in backend/src/api/profile.py (FR-016, public access)
+- [X] T124 [US2] Implement PUT /users/{username}/profile endpoint in backend/src/api/profile.py (FR-011, authenticated, owner only)
+- [X] T125 [US2] Implement POST /users/{username}/profile/photo endpoint in backend/src/api/profile.py (FR-012, multipart/form-data)
+- [X] T126 [US2] Implement DELETE /users/{username}/profile/photo endpoint in backend/src/api/profile.py (FR-016)
+- [X] T127 [US2] Implement PUT /users/{username}/profile/privacy endpoint in backend/src/api/profile.py (FR-018)
 
 #### File Handling
 
-- [ ] T128 [US2] Add background task for async photo processing in backend/src/services/profile_service.py
-- [ ] T129 [US2] Add cleanup for old profile photos when new one uploaded in backend/src/services/profile_service.py
-- [ ] T130 [US2] Add validation for photo formats (JPG, PNG, WebP) in backend/src/utils/file_storage.py
+- [X] T128 [US2] Add background task for async photo processing in backend/src/services/profile_service.py
+- [X] T129 [US2] Add cleanup for old profile photos when new one uploaded in backend/src/services/profile_service.py
+- [X] T130 [US2] Add validation for photo formats (JPG, PNG, WebP) in backend/src/utils/file_storage.py
 
 #### Authorization
 
-- [ ] T131 [US2] Add authorization check (owner only) for profile updates in backend/src/api/profile.py
-- [ ] T132 [US2] Add 403 Forbidden response for non-owners in backend/src/api/profile.py
+- [X] T131 [US2] Add authorization check (owner only) for profile updates in backend/src/api/profile.py
+- [X] T132 [US2] Add 403 Forbidden response for non-owners in backend/src/api/profile.py
 
 #### Error Handling
 
-- [ ] T133 [US2] Add validation for bio length (500 chars) with Spanish error in ProfileService
-- [ ] T134 [US2] Add validation for invalid cycling_type with Spanish error in ProfileService
-- [ ] T135 [US2] Add handling for file too large (>5MB) with Spanish error in ProfileService
-- [ ] T136 [US2] Add handling for invalid file format with Spanish error in ProfileService
+- [X] T133 [US2] Add validation for bio length (500 chars) with Spanish error in ProfileService
+- [X] T134 [US2] Add validation for invalid cycling_type with Spanish error in ProfileService
+- [X] T135 [US2] Add handling for file too large (>5MB) with Spanish error in ProfileService
+- [X] T136 [US2] Add handling for invalid file format with Spanish error in ProfileService
 
 **Checkpoint**: User Story 2 complete - users can customize profiles and upload photos independently
 
@@ -283,82 +283,82 @@ This project uses **Web application** structure:
 
 #### Contract Tests
 
-- [ ] T137 [P] [US3] Contract test for GET /users/{username}/stats in backend/tests/contract/test_stats_contracts.py
-- [ ] T138 [P] [US3] Contract test for GET /users/{username}/achievements in backend/tests/contract/test_stats_contracts.py
-- [ ] T139 [P] [US3] Contract test for GET /achievements in backend/tests/contract/test_stats_contracts.py
+- [X] T137 [P] [US3] Contract test for GET /users/{username}/stats in backend/tests/contract/test_stats_contracts.py
+- [X] T138 [P] [US3] Contract test for GET /users/{username}/achievements in backend/tests/contract/test_stats_contracts.py
+- [X] T139 [P] [US3] Contract test for GET /achievements in backend/tests/contract/test_stats_contracts.py
 
 #### Integration Tests
 
-- [ ] T140 [US3] Integration test for stats calculation on trip publish in backend/tests/integration/test_stats_calculation.py
-- [ ] T141 [US3] Integration test for stats update on trip edit in backend/tests/integration/test_stats_calculation.py
-- [ ] T142 [US3] Integration test for stats update on trip delete in backend/tests/integration/test_stats_calculation.py
-- [ ] T143 [US3] Integration test for achievement award on milestone in backend/tests/integration/test_stats_calculation.py
-- [ ] T144 [US3] Integration test for multiple achievements in single event in backend/tests/integration/test_stats_calculation.py
+- [X] T140 [US3] Integration test for stats calculation on trip publish in backend/tests/integration/test_stats_calculation.py
+- [X] T141 [US3] Integration test for stats update on trip edit in backend/tests/integration/test_stats_calculation.py
+- [X] T142 [US3] Integration test for stats update on trip delete in backend/tests/integration/test_stats_calculation.py
+- [X] T143 [US3] Integration test for achievement award on milestone in backend/tests/integration/test_stats_calculation.py
+- [X] T144 [US3] Integration test for multiple achievements in single event in backend/tests/integration/test_stats_calculation.py
 
 #### Unit Tests
 
-- [ ] T145 [P] [US3] Unit tests for StatsService.get_user_stats() in backend/tests/unit/test_stats_service.py
-- [ ] T146 [P] [US3] Unit tests for StatsService.update_stats_on_trip_publish() in backend/tests/unit/test_stats_service.py
-- [ ] T147 [P] [US3] Unit tests for StatsService.update_stats_on_trip_delete() in backend/tests/unit/test_stats_service.py
-- [ ] T148 [P] [US3] Unit tests for StatsService.check_achievements() in backend/tests/unit/test_stats_service.py
-- [ ] T149 [P] [US3] Unit tests for StatsService.award_achievement() in backend/tests/unit/test_stats_service.py
-- [ ] T150 [US3] Unit tests for achievement criteria validation in backend/tests/unit/test_stats_service.py
+- [X] T145 [P] [US3] Unit tests for StatsService.get_user_stats() in backend/tests/unit/test_stats_service.py
+- [X] T146 [P] [US3] Unit tests for StatsService.update_stats_on_trip_publish() in backend/tests/unit/test_stats_service.py
+- [X] T147 [P] [US3] Unit tests for StatsService.update_stats_on_trip_delete() in backend/tests/unit/test_stats_service.py
+- [X] T148 [P] [US3] Unit tests for StatsService.check_achievements() in backend/tests/unit/test_stats_service.py
+- [X] T149 [P] [US3] Unit tests for StatsService.award_achievement() in backend/tests/unit/test_stats_service.py
+- [X] T150 [US3] Unit tests for achievement criteria validation in backend/tests/unit/test_stats_service.py
 
 ### Implementation for User Story 3
 
 #### Data Models
 
-- [ ] T151 [P] [US3] Create UserStats model in backend/src/models/stats.py (total_trips, total_km, countries_visited, total_photos, last_trip_date)
-- [ ] T152 [P] [US3] Create Achievement model in backend/src/models/stats.py (code, name, description, badge_icon, requirement_type, requirement_value)
-- [ ] T153 [P] [US3] Create UserAchievement model in backend/src/models/stats.py (user_id, achievement_id, awarded_at)
-- [ ] T154 [US3] Create Alembic migration 002_stats_and_achievements.py for UserStats, Achievement, UserAchievement tables
+- [X] T151 [P] [US3] Create UserStats model in backend/src/models/stats.py (total_trips, total_km, countries_visited, total_photos, last_trip_date)
+- [X] T152 [P] [US3] Create Achievement model in backend/src/models/stats.py (code, name, description, badge_icon, requirement_type, requirement_value)
+- [X] T153 [P] [US3] Create UserAchievement model in backend/src/models/stats.py (user_id, achievement_id, awarded_at)
+- [X] T154 [US3] Create Alembic migration 003_stats_and_achievements.py for UserStats, Achievement, UserAchievement tables
 
 #### Pydantic Schemas
 
-- [ ] T155 [P] [US3] Create StatsResponse schema in backend/src/schemas/stats.py
-- [ ] T156 [P] [US3] Create AchievementResponse schema in backend/src/schemas/stats.py
-- [ ] T157 [P] [US3] Create AchievementDefinition schema in backend/src/schemas/stats.py
-- [ ] T158 [P] [US3] Create UserAchievementResponse schema in backend/src/schemas/stats.py
+- [X] T155 [P] [US3] Create StatsResponse schema in backend/src/schemas/stats.py
+- [X] T156 [P] [US3] Create AchievementResponse schema in backend/src/schemas/stats.py
+- [X] T157 [P] [US3] Create AchievementDefinition schema in backend/src/schemas/stats.py
+- [X] T158 [P] [US3] Create UserAchievementResponse schema in backend/src/schemas/stats.py
 
 #### Business Logic
 
-- [ ] T159 [US3] Implement StatsService.get_user_stats() in backend/src/services/stats_service.py (FR-019, FR-020, FR-021)
-- [ ] T160 [US3] Implement StatsService.get_user_achievements() in backend/src/services/stats_service.py (FR-024)
-- [ ] T161 [US3] Implement StatsService.update_stats_on_trip_publish() in backend/src/services/stats_service.py (FR-022, event-driven)
-- [ ] T162 [US3] Implement StatsService.update_stats_on_trip_edit() in backend/src/services/stats_service.py (FR-022)
-- [ ] T163 [US3] Implement StatsService.update_stats_on_trip_delete() in backend/src/services/stats_service.py (FR-022)
-- [ ] T164 [US3] Implement StatsService.check_achievements() in backend/src/services/stats_service.py (FR-024, check all criteria)
-- [ ] T165 [US3] Implement StatsService.award_achievement() in backend/src/services/stats_service.py (FR-024, idempotent)
+- [X] T159 [US3] Implement StatsService.get_user_stats() in backend/src/services/stats_service.py (FR-019, FR-020, FR-021)
+- [X] T160 [US3] Implement StatsService.get_user_achievements() in backend/src/services/stats_service.py (FR-024)
+- [X] T161 [US3] Implement StatsService.update_stats_on_trip_publish() in backend/src/services/stats_service.py (FR-022, event-driven)
+- [X] T162 [US3] Implement StatsService.update_stats_on_trip_edit() in backend/src/services/stats_service.py (FR-022)
+- [X] T163 [US3] Implement StatsService.update_stats_on_trip_delete() in backend/src/services/stats_service.py (FR-022)
+- [X] T164 [US3] Implement StatsService.check_achievements() in backend/src/services/stats_service.py (FR-024, check all criteria)
+- [X] T165 [US3] Implement StatsService.award_achievement() in backend/src/services/stats_service.py (FR-024, idempotent)
 
 #### API Endpoints
 
-- [ ] T166 [US3] Implement GET /users/{username}/stats endpoint in backend/src/api/stats.py (public access)
-- [ ] T167 [US3] Implement GET /users/{username}/achievements endpoint in backend/src/api/stats.py (public access)
-- [ ] T168 [US3] Implement GET /achievements endpoint in backend/src/api/stats.py (list all available achievements)
+- [X] T166 [US3] Implement GET /users/{username}/stats endpoint in backend/src/api/stats.py (public access)
+- [X] T167 [US3] Implement GET /users/{username}/achievements endpoint in backend/src/api/stats.py (public access)
+- [X] T168 [US3] Implement GET /achievements endpoint in backend/src/api/stats.py (list all available achievements)
 
 #### Database Seeding
 
-- [ ] T169 [US3] Create script to seed 9 predefined achievements in backend/scripts/seed_achievements.py per data-model.md (FIRST_TRIP, CENTURY, VOYAGER, EXPLORER, PHOTOGRAPHER, GLOBETROTTER, MARATHONER, INFLUENCER, PROLIFIC)
-- [ ] T170 [US3] Add achievement seeding to Alembic migration or separate data migration
+- [X] T169 [US3] Create script to seed 9 predefined achievements in backend/scripts/seed_achievements.py per data-model.md (FIRST_TRIP, CENTURY, VOYAGER, EXPLORER, PHOTOGRAPHER, GLOBETROTTER, MARATHONER, INFLUENCER, PROLIFIC)
+- [X] T170 [US3] Add achievement seeding to Alembic migration or separate data migration
 
 #### Stats Calculation Logic
 
-- [ ] T171 [US3] Implement total_kilometers calculation from trip GPX data in StatsService
-- [ ] T172 [US3] Implement unique countries extraction from trip locations in StatsService
-- [ ] T173 [US3] Implement total_photos count from trip photo attachments in StatsService
-- [ ] T174 [US3] Add background task for stats recalculation (daily reconciliation) in StatsService
+- [X] T171 [US3] Implement total_kilometers calculation from trip GPX data in StatsService
+- [X] T172 [US3] Implement unique countries extraction from trip locations in StatsService
+- [X] T173 [US3] Implement total_photos count from trip photo attachments in StatsService
+- [X] T174 [US3] Add background task for stats recalculation (daily reconciliation) in StatsService
 
 #### Achievement Criteria
 
-- [ ] T175 [P] [US3] Implement distance milestone checks (100km, 1000km, 5000km) in StatsService.check_achievements()
-- [ ] T176 [P] [US3] Implement trip count milestone checks (1, 10, 25) in StatsService.check_achievements()
-- [ ] T177 [P] [US3] Implement countries visited milestone checks (5, 10) in StatsService.check_achievements()
-- [ ] T178 [P] [US3] Implement photos milestone checks (50) in StatsService.check_achievements()
+- [X] T175 [P] [US3] Implement distance milestone checks (100km, 1000km, 5000km) in StatsService.check_achievements()
+- [X] T176 [P] [US3] Implement trip count milestone checks (1, 10, 25) in StatsService.check_achievements()
+- [X] T177 [P] [US3] Implement countries visited milestone checks (5, 10) in StatsService.check_achievements()
+- [X] T178 [P] [US3] Implement photos milestone checks (50) in StatsService.check_achievements()
 
 #### Display Logic
 
-- [ ] T179 [US3] Add zero-state message for users with no trips (Spanish) in StatsResponse
-- [ ] T180 [US3] Add stats display to ProfileResponse in backend/src/schemas/profile.py
+- [X] T179 [US3] Add zero-state message for users with no trips (Spanish) in StatsResponse
+- [X] T180 [US3] Add stats display to ProfileResponse in backend/src/schemas/profile.py
 
 **Checkpoint**: User Story 3 complete - stats auto-calculate and achievements award automatically
 
@@ -374,78 +374,78 @@ This project uses **Web application** structure:
 
 #### Contract Tests
 
-- [ ] T181 [P] [US4] Contract test for POST /users/{username}/follow in backend/tests/contract/test_social_contracts.py
-- [ ] T182 [P] [US4] Contract test for DELETE /users/{username}/follow in backend/tests/contract/test_social_contracts.py
-- [ ] T183 [P] [US4] Contract test for GET /users/{username}/followers in backend/tests/contract/test_social_contracts.py
-- [ ] T184 [P] [US4] Contract test for GET /users/{username}/following in backend/tests/contract/test_social_contracts.py
-- [ ] T185 [P] [US4] Contract test for GET /users/{username}/follow-status in backend/tests/contract/test_social_contracts.py
+- [X] T181 [P] [US4] Contract test for POST /users/{username}/follow in backend/tests/contract/test_social_contracts.py
+- [X] T182 [P] [US4] Contract test for DELETE /users/{username}/follow in backend/tests/contract/test_social_contracts.py
+- [X] T183 [P] [US4] Contract test for GET /users/{username}/followers in backend/tests/contract/test_social_contracts.py
+- [X] T184 [P] [US4] Contract test for GET /users/{username}/following in backend/tests/contract/test_social_contracts.py
+- [X] T185 [P] [US4] Contract test for GET /users/{username}/follow-status in backend/tests/contract/test_social_contracts.py
 
 #### Integration Tests
 
-- [ ] T186 [US4] Integration test for full follow workflow (follow → verify lists → unfollow) in backend/tests/integration/test_follow_workflow.py
-- [ ] T187 [US4] Integration test for follower/following counter updates in backend/tests/integration/test_follow_workflow.py
-- [ ] T188 [US4] Integration test for pagination of followers list (50+ users) in backend/tests/integration/test_follow_workflow.py
-- [ ] T189 [US4] Integration test for self-follow prevention in backend/tests/integration/test_follow_workflow.py
-- [ ] T190 [US4] Integration test for unauthenticated follow redirect in backend/tests/integration/test_follow_workflow.py
+- [X] T186 [US4] Integration test for full follow workflow (follow → verify lists → unfollow) in backend/tests/integration/test_follow_workflow.py
+- [X] T187 [US4] Integration test for follower/following counter updates in backend/tests/integration/test_follow_workflow.py
+- [X] T188 [US4] Integration test for pagination of followers list (50+ users) in backend/tests/integration/test_follow_workflow.py
+- [X] T189 [US4] Integration test for self-follow prevention in backend/tests/integration/test_follow_workflow.py
+- [X] T190 [US4] Integration test for unauthenticated follow redirect in backend/tests/integration/test_follow_workflow.py
 
 #### Unit Tests
 
-- [ ] T191 [P] [US4] Unit tests for SocialService.follow_user() in backend/tests/unit/test_social_service.py
-- [ ] T192 [P] [US4] Unit tests for SocialService.unfollow_user() in backend/tests/unit/test_social_service.py
-- [ ] T193 [P] [US4] Unit tests for SocialService.get_followers() in backend/tests/unit/test_social_service.py
-- [ ] T194 [P] [US4] Unit tests for SocialService.get_following() in backend/tests/unit/test_social_service.py
-- [ ] T195 [P] [US4] Unit tests for SocialService.get_follow_status() in backend/tests/unit/test_social_service.py
-- [ ] T196 [US4] Unit tests for duplicate follow prevention in backend/tests/unit/test_social_service.py
-- [ ] T197 [US4] Unit tests for counter update on follow/unfollow in backend/tests/unit/test_social_service.py
+- [X] T191 [P] [US4] Unit tests for SocialService.follow_user() in backend/tests/unit/test_social_service.py
+- [X] T192 [P] [US4] Unit tests for SocialService.unfollow_user() in backend/tests/unit/test_social_service.py
+- [X] T193 [P] [US4] Unit tests for SocialService.get_followers() in backend/tests/unit/test_social_service.py
+- [X] T194 [P] [US4] Unit tests for SocialService.get_following() in backend/tests/unit/test_social_service.py
+- [X] T195 [P] [US4] Unit tests for SocialService.get_follow_status() in backend/tests/unit/test_social_service.py
+- [X] T196 [US4] Unit tests for duplicate follow prevention in backend/tests/unit/test_social_service.py
+- [X] T197 [US4] Unit tests for counter update on follow/unfollow in backend/tests/unit/test_social_service.py
 
 ### Implementation for User Story 4
 
 #### Data Models
 
-- [ ] T198 [US4] Create Follow model in backend/src/models/social.py (follower_id, following_id, created_at, unique constraint, CHECK no self-follow)
-- [ ] T199 [US4] Add followers_count and following_count to UserProfile model in backend/src/models/user.py (denormalized counters)
-- [ ] T200 [US4] Create Alembic migration 003_social_features.py for Follow table and UserProfile counter columns
+- [X] T198 [US4] Create Follow model in backend/src/models/social.py (follower_id, following_id, created_at, unique constraint, CHECK no self-follow)
+- [X] T199 [US4] Add followers_count and following_count to UserProfile model in backend/src/models/user.py (denormalized counters)
+- [X] T200 [US4] Create Alembic migration 004_social_features.py for Follow table and UserProfile counter columns
 
 #### Pydantic Schemas
 
-- [ ] T201 [P] [US4] Create FollowResponse schema in backend/src/schemas/social.py
-- [ ] T202 [P] [US4] Create UserSummary schema for follower/following lists in backend/src/schemas/social.py
-- [ ] T203 [P] [US4] Create FollowersListResponse schema with pagination in backend/src/schemas/social.py
-- [ ] T204 [P] [US4] Create FollowingListResponse schema with pagination in backend/src/schemas/social.py
-- [ ] T205 [P] [US4] Create FollowStatusResponse schema in backend/src/schemas/social.py
+- [X] T201 [P] [US4] Create FollowResponse schema in backend/src/schemas/social.py
+- [X] T202 [P] [US4] Create UserSummary schema for follower/following lists in backend/src/schemas/social.py
+- [X] T203 [P] [US4] Create FollowersListResponse schema with pagination in backend/src/schemas/social.py
+- [X] T204 [P] [US4] Create FollowingListResponse schema with pagination in backend/src/schemas/social.py
+- [X] T205 [P] [US4] Create FollowStatusResponse schema in backend/src/schemas/social.py
 
 #### Business Logic
 
-- [ ] T206 [US4] Implement SocialService.follow_user() in backend/src/services/social_service.py (FR-025, FR-027, transactional counter update)
-- [ ] T207 [US4] Implement SocialService.unfollow_user() in backend/src/services/social_service.py (FR-026, FR-031, transactional counter update)
-- [ ] T208 [US4] Implement SocialService.get_followers() in backend/src/services/social_service.py (FR-028, FR-030, paginated, max 50)
-- [ ] T209 [US4] Implement SocialService.get_following() in backend/src/services/social_service.py (FR-029, FR-030, paginated, max 50)
-- [ ] T210 [US4] Implement SocialService.get_follow_status() in backend/src/services/social_service.py (check if current user follows target)
+- [X] T206 [US4] Implement SocialService.follow_user() in backend/src/services/social_service.py (FR-025, FR-027, transactional counter update)
+- [X] T207 [US4] Implement SocialService.unfollow_user() in backend/src/services/social_service.py (FR-026, FR-031, transactional counter update)
+- [X] T208 [US4] Implement SocialService.get_followers() in backend/src/services/social_service.py (FR-028, FR-030, paginated, max 50)
+- [X] T209 [US4] Implement SocialService.get_following() in backend/src/services/social_service.py (FR-029, FR-030, paginated, max 50)
+- [X] T210 [US4] Implement SocialService.get_follow_status() in backend/src/services/social_service.py (check if current user follows target)
 
 #### API Endpoints
 
-- [ ] T211 [US4] Implement POST /users/{username}/follow endpoint in backend/src/api/social.py (FR-025, authenticated only)
-- [ ] T212 [US4] Implement DELETE /users/{username}/follow endpoint in backend/src/api/social.py (FR-026, authenticated only)
-- [ ] T213 [US4] Implement GET /users/{username}/followers endpoint in backend/src/api/social.py (FR-028, public, paginated)
-- [ ] T214 [US4] Implement GET /users/{username}/following endpoint in backend/src/api/social.py (FR-029, public, paginated)
-- [ ] T215 [US4] Implement GET /users/{username}/follow-status endpoint in backend/src/api/social.py (authenticated only)
+- [X] T211 [US4] Implement POST /users/{username}/follow endpoint in backend/src/api/social.py (FR-025, authenticated only)
+- [X] T212 [US4] Implement DELETE /users/{username}/follow endpoint in backend/src/api/social.py (FR-026, authenticated only)
+- [X] T213 [US4] Implement GET /users/{username}/followers endpoint in backend/src/api/social.py (FR-028, public, paginated)
+- [X] T214 [US4] Implement GET /users/{username}/following endpoint in backend/src/api/social.py (FR-029, public, paginated)
+- [X] T215 [US4] Implement GET /users/{username}/follow-status endpoint in backend/src/api/social.py (authenticated only)
 
 #### Database Optimization
 
-- [ ] T216 [US4] Add indexes on Follow (follower_id, following_id) per data-model.md in migration
-- [ ] T217 [US4] Add index on Follow (created_at) for sorting in migration
+- [X] T216 [US4] Add indexes on Follow (follower_id, following_id) per data-model.md in migration
+- [X] T217 [US4] Add index on Follow (created_at) for sorting in migration
 
 #### Validation & Error Handling
 
-- [ ] T218 [US4] Add validation for self-follow prevention with Spanish error in SocialService
-- [ ] T219 [US4] Add validation for duplicate follow with Spanish error in SocialService
-- [ ] T220 [US4] Add validation for unfollow non-existent relationship with Spanish error in SocialService
-- [ ] T221 [US4] Add 401 redirect for unauthenticated follow attempts in backend/src/api/social.py
+- [X] T218 [US4] Add validation for self-follow prevention with Spanish error in SocialService
+- [X] T219 [US4] Add validation for duplicate follow with Spanish error in SocialService
+- [X] T220 [US4] Add validation for unfollow non-existent relationship with Spanish error in SocialService
+- [X] T221 [US4] Add 401 redirect for unauthenticated follow attempts in backend/src/api/social.py
 
 #### Counter Consistency
 
-- [ ] T222 [US4] Add transactional update for followers_count and following_count in SocialService.follow_user()
-- [ ] T223 [US4] Add transactional update for followers_count and following_count in SocialService.unfollow_user()
+- [X] T222 [US4] Add transactional update for followers_count and following_count in SocialService.follow_user()
+- [X] T223 [US4] Add transactional update for followers_count and following_count in SocialService.unfollow_user()
 - [ ] T224 [US4] Add background task for periodic counter reconciliation in backend/scripts/ (optional, future)
 
 **Checkpoint**: User Story 4 complete - social connections fully functional with accurate counts

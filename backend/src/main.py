@@ -227,11 +227,9 @@ async def root() -> Dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth
+from src.api import auth, profile, stats, social
 app.include_router(auth.router)
-
-# TODO: Uncomment as routers are implemented
-# from src.api import profile, stats, social
-# app.include_router(profile.router, prefix="/users", tags=["Profiles"])
-# app.include_router(stats.router, prefix="/users", tags=["Statistics"])
-# app.include_router(social.router, prefix="/users", tags=["Social"])
+app.include_router(profile.router)
+app.include_router(stats.router)
+app.include_router(stats.achievements_router)
+app.include_router(social.router)

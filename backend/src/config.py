@@ -5,7 +5,7 @@ Loads and validates environment variables using Pydantic Settings.
 All configuration is immutable and validated at startup.
 """
 
-from typing import List
+from typing import Any
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     profile_photo_size: int = Field(default=400, ge=100, description="Profile photo dimension (square)")
 
     # CORS
-    cors_origins: List[str] = Field(
+    cors_origins: list[str] = Field(
         default=["http://localhost:3000", "http://localhost:5173"],
         description="Allowed CORS origins"
     )
@@ -98,7 +98,7 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: str | List[str]) -> List[str]:
+    def parse_cors_origins(cls, v: Any) -> list[str]:
         """Parse CORS origins from comma-separated string or list."""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",") if origin.strip()]
