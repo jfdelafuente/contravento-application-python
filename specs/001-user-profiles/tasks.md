@@ -490,26 +490,26 @@ This project uses **Web application** structure:
 
 ### Testing & Coverage
 
-- [ ] T245 Run full test suite: pytest backend/tests/ --cov=backend/src --cov-report=html
-- [ ] T246 Verify ≥90% test coverage across all modules (constitution requirement)
-- [ ] T247 Add additional edge case tests if coverage gaps found
-- [ ] T248 Test all error messages are in Spanish per constitution
+- [X] T245 Run full test suite: pytest backend/tests/ --cov=backend/src --cov-report=html
+- [X] T246 Verify ≥90% test coverage across all modules (constitution requirement)
+- [X] T247 Add additional edge case tests if coverage gaps found
+- [X] T248 Test all error messages are in Spanish per constitution
 
 ### Deployment Preparation
 
-- [ ] T249 Create Dockerfile for backend per plan.md
-- [ ] T250 Create docker-compose.yml with PostgreSQL + Redis per plan.md
-- [ ] T251 Test backend with PostgreSQL (not just SQLite)
-- [ ] T252 Create .env.prod template with production settings
-- [ ] T253 Verify all migrations work with PostgreSQL
+- [X] T249 Create Dockerfile for backend per plan.md
+- [X] T250 Create docker-compose.yml with PostgreSQL + Redis per plan.md
+- [X] T251 Test backend with PostgreSQL (not just SQLite)
+- [X] T252 Create .env.prod template with production settings
+- [X] T253 Verify all migrations work with PostgreSQL
 
 ### Final Validation
 
-- [ ] T254 Run quickstart.md validation end-to-end (setup → register → login → profile → stats → follow)
-- [ ] T255 Verify all 32 functional requirements (FR-001 to FR-032) are implemented
-- [ ] T256 Verify all 25 success criteria (SC-001 to SC-025) are met
-- [ ] T257 Verify all 4 user stories are independently testable
-- [ ] T258 Create release notes / changelog
+- [X] T254 Run quickstart.md validation end-to-end (setup → register → login → profile → stats → follow)
+- [X] T255 Verify all 32 functional requirements (FR-001 to FR-032) are implemented
+- [X] T256 Verify all 25 success criteria (SC-001 to SC-025) are met
+- [X] T257 Verify all 4 user stories are independently testable
+- [X] T258 Create release notes / changelog
 
 ---
 
