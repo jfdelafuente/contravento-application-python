@@ -87,18 +87,25 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
     Returns:
         Standardized error response
     """
-    # Extract error details
-    if isinstance(exc.detail, dict):
+    # Check if detail is already in the standardized format
+    if isinstance(exc.detail, dict) and "success" in exc.detail and "error" in exc.detail:
+        # Already formatted, return as-is
+        content = exc.detail
+    elif isinstance(exc.detail, dict):
+        # Has some structure but not standardized, wrap the error
         error = exc.detail
+        content = create_response(success=False, error=error)
     else:
+        # Plain string, create error structure
         error = {
             "code": f"HTTP_{exc.status_code}",
             "message": str(exc.detail),
         }
+        content = create_response(success=False, error=error)
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=create_response(success=False, error=error),
+        content=content,
     )
 
 
