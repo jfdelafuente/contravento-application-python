@@ -12,9 +12,11 @@ from datetime import datetime
 from typing import Optional
 from pathlib import Path
 import logging
+import asyncio
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 from fastapi import UploadFile
 
 from src.models.user import User, UserProfile
@@ -61,21 +63,22 @@ class ProfileService:
         Raises:
             ValueError: If user not found
         """
-        # Get user with profile
+        # T226: Optimized query with eager loading for profile and stats
         result = await self.db.execute(
-            select(User).where(User.username == username)
+            select(User)
+            .options(
+                joinedload(User.profile),
+                joinedload(User.stats)
+            )
+            .where(User.username == username)
         )
-        user = result.scalar_one_or_none()
+        user = result.unique().scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
-        # Get profile
-        result = await self.db.execute(
-            select(UserProfile).where(UserProfile.user_id == user.id)
-        )
-        profile = result.scalar_one_or_none()
-
+        # Get or create profile
+        profile = user.profile
         if not profile:
             # Create empty profile if doesn't exist
             profile = UserProfile(user_id=user.id)
@@ -83,11 +86,8 @@ class ProfileService:
             await self.db.commit()
             await self.db.refresh(profile)
 
-        # Get stats for preview (T180)
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user.id)
-        )
-        stats = result.scalar_one_or_none()
+        # Get stats (already loaded via eager loading)
+        stats = user.stats
 
         stats_preview = None
         if stats:
@@ -243,14 +243,19 @@ class ProfileService:
         storage_dir = Path(settings.storage_path) / "profile_photos" / datetime.utcnow().strftime("%Y/%m")
         storage_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save temporary file
+        # T227: Async photo processing to avoid blocking event loop
+        # Save temporary file in thread pool
         temp_path = storage_dir / f"temp_{filename}"
-        with open(temp_path, "wb") as f:
-            f.write(content)
 
-        # Resize photo
+        def write_and_resize():
+            """Write file and resize - runs in thread pool."""
+            with open(temp_path, "wb") as f:
+                f.write(content)
+            return resize_photo(temp_path, target_size=400)
+
         try:
-            final_path = resize_photo(temp_path, target_size=400)
+            # Run I/O-bound operation in thread pool
+            final_path = await asyncio.to_thread(write_and_resize)
         except Exception as e:
             # Clean up temp file
             if temp_path.exists():

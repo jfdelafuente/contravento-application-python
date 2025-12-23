@@ -458,35 +458,35 @@ This project uses **Web application** structure:
 
 ### Performance Optimization
 
-- [ ] T225 [P] Add database indexes verification per data-model.md (email, username, foreign keys)
-- [ ] T226 [P] Add query optimization with eager loading for profile+stats+achievements
-- [ ] T227 [P] Optimize photo processing to run in background task (if not already async)
-- [ ] T228 Run performance tests with Locust per quickstart.md (100+ concurrent registrations, <500ms auth, <200ms profiles)
+- [X] T225 [P] Add database indexes verification per data-model.md (email, username, foreign keys)
+- [X] T226 [P] Add query optimization with eager loading for profile+stats+achievements
+- [X] T227 [P] Optimize photo processing to run in background task (if not already async)
+- [X] T228 Run performance tests with Locust per quickstart.md (100+ concurrent registrations, <500ms auth, <200ms profiles)
 
 ### Security Hardening
 
-- [ ] T229 [P] Audit password hashing to confirm bcrypt 12 rounds in production config
-- [ ] T230 [P] Audit JWT token expiration (15min access, 30-day refresh) in config
-- [ ] T231 [P] Verify all endpoints validate authentication/authorization correctly
-- [ ] T232 [P] Add CSRF protection if using cookies (not needed for JWT in headers)
-- [ ] T233 Scan for SQL injection vulnerabilities (verify only ORM used, no raw SQL)
-- [ ] T234 Scan for XSS vulnerabilities in bio and other user inputs
+- [X] T229 [P] Audit password hashing to confirm bcrypt 12 rounds in production config
+- [X] T230 [P] Audit JWT token expiration (15min access, 30-day refresh) in config
+- [X] T231 [P] Verify all endpoints validate authentication/authorization correctly
+- [X] T232 [P] Add CSRF protection if using cookies (not needed for JWT in headers)
+- [X] T233 Scan for SQL injection vulnerabilities (verify only ORM used, no raw SQL)
+- [X] T234 Scan for XSS vulnerabilities in bio and other user inputs
 
 ### Documentation
 
-- [ ] T235 [P] Add API documentation with examples to each endpoint (FastAPI auto-docs enhancement)
-- [ ] T236 [P] Create README.md in backend/ with quickstart instructions
-- [ ] T237 [P] Document environment variables in .env.example with descriptions
-- [ ] T238 Add architecture diagram to docs/ showing layers (models → services → api)
+- [X] T235 [P] Add API documentation with examples to each endpoint (FastAPI auto-docs enhancement)
+- [X] T236 [P] Create README.md in backend/ with quickstart instructions
+- [X] T237 [P] Document environment variables in .env.example with descriptions
+- [X] T238 Add architecture diagram to docs/ showing layers (models → services → api)
 
 ### Code Quality
 
-- [ ] T239 Run black formatter on all Python files
-- [ ] T240 Run ruff linter and fix all issues
-- [ ] T241 Run mypy type checker and fix all type errors
-- [ ] T242 Review and remove any commented-out code or TODOs
-- [ ] T243 Ensure all functions have Google-style docstrings
-- [ ] T244 Verify no magic numbers (all constants in config.py)
+- [X] T239 Run black formatter on all Python files
+- [X] T240 Run ruff linter and fix all issues
+- [X] T241 Run mypy type checker and fix all type errors
+- [X] T242 Review and remove any commented-out code or TODOs
+- [X] T243 Ensure all functions have Google-style docstrings
+- [X] T244 Verify no magic numbers (all constants in config.py)
 
 ### Testing & Coverage
 

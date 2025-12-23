@@ -13,6 +13,7 @@ import logging
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from src.models.user import User
 from src.models.stats import UserStats, Achievement, UserAchievement
@@ -138,36 +139,36 @@ class StatsService:
         Raises:
             ValueError: If user not found
         """
-        # Get user
+        # T226: Optimized query with eager loading for user achievements
         result = await self.db.execute(
-            select(User).where(User.username == username)
+            select(User)
+            .options(joinedload(User.user_achievements).joinedload(UserAchievement.achievement))
+            .where(User.username == username)
         )
-        user = result.scalar_one_or_none()
+        user = result.unique().scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
-        # Get user's achievements with achievement details
-        result = await self.db.execute(
-            select(UserAchievement, Achievement)
-            .join(Achievement, UserAchievement.achievement_id == Achievement.id)
-            .where(UserAchievement.user_id == user.id)
-            .order_by(UserAchievement.awarded_at.desc())  # Most recent first
+        # Sort achievements by awarded_at (most recent first)
+        user_achievements = sorted(
+            user.user_achievements,
+            key=lambda ua: ua.awarded_at,
+            reverse=True
         )
-        user_achievements = result.all()
 
         # Format response
         achievements = [
             AchievementResponse(
-                code=achievement.code,
-                name=achievement.name,
-                description=achievement.description,
-                badge_icon=achievement.badge_icon,
-                requirement_type=achievement.requirement_type,
-                requirement_value=achievement.requirement_value,
-                awarded_at=user_achievement.awarded_at,
+                code=ua.achievement.code,
+                name=ua.achievement.name,
+                description=ua.achievement.description,
+                badge_icon=ua.achievement.badge_icon,
+                requirement_type=ua.achievement.requirement_type,
+                requirement_value=ua.achievement.requirement_value,
+                awarded_at=ua.awarded_at,
             )
-            for user_achievement, achievement in user_achievements
+            for ua in user_achievements
         ]
 
         return UserAchievementResponse(
