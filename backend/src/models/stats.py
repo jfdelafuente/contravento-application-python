@@ -73,7 +73,7 @@ class UserStats(Base):
 
     countries_visited: Mapped[List[str]] = mapped_column(
         JSON,
-        default=list,
+        default=lambda: [],
         nullable=False,
         doc="List of ISO country codes visited (e.g., ['ES', 'FR', 'IT'])",
     )

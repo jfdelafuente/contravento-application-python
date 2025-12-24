@@ -100,18 +100,23 @@ class StatsService:
 
         if not stats:
             # Create empty stats for new user
-            stats = UserStats(user_id=user.id)
+            stats = UserStats(
+                user_id=user.id,
+                countries_visited=[],  # Explicitly set empty list
+            )
             self.db.add(stats)
             await self.db.commit()
             await self.db.refresh(stats)
 
         # Convert country codes to CountryInfo objects
+        # Handle None case for countries_visited (SQLite/JSON quirk)
+        countries_list = stats.countries_visited if stats.countries_visited is not None else []
         countries = [
             CountryInfo(
                 code=code,
                 name=COUNTRY_NAMES.get(code, code)  # Fallback to code if name not found
             )
-            for code in stats.countries_visited
+            for code in countries_list
         ]
 
         return StatsResponse(
