@@ -57,7 +57,7 @@ async def follow_user(
 
     try:
         result = await social_service.follow_user(
-            follower_username=current_user.username,
+            follower_username=current_user["username"],
             following_username=username,
         )
 
@@ -128,7 +128,7 @@ async def unfollow_user(
 
     try:
         result = await social_service.unfollow_user(
-            follower_username=current_user.username,
+            follower_username=current_user["username"],
             following_username=username,
         )
 
@@ -307,7 +307,7 @@ async def get_follow_status(
 
     try:
         result = await social_service.get_follow_status(
-            follower_username=current_user.username,
+            follower_username=current_user["username"],
             following_username=target_username,
         )
 
