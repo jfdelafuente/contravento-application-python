@@ -48,7 +48,7 @@ def create_response(success: bool, data: Any = None, error: Dict = None, message
     return response
 
 
-@router.get("/{username}/stats", response_model=StatsResponse)
+@router.get("/{username}/stats")
 async def get_user_stats(
     username: str,
     db: AsyncSession = Depends(get_db),
