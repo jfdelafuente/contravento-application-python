@@ -104,6 +104,26 @@ La API estará disponible en: `http://localhost:8000`
 
 Documentación interactiva: `http://localhost:8000/docs`
 
+### 6. Crear Usuarios de Prueba (Opcional)
+
+Para desarrollo, puedes crear usuarios verificados automáticamente:
+
+```bash
+# Crear usuarios por defecto (testuser y maria_garcia)
+poetry run python scripts/create_verified_user.py
+
+# Crear usuario personalizado
+poetry run python scripts/create_verified_user.py --username carlos --email carlos@example.com --password "Carlos2024!"
+
+# Verificar usuario existente por email
+poetry run python scripts/create_verified_user.py --verify-email test@example.com
+```
+
+**Usuarios por defecto**:
+
+- Username: `testuser`, Email: `test@example.com`, Password: `TestPass123!`
+- Username: `maria_garcia`, Email: `maria@example.com`, Password: `SecurePass456!`
+
 ## Testing
 
 ### Ejecutar Todos los Tests
