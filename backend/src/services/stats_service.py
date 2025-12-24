@@ -15,8 +15,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.models.user import User
+from src.models.user import User, UserProfile
 from src.models.stats import UserStats, Achievement, UserAchievement
+from src.models.social import Follow  # Import to resolve SQLAlchemy relationships
 from src.schemas.stats import (
     StatsResponse,
     AchievementResponse,
