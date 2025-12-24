@@ -27,7 +27,6 @@ router = APIRouter(prefix="/users", tags=["social"])
 
 @router.post(
     "/{username}/follow",
-    response_model=FollowResponse,
     status_code=status.HTTP_200_OK,
     summary="T211: Follow a user",
     description="Follow a user. Requires authentication. Cannot follow yourself or follow someone you already follow.",
@@ -98,7 +97,6 @@ async def follow_user(
 
 @router.delete(
     "/{username}/follow",
-    response_model=FollowResponse,
     status_code=status.HTTP_200_OK,
     summary="T212: Unfollow a user",
     description="Unfollow a user. Requires authentication. Must be currently following the user.",
@@ -166,7 +164,6 @@ async def unfollow_user(
 
 @router.get(
     "/{username}/followers",
-    response_model=FollowersListResponse,
     status_code=status.HTTP_200_OK,
     summary="T213: Get followers list",
     description="Get paginated list of users who follow the target user. Public endpoint.",
@@ -222,7 +219,6 @@ async def get_followers(
 
 @router.get(
     "/{username}/following",
-    response_model=FollowingListResponse,
     status_code=status.HTTP_200_OK,
     summary="T214: Get following list",
     description="Get paginated list of users that the target user follows. Public endpoint.",
@@ -278,7 +274,6 @@ async def get_following(
 
 @router.get(
     "/{target_username}/follow-status",
-    response_model=FollowStatusResponse,
     status_code=status.HTTP_200_OK,
     summary="T215: Get follow status",
     description="Check if current user follows target user. Requires authentication.",
