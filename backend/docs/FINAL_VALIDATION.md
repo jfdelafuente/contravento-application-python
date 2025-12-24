@@ -19,7 +19,11 @@ poetry run alembic upgrade head
 # 2. Start server
 poetry run uvicorn src.main:app --reload
 
-# 3. Register new user
+# 3. Create verified test user (opción recomendada para desarrollo)
+poetry run python scripts/create_verified_user.py
+# Esto crea usuarios: testuser y maria_garcia, ambos ya verificados
+
+# 3-ALT. O registrar manualmente (requiere verificación de email)
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
   -d '{
@@ -27,6 +31,7 @@ curl -X POST http://localhost:8000/auth/register \
     "email": "test@example.com",
     "password": "SecurePass123!"
   }'
+# Luego verificar con: poetry run python scripts/create_verified_user.py --verify-email test@example.com
 
 # 4. Login (usar 'login' en lugar de 'username')
 curl -X POST http://localhost:8000/auth/login \
@@ -58,6 +63,27 @@ curl -X POST http://localhost:8000/users/otheruser/follow \
 
 # 9. Get followers
 curl http://localhost:8000/users/otheruser/followers
+```
+
+**Nota sobre Verificación de Usuarios:**
+
+El script `create_verified_user.py` simplifica el proceso de testing al:
+
+- Crear usuarios ya verificados (sin necesidad de email)
+- Permitir crear usuarios personalizados con parámetros CLI
+- Verificar usuarios existentes sin tokens de email
+
+**Modos de uso:**
+
+```bash
+# Crear usuarios por defecto verificados
+poetry run python scripts/create_verified_user.py
+
+# Crear usuario personalizado verificado
+poetry run python scripts/create_verified_user.py --username carlos --email carlos@example.com --password "Carlos2024!"
+
+# Verificar usuario existente por email
+poetry run python scripts/create_verified_user.py --verify-email test@example.com
 ```
 
 **Criterio de Éxito:** Todos los endpoints responden con status 200/201, datos correctos en español.
