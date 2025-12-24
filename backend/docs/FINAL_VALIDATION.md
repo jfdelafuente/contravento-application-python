@@ -28,20 +28,20 @@ curl -X POST http://localhost:8000/auth/register \
     "password": "SecurePass123!"
   }'
 
-# 4. Login
+# 4. Login (usar 'login' en lugar de 'username')
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "testuser",
+    "login": "testuser",
     "password": "SecurePass123!"
   }'
 # Save access_token from response
 
-# 5. Get profile
-curl http://localhost:8000/users/testuser
+# 5. Get profile (endpoint correcto: /users/{username}/profile)
+curl http://localhost:8000/users/testuser/profile
 
-# 6. Update profile
-curl -X PATCH http://localhost:8000/users/testuser \
+# 6. Update profile (endpoint correcto: PUT /users/{username}/profile)
+curl -X PUT http://localhost:8000/users/testuser/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -83,11 +83,11 @@ curl http://localhost:8000/users/otheruser/followers
 
 | FR | Requirement | Status | Evidence |
 |----|-------------|--------|----------|
-| FR-009 | View public profile | ✅ | GET /users/{username} |
-| FR-010 | Update own profile (bio, location, etc.) | ✅ | PATCH /users/{username} |
-| FR-011 | Upload profile photo (max 5MB, resize 400x400) | ✅ | POST /users/{username}/photo |
-| FR-012 | Delete profile photo | ✅ | DELETE /users/{username}/photo |
-| FR-013 | Privacy settings (show_email, show_location) | ✅ | PATCH /users/{username}/privacy |
+| FR-009 | View public profile | ✅ | GET /users/{username}/profile |
+| FR-010 | Update own profile (bio, location, etc.) | ✅ | PUT /users/{username}/profile |
+| FR-011 | Upload profile photo (max 5MB, resize 400x400) | ✅ | POST /users/{username}/profile/photo |
+| FR-012 | Delete profile photo | ✅ | DELETE /users/{username}/profile/photo |
+| FR-013 | Privacy settings (show_email, show_location) | ✅ | PUT /users/{username}/profile/privacy |
 | FR-014 | Bio max 500 chars | ✅ | Schema validation |
 | FR-015 | Photo formats: JPG, PNG, WebP | ✅ | file_storage.py validation |
 | FR-016 | Profile photo storage by date | ✅ | storage/profile_photos/YYYY/MM/ |
@@ -109,8 +109,8 @@ curl http://localhost:8000/users/otheruser/followers
 
 | FR | Requirement | Status | Evidence |
 |----|-------------|--------|----------|
-| FR-025 | Follow user | ✅ | POST /users/{username}/follow |
-| FR-026 | Unfollow user | ✅ | DELETE /users/{username}/follow |
+| FR-025 | Follow user | ✅ | POST /{username}/follow |
+| FR-026 | Unfollow user | ✅ | DELETE /{username}/unfollow |
 | FR-027 | Prevent self-follow | ✅ | CHECK constraint + validation |
 | FR-028 | View followers list | ✅ | GET /users/{username}/followers |
 | FR-029 | View following list | ✅ | GET /users/{username}/following |
@@ -258,10 +258,11 @@ pytest tests/unit/test_social_service.py -v
 
 #### Architecture
 
-- **Backend**: FastAPI 0.104+ with Python 3.11+
+- **Backend**: FastAPI 0.115+ with Python 3.11+
 - **Database**: PostgreSQL 14+ (SQLite for development)
 - **ORM**: SQLAlchemy 2.0 async
 - **Validation**: Pydantic 2.0
+- **Security**: bcrypt 4.0.1 (passlib compatible)
 - **Testing**: pytest with contract, integration, and unit tests
 
 #### API Endpoints
@@ -275,11 +276,11 @@ pytest tests/unit/test_social_service.py -v
 - POST /auth/reset-password
 
 **Profiles:**
-- GET /users/{username}
-- PATCH /users/{username}
-- POST /users/{username}/photo
-- DELETE /users/{username}/photo
-- PATCH /users/{username}/privacy
+- GET /users/{username}/profile
+- PUT /users/{username}/profile
+- POST /users/{username}/profile/photo
+- DELETE /users/{username}/profile/photo
+- PUT /users/{username}/profile/privacy
 
 **Stats & Achievements:**
 - GET /users/{username}/stats
@@ -287,11 +288,11 @@ pytest tests/unit/test_social_service.py -v
 - GET /achievements
 
 **Social:**
-- POST /users/{username}/follow
-- DELETE /users/{username}/follow
-- GET /users/{username}/followers
-- GET /users/{username}/following
-- GET /users/{username}/follow-status
+- POST /{username}/follow
+- DELETE /{username}/unfollow
+- GET /{username}/followers
+- GET /{username}/following
+- GET /{username}/follow-status
 
 #### Database Migrations
 

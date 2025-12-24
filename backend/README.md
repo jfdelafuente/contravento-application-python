@@ -5,12 +5,13 @@ Backend API para ContraVento, la plataforma social de cicloturismo.
 ## Stack Tecnológico
 
 - **Python**: 3.11+
-- **Framework**: FastAPI 0.104+
+- **Framework**: FastAPI 0.115+
 - **ORM**: SQLAlchemy 2.0+ (async)
 - **Base de datos**:
   - **Desarrollo/Testing**: SQLite (aiosqlite)
   - **Producción**: PostgreSQL (asyncpg)
 - **Autenticación**: JWT con python-jose
+- **Seguridad**: bcrypt 4.0.1 (passlib compatible)
 - **Validación**: Pydantic 2.0+
 - **Testing**: pytest, pytest-asyncio, pytest-cov
 - **Calidad de código**: black, ruff, mypy
