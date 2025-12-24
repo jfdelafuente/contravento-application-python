@@ -98,6 +98,7 @@ Thumbs.db
 
 # Alembic
 alembic.ini
+!backend/alembic.ini
 !backend/src/migrations/alembic.ini
 
 # Jupyter Notebook
