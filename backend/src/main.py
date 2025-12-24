@@ -15,6 +15,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import settings
 
+# Import all models to ensure SQLAlchemy relationships are resolved
+# This must happen before any route handlers are registered
+from src.models.user import User, UserProfile  # noqa: F401
+from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
+from src.models.social import Follow  # noqa: F401
+
 
 # Create FastAPI application
 app = FastAPI(
