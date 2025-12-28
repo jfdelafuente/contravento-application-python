@@ -9,6 +9,7 @@ Guía completa para ejecutar tests y verificar cobertura.
 - [Tests Existentes](#tests-existentes)
 - [Verificación de Mensajes en Español](#verificación-de-mensajes-en-español)
 - [CI/CD Integration](#cicd-integration)
+- [Manual Testing](#manual-testing)
 
 ---
 
@@ -444,6 +445,56 @@ TOTAL                                 1039     17    98%
 ```
 
 **Target: ≥90% ✅ PASSED (98%)**
+
+---
+
+## Manual Testing
+
+Para testing manual interactivo de la API, consulta la documentación en `api/`:
+
+### Guías de Testing Manual
+
+- **[api/MANUAL_TESTING.md](api/MANUAL_TESTING.md)** - Testing con comandos `curl`
+  - Prerequisitos y configuración
+  - Todos los endpoints con ejemplos completos
+  - Scripts bash para flujos end-to-end
+  - Validaciones y casos de error
+  - Troubleshooting
+
+- **[api/POSTMAN_COLLECTION.md](api/POSTMAN_COLLECTION.md)** - Testing con Postman/Insomnia
+  - Colección JSON lista para importar
+  - Environment variables con auto-update scripts
+  - Flujos de testing paso a paso
+  - Tips para testing eficiente
+
+### Quick Start - Manual Testing
+
+```bash
+# 1. Login
+curl -X POST "http://localhost:8000/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "TestPass123!"}'
+
+# 2. Guardar token
+export TOKEN="<access_token_from_response>"
+
+# 3. Crear trip
+curl -X POST "http://localhost:8000/trips" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test Trip",
+    "description": "Descripción de al menos 50 caracteres para testing...",
+    "start_date": "2024-05-15"
+  }'
+
+# 4. Upload foto
+curl -X POST "http://localhost:8000/trips/<TRIP_ID>/photos" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "photo=@test_photo.jpg"
+```
+
+Ver [api/README.md](api/README.md) para documentación completa.
 
 ---
 
