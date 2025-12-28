@@ -378,6 +378,33 @@ class TripResponse(BaseModel):
         default_factory=list, description="List of trip tags"
     )
 
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Custom validation to handle trip_tags -> tags conversion."""
+        if hasattr(obj, 'trip_tags'):
+            # Extract tags from trip_tags relationship
+            tags = [trip_tag.tag for trip_tag in obj.trip_tags]
+            # Create a dict with all attributes
+            data = {
+                'trip_id': obj.trip_id,
+                'user_id': obj.user_id,
+                'title': obj.title,
+                'description': obj.description,
+                'status': obj.status.value if hasattr(obj.status, 'value') else obj.status,
+                'start_date': obj.start_date,
+                'end_date': obj.end_date,
+                'distance_km': obj.distance_km,
+                'difficulty': obj.difficulty.value if obj.difficulty and hasattr(obj.difficulty, 'value') else obj.difficulty,
+                'created_at': obj.created_at,
+                'updated_at': obj.updated_at,
+                'published_at': obj.published_at,
+                'photos': obj.photos,
+                'locations': obj.locations,
+                'tags': tags,
+            }
+            return super().model_validate(data, **kwargs)
+        return super().model_validate(obj, **kwargs)
+
     class Config:
         """Pydantic config."""
 

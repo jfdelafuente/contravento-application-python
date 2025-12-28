@@ -14,8 +14,8 @@ from src.database import AsyncSessionLocal
 from src.utils.security import decode_token
 
 
-# HTTP Bearer token scheme
-security = HTTPBearer()
+# HTTP Bearer token scheme - auto_error=False to return 401 instead of 403
+security = HTTPBearer(auto_error=False)
 
 
 async def get_db() -> Generator[AsyncSession, None, None]:
@@ -45,7 +45,7 @@ async def get_db() -> Generator[AsyncSession, None, None]:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -83,6 +83,10 @@ async def get_current_user(
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # If no credentials provided, raise unauthorized
+    if credentials is None:
+        raise credentials_exception
 
     try:
         # Decode JWT token
