@@ -58,8 +58,8 @@ Web application structure:
 - [x] T021 Review and edit migration file in backend/src/migrations/versions/ (verify PostgreSQL/SQLite compatibility)
 - [x] T022 Apply migration with `alembic upgrade head`
 - [x] T023 Verify migration created all 5 tables (trips, trip_photos, tags, trip_tags, trip_locations)
-- [ ] T024 Write unit tests for Trip model in backend/tests/unit/test_trip_model.py (creation, validation, relationships)
-- [ ] T025 Run Trip model tests - all should PASS
+- [x] T024 Write unit tests for Trip model in backend/tests/unit/test_trip_model.py (creation, validation, relationships)
+- [x] T025 Run Trip model tests - all should PASS
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

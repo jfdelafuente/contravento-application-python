@@ -13,6 +13,7 @@ from sqlalchemy import (
     Integer,
     Float,
     Text,
+    Date,
     DateTime,
     Enum,
     ForeignKey,
@@ -73,8 +74,8 @@ class Trip(Base):
     )
 
     # Trip details
-    start_date = Column(DateTime, nullable=False)  # When trip started
-    end_date = Column(DateTime, nullable=True)  # When trip ended (optional)
+    start_date = Column(Date, nullable=False)  # When trip started
+    end_date = Column(Date, nullable=True)  # When trip ended (optional)
     distance_km = Column(Float, nullable=True)  # Distance in kilometers
     difficulty = Column(
         Enum(TripDifficulty, native_enum=False, length=20),
