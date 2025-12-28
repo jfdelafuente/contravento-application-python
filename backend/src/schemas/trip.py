@@ -4,14 +4,15 @@ Trip schemas for Travel Diary feature.
 Pydantic models for trip request/response validation in API.
 """
 
-from datetime import datetime, date
-from typing import Optional, List
+from datetime import date, datetime
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 try:
     from typing import Self
 except ImportError:
-    from typing_extensions import Self
+    from typing import Self
 
 
 # ============================================================================
@@ -29,16 +30,12 @@ class LocationInput(BaseModel):
     """
 
     name: str = Field(..., min_length=1, max_length=200, description="Location name")
-    country: Optional[str] = Field(
-        None, max_length=100, description="Country name (optional)"
-    )
+    country: Optional[str] = Field(None, max_length=100, description="Country name (optional)")
 
     class Config:
         """Pydantic config."""
 
-        json_schema_extra = {
-            "example": {"name": "Baeza", "country": "España"}
-        }
+        json_schema_extra = {"example": {"name": "Baeza", "country": "España"}}
 
 
 class TripCreateRequest(BaseModel):
@@ -58,21 +55,15 @@ class TripCreateRequest(BaseModel):
         tags: List of tag names (max 10 tags, max 50 chars each)
     """
 
-    title: str = Field(
-        ..., min_length=1, max_length=200, description="Trip title"
-    )
+    title: str = Field(..., min_length=1, max_length=200, description="Trip title")
     description: str = Field(
         ...,
         min_length=1,
         max_length=50000,
         description="Trip description (HTML allowed, will be sanitized)",
     )
-    start_date: date = Field(
-        ..., description="Trip start date (YYYY-MM-DD, cannot be in future)"
-    )
-    end_date: Optional[date] = Field(
-        None, description="Trip end date (must be >= start_date)"
-    )
+    start_date: date = Field(..., description="Trip start date (YYYY-MM-DD, cannot be in future)")
+    end_date: Optional[date] = Field(None, description="Trip end date (must be >= start_date)")
     distance_km: Optional[float] = Field(
         None, ge=0.1, le=10000.0, description="Distance in kilometers"
     )
@@ -80,12 +71,12 @@ class TripCreateRequest(BaseModel):
         None,
         description="Difficulty level: easy, moderate, difficult, very_difficult",
     )
-    locations: List[LocationInput] = Field(
+    locations: list[LocationInput] = Field(
         default_factory=list,
         max_length=50,
         description="Locations visited during trip",
     )
-    tags: List[str] = Field(
+    tags: list[str] = Field(
         default_factory=list,
         max_length=10,
         description="Tags for categorization (max 10)",
@@ -99,9 +90,7 @@ class TripCreateRequest(BaseModel):
             return None
         allowed = ["easy", "moderate", "difficult", "very_difficult"]
         if v not in allowed:
-            raise ValueError(
-                f"La dificultad debe ser una de: {', '.join(allowed)}"
-            )
+            raise ValueError(f"La dificultad debe ser una de: {', '.join(allowed)}")
         return v
 
     @field_validator("start_date")
@@ -114,13 +103,11 @@ class TripCreateRequest(BaseModel):
 
     @field_validator("tags")
     @classmethod
-    def validate_tags(cls, v: List[str]) -> List[str]:
+    def validate_tags(cls, v: list[str]) -> list[str]:
         """Validate each tag length."""
         for tag in v:
             if len(tag) > 50:
-                raise ValueError(
-                    f"La etiqueta '{tag}' excede 50 caracteres"
-                )
+                raise ValueError(f"La etiqueta '{tag}' excede 50 caracteres")
             if len(tag.strip()) == 0:
                 raise ValueError("Las etiquetas no pueden estar vacías")
         return v
@@ -129,9 +116,7 @@ class TripCreateRequest(BaseModel):
     def validate_dates(self) -> Self:
         """Validate end_date is >= start_date."""
         if self.end_date is not None and self.end_date < self.start_date:
-            raise ValueError(
-                "La fecha de fin debe ser posterior o igual a la fecha de inicio"
-            )
+            raise ValueError("La fecha de fin debe ser posterior o igual a la fecha de inicio")
         return self
 
     class Config:
@@ -178,8 +163,8 @@ class TripUpdateRequest(BaseModel):
     end_date: Optional[date] = None
     distance_km: Optional[float] = Field(None, ge=0.1, le=10000.0)
     difficulty: Optional[str] = None
-    locations: Optional[List[LocationInput]] = Field(None, max_length=50)
-    tags: Optional[List[str]] = Field(None, max_length=10)
+    locations: Optional[list[LocationInput]] = Field(None, max_length=50)
+    tags: Optional[list[str]] = Field(None, max_length=10)
     client_updated_at: Optional[datetime] = Field(
         None, description="Timestamp when client loaded the trip (optimistic locking)"
     )
@@ -192,22 +177,18 @@ class TripUpdateRequest(BaseModel):
             return None
         allowed = ["easy", "moderate", "difficult", "very_difficult"]
         if v not in allowed:
-            raise ValueError(
-                f"La dificultad debe ser una de: {', '.join(allowed)}"
-            )
+            raise ValueError(f"La dificultad debe ser una de: {', '.join(allowed)}")
         return v
 
     @field_validator("tags")
     @classmethod
-    def validate_tags(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+    def validate_tags(cls, v: Optional[list[str]]) -> Optional[list[str]]:
         """Validate each tag length."""
         if v is None:
             return None
         for tag in v:
             if len(tag) > 50:
-                raise ValueError(
-                    f"La etiqueta '{tag}' excede 50 caracteres"
-                )
+                raise ValueError(f"La etiqueta '{tag}' excede 50 caracteres")
             if len(tag.strip()) == 0:
                 raise ValueError("Las etiquetas no pueden estar vacías")
         return v
@@ -365,42 +346,38 @@ class TripResponse(BaseModel):
     difficulty: Optional[str] = Field(None, description="Difficulty level")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
     updated_at: datetime = Field(..., description="Last update timestamp (UTC)")
-    published_at: Optional[datetime] = Field(
-        None, description="Publication timestamp (UTC)"
-    )
-    photos: List[TripPhotoResponse] = Field(
-        default_factory=list, description="List of trip photos"
-    )
-    locations: List[TripLocationResponse] = Field(
+    published_at: Optional[datetime] = Field(None, description="Publication timestamp (UTC)")
+    photos: list[TripPhotoResponse] = Field(default_factory=list, description="List of trip photos")
+    locations: list[TripLocationResponse] = Field(
         default_factory=list, description="List of trip locations"
     )
-    tags: List[TagResponse] = Field(
-        default_factory=list, description="List of trip tags"
-    )
+    tags: list[TagResponse] = Field(default_factory=list, description="List of trip tags")
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
         """Custom validation to handle trip_tags -> tags conversion."""
-        if hasattr(obj, 'trip_tags'):
+        if hasattr(obj, "trip_tags"):
             # Extract tags from trip_tags relationship
             tags = [trip_tag.tag for trip_tag in obj.trip_tags]
             # Create a dict with all attributes
             data = {
-                'trip_id': obj.trip_id,
-                'user_id': obj.user_id,
-                'title': obj.title,
-                'description': obj.description,
-                'status': obj.status.value if hasattr(obj.status, 'value') else obj.status,
-                'start_date': obj.start_date,
-                'end_date': obj.end_date,
-                'distance_km': obj.distance_km,
-                'difficulty': obj.difficulty.value if obj.difficulty and hasattr(obj.difficulty, 'value') else obj.difficulty,
-                'created_at': obj.created_at,
-                'updated_at': obj.updated_at,
-                'published_at': obj.published_at,
-                'photos': obj.photos,
-                'locations': obj.locations,
-                'tags': tags,
+                "trip_id": obj.trip_id,
+                "user_id": obj.user_id,
+                "title": obj.title,
+                "description": obj.description,
+                "status": obj.status.value if hasattr(obj.status, "value") else obj.status,
+                "start_date": obj.start_date,
+                "end_date": obj.end_date,
+                "distance_km": obj.distance_km,
+                "difficulty": obj.difficulty.value
+                if obj.difficulty and hasattr(obj.difficulty, "value")
+                else obj.difficulty,
+                "created_at": obj.created_at,
+                "updated_at": obj.updated_at,
+                "published_at": obj.published_at,
+                "photos": obj.photos,
+                "locations": obj.locations,
+                "tags": tags,
             }
             return super().model_validate(data, **kwargs)
         return super().model_validate(obj, **kwargs)
@@ -456,12 +433,8 @@ class TripListItemResponse(BaseModel):
     distance_km: Optional[float] = Field(None, description="Distance in kilometers")
     status: str = Field(..., description="Trip status")
     photo_count: int = Field(..., description="Number of photos")
-    tag_names: List[str] = Field(
-        default_factory=list, description="List of tag names"
-    )
-    thumbnail_url: Optional[str] = Field(
-        None, description="First photo thumbnail URL"
-    )
+    tag_names: list[str] = Field(default_factory=list, description="List of tag names")
+    thumbnail_url: Optional[str] = Field(None, description="First photo thumbnail URL")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
 
     class Config:
@@ -495,7 +468,7 @@ class TripListResponse(BaseModel):
         offset: Pagination offset
     """
 
-    trips: List[TripListItemResponse] = Field(..., description="List of trips")
+    trips: list[TripListItemResponse] = Field(..., description="List of trips")
     total: int = Field(..., description="Total trips matching filter")
     limit: int = Field(..., description="Page size")
     offset: int = Field(..., description="Pagination offset")

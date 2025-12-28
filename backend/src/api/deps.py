@@ -4,7 +4,8 @@ Dependency injection functions for FastAPI routes.
 Provides reusable dependencies for database sessions, authentication, etc.
 """
 
-from typing import Generator, Optional
+from collections.abc import Generator
+from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -12,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import AsyncSessionLocal
 from src.utils.security import decode_token
-
 
 # HTTP Bearer token scheme - auto_error=False to return 401 instead of 403
 security = HTTPBearer(auto_error=False)
@@ -114,8 +114,9 @@ async def get_current_user(
             )
 
         # Load user from database
-        from src.models.user import User
         from sqlalchemy import select
+
+        from src.models.user import User
 
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
@@ -131,9 +132,7 @@ async def get_current_user(
 
 
 async def get_optional_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-        HTTPBearer(auto_error=False)
-    ),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
     db: AsyncSession = Depends(get_db),
 ):
     """

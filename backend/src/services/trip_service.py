@@ -5,16 +5,16 @@ Business logic for trip creation, publication, and management.
 Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008
 """
 
-from datetime import datetime
-from typing import List, Optional
 import logging
+from datetime import UTC, datetime
+from typing import Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripTag, TripLocation
-from src.schemas.trip import TripCreateRequest, TripResponse, LocationInput
+from src.models.trip import Tag, Trip, TripDifficulty, TripLocation, TripStatus, TripTag
+from src.schemas.trip import LocationInput, TripCreateRequest
 from src.utils.html_sanitizer import sanitize_html
 
 logger = logging.getLogger(__name__)
@@ -55,10 +55,8 @@ class TripService:
         # Sanitize HTML content in description
         sanitized_description = sanitize_html(data.description)
 
-        # Map difficulty string to enum
-        difficulty_enum = None
-        if data.difficulty:
-            difficulty_enum = TripDifficulty(data.difficulty)
+        # Map difficulty string to enum (if provided)
+        difficulty_enum = TripDifficulty(data.difficulty) if data.difficulty else None
 
         # Create trip entity
         trip = Trip(
@@ -92,9 +90,7 @@ class TripService:
         logger.info(f"Created trip {trip.trip_id} for user {user_id}")
         return trip
 
-    async def get_trip(
-        self, trip_id: str, current_user_id: Optional[str] = None
-    ) -> Trip:
+    async def get_trip(self, trip_id: str, current_user_id: Optional[str] = None) -> Trip:
         """
         Get trip by ID.
 
@@ -131,9 +127,7 @@ class TripService:
         if trip.status == TripStatus.DRAFT:
             # Draft trips only visible to owner
             if not current_user_id or trip.user_id != current_user_id:
-                raise PermissionError(
-                    "No tienes permiso para ver este viaje en borrador"
-                )
+                raise PermissionError("No tienes permiso para ver este viaje en borrador")
 
         logger.info(f"Retrieved trip {trip_id}")
         return trip
@@ -184,7 +178,7 @@ class TripService:
         # Publish trip (idempotent - if already published, keep original published_at)
         if trip.status != TripStatus.PUBLISHED:
             trip.status = TripStatus.PUBLISHED
-            trip.published_at = datetime.utcnow()
+            trip.published_at = datetime.now(UTC)
             await self.db.commit()
             await self.db.refresh(trip)
             logger.info(f"Published trip {trip_id}")
@@ -193,7 +187,7 @@ class TripService:
 
         return trip
 
-    async def _process_tags(self, trip: Trip, tag_names: List[str]) -> None:
+    async def _process_tags(self, trip: Trip, tag_names: list[str]) -> None:
         """
         Process tags for trip.
 
@@ -214,9 +208,7 @@ class TripService:
         # Process each unique tag
         for normalized, display_name in unique_tags.items():
             # Check if tag exists
-            result = await self.db.execute(
-                select(Tag).where(Tag.normalized == normalized)
-            )
+            result = await self.db.execute(select(Tag).where(Tag.normalized == normalized))
             tag = result.scalar_one_or_none()
 
             if tag:
@@ -234,9 +226,7 @@ class TripService:
 
         logger.debug(f"Processed {len(unique_tags)} tags for trip {trip.trip_id}")
 
-    async def _process_locations(
-        self, trip: Trip, locations: List[LocationInput]
-    ) -> None:
+    async def _process_locations(self, trip: Trip, locations: list[LocationInput]) -> None:
         """
         Process locations for trip.
 
@@ -262,17 +252,25 @@ class TripService:
         """
         Load trip relationships for response serialization.
 
+        Uses selectinload to eagerly load all relationships in a single query,
+        preventing N+1 query issues.
+
         Args:
             trip: Trip instance
         """
-        await self.db.refresh(
-            trip,
-            [
-                "photos",
-                "locations",
-                "trip_tags",
-            ],
+        # Re-query trip with eager loading of all relationships
+        result = await self.db.execute(
+            select(Trip)
+            .where(Trip.trip_id == trip.trip_id)
+            .options(
+                selectinload(Trip.photos),
+                selectinload(Trip.locations),
+                selectinload(Trip.trip_tags).selectinload(TripTag.tag),
+            )
         )
-        # Also load tags through trip_tags
-        for trip_tag in trip.trip_tags:
-            await self.db.refresh(trip_tag, ["tag"])
+        loaded_trip = result.scalar_one()
+
+        # Update current trip instance with loaded relationships
+        trip.photos = loaded_trip.photos
+        trip.locations = loaded_trip.locations
+        trip.trip_tags = loaded_trip.trip_tags
