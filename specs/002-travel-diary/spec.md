@@ -3,7 +3,7 @@
 **Feature Branch**: `002-travel-diary`
 **Created**: 2025-12-23
 **Updated**: 2025-12-28
-**Status**: In Progress - Phase 2 (Foundational Utilities)
+**Status**: In Progress - Phase 3 (Models & Migration)
 **Input**: User description: "Diario de viajes digital para documentar aventuras de cicloturismo"
 
 ## Development Progress
@@ -24,9 +24,7 @@
 - Travel Diary settings added to `backend/src/config.py`
 - Blocked words list created: 100+ Spanish/English keywords
 
-### 🚧 Phase 2: Foundational Utilities (IN PROGRESS)
-
-**Completed:**
+### ✅ Phase 2: Foundational Utilities (COMPLETE)
 
 - ✅ HTML Sanitizer (`backend/src/utils/html_sanitizer.py`) - 19/19 tests passing
   - XSS prevention with Bleach whitelist
@@ -39,29 +37,42 @@
   - Excessive URL detection (>5 URLs)
   - Configurable blocklist with graceful degradation
 
+- ✅ TripPhotoService (`backend/src/utils/trip_photo_service.py`) - 18/18 tests passing
+  - Photo validation (JPEG/PNG/WebP, max 10MB)
+  - Resize & optimize (max 1200px, maintains aspect ratio)
+  - Thumbnail generation (200x200 square, center crop)
+  - EXIF orientation handling, PNG to JPEG conversion
+  - Directory structure: YYYY/MM/{trip_id}/
+
+- ✅ LocationService (`backend/src/utils/location_service.py`) - 11/11 tests passing
+  - Google Places API integration for geocoding
+  - Converts location names to lat/lng coordinates
+  - Graceful degradation (disabled if no API key)
+  - Client caching, error handling, Unicode support
+
+### 🚧 Phase 3: Trip Models & Migration (NEXT)
+
 **Remaining:**
 
-- Photo Service (image processing: resize, optimize, thumbnails)
-- Location Service (Google Places API integration for geocoding)
 - Trip Models (SQLAlchemy ORM: Trip, TripPhoto, Tag, TripTag, TripLocation)
 - Database Migration (Alembic)
 
 ### 📋 Upcoming Phases
 
-- Phase 3: User Story 1 - MVP (Create & Publish Trip)
-- Phase 4: User Story 2 - Photo Gallery
-- Phase 5: User Story 3 - Edit & Delete
-- Phase 6: User Story 4 - Tags & Categorization
-- Phase 7: User Story 5 - Draft Trips
-- Phase 8: Polish (testing, linting, documentation)
+- Phase 4: User Story 1 - MVP (Create & Publish Trip)
+- Phase 5: User Story 2 - Photo Gallery
+- Phase 6: User Story 3 - Edit & Delete
+- Phase 7: User Story 4 - Tags & Categorization
+- Phase 8: User Story 5 - Draft Trips
+- Phase 9: Polish (testing, linting, documentation)
 
 ### 📊 Statistics
 
 - **Total Tasks**: 117
-- **Completed**: ~15 (Phase 1 + partial Phase 2)
-- **Tests Written**: 39 unit tests, all passing
-- **Code Coverage**: 43% overall (new utilities at 95%+)
-- **Commits**: 2 (planning + Phase 1-2 partial)
+- **Completed**: ~25 (Phases 1-2 complete)
+- **Tests Written**: 68 unit tests, all passing
+- **Code Coverage**: 84%+ on new utilities
+- **Commits**: 4 (planning + setup + utilities complete + docs)
 
 ## User Scenarios & Testing *(mandatory)*
 
