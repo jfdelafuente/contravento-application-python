@@ -39,6 +39,7 @@ googlemaps = "^4.10.0"
 # Email
 aiosmtplib = "^3.0.0"
 email-validator = "^2.1.0"
+tzdata = "^2025.3"
 
 [tool.poetry.group.dev.dependencies]
 # Testing

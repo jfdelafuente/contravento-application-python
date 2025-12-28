@@ -3,7 +3,7 @@
 **Feature Branch**: `002-travel-diary`
 **Created**: 2025-12-23
 **Updated**: 2025-12-28
-**Status**: In Progress - Phase 3 (Models & Migration)
+**Status**: In Progress - Phase 4 (MVP Implementation)
 **Input**: User description: "Diario de viajes digital para documentar aventuras de cicloturismo"
 
 ## Development Progress
@@ -50,12 +50,27 @@
   - Graceful degradation (disabled if no API key)
   - Client caching, error handling, Unicode support
 
-### 🚧 Phase 3: Trip Models & Migration (NEXT)
+### ✅ Phase 3: Trip Models & Migration (COMPLETE)
+
+- ✅ Trip Models (`backend/src/models/trip.py`)
+  - Trip (main entity with status, difficulty enums)
+  - TripPhoto (photo gallery with display ordering)
+  - Tag (reusable tags with normalization)
+  - TripTag (many-to-many junction table)
+  - TripLocation (route waypoints with geocoding support)
+- ✅ User Model Update (added trips relationship)
+- ✅ Alembic Migration (created and applied successfully)
+  - 5 new tables with proper indexes and foreign keys
+  - Fixed timezone compatibility issue (installed tzdata)
+
+### 🚧 Phase 4: User Story 1 - MVP (Create & Publish Trip) (NEXT)
 
 **Remaining:**
 
-- Trip Models (SQLAlchemy ORM: Trip, TripPhoto, Tag, TripTag, TripLocation)
-- Database Migration (Alembic)
+- Trip schemas (Pydantic request/response models)
+- TripService (business logic for creating/publishing trips)
+- Trip API endpoints (POST /trips, GET /trips/:id, GET /users/:id/trips)
+- Integration tests for Trip creation workflow
 
 ### 📋 Upcoming Phases
 
@@ -69,10 +84,10 @@
 ### 📊 Statistics
 
 - **Total Tasks**: 117
-- **Completed**: ~25 (Phases 1-2 complete)
+- **Completed**: ~32 (Phases 1-3 complete)
 - **Tests Written**: 68 unit tests, all passing
 - **Code Coverage**: 84%+ on new utilities
-- **Commits**: 4 (planning + setup + utilities complete + docs)
+- **Commits**: 5 (planning + setup + utilities + models + docs)
 
 ## User Scenarios & Testing *(mandatory)*
 

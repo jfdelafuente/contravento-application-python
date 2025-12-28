@@ -167,6 +167,14 @@ class User(Base):
         doc="Users this user follows",
     )
 
+    # Travel Diary relationships (002-travel-diary)
+    trips: Mapped[list["Trip"]] = relationship(
+        "Trip",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Travel diary trips created by this user",
+    )
+
     def __repr__(self) -> str:
         """String representation for debugging."""
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
