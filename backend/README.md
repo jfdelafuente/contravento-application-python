@@ -270,7 +270,7 @@ Sistema completo para documentar viajes en bicicleta:
   - Formatos: JPG, PNG, WebP
 - **Publicación**: Convertir trips de draft a published con validación de requisitos
 
-**Manual de Testing**: Ver [`specs/002-travel-diary/MANUAL_TESTING.md`](../specs/002-travel-diary/MANUAL_TESTING.md) para comandos curl completos.
+**Manual de Testing**: Ver [docs/api/MANUAL_TESTING.md](docs/api/MANUAL_TESTING.md) para comandos curl y [docs/api/POSTMAN_COLLECTION.md](docs/api/POSTMAN_COLLECTION.md) para colección Postman/Insomnia.
 
 **Documentación**:
 
