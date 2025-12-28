@@ -20,6 +20,7 @@ from src.config import settings
 from src.models.user import User, UserProfile  # noqa: F401
 from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
 from src.models.social import Follow  # noqa: F401
+from src.models.trip import Trip, TripPhoto, Tag, TripTag, TripLocation  # noqa: F401
 
 
 # Create FastAPI application
@@ -240,9 +241,10 @@ async def root() -> Dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth, profile, stats, social
+from src.api import auth, profile, stats, social, trips
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(stats.router)
 app.include_router(stats.achievements_router)
 app.include_router(social.router)
+app.include_router(trips.router)

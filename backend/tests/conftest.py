@@ -141,15 +141,15 @@ def faker_instance() -> Faker:
 
 
 @pytest.fixture(scope="function")
-async def auth_headers(client: AsyncClient) -> dict:
+async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
     """
     Provide authentication headers with a valid JWT token.
 
-    Creates a test user, logs in, and returns headers for authenticated requests.
-    Placeholder until authentication is fully implemented.
+    Creates a test user, generates token, and returns headers for authenticated requests.
 
     Args:
         client: Async HTTP client
+        db_session: Database session
 
     Returns:
         Dictionary with Authorization header
@@ -159,11 +159,28 @@ async def auth_headers(client: AsyncClient) -> dict:
             response = await client.get("/protected", headers=auth_headers)
             assert response.status_code == 200
     """
-    # TODO: Implement when authentication endpoints are ready
-    # For now, return a placeholder token
-    from src.utils.security import create_access_token
+    from src.utils.security import create_access_token, hash_password
+    from src.models.user import User, UserProfile
 
-    token = create_access_token({"sub": "test_user_id", "username": "test_user"})
+    # Create a test user in the database
+    user = User(
+        username="test_user",
+        email="test@example.com",
+        hashed_password=hash_password("TestPass123!"),
+        is_active=True,
+        is_verified=True,
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    # Create profile for user
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    # Generate token with actual user ID
+    token = create_access_token({"sub": user.id, "username": user.username})
 
     return {"Authorization": f"Bearer {token}"}
 

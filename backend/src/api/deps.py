@@ -47,19 +47,18 @@ async def get_db() -> Generator[AsyncSession, None, None]:
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+):
     """
     Dependency to get current authenticated user from JWT token.
 
-    Validates JWT token and returns user information.
-    Placeholder until User model is implemented.
+    Validates JWT token and returns User model instance.
 
     Args:
         credentials: HTTP bearer credentials from request header
         db: Database session
 
     Returns:
-        Current user information
+        User model instance
 
     Raises:
         HTTPException: If token is invalid or user not found
@@ -67,16 +66,20 @@ async def get_current_user(
     Example:
         @router.get("/protected")
         async def protected_route(
-            current_user: dict = Depends(get_current_user)
+            current_user: User = Depends(get_current_user)
         ):
-            # current_user is validated from JWT
+            # current_user is User model instance
             pass
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={
-            "code": "UNAUTHORIZED",
-            "message": "Token de autenticación inválido o expirado",
+            "success": False,
+            "data": None,
+            "error": {
+                "code": "UNAUTHORIZED",
+                "message": "Token de autenticación inválido o expirado",
+            },
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
@@ -97,8 +100,12 @@ async def get_current_user(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
-                    "code": "INVALID_TOKEN_TYPE",
-                    "message": "Token inválido. Use un token de acceso.",
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "INVALID_TOKEN_TYPE",
+                        "message": "Token inválido. Use un token de acceso.",
+                    },
                 },
             )
 
@@ -112,13 +119,8 @@ async def get_current_user(
         if user is None or not user.is_active:
             raise credentials_exception
 
-        # Return user data as dict
-        return {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "is_verified": user.is_verified,
-        }
+        # Return User model instance
+        return user
 
     except Exception:
         raise credentials_exception
@@ -129,11 +131,11 @@ async def get_optional_current_user(
         HTTPBearer(auto_error=False)
     ),
     db: AsyncSession = Depends(get_db),
-) -> Optional[dict]:
+):
     """
     Dependency to optionally get current user.
 
-    Returns user if authenticated, None if not.
+    Returns User model if authenticated, None if not.
     Useful for endpoints that work differently for authenticated vs anonymous users.
 
     Args:
@@ -141,12 +143,12 @@ async def get_optional_current_user(
         db: Database session
 
     Returns:
-        Current user if authenticated, None otherwise
+        User model instance if authenticated, None otherwise
 
     Example:
         @router.get("/public")
         async def public_route(
-            current_user: Optional[dict] = Depends(get_optional_current_user)
+            current_user: Optional[User] = Depends(get_optional_current_user)
         ):
             if current_user:
                 # Show personalized content
