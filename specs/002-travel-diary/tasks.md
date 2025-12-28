@@ -22,42 +22,42 @@ Web application structure:
 
 ---
 
-## Phase 1: Setup (Shared Infrastructure)
+## Phase 1: Setup (Shared Infrastructure) ✅
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Add new dependencies to backend/pyproject.toml: Pillow==10.1.0, bleach==6.1.0, googlemaps==4.10.0
-- [ ] T002 Install dependencies with `poetry install` in backend/
-- [ ] T003 [P] Create storage directory structure backend/storage/trip_photos/
-- [ ] T004 [P] Create blocked words file backend/config/blocked_words.txt with basic Spanish/English spam keywords
-- [ ] T005 [P] Add new environment variables to backend/.env.example (see Phase 0 in plan.md)
-- [ ] T006 [P] Update backend/src/config.py with travel diary settings (upload limits, photo settings, Google Places API, spam detection)
+- [x] T001 Add new dependencies to backend/pyproject.toml: Pillow==10.1.0, bleach==6.1.0, googlemaps==4.10.0
+- [x] T002 Install dependencies with `poetry install` in backend/
+- [x] T003 [P] Create storage directory structure backend/storage/trip_photos/
+- [x] T004 [P] Create blocked words file backend/config/blocked_words.txt with basic Spanish/English spam keywords
+- [x] T005 [P] Add new environment variables to backend/.env.example (see Phase 0 in plan.md)
+- [x] T006 [P] Update backend/src/config.py with travel diary settings (upload limits, photo settings, Google Places API, spam detection)
 
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
+## Phase 2: Foundational (Blocking Prerequisites) ✅
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create HTML sanitizer utility in backend/src/utils/html_sanitizer.py with Bleach whitelist
-- [ ] T008 [P] Create content validator utility in backend/src/utils/content_validator.py for spam detection
-- [ ] T009 [P] Create location service in backend/src/services/location_service.py for Google Places API integration
-- [ ] T010 [P] Create photo service in backend/src/services/photo_service.py for image processing with Pillow
-- [ ] T011 [P] Write unit tests for html_sanitizer in backend/tests/unit/test_html_sanitizer.py
-- [ ] T012 [P] Write unit tests for content_validator in backend/tests/unit/test_content_validator.py
-- [ ] T013 [P] Write unit tests for location_service in backend/tests/unit/test_location_service.py
-- [ ] T014 [P] Write unit tests for photo_service in backend/tests/unit/test_photo_service.py
-- [ ] T015 Run tests for utilities (T011-T014) - all should PASS
-- [ ] T016 Create Trip database models in backend/src/models/trip.py (Trip, TripPhoto, Tag, TripTag, TripLocation enums and classes)
-- [ ] T017 Add trips relationship to User model in backend/src/models/user.py
-- [ ] T018 Create Pydantic schemas in backend/src/schemas/trip.py (TripCreateRequest, TripUpdateRequest, TripResponse, PhotoResponse, etc.)
-- [ ] T019 Write unit tests for trip schemas in backend/tests/unit/test_trip_schemas.py
-- [ ] T020 Generate Alembic migration with `alembic revision --autogenerate -m "add_travel_diary_tables"`
-- [ ] T021 Review and edit migration file in backend/src/migrations/versions/ (verify PostgreSQL/SQLite compatibility)
-- [ ] T022 Apply migration with `alembic upgrade head`
-- [ ] T023 Verify migration created all 5 tables (trips, trip_photos, tags, trip_tags, trip_locations)
+- [x] T007 Create HTML sanitizer utility in backend/src/utils/html_sanitizer.py with Bleach whitelist
+- [x] T008 [P] Create content validator utility in backend/src/utils/content_validator.py for spam detection
+- [x] T009 [P] Create location service in backend/src/utils/location_service.py for Google Places API integration *(Note: Created in utils/ not services/)*
+- [x] T010 [P] Create photo service in backend/src/utils/trip_photo_service.py for image processing with Pillow *(Note: Named trip_photo_service)*
+- [x] T011 [P] Write unit tests for html_sanitizer in backend/tests/unit/test_html_sanitizer.py
+- [x] T012 [P] Write unit tests for content_validator in backend/tests/unit/test_content_validator.py
+- [x] T013 [P] Write unit tests for location_service in backend/tests/unit/test_location_service.py
+- [x] T014 [P] Write unit tests for photo_service in backend/tests/unit/test_trip_photo_service.py *(Note: Named test_trip_photo_service)*
+- [x] T015 Run tests for utilities (T011-T014) - all should PASS
+- [x] T016 Create Trip database models in backend/src/models/trip.py (Trip, TripPhoto, Tag, TripTag, TripLocation enums and classes)
+- [x] T017 Add trips relationship to User model in backend/src/models/user.py
+- [x] T018 Create Pydantic schemas in backend/src/schemas/trip.py (TripCreateRequest, TripUpdateRequest, TripResponse, PhotoResponse, etc.)
+- [x] T019 Write unit tests for trip schemas in backend/tests/unit/test_trip_schemas.py
+- [x] T020 Generate Alembic migration with `alembic revision --autogenerate -m "add_travel_diary_tables"`
+- [x] T021 Review and edit migration file in backend/src/migrations/versions/ (verify PostgreSQL/SQLite compatibility)
+- [x] T022 Apply migration with `alembic upgrade head`
+- [x] T023 Verify migration created all 5 tables (trips, trip_photos, tags, trip_tags, trip_locations)
 - [ ] T024 Write unit tests for Trip model in backend/tests/unit/test_trip_model.py (creation, validation, relationships)
 - [ ] T025 Run Trip model tests - all should PASS
 

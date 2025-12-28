@@ -14,6 +14,17 @@ from src.schemas.auth import (
     PasswordResetConfirm,
 )
 from src.schemas.user import UserResponse
+from src.schemas.trip import (
+    LocationInput,
+    TripCreateRequest,
+    TripUpdateRequest,
+    TagResponse,
+    TripLocationResponse,
+    TripPhotoResponse,
+    TripResponse,
+    TripListItemResponse,
+    TripListResponse,
+)
 
 __all__ = [
     "RegisterRequest",
@@ -24,4 +35,13 @@ __all__ = [
     "PasswordResetRequest",
     "PasswordResetConfirm",
     "UserResponse",
+    "LocationInput",
+    "TripCreateRequest",
+    "TripUpdateRequest",
+    "TagResponse",
+    "TripLocationResponse",
+    "TripPhotoResponse",
+    "TripResponse",
+    "TripListItemResponse",
+    "TripListResponse",
 ]
