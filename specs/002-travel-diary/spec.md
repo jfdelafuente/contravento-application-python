@@ -249,10 +249,37 @@ Un ciclista está documentando un viaje largo pero no ha terminado de escribir t
 11. **Interacción social**: No hay likes, comentarios, o compartidos en esta feature (va en 004-social-network)
 12. **Búsqueda global**: Búsqueda de viajes entre todos los usuarios es parte de otra feature; aquí solo filtrado personal por etiquetas
 
+## Clarifications
+
+*Aclaraciones obtenidas el 2025-12-24 mediante /speckit.clarify*
+
+**Frontend Implementation:**
+- El frontend será implementado en una feature separada (002b-travel-diary-frontend) después de completar el backend
+- Esta feature (002-travel-diary) solo entrega la API backend completamente documentada en OpenAPI
+- El backend debe estar listo para consumo por frontend React independiente
+
+**Editor de Texto Enriquecido:**
+- Editor WYSIWYG básico con formato: negritas, cursivas, listas (ul/ol), enlaces
+- Tags HTML permitidos: `<p>, <br>, <b>, <strong>, <i>, <em>, <ul>, <ol>, <li>, <a>`
+- Frontend usará Tiptap o similar; backend sanitiza con Bleach
+
+**Ubicaciones Visitadas:**
+- Implementar autocompletado con geocoding para validar nombres de lugares
+- Integración con Google Places API o servicio similar
+- Almacenar: nombre del lugar, país, coordenadas opcionales (lat/lng)
+- Esto requiere añadir campos `latitude` y `longitude` a TripLocation (DECIMAL nullable)
+
+**Validación de Contenido:**
+- Mantener límite de 50,000 caracteres en descripción (FR-002)
+- Implementar detección básica de spam/contenido inapropiado antes de publicación
+- Usar lista de palabras prohibidas configurable
+- Aplicar sanitización XSS con Bleach en todo contenido HTML
+
 ## Out of Scope
 
 Las siguientes funcionalidades NO están incluidas en esta especificación:
 
+- **Frontend completo** (se manejará en feature 002b-travel-diary-frontend)
 - Integración con archivos GPX o rutas GPS (feature 003-gps-routes)
 - Comentarios, likes, o compartir viajes (feature 004-social-network)
 - Estadísticas automáticas calculadas desde GPX (elevación, velocidad) (feature 003-gps-routes)
@@ -266,8 +293,8 @@ Las siguientes funcionalidades NO están incluidas en esta especificación:
 - Sistema de plantillas para viajes recurrentes
 - Integración con redes sociales externas (compartir en Facebook, Twitter)
 - Monetización o viajes premium/patrocinados
-- Moderación automática de contenido inapropiado
+- Moderación automática de contenido inapropiado con IA (solo lista de palabras prohibidas)
 - Versionado o historial de cambios en viajes
 - Soporte para videos o audio en viajes
-- Reconocimiento automático de lugares en fotos (geotagging)
+- Reconocimiento automático de lugares en fotos (geotagging automático)
 - Watermarks o protección de copyright en fotos
