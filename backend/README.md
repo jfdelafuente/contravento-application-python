@@ -35,7 +35,8 @@ backend/
 │   ├── integration/       # Tests de integración
 │   └── unit/              # Tests unitarios
 ├── storage/               # Almacenamiento de archivos
-│   └── profile_photos/    # Fotos de perfil
+│   ├── profile_photos/    # Fotos de perfil
+│   └── trip_photos/       # Fotos de viajes (organizadas por año/mes/trip_id)
 ├── pyproject.toml         # Dependencias Poetry
 ├── .env.example           # Variables de entorno (ejemplo)
 └── .env.test              # Variables de entorno (testing)
@@ -255,6 +256,27 @@ Ver `.env.example` para todas las variables disponibles.
 - `DATABASE_URL`: URL de conexión a la base de datos
 - `BCRYPT_ROUNDS`: Rondas de bcrypt (12 en producción)
 - `SMTP_*`: Configuración de email
+
+## Funcionalidades Implementadas
+
+### Travel Diary (Diario de Viajes Digital)
+
+Sistema completo para documentar viajes en bicicleta:
+
+- **User Story 1 - MVP**: Crear trips con título, descripción, fechas, dificultad, ubicaciones y tags
+- **User Story 2 - Photo Gallery**: Upload, reordenar y eliminar fotos (max 20 por trip, max 10MB por foto)
+  - Procesamiento automático: resize a 1200px, thumbnail 400x400px
+  - Almacenamiento organizado: `storage/trip_photos/{year}/{month}/{trip_id}/`
+  - Formatos: JPG, PNG, WebP
+- **Publicación**: Convertir trips de draft a published con validación de requisitos
+
+**Manual de Testing**: Ver [`specs/002-travel-diary/MANUAL_TESTING.md`](../specs/002-travel-diary/MANUAL_TESTING.md) para comandos curl completos.
+
+**Documentación**:
+
+- **OpenAPI Spec**: `specs/002-travel-diary/contracts/trips-api.yaml`
+- **Especificación**: `specs/002-travel-diary/spec.md`
+- **Plan de Implementación**: `specs/002-travel-diary/plan.md`
 
 ## Desarrollo
 
