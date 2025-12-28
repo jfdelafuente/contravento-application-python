@@ -93,7 +93,7 @@ class Trip(Base):
         "TripPhoto",
         back_populates="trip",
         cascade="all, delete-orphan",
-        order_by="TripPhoto.display_order",
+        order_by="TripPhoto.order",
     )
     locations: Mapped[List["TripLocation"]] = relationship(
         "TripLocation",
@@ -135,11 +135,11 @@ class TripPhoto(Base):
 
     # Photo storage paths
     photo_url = Column(String(500), nullable=False)  # Path to optimized version
-    thumbnail_url = Column(String(500), nullable=False)  # Path to thumbnail
+    thumb_url = Column(String(500), nullable=False)  # Path to thumbnail
 
     # Photo metadata
     caption = Column(String(500), nullable=True)  # Optional caption
-    display_order = Column(Integer, nullable=False, default=0)  # Order in gallery
+    order = Column(Integer, nullable=False, default=0)  # Order in gallery (renamed from display_order)
 
     # Metadata
     uploaded_at = Column(DateTime, nullable=False, default=datetime.utcnow)
@@ -150,7 +150,7 @@ class TripPhoto(Base):
     # Indexes
     __table_args__ = (
         Index("idx_photo_trip", "trip_id"),  # Find photos by trip
-        Index("idx_photo_order", "trip_id", "display_order"),  # Ordered gallery
+        Index("idx_photo_order", "trip_id", "order"),  # Ordered gallery
     )
 
     def __repr__(self) -> str:

@@ -2,18 +2,23 @@
 Trip service for Travel Diary feature.
 
 Business logic for trip creation, publication, and management.
-Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008
+Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013
 """
 
+import io
 import logging
+import os
+import uuid
 from datetime import UTC, datetime
-from typing import Optional
+from pathlib import Path
+from typing import BinaryIO, List, Optional
 
-from sqlalchemy import select
+from PIL import Image
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.trip import Tag, Trip, TripDifficulty, TripLocation, TripStatus, TripTag
+from src.models.trip import Tag, Trip, TripDifficulty, TripLocation, TripPhoto, TripStatus, TripTag
 from src.schemas.trip import LocationInput, TripCreateRequest
 from src.utils.html_sanitizer import sanitize_html
 
@@ -274,3 +279,263 @@ class TripService:
         trip.photos = loaded_trip.photos
         trip.locations = loaded_trip.locations
         trip.trip_tags = loaded_trip.trip_tags
+
+    async def upload_photo(
+        self,
+        trip_id: str,
+        user_id: str,
+        photo_file: BinaryIO,
+        filename: str,
+        content_type: str,
+    ) -> TripPhoto:
+        """
+        Upload a photo to trip.
+
+        Validates photo format, checks photo limit (max 20), processes image
+        (resize, thumbnail generation), and saves to storage.
+
+        Args:
+            trip_id: Trip identifier
+            user_id: User uploading the photo (must be trip owner)
+            photo_file: Photo file binary data
+            filename: Original filename
+            content_type: MIME type (image/jpeg, image/png, image/webp)
+
+        Returns:
+            TripPhoto instance
+
+        Raises:
+            ValueError: If trip not found, photo limit exceeded, or invalid format
+            PermissionError: If user is not trip owner
+
+        Functional Requirements: FR-009, FR-010, FR-011
+        """
+        # Get trip and verify ownership
+        result = await self.db.execute(
+            select(Trip).where(Trip.trip_id == trip_id).options(selectinload(Trip.photos))
+        )
+        trip = result.scalar_one_or_none()
+
+        if not trip:
+            raise ValueError("Viaje no encontrado")
+
+        if trip.user_id != user_id:
+            raise PermissionError("No tienes permiso para subir fotos a este viaje")
+
+        # Check photo limit (max 20)
+        photo_count = len(trip.photos)
+        if photo_count >= 20:
+            raise ValueError("Has alcanzado el límite de 20 fotos por viaje")
+
+        # Validate content type
+        allowed_types = ["image/jpeg", "image/png", "image/webp"]
+        if content_type not in allowed_types:
+            raise ValueError("Formato de archivo no soportado. Usa JPG, PNG o WebP")
+
+        # Read image and validate
+        try:
+            img = Image.open(photo_file)
+            img.verify()  # Verify it's actually an image
+            photo_file.seek(0)  # Reset file pointer after verify
+            img = Image.open(photo_file)  # Re-open after verify
+        except Exception:
+            raise ValueError("El archivo no es una imagen válida")
+
+        # Convert RGBA to RGB if needed (for JPEG)
+        if img.mode == "RGBA":
+            rgb_img = Image.new("RGB", img.size, (255, 255, 255))
+            rgb_img.paste(img, mask=img.split()[3])  # Use alpha channel as mask
+            img = rgb_img
+
+        # Generate unique filename
+        file_uuid = str(uuid.uuid4())
+        ext = "jpg"  # Always save as JPEG for consistency
+
+        # Create storage directory: storage/trip_photos/{year}/{month}/{trip_id}/
+        now = datetime.now(UTC)
+        year = now.strftime("%Y")
+        month = now.strftime("%m")
+        storage_dir = Path("storage/trip_photos") / year / month / trip_id
+        storage_dir.mkdir(parents=True, exist_ok=True)
+
+        # Resize and save optimized version (max 1200px width)
+        optimized_img = img.copy()
+        if optimized_img.width > 1200:
+            ratio = 1200 / optimized_img.width
+            new_height = int(optimized_img.height * ratio)
+            optimized_img = optimized_img.resize((1200, new_height), Image.Resampling.LANCZOS)
+
+        optimized_path = storage_dir / f"{file_uuid}_optimized.{ext}"
+        optimized_img.save(optimized_path, format="JPEG", quality=85, optimize=True)
+
+        # Create thumbnail (400x400px)
+        thumb_img = img.copy()
+        thumb_img.thumbnail((400, 400), Image.Resampling.LANCZOS)
+        thumb_path = storage_dir / f"{file_uuid}_thumb.{ext}"
+        thumb_img.save(thumb_path, format="JPEG", quality=80, optimize=True)
+
+        # Calculate next order value (last photo's order + 1)
+        # Use a query to get the current max order (avoid cached relationship issues)
+        result = await self.db.execute(
+            select(func.max(TripPhoto.order)).where(TripPhoto.trip_id == trip_id)
+        )
+        max_order = result.scalar()
+        next_order = (max_order + 1) if max_order is not None else 0
+
+        # Create database record
+        photo = TripPhoto(
+            trip_id=trip_id,
+            photo_url=f"/storage/trip_photos/{year}/{month}/{trip_id}/{file_uuid}_optimized.{ext}",
+            thumb_url=f"/storage/trip_photos/{year}/{month}/{trip_id}/{file_uuid}_thumb.{ext}",
+            order=next_order,
+        )
+
+        self.db.add(photo)
+        await self.db.commit()
+        await self.db.refresh(photo)
+
+        logger.info(f"Uploaded photo {photo.photo_id} to trip {trip_id}")
+        return photo
+
+    async def delete_photo(self, trip_id: str, photo_id: str, user_id: str) -> dict:
+        """
+        Delete a photo from trip.
+
+        Removes photo from database and deletes files from storage.
+        Reorders remaining photos to maintain sequential order.
+
+        Args:
+            trip_id: Trip identifier
+            photo_id: Photo identifier
+            user_id: User deleting the photo (must be trip owner)
+
+        Returns:
+            Dict with success message
+
+        Raises:
+            ValueError: If trip or photo not found
+            PermissionError: If user is not trip owner
+
+        Functional Requirement: FR-013
+        """
+        # Get trip and verify ownership
+        result = await self.db.execute(select(Trip).where(Trip.trip_id == trip_id))
+        trip = result.scalar_one_or_none()
+
+        if not trip:
+            raise ValueError("Viaje no encontrado")
+
+        if trip.user_id != user_id:
+            raise PermissionError("No tienes permiso para eliminar fotos de este viaje")
+
+        # Get photo
+        result = await self.db.execute(select(TripPhoto).where(TripPhoto.photo_id == photo_id))
+        photo = result.scalar_one_or_none()
+
+        if not photo:
+            raise ValueError("Foto no encontrada")
+
+        if photo.trip_id != trip_id:
+            raise ValueError("La foto no pertenece a este viaje")
+
+        # Delete physical files
+        try:
+            # Convert URL to filesystem path
+            photo_path = Path(photo.photo_url.lstrip("/"))
+            thumb_path = Path(photo.thumb_url.lstrip("/"))
+
+            if photo_path.exists():
+                photo_path.unlink()
+            if thumb_path.exists():
+                thumb_path.unlink()
+
+            logger.info(f"Deleted photo files for {photo_id}")
+        except Exception as e:
+            logger.warning(f"Failed to delete photo files for {photo_id}: {e}")
+            # Continue with database deletion even if file deletion fails
+
+        # Remember the order of deleted photo
+        deleted_order = photo.order
+
+        # Delete from database
+        await self.db.delete(photo)
+        await self.db.flush()
+
+        # Reorder remaining photos to maintain sequential order (no gaps)
+        result = await self.db.execute(
+            select(TripPhoto)
+            .where(TripPhoto.trip_id == trip_id, TripPhoto.order > deleted_order)
+            .order_by(TripPhoto.order)
+        )
+        remaining_photos = result.scalars().all()
+
+        for remaining_photo in remaining_photos:
+            remaining_photo.order -= 1
+
+        await self.db.commit()
+
+        logger.info(f"Deleted photo {photo_id} from trip {trip_id}, reordered {len(remaining_photos)} remaining photos")
+        return {"message": "Foto eliminada correctamente"}
+
+    async def reorder_photos(
+        self, trip_id: str, user_id: str, photo_order: List[str]
+    ) -> dict:
+        """
+        Reorder photos in trip gallery.
+
+        Updates the order field for each photo based on provided photo_ids list.
+
+        Args:
+            trip_id: Trip identifier
+            user_id: User reordering photos (must be trip owner)
+            photo_order: List of photo_ids in desired order
+
+        Returns:
+            Dict with success message
+
+        Raises:
+            ValueError: If trip not found or photo_ids don't match trip's photos
+            PermissionError: If user is not trip owner
+
+        Functional Requirement: FR-012
+        """
+        # Get trip and verify ownership
+        result = await self.db.execute(
+            select(Trip).where(Trip.trip_id == trip_id).options(selectinload(Trip.photos))
+        )
+        trip = result.scalar_one_or_none()
+
+        if not trip:
+            raise ValueError("Viaje no encontrado")
+
+        if trip.user_id != user_id:
+            raise PermissionError("No tienes permiso para reordenar fotos de este viaje")
+
+        # Validate photo_order contains all trip's photos
+        trip_photo_ids = {photo.photo_id for photo in trip.photos}
+        provided_photo_ids = set(photo_order)
+
+        # Check if counts match first
+        if len(provided_photo_ids) != len(trip_photo_ids):
+            raise ValueError(
+                f"Cantidad inválida de fotos. El viaje tiene {len(trip_photo_ids)} fotos pero se proporcionaron {len(provided_photo_ids)}"
+            )
+
+        # Check if all IDs are valid
+        if trip_photo_ids != provided_photo_ids:
+            raise ValueError(
+                "ID de foto inválido: la lista contiene fotos que no pertenecen a este viaje"
+            )
+
+        # Update order for each photo
+        for new_order, photo_id in enumerate(photo_order):
+            result = await self.db.execute(
+                select(TripPhoto).where(TripPhoto.photo_id == photo_id)
+            )
+            photo = result.scalar_one()
+            photo.order = new_order
+
+        await self.db.commit()
+
+        logger.info(f"Reordered {len(photo_order)} photos for trip {trip_id}")
+        return {"message": "Fotos reordenadas correctamente"}
