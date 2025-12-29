@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 
 from src.models.trip import Tag, Trip, TripDifficulty, TripLocation, TripPhoto, TripStatus, TripTag
 from src.schemas.trip import LocationInput, TripCreateRequest
+from src.services.stats_service import StatsService
 from src.utils.html_sanitizer import sanitize_html
 
 logger = logging.getLogger(__name__)
@@ -146,6 +147,8 @@ class TripService:
         - Description >= 50 characters
         - Start date present
 
+        Updates user statistics on first publication.
+
         Args:
             trip_id: Trip identifier
             user_id: ID of user publishing the trip (must be owner)
@@ -157,8 +160,12 @@ class TripService:
             ValueError: If trip not found or validation fails
             PermissionError: If user is not the trip owner
         """
-        # Get trip
-        result = await self.db.execute(select(Trip).where(Trip.trip_id == trip_id))
+        # Get trip with photos for stats update
+        result = await self.db.execute(
+            select(Trip)
+            .where(Trip.trip_id == trip_id)
+            .options(selectinload(Trip.photos), selectinload(Trip.locations))
+        )
         trip = result.scalar_one_or_none()
 
         if not trip:
@@ -181,12 +188,38 @@ class TripService:
             raise ValueError("La fecha de inicio es requerida para publicar el viaje")
 
         # Publish trip (idempotent - if already published, keep original published_at)
-        if trip.status != TripStatus.PUBLISHED:
+        was_draft = trip.status == TripStatus.DRAFT
+
+        if was_draft:
+            # Capture data for stats update BEFORE committing (while relationships are loaded)
+            distance_km = trip.distance_km or 0.0
+            photos_count = len(trip.photos)
+            trip_date = trip.start_date
+
+            # Extract country code from first location if available
+            country_code = "ES"  # Default to Spain
+            if trip.locations and len(trip.locations) > 0:
+                # TODO: In future, extract actual country code from geocoded location
+                # For now, we use a default value
+                country_code = "ES"
+
+            # Update trip status
             trip.status = TripStatus.PUBLISHED
             trip.published_at = datetime.now(UTC)
             await self.db.commit()
             await self.db.refresh(trip)
-            logger.info(f"Published trip {trip_id}")
+
+            # T036: Update user statistics on first publication
+            stats_service = StatsService(self.db)
+            await stats_service.update_stats_on_trip_publish(
+                user_id=user_id,
+                distance_km=distance_km,
+                country_code=country_code,
+                photos_count=photos_count,
+                trip_date=trip_date,
+            )
+
+            logger.info(f"Published trip {trip_id} and updated user stats")
         else:
             logger.info(f"Trip {trip_id} already published (idempotent)")
 
@@ -394,6 +427,11 @@ class TripService:
         await self.db.commit()
         await self.db.refresh(photo)
 
+        # Update user stats if trip is published (increment photo count)
+        if trip.status == TripStatus.PUBLISHED:
+            await self._update_photo_count_in_stats(user_id, increment=1)
+            logger.info(f"Incremented photo count in stats for user {user_id}")
+
         logger.info(f"Uploaded photo {photo.photo_id} to trip {trip_id}")
         return photo
 
@@ -474,6 +512,11 @@ class TripService:
 
         await self.db.commit()
 
+        # Update user stats if trip is published (decrement photo count)
+        if trip.status == TripStatus.PUBLISHED:
+            await self._update_photo_count_in_stats(user_id, increment=-1)
+            logger.info(f"Decremented photo count in stats for user {user_id}")
+
         logger.info(f"Deleted photo {photo_id} from trip {trip_id}, reordered {len(remaining_photos)} remaining photos")
         return {"message": "Foto eliminada correctamente"}
 
@@ -539,3 +582,218 @@ class TripService:
 
         logger.info(f"Reordered {len(photo_order)} photos for trip {trip_id}")
         return {"message": "Fotos reordenadas correctamente"}
+
+    async def update_trip(
+        self, trip_id: str, user_id: str, update_data: dict
+    ) -> Trip:
+        """
+        Update an existing trip.
+
+        T073: Supports partial updates with HTML sanitization.
+        Updates user stats if published trip's distance, country, or photo count changes.
+
+        Args:
+            trip_id: Trip identifier
+            user_id: User updating the trip (must be owner)
+            update_data: Dictionary with fields to update
+
+        Returns:
+            Updated Trip instance
+
+        Raises:
+            ValueError: If trip not found or validation fails
+            PermissionError: If user is not the trip owner
+        """
+        # Get trip with relationships for stats calculation
+        result = await self.db.execute(
+            select(Trip)
+            .where(Trip.trip_id == trip_id)
+            .options(selectinload(Trip.photos), selectinload(Trip.locations))
+        )
+        trip = result.scalar_one_or_none()
+
+        if not trip:
+            raise ValueError("Viaje no encontrado")
+
+        if trip.user_id != user_id:
+            raise PermissionError("No tienes permiso para editar este viaje")
+
+        # Store old values for stats update
+        was_published = trip.status == TripStatus.PUBLISHED
+        old_distance_km = trip.distance_km or 0.0
+        old_photos_count = len(trip.photos)
+        old_country_code = "ES"  # TODO: Extract from locations when geocoding is implemented
+
+        # Apply updates with sanitization
+        if "title" in update_data:
+            trip.title = update_data["title"]
+
+        if "description" in update_data:
+            trip.description = sanitize_html(update_data["description"])
+
+        if "start_date" in update_data:
+            trip.start_date = update_data["start_date"]
+
+        if "end_date" in update_data:
+            trip.end_date = update_data["end_date"]
+
+        if "distance_km" in update_data:
+            trip.distance_km = update_data["distance_km"]
+
+        if "difficulty" in update_data:
+            trip.difficulty = (
+                TripDifficulty(update_data["difficulty"])
+                if update_data["difficulty"]
+                else None
+            )
+
+        # Update tags if provided
+        if "tags" in update_data:
+            # Remove old tag associations
+            await self.db.execute(
+                select(TripTag).where(TripTag.trip_id == trip_id)
+            )
+            # Process new tags
+            await self._process_tags(trip, update_data["tags"])
+
+        # Update locations if provided
+        if "locations" in update_data:
+            # Remove old locations
+            await self.db.execute(
+                select(TripLocation).where(TripLocation.trip_id == trip_id)
+            )
+            # Process new locations
+            await self._process_locations(trip, update_data["locations"])
+
+        trip.updated_at = datetime.now(UTC)
+        await self.db.commit()
+        await self.db.refresh(trip)
+
+        # T162: Update stats if published trip was edited
+        if was_published:
+            # Reload to get updated photos count
+            result = await self.db.execute(
+                select(Trip)
+                .where(Trip.trip_id == trip_id)
+                .options(selectinload(Trip.photos), selectinload(Trip.locations))
+            )
+            updated_trip = result.scalar_one()
+
+            new_distance_km = updated_trip.distance_km or 0.0
+            new_photos_count = len(updated_trip.photos)
+            new_country_code = "ES"  # TODO: Extract from locations
+
+            stats_service = StatsService(self.db)
+            await stats_service.update_stats_on_trip_edit(
+                user_id=user_id,
+                old_distance_km=old_distance_km,
+                new_distance_km=new_distance_km,
+                old_country_code=old_country_code,
+                new_country_code=new_country_code,
+                old_photos_count=old_photos_count,
+                new_photos_count=new_photos_count,
+            )
+            logger.info(f"Updated trip {trip_id} and user stats")
+
+        await self._load_trip_relationships(trip)
+        logger.info(f"Updated trip {trip_id}")
+        return trip
+
+    async def delete_trip(self, trip_id: str, user_id: str) -> dict:
+        """
+        Delete a trip.
+
+        T074-T075: Cascade deletes photos, tags, locations. Updates user stats if published.
+
+        Args:
+            trip_id: Trip identifier
+            user_id: User deleting the trip (must be owner)
+
+        Returns:
+            Dict with success message
+
+        Raises:
+            ValueError: If trip not found
+            PermissionError: If user is not the trip owner
+        """
+        # Get trip with all relationships for cleanup
+        result = await self.db.execute(
+            select(Trip)
+            .where(Trip.trip_id == trip_id)
+            .options(selectinload(Trip.photos), selectinload(Trip.locations))
+        )
+        trip = result.scalar_one_or_none()
+
+        if not trip:
+            raise ValueError("Viaje no encontrado")
+
+        if trip.user_id != user_id:
+            raise PermissionError("No tienes permiso para eliminar este viaje")
+
+        # Store data for stats update before deletion
+        was_published = trip.status == TripStatus.PUBLISHED
+        distance_km = trip.distance_km or 0.0
+        photos_count = len(trip.photos)
+        country_code = "ES"  # TODO: Extract from locations
+
+        # Delete physical photo files
+        for photo in trip.photos:
+            try:
+                photo_path = Path(photo.photo_url.lstrip("/"))
+                thumb_path = Path(photo.thumb_url.lstrip("/"))
+
+                if photo_path.exists():
+                    photo_path.unlink()
+                if thumb_path.exists():
+                    thumb_path.unlink()
+
+                logger.debug(f"Deleted photo files for {photo.photo_id}")
+            except Exception as e:
+                logger.warning(f"Failed to delete photo files for {photo.photo_id}: {e}")
+                # Continue with deletion even if file cleanup fails
+
+        # Delete trip (cascade will handle photos, tags, locations via SQLAlchemy)
+        await self.db.delete(trip)
+        await self.db.commit()
+
+        # T163: Update stats if published trip was deleted
+        if was_published:
+            stats_service = StatsService(self.db)
+            await stats_service.update_stats_on_trip_delete(
+                user_id=user_id,
+                distance_km=distance_km,
+                country_code=country_code,
+                photos_count=photos_count,
+            )
+            logger.info(f"Deleted trip {trip_id} and updated user stats")
+
+        logger.info(f"Deleted trip {trip_id}")
+        return {"message": "Viaje eliminado correctamente"}
+
+    async def _update_photo_count_in_stats(self, user_id: str, increment: int) -> None:
+        """
+        Update total_photos count in user stats.
+
+        Helper method to increment/decrement photo count when photos are added/removed
+        from published trips.
+
+        Args:
+            user_id: User ID
+            increment: Number to add (positive) or subtract (negative) from total_photos
+        """
+        from src.models.stats import UserStats
+
+        # Get user stats
+        result = await self.db.execute(
+            select(UserStats).where(UserStats.user_id == user_id)
+        )
+        stats = result.scalar_one_or_none()
+
+        if stats:
+            # Update photo count (ensure non-negative)
+            stats.total_photos = max(0, stats.total_photos + increment)
+            stats.updated_at = datetime.now(UTC)
+            await self.db.commit()
+            logger.debug(f"Updated photo count for user {user_id}: {increment:+d}")
+        else:
+            logger.warning(f"Stats not found for user {user_id}, cannot update photo count")

@@ -240,7 +240,14 @@ class StatsService:
         stats = result.scalar_one_or_none()
 
         if not stats:
-            stats = UserStats(user_id=user_id)
+            stats = UserStats(
+                user_id=user_id,
+                total_trips=0,
+                total_kilometers=0.0,
+                total_photos=0,
+                achievements_count=0,
+                countries_visited=[],
+            )
             self.db.add(stats)
 
         # Update stats
