@@ -167,7 +167,7 @@ if (response.success && response.data) {
 **Body (JSON):**
 ```json
 {
-  "email": "maria@example.com",
+  "login": "maria@example.com",
   "password": "SecurePass123!"
 }
 ```
@@ -616,7 +616,7 @@ if (response.success && response.data) {
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"maria@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+              "raw": "{\n  \"login\": \"maria@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -971,7 +971,7 @@ if (response.success && response.data) {
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
+              "raw": "{\n  \"login\": \"test@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",

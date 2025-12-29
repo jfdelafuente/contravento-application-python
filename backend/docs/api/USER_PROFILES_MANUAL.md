@@ -902,7 +902,7 @@ echo -e "\n=== 2. Login Maria ==="
 MARIA_LOGIN=$(curl -s -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "maria@example.com",
+    "login": "maria@example.com",
     "password": "SecurePass123!"
   }')
 
@@ -940,7 +940,7 @@ echo -e "\n=== 5. Login Carlos ==="
 CARLOS_LOGIN=$(curl -s -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "carlos@example.com",
+    "login": "carlos@example.com",
     "password": "SecurePass123!"
   }')
 
@@ -1017,7 +1017,7 @@ curl -s -X POST "$API_URL/auth/register" \
 
 LOGIN=$(curl -s -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "TestPass123!"}')
+  -d '{"login": "test@example.com", "password": "TestPass123!"}')
 
 TOKEN=$(echo $LOGIN | jq -r '.data.access_token')
 
@@ -1039,7 +1039,7 @@ curl -s -X POST "$API_URL/auth/register" \
 echo -e "\n=== Test 3: Wrong Password ==="
 curl -s -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "WrongPassword123!"}' \
+  -d '{"login": "test@example.com", "password": "WrongPassword123!"}' \
   | jq '{success, error}'
 
 # Test 4: Bio muy larga
@@ -1112,7 +1112,7 @@ curl -X POST "$API_URL/auth/refresh" \
 ```bash
 curl -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "maria@example.com", "password": "SecurePass123!"}'
+  -d '{"login": "maria@example.com", "password": "SecurePass123!"}'
 ```
 
 ---
@@ -1183,7 +1183,7 @@ curl -X POST "$API_URL/auth/register" -H "Content-Type: application/json" \
 
 # Login
 curl -X POST "$API_URL/auth/login" -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "Pass123!"}'
+  -d '{"login": "user@example.com", "password": "Pass123!"}'
 
 # Get current user
 curl -X GET "$API_URL/auth/me" -H "Authorization: Bearer $TOKEN"
