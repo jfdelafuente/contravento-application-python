@@ -21,9 +21,14 @@
   - **38 tests PASSING**: 16 contract + 8 integration + 14 unit tests
   - API endpoints: POST /trips, POST /trips/{id}/publish, GET /trips/{id}
   - TripService methods: create_trip(), publish_trip()
-- ✅ User Story 2 (Photos): Upload, delete, reorder photos with **stats tracking** (T046-T063)
-- ✅ User Story 3 (Edit/Delete): Service layer complete with **stats sync** (T073-T075)
+- ⏳ **User Story 2 (Photos)**: Service layer complete with **stats tracking** (T056-T058) ✅
+  - TripService methods: upload_photo(), delete_photo(), reorder_photos()
+  - ⏳ API endpoints pending (T059-T061)
+  - ⏳ Tests pending (T046-T055)
+- ⏳ **User Story 3 (Edit/Delete)**: Service layer complete with **stats sync** (T073-T075) ✅
+  - TripService methods: update_trip(), delete_trip()
   - ⏳ API endpoints pending (T076-T077)
+  - ⏳ Tests pending (T064-T072)
 - ✅ **Stats Integration Feature**:
   - Auto-update on publish/edit/delete trips
   - Photo count tracking (add/remove)
@@ -151,12 +156,12 @@ Web application structure:
 
 ### Implementation for User Story 2
 
-- [ ] T056 [US2] Implement TripService.upload_photo() in backend/src/services/trip_service.py (validation, photo count limit, call PhotoService)
-- [ ] T057 [US2] Implement TripService.delete_photo() in backend/src/services/trip_service.py (filesystem cleanup)
-- [ ] T058 [US2] Implement TripService.reorder_photos() in backend/src/services/trip_service.py
-- [ ] T059 [US2] Implement POST /trips/{id}/photos endpoint in backend/src/api/trips.py (multipart/form-data)
-- [ ] T060 [US2] Implement DELETE /trips/{id}/photos/{photo_id} endpoint in backend/src/api/trips.py
-- [ ] T061 [US2] Implement PUT /trips/{id}/photos/reorder endpoint in backend/src/api/trips.py
+- [x] T056 [US2] Implement TripService.upload_photo() in backend/src/services/trip_service.py (validation, photo count limit, call PhotoService) ✅ **with stats tracking**
+- [x] T057 [US2] Implement TripService.delete_photo() in backend/src/services/trip_service.py (filesystem cleanup) ✅ **with stats tracking**
+- [x] T058 [US2] Implement TripService.reorder_photos() in backend/src/services/trip_service.py ✅
+- [ ] T059 [US2] Implement POST /trips/{id}/photos endpoint in backend/src/api/trips.py (multipart/form-data) ⏳ **Service layer complete**
+- [ ] T060 [US2] Implement DELETE /trips/{id}/photos/{photo_id} endpoint in backend/src/api/trips.py ⏳ **Service layer complete**
+- [ ] T061 [US2] Implement PUT /trips/{id}/photos/reorder endpoint in backend/src/api/trips.py ⏳ **Service layer complete**
 - [ ] T062 Run US2 tests (T046-T054) - all should PASS (Green)
 - [ ] T063 [US2] Test manually: upload photo → verify optimized + thumbnail created → delete → verify files removed
 
