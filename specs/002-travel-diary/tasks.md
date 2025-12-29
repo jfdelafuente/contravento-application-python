@@ -33,7 +33,7 @@
   - Auto-update on publish/edit/delete trips
   - Photo count tracking (add/remove)
   - Achievement verification & awarding
-  - See: `STATS_INTEGRATION.md` for full documentation
+  - See: [backend/docs/STATS_INTEGRATION.md](../../backend/docs/STATS_INTEGRATION.md) for full documentation
 
 **Next Steps**: Complete API endpoints for edit/delete (T076-T077), integration tests, tag filtering
 
