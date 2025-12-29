@@ -153,6 +153,17 @@ class TripPhoto(Base):
         Index("idx_photo_order", "trip_id", "order"),  # Ordered gallery
     )
 
+    # Property mappings for schema compatibility
+    @property
+    def thumbnail_url(self) -> str:
+        """Map thumb_url to thumbnail_url for schema compatibility."""
+        return self.thumb_url
+
+    @property
+    def display_order(self) -> int:
+        """Map order to display_order for schema compatibility."""
+        return self.order
+
     def __repr__(self) -> str:
         return f"<TripPhoto(photo_id={self.photo_id}, trip_id={self.trip_id})>"
 
