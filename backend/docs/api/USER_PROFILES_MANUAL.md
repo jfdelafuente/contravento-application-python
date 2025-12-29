@@ -358,7 +358,7 @@ curl -X GET "$API_URL/users/maria_garcia" \
 ### 3. Update Profile
 
 ```bash
-curl -X PUT "$API_URL/profile" \
+curl -X PUT "$API_URL/users/$USERNAME/profile" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -393,7 +393,7 @@ curl -X PUT "$API_URL/profile" \
 
 **Bio muy larga (> 500 caracteres):**
 ```bash
-curl -X PUT "$API_URL/profile" \
+curl -X PUT "$API_URL/users/$USERNAME/profile" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -416,7 +416,7 @@ curl -X PUT "$API_URL/profile" \
 
 **Cycling type inválido:**
 ```bash
-curl -X PUT "$API_URL/profile" \
+curl -X PUT "$API_URL/users/$USERNAME/profile" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -439,7 +439,7 @@ curl -X PUT "$API_URL/profile" \
 
 **URL de website inválida:**
 ```bash
-curl -X PUT "$API_URL/profile" \
+curl -X PUT "$API_URL/users/$USERNAME/profile" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -463,7 +463,7 @@ convert -size 400x400 xc:blue \
 
 **Upload:**
 ```bash
-curl -X POST "$API_URL/profile/photo" \
+curl -X POST "$API_URL/users/$USERNAME/profile/photo" \
   -H "Authorization: Bearer $TOKEN" \
   -F "photo=@profile_photo.jpg"
 ```
@@ -487,7 +487,7 @@ curl -X POST "$API_URL/profile/photo" \
 # Crear archivo grande
 convert -size 3000x3000 xc:red large_photo.jpg
 
-curl -X POST "$API_URL/profile/photo" \
+curl -X POST "$API_URL/users/$USERNAME/profile/photo" \
   -H "Authorization: Bearer $TOKEN" \
   -F "photo=@large_photo.jpg"
 ```
@@ -508,7 +508,7 @@ curl -X POST "$API_URL/profile/photo" \
 ```bash
 echo "This is not an image" > fake_photo.txt
 
-curl -X POST "$API_URL/profile/photo" \
+curl -X POST "$API_URL/users/$USERNAME/profile/photo" \
   -H "Authorization: Bearer $TOKEN" \
   -F "photo=@fake_photo.txt"
 ```
@@ -833,7 +833,7 @@ curl -X GET "$API_URL/users/maria_garcia/stats"
 ### 2. Get All Achievements
 
 ```bash
-curl -X GET "$API_URL/stats/achievements" \
+curl -X GET "$API_URL/achievements" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -911,7 +911,7 @@ echo "Token: ${MARIA_TOKEN:0:50}..."
 
 # 3. Actualizar Perfil de Maria
 echo -e "\n=== 3. Actualizar Perfil de Maria ==="
-curl -s -X PUT "$API_URL/profile" \
+curl -s -X PUT "$API_URL/users/maria_garcia/profile" \
   -H "Authorization: Bearer $MARIA_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -949,7 +949,7 @@ echo "Token: ${CARLOS_TOKEN:0:50}..."
 
 # 6. Actualizar Perfil de Carlos
 echo -e "\n=== 6. Actualizar Perfil de Carlos ==="
-curl -s -X PUT "$API_URL/profile" \
+curl -s -X PUT "$API_URL/users/carlos_mtb/profile" \
   -H "Authorization: Bearer $CARLOS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -985,7 +985,7 @@ curl -s -X GET "$API_URL/users/carlos_mtb/follow-status" \
 
 # 12. Ver perfil público de Carlos
 echo -e "\n=== 12. Perfil Público de Carlos ==="
-curl -s -X GET "$API_URL/users/carlos_mtb" | jq '.'
+curl -s -X GET "$API_URL/users/carlos_mtb/profile" | jq '.'
 
 # 13. Ver stats de Maria
 echo -e "\n=== 13. Stats de Maria ==="
@@ -1045,7 +1045,7 @@ curl -s -X POST "$API_URL/auth/login" \
 # Test 4: Bio muy larga
 echo -e "\n=== Test 4: Bio Too Long ==="
 LONG_BIO=$(python3 -c "print('a' * 501)")
-curl -s -X PUT "$API_URL/profile" \
+curl -s -X PUT "$API_URL/users/testuser/profile" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"bio\": \"$LONG_BIO\"}" \
@@ -1053,7 +1053,7 @@ curl -s -X PUT "$API_URL/profile" \
 
 # Test 5: Cycling type inválido
 echo -e "\n=== Test 5: Invalid Cycling Type ==="
-curl -s -X PUT "$API_URL/profile" \
+curl -s -X PUT "$API_URL/users/testuser/profile" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"cycling_type": "invalid_type"}' \

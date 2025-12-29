@@ -256,7 +256,7 @@ if (response.success && response.data) {
 
 #### 1. Get User Profile
 
-**Request:** `GET {{base_url}}/users/{{username}}`
+**Request:** `GET {{base_url}}/users/{{username}}/profile`
 
 **Headers:**
 - `Authorization: Bearer {{access_token}}` (opcional para perfiles públicos)
@@ -285,7 +285,7 @@ if (response.success && response.data) {
 
 #### 2. Update Profile
 
-**Request:** `PUT {{base_url}}/profile`
+**Request:** `PUT {{base_url}}/users/{{username}}/profile`
 
 **Body (JSON):**
 ```json
@@ -330,7 +330,7 @@ if (response.success && response.data) {
 
 #### 3. Upload Profile Photo
 
-**Request:** `POST {{base_url}}/profile/photo`
+**Request:** `POST {{base_url}}/users/{{username}}/profile/photo`
 
 **Body (form-data):**
 - Key: `photo`
@@ -725,9 +725,9 @@ if (response.success && response.data) {
               "raw": "{\n  \"bio\": \"Amante del bikepacking y las rutas de montaña. 🚴‍♀️\",\n  \"location\": \"Barcelona, España\",\n  \"cycling_type\": \"bikepacking\",\n  \"website\": \"https://mariagarciacycling.com\",\n  \"instagram_handle\": \"@maria_bikepacking\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/profile",
+              "raw": "{{base_url}}/users/{{username}}/profile",
               "host": ["{{base_url}}"],
-              "path": ["profile"]
+              "path": ["users", "{{username}}", "profile"]
             }
           },
           "response": []
@@ -753,9 +753,9 @@ if (response.success && response.data) {
               ]
             },
             "url": {
-              "raw": "{{base_url}}/profile/photo",
+              "raw": "{{base_url}}/users/{{username}}/profile/photo",
               "host": ["{{base_url}}"],
-              "path": ["profile", "photo"]
+              "path": ["users", "{{username}}", "profile", "photo"]
             }
           },
           "response": []
@@ -903,9 +903,9 @@ if (response.success && response.data) {
               }
             ],
             "url": {
-              "raw": "{{base_url}}/stats/achievements",
+              "raw": "{{base_url}}/achievements",
               "host": ["{{base_url}}"],
-              "path": ["stats", "achievements"]
+              "path": ["achievements"]
             }
           },
           "response": []
@@ -1021,9 +1021,9 @@ if (response.success && response.data) {
               ]
             },
             "url": {
-              "raw": "{{base_url}}/profile/photo",
+              "raw": "{{base_url}}/users/{{username}}/profile/photo",
               "host": ["{{base_url}}"],
-              "path": ["profile", "photo"]
+              "path": ["users", "{{username}}", "profile", "photo"]
             }
           },
           "response": []
