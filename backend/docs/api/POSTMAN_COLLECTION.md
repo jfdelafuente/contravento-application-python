@@ -39,7 +39,7 @@ Crear un nuevo environment con estas variables:
 
 ```json
 {
-  "name": "ContraVento - Development",
+  "name": "ContraVento - Travel Diary",
   "values": [
     {
       "key": "base_url",

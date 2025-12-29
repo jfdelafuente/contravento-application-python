@@ -244,8 +244,8 @@ async def main():
     # Default behavior: create default test users
     print("[INFO] Creando usuario de prueba por defecto...")
     user1 = await create_verified_user(
-        username="exampletuser",
-        email="example@example.com",
+        username="testuser",
+        email="test@example.com",
         password="TestPass123!"
     )
 
