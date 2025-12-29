@@ -259,16 +259,45 @@ Ver `.env.example` para todas las variables disponibles.
 
 ## Funcionalidades Implementadas
 
-### Travel Diary (Diario de Viajes Digital)
+### Travel Diary (Diario de Viajes Digital) ✅
 
-Sistema completo para documentar viajes en bicicleta:
+Sistema completo para documentar viajes en bicicleta con integración de estadísticas:
 
-- **User Story 1 - MVP**: Crear trips con título, descripción, fechas, dificultad, ubicaciones y tags
-- **User Story 2 - Photo Gallery**: Upload, reordenar y eliminar fotos (max 20 por trip, max 10MB por foto)
+- **User Story 1 - MVP**: Crear, publicar y gestionar trips
+  - Crear trips en modo draft con título, descripción, fechas, dificultad, ubicaciones y tags
+  - Publicar trips con validación automática de requisitos (título, descripción ≥50 chars, fecha inicio)
+  - Editar trips publicados con actualización automática de estadísticas
+  - Eliminar trips con rollback de estadísticas
+  - Sanitización automática de HTML (XSS prevention)
+  - Detección de spam y palabras bloqueadas
+
+- **User Story 2 - Photo Gallery**: Gestión completa de fotos
+  - Upload múltiple (max 20 fotos por trip, max 10MB por foto)
   - Procesamiento automático: resize a 1200px, thumbnail 400x400px
   - Almacenamiento organizado: `storage/trip_photos/{year}/{month}/{trip_id}/`
-  - Formatos: JPG, PNG, WebP
-- **Publicación**: Convertir trips de draft a published con validación de requisitos
+  - Formatos soportados: JPG, PNG, WebP
+  - Reordenar fotos en la galería
+  - Eliminar fotos con cleanup de archivos físicos
+
+- **🎯 Integración de Estadísticas** (NUEVA FUNCIONALIDAD):
+  - **Actualización automática** cuando se publican, editan o eliminan viajes
+  - **Métricas rastreadas**:
+    - `total_trips`: Contador de viajes publicados
+    - `total_kilometers`: Kilómetros acumulados
+    - `total_photos`: Fotos totales en viajes publicados
+    - `countries_visited`: Lista de países únicos visitados
+    - `last_trip_date`: Fecha del viaje más reciente
+  - **Sistema de Logros**: Verificación y otorgamiento automático de achievements
+    - Logros de distancia (100km, 1000km, 5000km)
+    - Logros de viajes (1, 10, 25 trips)
+    - Logros de países (5, 10 países)
+    - Logros de fotos (50 fotos)
+  - **Operaciones soportadas**:
+    - Trip publicado → +1 trip, +X km, +N fotos, +país
+    - Foto agregada (trip publicado) → +1 foto
+    - Foto eliminada (trip publicado) → -1 foto
+    - Trip editado → recalcular delta (km, fotos, países)
+    - Trip eliminado → revertir estadísticas
 
 **Manual de Testing**: Ver [docs/api/MANUAL_TESTING.md](docs/api/MANUAL_TESTING.md) para comandos curl y [docs/api/POSTMAN_COLLECTION.md](docs/api/POSTMAN_COLLECTION.md) para colección Postman/Insomnia.
 
@@ -277,6 +306,7 @@ Sistema completo para documentar viajes en bicicleta:
 - **OpenAPI Spec**: `specs/002-travel-diary/contracts/trips-api.yaml`
 - **Especificación**: `specs/002-travel-diary/spec.md`
 - **Plan de Implementación**: `specs/002-travel-diary/plan.md`
+- **Tareas**: `specs/002-travel-diary/tasks.md`
 
 ## Desarrollo
 

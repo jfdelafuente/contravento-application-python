@@ -2,8 +2,8 @@
 
 **Feature Branch**: `002-travel-diary`
 **Created**: 2025-12-23
-**Updated**: 2025-12-28
-**Status**: In Progress - Phase 4 (MVP Implementation)
+**Updated**: 2025-12-30
+**Status**: In Progress - Phase 3-4 (MVP + Stats Integration)
 **Input**: User description: "Diario de viajes digital para documentar aventuras de cicloturismo"
 
 ## Development Progress
@@ -63,31 +63,64 @@
   - 5 new tables with proper indexes and foreign keys
   - Fixed timezone compatibility issue (installed tzdata)
 
-### 🚧 Phase 4: User Story 1 - MVP (Create & Publish Trip) (NEXT)
+### ✅ Phase 3: User Story 1 - MVP (Create & Publish Trip) (COMPLETE)
 
-**Remaining:**
+- ✅ Trip Schemas (`backend/src/schemas/trip.py`)
+  - TripCreateRequest, TripUpdateRequest, TripResponse
+  - TagResponse, TripLocationResponse, TripPhotoResponse
+  - Pydantic validation with from_attributes support
 
-- Trip schemas (Pydantic request/response models)
-- TripService (business logic for creating/publishing trips)
-- Trip API endpoints (POST /trips, GET /trips/:id, GET /users/:id/trips)
-- Integration tests for Trip creation workflow
+- ✅ TripService (`backend/src/services/trip_service.py`)
+  - create_trip(): Draft creation with HTML sanitization, tag processing
+  - get_trip(): Retrieval with authorization (drafts owner-only)
+  - publish_trip(): Validation + **stats integration** (T036)
+  - update_trip(): Partial updates + **stats sync** (T073, T162)
+  - delete_trip(): Cascade delete + **stats rollback** (T074-T075, T163)
+  - upload_photo() / delete_photo(): Photo management + **stats updates**
+  - reorder_photos(): Gallery ordering
 
-### 📋 Upcoming Phases
+- ✅ Statistics Integration (CRITICAL FEATURE)
+  - **publish_trip()**: Calls StatsService.update_stats_on_trip_publish()
+    - Updates: total_trips (+1), total_kilometers (+X), total_photos (+N)
+    - Adds country to countries_visited (unique)
+    - Updates last_trip_date
+    - **Checks and awards achievements** automatically
+  - **upload_photo()**: Increments total_photos for published trips
+  - **delete_photo()**: Decrements total_photos for published trips
+  - **update_trip()**: Recalculates stats delta (km, photos, countries)
+  - **delete_trip()**: Decrements all stats (preserves countries)
 
-- Phase 4: User Story 1 - MVP (Create & Publish Trip)
-- Phase 5: User Story 2 - Photo Gallery
-- Phase 6: User Story 3 - Edit & Delete
-- Phase 7: User Story 4 - Tags & Categorization
-- Phase 8: User Story 5 - Draft Trips
-- Phase 9: Polish (testing, linting, documentation)
+- ✅ Trip API Endpoints (`backend/src/api/trips.py`)
+  - POST /trips: Create draft trip
+  - GET /trips/{id}: Retrieve trip (public if published)
+  - POST /trips/{id}/publish: Publish trip + update stats
+  - POST /trips/{id}/photos: Upload photo to trip
+  - DELETE /trips/{id}/photos/{photo_id}: Remove photo from trip
+  - PUT /trips/{id}/photos/reorder: Reorder gallery
+
+- ✅ Tests: 14/14 unit tests passing (100% TripService coverage for implemented features)
+
+### 🚧 Phase 4: User Story 2 - Photo Gallery (COMPLETE - Pending API endpoint tests)
+
+- ✅ Photo upload/delete/reorder functionality implemented in TripService
+- ✅ Photo validation, resizing, thumbnail generation
+- ⏳ Integration/contract tests for photo endpoints
+
+### 📋 Upcoming Work
+
+- Phase 5: User Story 3 - Edit & Delete (API endpoints for update/delete)
+- Phase 6: User Story 4 - Tags & Categorization (filtering, tag cloud)
+- Phase 7: User Story 5 - Draft Trips (already supported via status field)
+- Phase 8: Polish (integration tests, documentation, geocoding)
 
 ### 📊 Statistics
 
 - **Total Tasks**: 117
-- **Completed**: ~32 (Phases 1-3 complete)
-- **Tests Written**: 68 unit tests, all passing
-- **Code Coverage**: 84%+ on new utilities
-- **Commits**: 5 (planning + setup + utilities + models + docs)
+- **Completed**: ~50+ (Phases 1-3 complete, stats integration done)
+- **Tests Written**: 82+ unit tests, all passing
+- **Code Coverage**: 40.45% overall, 97.53% on trip models, 39.86% on stats service
+- **Commits**: 10+ (planning, setup, utilities, models, MVP, photo gallery, stats integration)
+- **Critical Features**: ✅ Trip CRUD, ✅ Photo Gallery, ✅ Stats Auto-Update, ✅ Achievements
 
 ## User Scenarios & Testing *(mandatory)*
 
