@@ -329,7 +329,7 @@ async def refresh_token(
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(
     refresh_token: str,
-    current_user: Dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Dict:
     """
@@ -453,7 +453,7 @@ async def confirm_password_reset(
 
 @router.get("/me", status_code=status.HTTP_200_OK)
 async def get_current_user_info(
-    current_user: Dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Dict:
     """
@@ -473,23 +473,8 @@ async def get_current_user_info(
     """
     from sqlalchemy import select
 
-    # Get full user data from database
-    result = await db.execute(
-        select(User).where(User.id == current_user["id"])
-    )
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={
-                "success": False,
-                "data": None,
-                "error": {"code": "UNAUTHORIZED", "message": "Usuario no encontrado"}
-            }
-        )
-
+    # current_user already is a User model from get_current_user dependency
     return create_response(
         success=True,
-        data=UserResponse.from_user_model(user).model_dump()
+        data=UserResponse.from_user_model(current_user).model_dump()
     )

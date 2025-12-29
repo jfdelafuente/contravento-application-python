@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, get_current_user, get_optional_current_user
+from src.models.user import User
 from src.services.profile_service import ProfileService
 from src.schemas.profile import (
     ProfileResponse,
@@ -50,18 +51,18 @@ def create_response(success: bool, data: Any = None, error: Dict = None, message
     return response
 
 
-def check_owner_authorization(current_user: dict, username: str) -> None:
+def check_owner_authorization(current_user: User, username: str) -> None:
     """
     Check if current user is the owner of the profile.
 
     Args:
-        current_user: Current authenticated user
+        current_user: Current authenticated user (User model)
         username: Profile username being accessed
 
     Raises:
         HTTPException 403: If user is not the owner
     """
-    if current_user["username"] != username:
+    if current_user.username != username:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -75,7 +76,7 @@ def check_owner_authorization(current_user: dict, username: str) -> None:
 async def get_user_profile(
     username: str,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[dict] = Depends(get_optional_current_user),
+    current_user: Optional["User"] = Depends(get_optional_current_user),
 ) -> ProfileResponse:
     """
     T123: Get user profile (public endpoint with optional authentication).
@@ -98,7 +99,7 @@ async def get_user_profile(
     """
     try:
         profile_service = ProfileService(db)
-        viewer_username = current_user["username"] if current_user else None
+        viewer_username = current_user.username if current_user else None
 
         profile = await profile_service.get_profile(
             username=username,
@@ -132,7 +133,7 @@ async def update_user_profile(
     username: str,
     update_data: ProfileUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: "User" = Depends(get_current_user),
 ) -> Dict:
     """
     T124: Update user profile (authenticated, owner-only).
@@ -209,7 +210,7 @@ async def upload_profile_photo(
     username: str,
     photo: UploadFile = File(..., description="Profile photo (JPEG, PNG, or WebP, max 5MB)"),
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: "User" = Depends(get_current_user),
 ) -> Dict:
     """
     T125: Upload profile photo (authenticated, owner-only).
@@ -296,7 +297,7 @@ async def upload_profile_photo(
 async def delete_profile_photo(
     username: str,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: "User" = Depends(get_current_user),
 ) -> Dict:
     """
     T126: Delete profile photo (authenticated, owner-only).
@@ -357,7 +358,7 @@ async def update_privacy_settings(
     username: str,
     privacy_settings: PrivacySettings,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+    current_user: "User" = Depends(get_current_user),
 ) -> Dict:
     """
     T127: Update privacy settings (authenticated, owner-only).
