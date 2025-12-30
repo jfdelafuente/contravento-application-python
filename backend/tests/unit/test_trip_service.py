@@ -2117,3 +2117,180 @@ class TestStatsServiceDeletionHelper:
         await db_session.refresh(stats)
 
         assert stats.countries_visited == initial_countries
+
+
+# =============================================================================
+# Phase 7: User Story 5 - Draft Validation Tests
+# =============================================================================
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestDraftValidation:
+    """
+    T096: Unit test for draft validation (minimal fields required).
+
+    Tests that drafts have relaxed validation compared to published trips.
+    Functional Requirements: FR-028, FR-029
+    """
+
+    @pytest.fixture
+    async def test_user(self, db_session: AsyncSession) -> User:
+        """Create test user for draft validation tests."""
+        user = User(
+            username="draft_test_user",
+            email="draft@test.com",
+            hashed_password="dummy_hash",
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    async def test_create_draft_with_short_description(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """
+        Test that drafts can be created with short descriptions.
+
+        Published trips require description ≥50 chars, but drafts should allow shorter.
+        """
+        service = TripService(db_session)
+
+        # Create draft with short description (would fail for published)
+        data = TripCreateRequest(
+            title="Draft with Short Description",
+            description="Short",  # Only 5 characters
+            start_date=date(2024, 6, 1),
+        )
+
+        # Act - Should succeed because it's created as draft
+        trip = await service.create_trip(user_id=str(test_user.id), data=data)
+
+        # Assert
+        assert trip.title == "Draft with Short Description"
+        assert trip.description == "Short"
+        assert trip.status == TripStatus.DRAFT
+        assert trip.published_at is None
+
+    async def test_draft_allows_minimal_fields(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """
+        Test that drafts only require title, description, and start_date.
+
+        Optional fields like distance, difficulty, end_date can be omitted.
+        """
+        service = TripService(db_session)
+
+        # Create draft with only required fields
+        data = TripCreateRequest(
+            title="Minimal Draft",
+            description="Just the basics",
+            start_date=date(2024, 7, 1),
+            # No distance_km, difficulty, end_date, tags, locations
+        )
+
+        # Act
+        trip = await service.create_trip(user_id=str(test_user.id), data=data)
+
+        # Assert - Draft created successfully
+        assert trip.title == "Minimal Draft"
+        assert trip.status == TripStatus.DRAFT
+        assert trip.distance_km is None
+        assert trip.difficulty is None
+        assert trip.end_date is None
+
+    async def test_publish_validates_description_length(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """
+        Test that publishing a draft enforces description length requirement.
+
+        Drafts can have short descriptions, but publishing requires ≥50 chars.
+        """
+        service = TripService(db_session)
+
+        # Create draft with short description
+        data = TripCreateRequest(
+            title="Draft to Publish",
+            description="Too short",  # Only 9 characters
+            start_date=date(2024, 8, 1),
+        )
+
+        trip = await service.create_trip(user_id=str(test_user.id), data=data)
+        assert trip.status == TripStatus.DRAFT
+
+        # Act - Try to publish
+        from fastapi import HTTPException
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.publish_trip(
+                trip_id=str(trip.id), current_user_id=str(test_user.id)
+            )
+
+        # Assert - Should fail validation
+        assert exc_info.value.status_code == 400
+        assert "descripción" in exc_info.value.detail["message"].lower()
+
+    async def test_draft_to_published_transition_updates_status(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """
+        Test that publishing a valid draft updates status and published_at.
+        """
+        service = TripService(db_session)
+
+        # Create draft with valid content for publication
+        data = TripCreateRequest(
+            title="Valid Draft for Publication",
+            description="This draft has a sufficient description that meets the minimum length requirement for publication",
+            start_date=date(2024, 9, 1),
+            distance_km=120.5,
+        )
+
+        trip = await service.create_trip(user_id=str(test_user.id), data=data)
+        assert trip.status == TripStatus.DRAFT
+        assert trip.published_at is None
+
+        # Act - Publish the draft
+        published_trip = await service.publish_trip(
+            trip_id=str(trip.id), current_user_id=str(test_user.id)
+        )
+
+        # Assert - Status changed and published_at set
+        assert published_trip.status == TripStatus.PUBLISHED
+        assert published_trip.published_at is not None
+        assert published_trip.title == "Valid Draft for Publication"
+        assert published_trip.distance_km == 120.5
+
+    async def test_republishing_published_trip_is_idempotent(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """
+        Test that publishing an already published trip doesn't change published_at.
+        """
+        service = TripService(db_session)
+
+        # Create and publish trip
+        data = TripCreateRequest(
+            title="Trip to Republish",
+            description="This is a valid trip description with sufficient length for publication requirements",
+            start_date=date(2024, 10, 1),
+        )
+
+        trip = await service.create_trip(user_id=str(test_user.id), data=data)
+        first_publish = await service.publish_trip(
+            trip_id=str(trip.id), current_user_id=str(test_user.id)
+        )
+
+        original_published_at = first_publish.published_at
+
+        # Act - Publish again (idempotent operation)
+        second_publish = await service.publish_trip(
+            trip_id=str(trip.id), current_user_id=str(test_user.id)
+        )
+
+        # Assert - published_at unchanged
+        assert second_publish.status == TripStatus.PUBLISHED
+        assert second_publish.published_at == original_published_at

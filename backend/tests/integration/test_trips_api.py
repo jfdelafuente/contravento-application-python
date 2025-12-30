@@ -13,6 +13,8 @@ from io import BytesIO
 from PIL import Image
 import os
 
+from src.models.user import User
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -1113,3 +1115,363 @@ class TestOptimisticLockingWorkflow:
         # Should succeed because timestamp is current
         assert response_2.status_code == 200
         assert response_2.json()["data"]["title"] == "Segunda Edición"
+
+
+# =============================================================================
+# Phase 7: User Story 5 - Draft Workflow Tests
+# =============================================================================
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestDraftCreationWorkflow:
+    """
+    T092: Integration test for draft creation workflow.
+
+    Tests the journey: create draft → verify it's saved → verify minimal validation.
+    Functional Requirements: FR-028, FR-029
+    """
+
+    async def test_create_draft_with_minimal_fields(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test creating a draft with only required fields."""
+        payload = {
+            "title": "My Draft Trip",
+            "description": "Short desc",  # Less than 50 chars - OK for draft
+            "start_date": "2024-06-01",
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        assert response.status_code == 201
+        data = response.json()["data"]
+        assert data["title"] == "My Draft Trip"
+        assert data["status"].lower() == "draft"  # Case-insensitive check
+        assert data["published_at"] is None
+
+    async def test_create_draft_without_description(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test that draft creation still requires description field."""
+        payload = {
+            "title": "Draft Without Description",
+            "start_date": "2024-06-01",
+            # No description
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Should fail validation (description is required even for drafts)
+        assert response.status_code == 422
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestDraftVisibility:
+    """T093: Integration test for draft visibility (owner-only)."""
+
+    async def test_draft_visible_to_owner(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test that owner can see their own draft."""
+        payload = {
+            "title": "My Private Draft",
+            "description": "This is a draft only I should see",
+            "start_date": "2024-06-15",
+        }
+
+        create_response = await client.post(
+            "/trips", json=payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Owner retrieves draft - should succeed
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+
+        assert get_response.status_code == 200
+        data = get_response.json()["data"]
+        assert data["status"].lower() == "draft"
+        assert data["title"] == "My Private Draft"
+
+    async def test_draft_not_visible_to_other_users(
+        self,
+        client: AsyncClient,
+        auth_headers: dict,
+        db_session: AsyncSession,
+        test_user: User,
+    ):
+        """Test that other users cannot see someone else's draft."""
+        payload = {
+            "title": "Another User's Draft",
+            "description": "Private draft content",
+            "start_date": "2024-07-01",
+        }
+
+        create_response = await client.post(
+            "/trips", json=payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Create another user
+        from src.models.user import User as UserModel
+
+        other_user = UserModel(
+            username="other_user",
+            email="other@example.com",
+            password_hash="dummy_hash",
+            is_verified=True,
+        )
+        db_session.add(other_user)
+        await db_session.commit()
+        await db_session.refresh(other_user)
+
+        # Generate token for other user
+        from src.utils.security import create_access_token
+
+        other_token = create_access_token({"sub": str(other_user.user_id)})
+        other_headers = {"Authorization": f"Bearer {other_token}"}
+
+        # Other user tries to access draft - should fail
+        get_response = await client.get(f"/trips/{trip_id}", headers=other_headers)
+
+        assert get_response.status_code == 404  # Not found (hidden from other users)
+
+    async def test_draft_not_visible_without_auth(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test that unauthenticated users cannot see drafts."""
+        payload = {
+            "title": "Draft for Auth Test",
+            "description": "Should not be publicly visible",
+            "start_date": "2024-08-01",
+        }
+
+        create_response = await client.post(
+            "/trips", json=payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Try to access without auth headers
+        get_response = await client.get(f"/trips/{trip_id}")
+
+        # Should fail because unauthenticated users can't see drafts
+        assert get_response.status_code in [401, 404]
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestDraftListing:
+    """T094: Integration test for draft listing (separate from published)."""
+
+    async def test_list_only_drafts(
+        self, client: AsyncClient, auth_headers: dict, test_user: User
+    ):
+        """Test filtering user trips to show only drafts."""
+        # Create 2 drafts and 1 published trip
+        draft1_payload = {
+            "title": "Draft One",
+            "description": "First draft trip",
+            "start_date": "2024-06-01",
+        }
+        draft2_payload = {
+            "title": "Draft Two",
+            "description": "Second draft trip",
+            "start_date": "2024-07-01",
+        }
+        published_payload = {
+            "title": "Published Trip",
+            "description": "This is a published trip with enough content for validation",
+            "start_date": "2024-08-01",
+        }
+
+        # Create drafts
+        await client.post("/trips", json=draft1_payload, headers=auth_headers)
+        await client.post("/trips", json=draft2_payload, headers=auth_headers)
+
+        # Create and publish trip
+        pub_response = await client.post(
+            "/trips", json=published_payload, headers=auth_headers
+        )
+        pub_trip_id = pub_response.json()["data"]["trip_id"]
+        await client.post(f"/trips/{pub_trip_id}/publish", headers=auth_headers)
+
+        # List only drafts
+        username = test_user.username
+        response = await client.get(
+            f"/users/{username}/trips?status=DRAFT", headers=auth_headers
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+
+        # Should only return 2 drafts
+        assert data["count"] == 2
+        assert all(trip["status"].lower() == "draft" for trip in data["trips"])
+        titles = [trip["title"] for trip in data["trips"]]
+        assert "Draft One" in titles
+        assert "Draft Two" in titles
+        assert "Published Trip" not in titles
+
+    async def test_list_only_published_trips(
+        self, client: AsyncClient, auth_headers: dict, test_user: User
+    ):
+        """Test filtering user trips to show only published trips."""
+        # Create 1 draft and 2 published trips
+        draft_payload = {
+            "title": "Draft Trip",
+            "description": "Still working on this",
+            "start_date": "2024-06-01",
+        }
+        pub1_payload = {
+            "title": "Published One",
+            "description": "First published trip with detailed description for validation",
+            "start_date": "2024-07-01",
+        }
+        pub2_payload = {
+            "title": "Published Two",
+            "description": "Second published trip with detailed description for validation",
+            "start_date": "2024-08-01",
+        }
+
+        # Create draft (don't publish)
+        await client.post("/trips", json=draft_payload, headers=auth_headers)
+
+        # Create and publish trips
+        pub1_response = await client.post(
+            "/trips", json=pub1_payload, headers=auth_headers
+        )
+        pub1_id = pub1_response.json()["data"]["trip_id"]
+        await client.post(f"/trips/{pub1_id}/publish", headers=auth_headers)
+
+        pub2_response = await client.post(
+            "/trips", json=pub2_payload, headers=auth_headers
+        )
+        pub2_id = pub2_response.json()["data"]["trip_id"]
+        await client.post(f"/trips/{pub2_id}/publish", headers=auth_headers)
+
+        # List only published trips
+        username = test_user.username
+        response = await client.get(
+            f"/users/{username}/trips?status=PUBLISHED", headers=auth_headers
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+
+        # Should only return 2 published trips
+        assert data["count"] == 2
+        assert all(trip["status"].lower() == "published" for trip in data["trips"])
+        titles = [trip["title"] for trip in data["trips"]]
+        assert "Published One" in titles
+        assert "Published Two" in titles
+        assert "Draft Trip" not in titles
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestDraftToPublishedTransition:
+    """T095: Integration test for draft → published transition."""
+
+    async def test_publish_valid_draft(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test publishing a draft that meets publication requirements."""
+        draft_payload = {
+            "title": "Trip Ready to Publish",
+            "description": "This trip has enough detail and content to be published successfully",
+            "start_date": "2024-06-15",
+            "end_date": "2024-06-20",
+            "distance_km": 250.5,
+        }
+
+        create_response = await client.post(
+            "/trips", json=draft_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Verify it's a draft
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        assert get_response.json()["data"]["status"].lower() == "draft"
+        assert get_response.json()["data"]["published_at"] is None
+
+        # Publish the draft
+        publish_response = await client.post(
+            f"/trips/{trip_id}/publish", headers=auth_headers
+        )
+
+        assert publish_response.status_code == 200
+        data = publish_response.json()["data"]
+        assert data["status"].lower() == "published"
+        assert data["published_at"] is not None
+
+        # Verify trip is now published
+        final_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        final_data = final_response.json()["data"]
+        assert final_data["status"].lower() == "published"
+
+    async def test_publish_draft_with_short_description_fails(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test that publishing a draft with insufficient description fails validation."""
+        draft_payload = {
+            "title": "Draft with Short Description",
+            "description": "Too short",  # Less than 50 characters
+            "start_date": "2024-07-01",
+        }
+
+        create_response = await client.post(
+            "/trips", json=draft_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Try to publish - should fail
+        publish_response = await client.post(
+            f"/trips/{trip_id}/publish", headers=auth_headers
+        )
+
+        assert publish_response.status_code == 400
+        error = publish_response.json()["error"]
+        assert "descripción" in error["message"].lower()
+
+    async def test_edit_draft_then_publish(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test the workflow: create draft → edit → publish."""
+        draft_payload = {
+            "title": "Initial Draft",
+            "description": "Initial draft description",
+            "start_date": "2024-08-01",
+        }
+
+        create_response = await client.post(
+            "/trips", json=draft_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Edit draft to add more content
+        edit_payload = {
+            "description": "Updated draft with much more detailed description that meets publication requirements",
+            "distance_km": 150.0,
+        }
+
+        edit_response = await client.put(
+            f"/trips/{trip_id}", json=edit_payload, headers=auth_headers
+        )
+        assert edit_response.status_code == 200
+
+        # Now publish the completed draft
+        publish_response = await client.post(
+            f"/trips/{trip_id}/publish", headers=auth_headers
+        )
+
+        assert publish_response.status_code == 200
+        data = publish_response.json()["data"]
+        assert data["status"].lower() == "published"
+        assert data["distance_km"] == 150.0
+        assert "Updated draft" in data["description"]
