@@ -225,20 +225,20 @@ Web application structure:
 
 ### Tests for User Story 4 (TDD - Write FIRST)
 
-- [ ] T080 [P] [US4] Contract test for GET /users/{username}/trips?tag=X in backend/tests/contract/test_trip_contracts.py
-- [ ] T081 [P] [US4] Contract test for GET /tags in backend/tests/contract/test_trip_contracts.py
-- [ ] T082 [P] [US4] Integration test for tag filtering workflow in backend/tests/integration/test_trips_api.py
-- [ ] T083 [P] [US4] Integration test for tag normalization (case-insensitive) in backend/tests/integration/test_trips_api.py
-- [ ] T084 [P] [US4] Unit test for TripService.get_user_trips() with tag filter in backend/tests/unit/test_trip_service.py
-- [ ] T085 [P] [US4] Unit test for tag count limit (max 10) in backend/tests/unit/test_trip_service.py
-- [ ] T086 Run US4 tests (T080-T085) - all should FAIL (Red)
+- [X] T080 [P] [US4] Contract test for GET /users/{username}/trips?tag=X in backend/tests/contract/test_trip_contracts.py
+- [X] T081 [P] [US4] Contract test for GET /tags in backend/tests/contract/test_trip_contracts.py
+- [X] T082 [P] [US4] Integration test for tag filtering workflow in backend/tests/integration/test_trips_api.py
+- [X] T083 [P] [US4] Integration test for tag normalization (case-insensitive) in backend/tests/integration/test_trips_api.py
+- [X] T084 [P] [US4] Unit test for TripService.get_user_trips() with tag filter in backend/tests/unit/test_trip_service.py
+- [X] T085 [P] [US4] Unit test for tag count limit (max 10) in backend/tests/unit/test_trip_service.py
+- [X] T086 Run US4 tests (T080-T085) - all should FAIL (Red)
 
 ### Implementation for User Story 4
 
 - [X] T087 [US4] Implement TripService.get_user_trips() in backend/src/services/trip_service.py (pagination, tag filtering, status filtering)
 - [X] T088 [US4] Implement GET /users/{username}/trips endpoint in backend/src/api/trips.py (with tag, status, limit, offset params)
 - [X] T089 [US4] Implement GET /tags endpoint in backend/src/api/trips.py (ordered by usage_count)
-- [ ] T090 Run US4 tests (T080-T085) - all should PASS (Green)
+- [X] T090 Run US4 tests (T080-T085) - all should PASS (Green)
 - [X] T091 [US4] Test manually: create trips with tags → filter by tag → verify case-insensitive matching
 
 **Checkpoint**: Tag discovery and filtering fully functional
