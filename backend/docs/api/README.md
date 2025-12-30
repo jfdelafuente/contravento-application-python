@@ -131,5 +131,6 @@ Para preguntas o issues:
 
 ---
 
-**Última actualización:** 2024-12-29
-**Versión API:** 0.2.0 (User Story 2 - Photo Gallery)
+**Última actualización:** 2025-12-30
+**Versión API:** 0.2.0 (User Story 2 - Photo Gallery) ✅ COMPLETE
+**Test Coverage:** 25 tests (9 contract + 3 integration + 13 unit)
