@@ -476,167 +476,74 @@ curl -X GET "http://localhost:8000/users/tag_user/trips?offset=-5" \
 
 ## Automated Test Script
 
-Save this as `backend/scripts/test_tags.sh`:
+Un script automatizado completo está disponible en `backend/scripts/test_tags.sh`.
+
+### Uso del Script
+
+**Requisitos previos:**
+
+- Servidor corriendo en `localhost:8000`
+- Git Bash o terminal con soporte bash (Windows)
+
+**Ejecución:**
 
 ```bash
-#!/bin/bash
+cd backend
 
-# Phase 6: Tags & Categorization Testing Script
+# Dar permisos de ejecución (Linux/Mac)
+chmod +x scripts/test_tags.sh
 
-set -e
+# Ejecutar script
+bash scripts/test_tags.sh
+```
 
-echo "🧪 Testing Phase 6: Tags & Categorization"
-echo "=========================================="
+**El script te pedirá:**
 
-# Configuration
-BASE_URL="http://localhost:8000"
-USERNAME="tag_user"
-EMAIL="tag@example.com"
-PASSWORD="TagTest123!"
+1. Email del usuario de prueba
+2. Password del usuario
 
-# Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+**Luego ejecutará automáticamente:**
 
-# Step 1: Create user and login
-echo -e "\n${YELLOW}Step 1: Creating test user and logging in${NC}"
-poetry run python scripts/create_verified_user.py --username "$USERNAME" --email "$EMAIL" --password "$PASSWORD" 2>/dev/null || echo "User already exists"
+- ✅ Login y obtención de token
+- ✅ Creación de 4 trips con diferentes tags
+- ✅ Publicación de algunos trips (otros quedan DRAFT)
+- ✅ Filtrado por tags (case-insensitive)
+- ✅ Filtrado por status (DRAFT/PUBLISHED)
+- ✅ Filtros combinados (tag + status)
+- ✅ Paginación (limit/offset)
+- ✅ Listado de tags con popularidad
+- ✅ Limpieza opcional de datos de prueba
 
-LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"login\": \"$USERNAME\", \"password\": \"$PASSWORD\"}")
+**Output esperado:**
 
-TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.data.access_token')
+```text
+ℹ === STEP 1: Login ===
+✓ Login exitoso como testuser
 
-if [ "$TOKEN" == "null" ]; then
-  echo -e "${RED}❌ Login failed${NC}"
-  exit 1
-fi
+ℹ === STEP 2: Crear trips con tags ===
+✓ Trip 1 creado: 550e8400-e29b-41d4-a716-446655440000
+✓ Trip 2 creado: 550e8400-e29b-41d4-a716-446655440001
+✓ Trip 3 creado: 550e8400-e29b-41d4-a716-446655440002
+✓ Trip 4 creado: 550e8400-e29b-41d4-a716-446655440003
 
-echo -e "${GREEN}✅ Logged in successfully${NC}"
+ℹ === STEP 4: Filtrado por tags (case-insensitive) ===
+→ Test: Filtrar por tag 'montaña' (lowercase)
+✓ Encontrados: 2 trips (esperado: 2 - trip1 y trip3)
+→ Test: Filtrar por tag 'MONTAÑA' (uppercase)
+✓ Encontrados: 2 trips (esperado: 2 - case insensitive)
 
-# Step 2: Create trips with tags
-echo -e "\n${YELLOW}Step 2: Creating trips with different tags${NC}"
+ℹ === STEP 8: Listado de tags con popularidad ===
+→ Test: Obtener todos los tags disponibles
+✓ Tag: montaña (usado en 2 trips)
+✓ Tag: aventura (usado en 1 trips)
+✓ Tag: playa (usado en 1 trips)
 
-# Trip 1: Bikepacking
-TRIP1=$(curl -s -X POST "$BASE_URL/trips" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Ruta Bikepacking Pirineos",
-    "description": "Viaje de 5 días por los Pirineos con acampada salvaje y senderos técnicos increíbles.",
-    "start_date": "2024-06-01",
-    "distance_km": 320.5,
-    "tags": ["bikepacking", "montaña"]
-  }')
+ℹ === RESUMEN DE TESTS ===
+✓ Creación de trips con tags
+✓ Filtrado case-insensitive por tags
+✓ Filtrado por status (DRAFT/PUBLISHED)
+✓ Filtros combinados (tag + status)
+✓ Paginación con limit/offset
+✓ Listado de tags con popularidad
 
-TRIP1_ID=$(echo $TRIP1 | jq -r '.data.trip_id')
-echo -e "${GREEN}✅ Trip 1 created (bikepacking + montaña)${NC}"
-
-# Trip 2: Gravel
-TRIP2=$(curl -s -X POST "$BASE_URL/trips" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Ruta Gravel Costa Brava",
-    "description": "Recorrido de 100km por caminos de tierra y carreteras secundarias de la Costa Brava.",
-    "start_date": "2024-07-15",
-    "distance_km": 102.3,
-    "tags": ["gravel", "costa"]
-  }')
-
-TRIP2_ID=$(echo $TRIP2 | jq -r '.data.trip_id')
-echo -e "${GREEN}✅ Trip 2 created (gravel + costa)${NC}"
-
-# Trip 3: Montaña (draft)
-TRIP3=$(curl -s -X POST "$BASE_URL/trips" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Ascenso al Tourmalet",
-    "description": "Clásica subida al Col du Tourmalet desde Luz-Saint-Sauveur. Solo borrador por ahora.",
-    "start_date": "2024-08-20",
-    "distance_km": 45.0,
-    "tags": ["montaña", "puerto"]
-  }')
-
-TRIP3_ID=$(echo $TRIP3 | jq -r '.data.trip_id')
-echo -e "${GREEN}✅ Trip 3 created (montaña + puerto - DRAFT)${NC}"
-
-# Step 3: Publish trips 1 and 2
-echo -e "\n${YELLOW}Step 3: Publishing trips 1 and 2${NC}"
-
-curl -s -X POST "$BASE_URL/trips/$TRIP1_ID/publish" -H "Authorization: Bearer $TOKEN" > /dev/null
-echo -e "${GREEN}✅ Trip 1 published${NC}"
-
-curl -s -X POST "$BASE_URL/trips/$TRIP2_ID/publish" -H "Authorization: Bearer $TOKEN" > /dev/null
-echo -e "${GREEN}✅ Trip 2 published${NC}"
-
-# Step 4: Test GET /tags
-echo -e "\n${YELLOW}Step 4: Testing GET /tags${NC}"
-
-TAGS=$(curl -s -X GET "$BASE_URL/tags" -H "Authorization: Bearer $TOKEN")
-TAGS_COUNT=$(echo $TAGS | jq -r '.data.count')
-
-echo -e "${GREEN}✅ Retrieved $TAGS_COUNT tags${NC}"
-
-# Step 5: Test GET /users/{username}/trips - No filters
-echo -e "\n${YELLOW}Step 5: Testing GET /users/{username}/trips (no filters)${NC}"
-
-ALL_TRIPS=$(curl -s -X GET "$BASE_URL/users/$USERNAME/trips" -H "Authorization: Bearer $TOKEN")
-ALL_COUNT=$(echo $ALL_TRIPS | jq -r '.data.count')
-
-echo -e "${GREEN}✅ Retrieved $ALL_COUNT trips (all statuses)${NC}"
-
-# Step 6: Test tag filtering
-echo -e "\n${YELLOW}Step 6: Testing tag filtering${NC}"
-
-MOUNTAIN_TRIPS=$(curl -s -X GET "$BASE_URL/users/$USERNAME/trips?tag=montaña" -H "Authorization: Bearer $TOKEN")
-MOUNTAIN_COUNT=$(echo $MOUNTAIN_TRIPS | jq -r '.data.count')
-
-if [ "$MOUNTAIN_COUNT" -eq "2" ]; then
-  echo -e "${GREEN}✅ Tag filter 'montaña' returned 2 trips${NC}"
-else
-  echo -e "${RED}❌ Expected 2 trips, got $MOUNTAIN_COUNT${NC}"
-fi
-
-# Step 7: Test status filtering
-echo -e "\n${YELLOW}Step 7: Testing status filtering${NC}"
-
-PUBLISHED_TRIPS=$(curl -s -X GET "$BASE_URL/users/$USERNAME/trips?status=PUBLISHED" -H "Authorization: Bearer $TOKEN")
-PUBLISHED_COUNT=$(echo $PUBLISHED_TRIPS | jq -r '.data.count')
-
-if [ "$PUBLISHED_COUNT" -eq "2" ]; then
-  echo -e "${GREEN}✅ Status filter 'PUBLISHED' returned 2 trips${NC}"
-else
-  echo -e "${RED}❌ Expected 2 trips, got $PUBLISHED_COUNT${NC}"
-fi
-
-# Step 8: Test combined filters
-echo -e "\n${YELLOW}Step 8: Testing combined filters (tag + status)${NC}"
-
-COMBINED=$(curl -s -X GET "$BASE_URL/users/$USERNAME/trips?tag=montaña&status=PUBLISHED" -H "Authorization: Bearer $TOKEN")
-COMBINED_COUNT=$(echo $COMBINED | jq -r '.data.count')
-
-if [ "$COMBINED_COUNT" -eq "1" ]; then
-  echo -e "${GREEN}✅ Combined filter returned 1 trip (montaña + PUBLISHED)${NC}"
-else
-  echo -e "${RED}❌ Expected 1 trip, got $COMBINED_COUNT${NC}"
-fi
-
-# Step 9: Test pagination
-echo -e "\n${YELLOW}Step 9: Testing pagination${NC}"
-
-PAGE1=$(curl -s -X GET "$BASE_URL/users/$USERNAME/trips?limit=2" -H "Authorization: Bearer $TOKEN")
-PAGE1_COUNT=$(echo $PAGE1 | jq -r '.data.count')
-
-if [ "$PAGE1_COUNT" -eq "2" ]; then
-  echo -e "${GREEN}✅ Pagination limit=2 returned 2 trips${NC}"
-else
-  echo -e "${RED}❌ Expected 2 trips, got $PAGE1_COUNT${NC}"
-fi
-
-echo -e "\n${GREEN}=========================================="
-echo -e "✅ All Phase 6 tests completed successfully!${NC}"
+✓ Tests completados exitosamente!
