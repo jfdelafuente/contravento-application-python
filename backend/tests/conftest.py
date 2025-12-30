@@ -185,6 +185,59 @@ async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
 
 
 @pytest.fixture(scope="function")
+async def test_user(db_session: AsyncSession) -> "User":
+    """
+    Provide a test user instance for integration tests.
+
+    Returns the same test user as auth_headers fixture but as a User object.
+    Use this when tests need to access user properties (username, user_id, etc.).
+
+    Args:
+        db_session: Database session
+
+    Returns:
+        User instance
+
+    Example:
+        async def test_user_trips(client, auth_headers, test_user):
+            response = await client.get(f"/users/{test_user.username}/trips", headers=auth_headers)
+            assert response.status_code == 200
+    """
+    from sqlalchemy import select
+    from src.models.user import User
+
+    # Query the existing test user created by auth_headers fixture
+    # If auth_headers fixture hasn't run yet, this will return None and we create the user
+    result = await db_session.execute(
+        select(User).where(User.username == "test_user")
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Create user if it doesn't exist (when test_user is used without auth_headers)
+        from src.models.user import UserProfile
+        from src.utils.security import hash_password
+
+        user = User(
+            username="test_user",
+            email="test@example.com",
+            hashed_password=hash_password("TestPass123!"),
+            is_active=True,
+            is_verified=True,
+        )
+        db_session.add(user)
+        await db_session.flush()
+
+        # Create profile for user
+        profile = UserProfile(user_id=user.id)
+        db_session.add(profile)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+    return user
+
+
+@pytest.fixture(scope="function")
 def sample_user_data(faker_instance: Faker) -> dict:
     """
     Generate sample user data for testing.

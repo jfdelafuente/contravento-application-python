@@ -605,7 +605,7 @@ async def update_trip(
     """Update trip (FR-016, FR-020)."""
     try:
         service = TripService(db)
-        trip = await service.update_trip(trip_id=trip_id, user_id=current_user.id, data=data)
+        trip = await service.update_trip(trip_id=trip_id, user_id=current_user.id, update_data=data)
         trip_response = TripResponse.model_validate(trip)
         return {"success": True, "data": trip_response.model_dump(), "error": None}
     except PermissionError as e:

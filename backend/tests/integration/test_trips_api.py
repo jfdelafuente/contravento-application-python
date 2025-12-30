@@ -1103,7 +1103,8 @@ class TestDraftCreationWorkflow:
         response = await client.post("/trips", json=payload, headers=auth_headers)
 
         # Should fail validation (description is required even for drafts)
-        assert response.status_code == 422
+        # Note: Custom validation handler returns 400 instead of default 422
+        assert response.status_code == 400
 
 
 @pytest.mark.integration
@@ -1155,7 +1156,7 @@ class TestDraftVisibility:
         other_user = UserModel(
             username="other_user",
             email="other@example.com",
-            password_hash="dummy_hash",
+            hashed_password="dummy_hash",
             is_verified=True,
         )
         db_session.add(other_user)
@@ -1165,13 +1166,13 @@ class TestDraftVisibility:
         # Generate token for other user
         from src.utils.security import create_access_token
 
-        other_token = create_access_token({"sub": str(other_user.user_id)})
+        other_token = create_access_token({"sub": str(other_user.id)})
         other_headers = {"Authorization": f"Bearer {other_token}"}
 
         # Other user tries to access draft - should fail
         get_response = await client.get(f"/trips/{trip_id}", headers=other_headers)
 
-        assert get_response.status_code == 404  # Not found (hidden from other users)
+        assert get_response.status_code == 403  # Forbidden (drafts are private)
 
     async def test_draft_not_visible_without_auth(self, client: AsyncClient, auth_headers: dict):
         """Test that unauthenticated users cannot see drafts."""
@@ -1227,7 +1228,7 @@ class TestDraftListing:
 
         # List only drafts
         username = test_user.username
-        response = await client.get(f"/users/{username}/trips?status=DRAFT", headers=auth_headers)
+        response = await client.get(f"/users/{username}/trips?status=draft", headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()["data"]
@@ -1276,7 +1277,7 @@ class TestDraftListing:
         # List only published trips
         username = test_user.username
         response = await client.get(
-            f"/users/{username}/trips?status=PUBLISHED", headers=auth_headers
+            f"/users/{username}/trips?status=published", headers=auth_headers
         )
 
         assert response.status_code == 200
@@ -1375,7 +1376,12 @@ class TestDraftToPublishedTransition:
         publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
         assert publish_response.status_code == 200
-        data = publish_response.json()["data"]
+        publish_data = publish_response.json()["data"]
+        assert publish_data["status"].lower() == "published"
+
+        # Verify the published trip has the updated data
+        final_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        data = final_response.json()["data"]
         assert data["status"].lower() == "published"
-        assert data["distance_km"] == 150.0
+        assert data.get("distance_km") == 150.0
         assert "Updated draft" in data["description"]
