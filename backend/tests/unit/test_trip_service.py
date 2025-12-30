@@ -1585,3 +1585,535 @@ class TestTripServiceTagLimit:
 
         assert "rare" in tag_map
         assert tag_map["rare"].usage_count == 1  # Used in 1 trip
+
+
+# ============================================================================
+# Phase 5: User Story 3 - Edit/Delete Trips Unit Tests (T069-T071)
+# ============================================================================
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestTripServiceUpdateTrip:
+    """
+    T069: Unit tests for TripService.update_trip() method.
+
+    Tests business logic for updating trips with optimistic locking.
+    Functional Requirements: FR-016, FR-020 (Trip editing with conflict detection)
+    """
+
+    @pytest.fixture
+    async def test_user(self, db_session: AsyncSession) -> User:
+        """Create a test user for trip ownership."""
+        user = User(
+            username="updateuser",
+            email="update@example.com",
+            hashed_password="hashed_password",
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    @pytest.fixture
+    async def test_trip(
+        self, db_session: AsyncSession, test_user: User
+    ) -> Trip:
+        """Create a test trip for updating."""
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripCreateRequest
+
+        service = TripService(db_session)
+
+        trip_data = TripCreateRequest(
+            title="Viaje Original",
+            description="Descripción original de al menos 50 caracteres para el viaje inicial...",
+            start_date=date(2024, 6, 1),
+            distance_km=100.0,
+        )
+
+        trip = await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+        return trip
+
+    async def test_update_trip_basic_fields(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test updating basic trip fields."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripUpdateRequest
+
+        service = TripService(db_session)
+
+        update_data = TripUpdateRequest(
+            title="Viaje Actualizado",
+            description="Descripción completamente nueva con muchos más detalles sobre el viaje...",
+            distance_km=150.5,
+            client_updated_at=test_trip.updated_at,
+        )
+
+        # Act
+        updated_trip = await service.update_trip(
+            trip_id=test_trip.trip_id,
+            user_id=test_user.id,
+            trip_data=update_data,
+        )
+
+        # Assert
+        assert updated_trip.title == "Viaje Actualizado"
+        assert "completamente nueva" in updated_trip.description
+        assert updated_trip.distance_km == 150.5
+        assert updated_trip.updated_at != test_trip.updated_at
+
+    async def test_update_trip_partial_fields(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test partial update (only some fields provided)."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripUpdateRequest
+
+        service = TripService(db_session)
+
+        # Only update title
+        update_data = TripUpdateRequest(
+            title="Solo Título",
+            client_updated_at=test_trip.updated_at,
+        )
+
+        original_description = test_trip.description
+        original_distance = test_trip.distance_km
+
+        # Act
+        updated_trip = await service.update_trip(
+            trip_id=test_trip.trip_id,
+            user_id=test_user.id,
+            trip_data=update_data,
+        )
+
+        # Assert - Title updated
+        assert updated_trip.title == "Solo Título"
+
+        # Assert - Other fields unchanged
+        assert updated_trip.description == original_description
+        assert updated_trip.distance_km == original_distance
+
+    async def test_update_trip_optimistic_lock_conflict(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test optimistic locking prevents stale updates."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripUpdateRequest
+
+        service = TripService(db_session)
+
+        old_updated_at = test_trip.updated_at
+
+        # Make first update
+        update_1 = TripUpdateRequest(
+            title="Primera Actualización",
+            client_updated_at=old_updated_at,
+        )
+
+        await service.update_trip(
+            trip_id=test_trip.trip_id,
+            user_id=test_user.id,
+            trip_data=update_1,
+        )
+
+        # Try to update with stale timestamp
+        update_2 = TripUpdateRequest(
+            title="Intento con Timestamp Antiguo",
+            client_updated_at=old_updated_at,  # Stale!
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="modificado"):
+            await service.update_trip(
+                trip_id=test_trip.trip_id,
+                user_id=test_user.id,
+                trip_data=update_2,
+            )
+
+    async def test_update_trip_unauthorized_user(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test updating trip as non-owner raises PermissionError."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripUpdateRequest
+
+        service = TripService(db_session)
+
+        # Create different user
+        other_user = User(
+            username="otheruser",
+            email="other@example.com",
+            hashed_password="hashed",
+        )
+        db_session.add(other_user)
+        await db_session.commit()
+        await db_session.refresh(other_user)
+
+        update_data = TripUpdateRequest(
+            title="Intento No Autorizado",
+            client_updated_at=test_trip.updated_at,
+        )
+
+        # Act & Assert
+        with pytest.raises(PermissionError, match="permiso"):
+            await service.update_trip(
+                trip_id=test_trip.trip_id,
+                user_id=other_user.id,
+                trip_data=update_data,
+            )
+
+    async def test_update_trip_not_found(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test updating non-existent trip raises ValueError."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripUpdateRequest
+
+        service = TripService(db_session)
+
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        update_data = TripUpdateRequest(
+            title="No Existe",
+            client_updated_at=datetime.utcnow(),
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="no encontrado"):
+            await service.update_trip(
+                trip_id=fake_trip_id,
+                user_id=test_user.id,
+                trip_data=update_data,
+            )
+
+    async def test_update_trip_with_tags(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test updating trip tags replaces old tags."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripUpdateRequest
+
+        service = TripService(db_session)
+
+        # Add initial tags
+        initial_update = TripUpdateRequest(
+            tags=["original", "inicial"],
+            client_updated_at=test_trip.updated_at,
+        )
+
+        trip_with_tags = await service.update_trip(
+            trip_id=test_trip.trip_id,
+            user_id=test_user.id,
+            trip_data=initial_update,
+        )
+
+        # Update with new tags
+        new_update = TripUpdateRequest(
+            tags=["nuevo", "actualizado"],
+            client_updated_at=trip_with_tags.updated_at,
+        )
+
+        updated_trip = await service.update_trip(
+            trip_id=test_trip.trip_id,
+            user_id=test_user.id,
+            trip_data=new_update,
+        )
+
+        # Assert - New tags present
+        tag_names = [tag_rel.tag.name for tag_rel in updated_trip.tags]
+        assert "nuevo" in tag_names
+        assert "actualizado" in tag_names
+
+        # Old tags removed
+        assert "original" not in tag_names
+        assert "inicial" not in tag_names
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestTripServiceDeleteTrip:
+    """
+    T070: Unit tests for TripService.delete_trip() method.
+
+    Tests business logic for deleting trips with cascade and stats update.
+    Functional Requirements: FR-017, FR-018 (Trip deletion)
+    """
+
+    @pytest.fixture
+    async def test_user(self, db_session: AsyncSession) -> User:
+        """Create a test user for trip ownership."""
+        user = User(
+            username="deleteuser",
+            email="delete@example.com",
+            hashed_password="hashed_password",
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    @pytest.fixture
+    async def test_trip(
+        self, db_session: AsyncSession, test_user: User
+    ) -> Trip:
+        """Create a test trip for deletion."""
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripCreateRequest
+
+        service = TripService(db_session)
+
+        trip_data = TripCreateRequest(
+            title="Viaje a Eliminar",
+            description="Descripción de al menos 50 caracteres para el viaje que será eliminado...",
+            start_date=date(2024, 6, 1),
+            distance_km=75.0,
+        )
+
+        trip = await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+        return trip
+
+    async def test_delete_trip_success(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test deleting trip removes it from database."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+        trip_id = test_trip.trip_id
+
+        # Act
+        result = await service.delete_trip(trip_id=trip_id, user_id=test_user.id)
+
+        # Assert
+        assert "message" in result
+        assert result["trip_id"] == trip_id
+
+        # Verify trip is deleted
+        deleted_trip_result = await db_session.execute(
+            select(Trip).where(Trip.trip_id == trip_id)
+        )
+        deleted_trip = deleted_trip_result.scalar_one_or_none()
+
+        assert deleted_trip is None
+
+    async def test_delete_trip_unauthorized_user(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test deleting trip as non-owner raises PermissionError."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Create different user
+        other_user = User(
+            username="otheruser2",
+            email="other2@example.com",
+            hashed_password="hashed",
+        )
+        db_session.add(other_user)
+        await db_session.commit()
+        await db_session.refresh(other_user)
+
+        # Act & Assert
+        with pytest.raises(PermissionError, match="permiso"):
+            await service.delete_trip(
+                trip_id=test_trip.trip_id,
+                user_id=other_user.id,
+            )
+
+    async def test_delete_trip_not_found(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test deleting non-existent trip raises ValueError."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="no encontrado"):
+            await service.delete_trip(
+                trip_id=fake_trip_id,
+                user_id=test_user.id,
+            )
+
+    async def test_delete_published_trip_updates_stats(
+        self, db_session: AsyncSession, test_user: User, test_trip: Trip
+    ):
+        """Test deleting published trip decrements user stats."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.models.stats import UserStats
+
+        service = TripService(db_session)
+
+        # Publish trip first (to update stats)
+        await service.publish_trip(trip_id=test_trip.trip_id, user_id=test_user.id)
+
+        # Get stats before deletion
+        stats_result = await db_session.execute(
+            select(UserStats).where(UserStats.user_id == test_user.id)
+        )
+        stats = stats_result.scalar_one()
+        trips_before = stats.total_trips
+        km_before = stats.total_kilometers
+
+        # Act - Delete trip
+        await service.delete_trip(trip_id=test_trip.trip_id, user_id=test_user.id)
+
+        # Assert - Stats decremented
+        await db_session.refresh(stats)
+
+        assert stats.total_trips == max(0, trips_before - 1)
+        assert stats.total_kilometers == max(0.0, km_before - 75.0)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestStatsServiceDeletionHelper:
+    """
+    T071: Unit tests for StatsService.update_stats_on_trip_delete().
+
+    Tests business logic for stats rollback on trip deletion.
+    Functional Requirements: FR-018 (Stats update on deletion)
+    """
+
+    @pytest.fixture
+    async def test_user(self, db_session: AsyncSession) -> User:
+        """Create a test user with stats."""
+        from src.models.stats import UserStats
+
+        user = User(
+            username="statsuser",
+            email="stats@example.com",
+            hashed_password="hashed_password",
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Create user stats
+        stats = UserStats(
+            user_id=user.id,
+            total_trips=5,
+            total_kilometers=500.0,
+            total_photos=10,
+            countries_visited=["ES"],
+        )
+        db_session.add(stats)
+        await db_session.commit()
+
+        return user
+
+    async def test_update_stats_on_trip_delete_decrements_correctly(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test stats are decremented correctly on trip deletion."""
+        # Arrange
+        from src.services.stats_service import StatsService
+        from src.models.stats import UserStats
+
+        service = StatsService(db_session)
+
+        # Get initial stats
+        stats_result = await db_session.execute(
+            select(UserStats).where(UserStats.user_id == test_user.id)
+        )
+        stats = stats_result.scalar_one()
+
+        initial_trips = stats.total_trips
+        initial_km = stats.total_kilometers
+        initial_photos = stats.total_photos
+
+        # Act - Delete trip (75km, 3 photos)
+        await service.update_stats_on_trip_delete(
+            user_id=test_user.id,
+            distance_km=75.0,
+            country_code="ES",
+            photos_count=3,
+        )
+
+        # Assert
+        await db_session.refresh(stats)
+
+        assert stats.total_trips == initial_trips - 1
+        assert stats.total_kilometers == initial_km - 75.0
+        assert stats.total_photos == initial_photos - 3
+
+    async def test_update_stats_on_trip_delete_never_negative(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test stats never go negative on deletion."""
+        # Arrange
+        from src.services.stats_service import StatsService
+        from src.models.stats import UserStats
+
+        service = StatsService(db_session)
+
+        # Set stats to low values
+        stats_result = await db_session.execute(
+            select(UserStats).where(UserStats.user_id == test_user.id)
+        )
+        stats = stats_result.scalar_one()
+
+        stats.total_trips = 1
+        stats.total_kilometers = 10.0
+        stats.total_photos = 1
+        await db_session.commit()
+
+        # Act - Delete trip with more than current values
+        await service.update_stats_on_trip_delete(
+            user_id=test_user.id,
+            distance_km=50.0,  # More than current 10.0
+            country_code="ES",
+            photos_count=5,  # More than current 1
+        )
+
+        # Assert - Stats at 0, not negative
+        await db_session.refresh(stats)
+
+        assert stats.total_trips >= 0
+        assert stats.total_kilometers >= 0.0
+        assert stats.total_photos >= 0
+
+    async def test_update_stats_preserves_countries(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test that countries_visited is preserved on deletion."""
+        # Arrange
+        from src.services.stats_service import StatsService
+        from src.models.stats import UserStats
+
+        service = StatsService(db_session)
+
+        # Get initial countries
+        stats_result = await db_session.execute(
+            select(UserStats).where(UserStats.user_id == test_user.id)
+        )
+        stats = stats_result.scalar_one()
+
+        initial_countries = stats.countries_visited.copy()
+
+        # Act - Delete trip
+        await service.update_stats_on_trip_delete(
+            user_id=test_user.id,
+            distance_km=100.0,
+            country_code="ES",
+            photos_count=2,
+        )
+
+        # Assert - Countries unchanged (historical data preserved)
+        await db_session.refresh(stats)
+
+        assert stats.countries_visited == initial_countries

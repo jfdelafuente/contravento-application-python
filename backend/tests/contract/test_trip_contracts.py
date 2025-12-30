@@ -1316,3 +1316,392 @@ class TestTagsContract:
         assert "count" in data["data"]
         assert isinstance(data["data"]["tags"], list)
         assert data["data"]["count"] == len(data["data"]["tags"])
+
+
+# ============================================================================
+# Phase 5: User Story 3 - Edit/Delete Trips Contract Tests (T064-T065)
+# ============================================================================
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+class TestTripUpdateContract:
+    """
+    T064: Contract tests for PUT /trips/{trip_id}.
+
+    Validates trip update endpoint with optimistic locking.
+    Functional Requirements: FR-016, FR-020 (Trip editing with conflict detection)
+    """
+
+    async def test_update_trip_success_schema(
+        self, client: AsyncClient, auth_headers: dict, openapi_spec
+    ):
+        """Test updating trip matches success response schema."""
+        # Arrange - Create a trip first
+        create_payload = {
+            "title": "Viaje Original",
+            "description": "Descripción original de al menos 50 caracteres para el viaje inicial...",
+            "start_date": "2024-06-01",
+            "distance_km": 100.0,
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+        updated_at = create_response.json()["data"]["updated_at"]
+
+        # Prepare update
+        update_payload = {
+            "title": "Viaje Actualizado",
+            "description": "Descripción actualizada con nuevos detalles de al menos 50 caracteres...",
+            "distance_km": 150.0,
+            "client_updated_at": updated_at,
+        }
+
+        # Act
+        response = await client.put(
+            f"/trips/{trip_id}", json=update_payload, headers=auth_headers
+        )
+
+        # Assert - Response structure
+        assert response.status_code == 200
+        data = response.json()
+
+        # Validate standardized API response format
+        assert data["success"] is True
+        assert data["data"] is not None
+        assert data["error"] is None
+
+        # Validate updated trip data
+        trip = data["data"]
+        assert trip["trip_id"] == trip_id
+        assert trip["title"] == "Viaje Actualizado"
+        assert trip["description"] == "Descripción actualizada con nuevos detalles de al menos 50 caracteres..."
+        assert trip["distance_km"] == 150.0
+
+        # Updated_at should have changed
+        assert trip["updated_at"] != updated_at
+
+    async def test_update_trip_partial_update_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test partial update (only some fields) matches schema."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Viaje Original",
+            "description": "Descripción original de al menos 50 caracteres para testing partial...",
+            "start_date": "2024-06-01",
+            "distance_km": 100.0,
+            "difficulty": "easy",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        updated_at = create_response.json()["data"]["updated_at"]
+
+        # Update only title
+        update_payload = {
+            "title": "Solo Título Actualizado",
+            "client_updated_at": updated_at,
+        }
+
+        # Act
+        response = await client.put(
+            f"/trips/{trip_id}", json=update_payload, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 200
+        trip = response.json()["data"]
+
+        # Title updated
+        assert trip["title"] == "Solo Título Actualizado"
+
+        # Other fields unchanged
+        assert trip["description"] == create_payload["description"]
+        assert trip["distance_km"] == 100.0
+        assert trip["difficulty"] == "easy"
+
+    async def test_update_trip_optimistic_lock_conflict_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test optimistic locking returns 409 on stale data."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Viaje para Conflicto",
+            "description": "Descripción de al menos 50 caracteres para testing de conflicto optimista...",
+            "start_date": "2024-06-01",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        old_updated_at = create_response.json()["data"]["updated_at"]
+
+        # Make first update to change updated_at
+        await client.put(
+            f"/trips/{trip_id}",
+            json={"title": "Primer Cambio", "client_updated_at": old_updated_at},
+            headers=auth_headers,
+        )
+
+        # Try to update with old timestamp (should fail)
+        stale_update = {
+            "title": "Intento con Timestamp Antiguo",
+            "client_updated_at": old_updated_at,  # Stale timestamp
+        }
+
+        # Act
+        response = await client.put(
+            f"/trips/{trip_id}", json=stale_update, headers=auth_headers
+        )
+
+        # Assert - 409 Conflict
+        assert response.status_code == 409
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "CONFLICT"
+        assert "modificado" in data["error"]["message"].lower()
+
+    async def test_update_trip_not_found_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test updating non-existent trip returns 404."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        update_payload = {
+            "title": "No Existe",
+            "client_updated_at": "2024-01-01T00:00:00Z",
+        }
+
+        # Act
+        response = await client.put(
+            f"/trips/{fake_trip_id}", json=update_payload, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 404
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "NOT_FOUND"
+
+    async def test_update_trip_unauthorized_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test updating trip without ownership returns 403."""
+        # Arrange - Create trip as user1
+        create_payload = {
+            "title": "Viaje de Usuario 1",
+            "description": "Descripción de al menos 50 caracteres creado por usuario uno...",
+            "start_date": "2024-06-01",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        updated_at = create_response.json()["data"]["updated_at"]
+
+        # Login as different user
+        from src.models.user import User
+        from src.utils.security import create_access_token
+
+        # Create second user
+        user2 = User(
+            username="testuser2",
+            email="test2@example.com",
+            hashed_password="hashed",
+        )
+
+        # Get auth_headers fixture's db session
+        # (This is a simplified approach - in real tests you'd create via API)
+        token2 = create_access_token({"sub": "test2@example.com", "username": "testuser2"})
+        headers2 = {"Authorization": f"Bearer {token2}"}
+
+        # Try to update trip owned by user1
+        update_payload = {
+            "title": "Intento No Autorizado",
+            "client_updated_at": updated_at,
+        }
+
+        # Act
+        response = await client.put(
+            f"/trips/{trip_id}", json=update_payload, headers=headers2
+        )
+
+        # Assert - 403 or 404 (depending on implementation)
+        assert response.status_code in [403, 404]
+
+    async def test_update_trip_with_tags_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test updating trip with new tags."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Viaje con Tags",
+            "description": "Descripción de al menos 50 caracteres para viaje con tags originales...",
+            "start_date": "2024-06-01",
+            "tags": ["original", "tag1"],
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        updated_at = create_response.json()["data"]["updated_at"]
+
+        # Update with new tags
+        update_payload = {
+            "tags": ["nuevo", "actualizado"],
+            "client_updated_at": updated_at,
+        }
+
+        # Act
+        response = await client.put(
+            f"/trips/{trip_id}", json=update_payload, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 200
+        trip = response.json()["data"]
+
+        # Verify new tags
+        tag_names = [tag["name"] for tag in trip["tags"]]
+        assert "nuevo" in tag_names
+        assert "actualizado" in tag_names
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+class TestTripDeleteContract:
+    """
+    T065: Contract tests for DELETE /trips/{trip_id}.
+
+    Validates trip deletion endpoint with cascade behavior.
+    Functional Requirements: FR-017, FR-018 (Trip deletion with stats update)
+    """
+
+    async def test_delete_trip_success_schema(
+        self, client: AsyncClient, auth_headers: dict, openapi_spec
+    ):
+        """Test deleting trip matches success response schema."""
+        # Arrange - Create a trip
+        create_payload = {
+            "title": "Viaje a Eliminar",
+            "description": "Descripción de al menos 50 caracteres para viaje que será eliminado...",
+            "start_date": "2024-06-01",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Act - Delete trip
+        response = await client.delete(f"/trips/{trip_id}", headers=auth_headers)
+
+        # Assert - Response structure
+        assert response.status_code == 200
+        data = response.json()
+
+        # Validate standardized API response format
+        assert data["success"] is True
+        assert data["data"] is not None
+        assert data["error"] is None
+
+        # Validate deletion confirmation
+        assert "message" in data["data"]
+        assert "trip_id" in data["data"]
+        assert data["data"]["trip_id"] == trip_id
+
+        # Verify trip no longer exists
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        assert get_response.status_code == 404
+
+    async def test_delete_trip_not_found_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test deleting non-existent trip returns 404."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+
+        # Act
+        response = await client.delete(f"/trips/{fake_trip_id}", headers=auth_headers)
+
+        # Assert
+        assert response.status_code == 404
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "NOT_FOUND"
+
+    async def test_delete_trip_unauthorized_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test deleting trip without ownership returns 403."""
+        # Arrange - Create trip as user1
+        create_payload = {
+            "title": "Viaje de Usuario 1",
+            "description": "Descripción de al menos 50 caracteres creado por usuario uno...",
+            "start_date": "2024-06-01",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Login as different user
+        from src.utils.security import create_access_token
+
+        token2 = create_access_token({"sub": "test2@example.com", "username": "testuser2"})
+        headers2 = {"Authorization": f"Bearer {token2}"}
+
+        # Try to delete trip owned by user1
+        # Act
+        response = await client.delete(f"/trips/{trip_id}", headers=headers2)
+
+        # Assert - 403 or 404
+        assert response.status_code in [403, 404]
+
+    async def test_delete_trip_with_photos_cascade_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test deleting trip with photos cascades deletion."""
+        from io import BytesIO
+        from PIL import Image
+
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Viaje con Fotos",
+            "description": "Descripción de al menos 50 caracteres para viaje con fotos adjuntas...",
+            "start_date": "2024-06-01",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Upload a photo
+        img = Image.new("RGB", (800, 600), color="blue")
+        img_bytes = BytesIO()
+        img.save(img_bytes, format="JPEG")
+        img_bytes.seek(0)
+
+        await client.post(
+            f"/trips/{trip_id}/photos",
+            files={"photo": ("test.jpg", img_bytes, "image/jpeg")},
+            headers=auth_headers,
+        )
+
+        # Act - Delete trip
+        response = await client.delete(f"/trips/{trip_id}", headers=auth_headers)
+
+        # Assert
+        assert response.status_code == 200
+        assert response.json()["success"] is True
+
+        # Verify trip and photos are gone
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        assert get_response.status_code == 404

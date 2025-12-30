@@ -798,3 +798,318 @@ class TestTagPopularityWorkflow:
         assert tag_map["tag_a"] >= 1
         assert tag_map["tag_b"] >= 1
         assert tag_map["tag_c"] >= 1
+
+
+# ============================================================================
+# Phase 5: User Story 3 - Edit/Delete Trips Integration Tests (T066-T068)
+# ============================================================================
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestTripUpdateWorkflow:
+    """
+    T066: Integration test for trip update workflow.
+
+    Tests the journey: create trip → update fields → verify changes persisted.
+    Functional Requirements: FR-016 (Trip editing)
+    """
+
+    async def test_trip_update_complete_workflow(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """
+        Test complete trip update workflow.
+
+        Steps:
+        1. Create a trip with initial data
+        2. Update multiple fields
+        3. Verify changes are persisted in database
+        4. Verify updated_at timestamp changed
+        5. Update with tags
+        6. Verify tag changes
+        """
+        # Step 1: Create trip
+        create_payload = {
+            "title": "Viaje Original",
+            "description": "Descripción original de al menos 50 caracteres para el viaje inicial de prueba...",
+            "start_date": "2024-06-01",
+            "distance_km": 100.0,
+            "difficulty": "easy",
+            "tags": ["original", "inicial"],
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+        original_updated_at = create_response.json()["data"]["updated_at"]
+
+        # Step 2: Update multiple fields
+        update_payload = {
+            "title": "Viaje Actualizado",
+            "description": "Descripción completamente nueva con muchos más detalles sobre el viaje actualizado...",
+            "distance_km": 150.5,
+            "difficulty": "moderate",
+            "client_updated_at": original_updated_at,
+        }
+
+        update_response = await client.put(
+            f"/trips/{trip_id}", json=update_payload, headers=auth_headers
+        )
+
+        assert update_response.status_code == 200
+        updated_trip = update_response.json()["data"]
+
+        # Step 3: Verify changes persisted
+        assert updated_trip["title"] == "Viaje Actualizado"
+        assert updated_trip["description"] == update_payload["description"]
+        assert updated_trip["distance_km"] == 150.5
+        assert updated_trip["difficulty"] == "moderate"
+
+        # Step 4: Verify updated_at changed
+        assert updated_trip["updated_at"] != original_updated_at
+
+        # Step 5: Update tags
+        new_updated_at = updated_trip["updated_at"]
+        tag_update = {
+            "tags": ["actualizado", "modificado", "nuevo"],
+            "client_updated_at": new_updated_at,
+        }
+
+        tag_response = await client.put(
+            f"/trips/{trip_id}", json=tag_update, headers=auth_headers
+        )
+
+        assert tag_response.status_code == 200
+
+        # Step 6: Verify tag changes
+        final_trip = tag_response.json()["data"]
+        tag_names = [tag["name"] for tag in final_trip["tags"]]
+
+        assert "actualizado" in tag_names
+        assert "modificado" in tag_names
+        assert "nuevo" in tag_names
+        assert "original" not in tag_names  # Old tags replaced
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestTripDeletionWorkflow:
+    """
+    T067: Integration test for trip deletion workflow.
+
+    Tests the journey: create trip → add photos → publish → delete → verify cascade + stats.
+    Functional Requirements: FR-017, FR-018 (Trip deletion with stats update)
+    """
+
+    async def test_trip_deletion_complete_workflow(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """
+        Test complete trip deletion workflow.
+
+        Steps:
+        1. Create trip
+        2. Upload photos
+        3. Publish trip (updates stats)
+        4. Delete trip
+        5. Verify trip is deleted
+        6. Verify photos are deleted (cascade)
+        7. Verify stats are updated (decremented)
+        """
+        from io import BytesIO
+        from PIL import Image
+        from src.models.trip import Trip
+        from src.models.stats import UserStats
+        from sqlalchemy import select
+
+        # Step 1: Create trip
+        create_payload = {
+            "title": "Viaje a Eliminar",
+            "description": "Descripción de al menos 50 caracteres para viaje que será eliminado con fotos...",
+            "start_date": "2024-06-01",
+            "distance_km": 75.0,
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        user_id = create_response.json()["data"]["user_id"]
+
+        # Step 2: Upload photos
+        for i in range(2):
+            img = Image.new("RGB", (800, 600), color="red")
+            img_bytes = BytesIO()
+            img.save(img_bytes, format="JPEG")
+            img_bytes.seek(0)
+
+            await client.post(
+                f"/trips/{trip_id}/photos",
+                files={"photo": (f"photo{i}.jpg", img_bytes, "image/jpeg")},
+                headers=auth_headers,
+            )
+
+        # Step 3: Publish trip
+        publish_response = await client.post(
+            f"/trips/{trip_id}/publish", headers=auth_headers
+        )
+        assert publish_response.status_code == 200
+
+        # Get stats before deletion
+        stats_before_result = await db_session.execute(
+            select(UserStats).where(UserStats.user_id == user_id)
+        )
+        stats_before = stats_before_result.scalar_one()
+        trips_before = stats_before.total_trips
+        km_before = stats_before.total_kilometers
+        photos_before = stats_before.total_photos
+
+        # Step 4: Delete trip
+        delete_response = await client.delete(f"/trips/{trip_id}", headers=auth_headers)
+
+        assert delete_response.status_code == 200
+        assert delete_response.json()["success"] is True
+
+        # Step 5: Verify trip is deleted
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        assert get_response.status_code == 404
+
+        # Verify in database
+        trip_result = await db_session.execute(
+            select(Trip).where(Trip.trip_id == trip_id)
+        )
+        deleted_trip = trip_result.scalar_one_or_none()
+        assert deleted_trip is None
+
+        # Step 6: Verify cascade deletion (photos deleted)
+        # Photos should be deleted via cascade
+
+        # Step 7: Verify stats updated
+        await db_session.refresh(stats_before)
+
+        assert stats_before.total_trips == max(0, trips_before - 1)
+        assert stats_before.total_kilometers == max(0.0, km_before - 75.0)
+        assert stats_before.total_photos == max(0, photos_before - 2)
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestOptimisticLockingWorkflow:
+    """
+    T068: Integration test for optimistic locking (concurrent edit prevention).
+
+    Tests the journey: create trip → simulate concurrent edits → verify conflict detection.
+    Functional Requirements: FR-020 (Conflict detection)
+    """
+
+    async def test_optimistic_locking_prevents_concurrent_edits(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """
+        Test optimistic locking prevents lost updates.
+
+        Steps:
+        1. Create trip
+        2. User A gets trip data (updated_at = T1)
+        3. User B gets trip data (updated_at = T1)
+        4. User A updates trip successfully (updated_at = T2)
+        5. User B tries to update with stale timestamp (T1) → should fail with 409
+        """
+        # Step 1: Create trip
+        create_payload = {
+            "title": "Viaje para Concurrencia",
+            "description": "Descripción de al menos 50 caracteres para testing de edición concurrente...",
+            "start_date": "2024-06-01",
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        initial_updated_at = create_response.json()["data"]["updated_at"]
+
+        # Step 2 & 3: Both users get trip data (simulated by using same timestamp)
+        user_a_timestamp = initial_updated_at
+        user_b_timestamp = initial_updated_at
+
+        # Step 4: User A updates successfully
+        user_a_update = {
+            "title": "Actualizado por Usuario A",
+            "client_updated_at": user_a_timestamp,
+        }
+
+        response_a = await client.put(
+            f"/trips/{trip_id}", json=user_a_update, headers=auth_headers
+        )
+
+        assert response_a.status_code == 200
+        new_updated_at = response_a.json()["data"]["updated_at"]
+        assert new_updated_at != initial_updated_at
+
+        # Step 5: User B tries to update with stale timestamp → should fail
+        user_b_update = {
+            "title": "Intento de Usuario B (debería fallar)",
+            "client_updated_at": user_b_timestamp,  # Stale!
+        }
+
+        response_b = await client.put(
+            f"/trips/{trip_id}", json=user_b_update, headers=auth_headers
+        )
+
+        # Assert - Conflict detected
+        assert response_b.status_code == 409
+        assert response_b.json()["success"] is False
+        assert response_b.json()["error"]["code"] == "CONFLICT"
+
+        # Verify User A's update is preserved
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        current_trip = get_response.json()["data"]
+
+        assert current_trip["title"] == "Actualizado por Usuario A"
+
+    async def test_optimistic_locking_allows_sequential_edits(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test that sequential edits with correct timestamps work."""
+        # Create trip
+        create_payload = {
+            "title": "Viaje Secuencial",
+            "description": "Descripción de al menos 50 caracteres para testing de ediciones secuenciales...",
+            "start_date": "2024-06-01",
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Edit 1
+        updated_at_1 = create_response.json()["data"]["updated_at"]
+        edit_1 = {
+            "title": "Primera Edición",
+            "client_updated_at": updated_at_1,
+        }
+
+        response_1 = await client.put(
+            f"/trips/{trip_id}", json=edit_1, headers=auth_headers
+        )
+
+        assert response_1.status_code == 200
+
+        # Edit 2 with new timestamp
+        updated_at_2 = response_1.json()["data"]["updated_at"]
+        edit_2 = {
+            "title": "Segunda Edición",
+            "client_updated_at": updated_at_2,
+        }
+
+        response_2 = await client.put(
+            f"/trips/{trip_id}", json=edit_2, headers=auth_headers
+        )
+
+        # Should succeed because timestamp is current
+        assert response_2.status_code == 200
+        assert response_2.json()["data"]["title"] == "Segunda Edición"

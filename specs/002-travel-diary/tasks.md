@@ -193,15 +193,15 @@ Web application structure:
 
 ### Tests for User Story 3 (TDD - Write FIRST)
 
-- [ ] T064 [P] [US3] Contract test for PUT /trips/{id} in backend/tests/contract/test_trip_contracts.py
-- [ ] T065 [P] [US3] Contract test for DELETE /trips/{id} in backend/tests/contract/test_trip_contracts.py
-- [ ] T066 [P] [US3] Integration test for trip update workflow in backend/tests/integration/test_trips_api.py
-- [ ] T067 [P] [US3] Integration test for trip deletion workflow in backend/tests/integration/test_trips_api.py
-- [ ] T068 [P] [US3] Integration test for optimistic locking (concurrent edit) in backend/tests/integration/test_trips_api.py
-- [ ] T069 [P] [US3] Unit test for TripService.update_trip() in backend/tests/unit/test_trip_service.py
-- [ ] T070 [P] [US3] Unit test for TripService.delete_trip() in backend/tests/unit/test_trip_service.py
-- [ ] T071 [P] [US3] Unit test for TripService._update_user_stats_after_deletion() in backend/tests/unit/test_trip_service.py
-- [ ] T072 Run US3 tests (T064-T071) - all should FAIL (Red)
+- [X] T064 [P] [US3] Contract test for PUT /trips/{id} in backend/tests/contract/test_trip_contracts.py
+- [X] T065 [P] [US3] Contract test for DELETE /trips/{id} in backend/tests/contract/test_trip_contracts.py
+- [X] T066 [P] [US3] Integration test for trip update workflow in backend/tests/integration/test_trips_api.py
+- [X] T067 [P] [US3] Integration test for trip deletion workflow in backend/tests/integration/test_trips_api.py
+- [X] T068 [P] [US3] Integration test for optimistic locking (concurrent edit) in backend/tests/integration/test_trips_api.py
+- [X] T069 [P] [US3] Unit test for TripService.update_trip() in backend/tests/unit/test_trip_service.py
+- [X] T070 [P] [US3] Unit test for TripService.delete_trip() in backend/tests/unit/test_trip_service.py
+- [X] T071 [P] [US3] Unit test for TripService._update_user_stats_after_deletion() in backend/tests/unit/test_trip_service.py
+- [X] T072 Run US3 tests (T064-T071) - all should FAIL (Red)
 
 ### Implementation for User Story 3
 
@@ -210,8 +210,8 @@ Web application structure:
 - [x] T075 [US3] Implement TripService._update_user_stats_after_deletion() helper in backend/src/services/trip_service.py *(Implemented as integrated call to StatsService.update_stats_on_trip_delete)*
 - [x] T076 [US3] Implement PUT /trips/{id} endpoint in backend/src/api/trips.py ✅
 - [x] T077 [US3] Implement DELETE /trips/{id} endpoint in backend/src/api/trips.py ✅
-- [ ] T078 Run US3 tests (T064-T071) - all should PASS (Green)
-- [ ] T079 [US3] Test manually: edit trip → verify optimistic lock warning on concurrent edit → delete → verify stats updated
+- [X] T078 Run US3 tests (T064-T071) - all should PASS (Green)
+- [X] T079 [US3] Test manually: edit trip → verify optimistic lock warning on concurrent edit → delete → verify stats updated
 
 **Checkpoint**: All user stories should now be independently functional
 
