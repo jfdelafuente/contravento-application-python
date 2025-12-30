@@ -518,7 +518,7 @@ class TestTagFilteringWorkflow:
             response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
             assert response.status_code == 200
 
-        username = "testuser"
+        username = "test_user"
 
         # Step 3: Filter by "bikepacking" tag
         response = await client.get(
@@ -549,7 +549,7 @@ class TestTagFilteringWorkflow:
 
         # Step 6: Test combined tag + status filtering
         response_published = await client.get(
-            f"/users/{username}/trips?tag=bikepacking&status=PUBLISHED",
+            f"/users/{username}/trips?tag=bikepacking&status=published",
             headers=auth_headers,
         )
 
@@ -585,7 +585,7 @@ class TestTagFilteringWorkflow:
             }
             await client.post("/trips", json=payload, headers=auth_headers)
 
-        username = "testuser"
+        username = "test_user"
 
         # Test pagination with limit=2
         response_page1 = await client.get(

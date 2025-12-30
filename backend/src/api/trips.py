@@ -773,7 +773,7 @@ async def get_user_trips(
                 "distance_km": trip.distance_km,
                 "status": trip.status.value,
                 "photos_count": len(trip.photos),
-                "tags": [tag_rel.tag.name for tag_rel in trip.tags],
+                "tags": [tag_rel.tag.name for tag_rel in trip.trip_tags],
                 "created_at": trip.created_at.isoformat(),
                 "updated_at": trip.updated_at.isoformat(),
             }

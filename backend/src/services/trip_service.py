@@ -827,7 +827,7 @@ class TripService:
             .where(Trip.user_id == user_id)
             .options(
                 selectinload(Trip.photos),
-                selectinload(Trip.tags).selectinload(TripTag.tag),
+                selectinload(Trip.trip_tags).selectinload(TripTag.tag),
                 selectinload(Trip.locations),
             )
         )
