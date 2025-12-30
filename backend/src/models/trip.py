@@ -140,6 +140,9 @@ class TripPhoto(Base):
     # Photo metadata
     caption = Column(String(500), nullable=True)  # Optional caption
     order = Column(Integer, nullable=False, default=0)  # Order in gallery (renamed from display_order)
+    file_size = Column(Integer, nullable=False, default=0)  # File size in bytes
+    width = Column(Integer, nullable=False, default=0)  # Image width in pixels
+    height = Column(Integer, nullable=False, default=0)  # Image height in pixels
 
     # Metadata
     uploaded_at = Column(DateTime, nullable=False, default=datetime.utcnow)

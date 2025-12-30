@@ -255,7 +255,7 @@ class TestCyclingTypeValidator:
         for cycling_type in invalid_types:
             with pytest.raises(ValueError) as exc_info:
                 validate_cycling_type(cycling_type)
-            assert "tipo de ciclismo válido" in str(exc_info.value).lower()
+            assert "tipo de ciclismo debe ser uno de" in str(exc_info.value).lower()
 
     def test_cycling_type_none_is_valid(self):
         """Verify that None is a valid cycling_type (optional field)."""

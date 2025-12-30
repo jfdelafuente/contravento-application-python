@@ -407,6 +407,9 @@ class TripService:
         thumb_path = storage_dir / f"{file_uuid}_thumb.{ext}"
         thumb_img.save(thumb_path, format="JPEG", quality=80, optimize=True)
 
+        # Get file size from optimized version
+        file_size = optimized_path.stat().st_size
+
         # Calculate next order value (last photo's order + 1)
         # Use a query to get the current max order (avoid cached relationship issues)
         result = await self.db.execute(
@@ -421,6 +424,9 @@ class TripService:
             photo_url=f"/storage/trip_photos/{year}/{month}/{trip_id}/{file_uuid}_optimized.{ext}",
             thumb_url=f"/storage/trip_photos/{year}/{month}/{trip_id}/{file_uuid}_thumb.{ext}",
             order=next_order,
+            file_size=file_size,
+            width=optimized_img.width,
+            height=optimized_img.height,
         )
 
         self.db.add(photo)

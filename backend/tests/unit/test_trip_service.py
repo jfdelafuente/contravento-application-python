@@ -10,7 +10,7 @@ from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripLocation
+from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripLocation, TripPhoto
 from src.models.user import User
 from src.schemas.trip import TripCreateRequest, LocationInput
 

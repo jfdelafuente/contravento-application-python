@@ -339,11 +339,15 @@ async def upload_photo(
         return {
             "success": True,
             "data": {
-                "photo_id": photo_record.photo_id,
+                "id": photo_record.photo_id,
                 "trip_id": photo_record.trip_id,
                 "photo_url": photo_record.photo_url,
                 "thumb_url": photo_record.thumb_url,
                 "order": photo_record.order,
+                "file_size": photo_record.file_size,
+                "width": photo_record.width,
+                "height": photo_record.height,
+                "uploaded_at": photo_record.uploaded_at.isoformat() + "Z" if photo_record.uploaded_at else None,
             },
             "error": None,
         }
