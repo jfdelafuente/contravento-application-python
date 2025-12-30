@@ -4,14 +4,14 @@ Unit tests for SocialService.
 Tests individual methods of SocialService in isolation.
 """
 
-import pytest
-from datetime import datetime
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from src.services.social_service import SocialService
-from src.models.user import User, UserProfile
+import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.models.social import Follow
+from src.models.user import User, UserProfile
+from src.services.social_service import SocialService
 from src.utils.security import hash_password
 
 
@@ -27,8 +27,18 @@ class TestSocialServiceFollowUser:
     ):
         """Test follow_user() creates Follow relationship."""
         # Setup
-        user1 = User(username="follower", email="follower@test.com", hashed_password=hash_password("pass"), is_active=True)
-        user2 = User(username="followed", email="followed@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user1 = User(
+            username="follower",
+            email="follower@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        user2 = User(
+            username="followed",
+            email="followed@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user1)
         db_session.add(user2)
         profile1 = UserProfile(user_id=user1.id)
@@ -43,10 +53,7 @@ class TestSocialServiceFollowUser:
 
         # Verify
         result = await db_session.execute(
-            select(Follow).where(
-                Follow.follower_id == user1.id,
-                Follow.following_id == user2.id
-            )
+            select(Follow).where(Follow.follower_id == user1.id, Follow.following_id == user2.id)
         )
         follow = result.scalar_one_or_none()
         assert follow is not None
@@ -64,8 +71,18 @@ class TestSocialServiceUnfollowUser:
     ):
         """Test unfollow_user() removes Follow relationship."""
         # Setup with existing follow
-        user1 = User(username="unfollower", email="unfollower@test.com", hashed_password=hash_password("pass"), is_active=True)
-        user2 = User(username="unfollowed", email="unfollowed@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user1 = User(
+            username="unfollower",
+            email="unfollower@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        user2 = User(
+            username="unfollowed",
+            email="unfollowed@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user1)
         db_session.add(user2)
         profile1 = UserProfile(user_id=user1.id)
@@ -82,10 +99,7 @@ class TestSocialServiceUnfollowUser:
 
         # Verify
         result = await db_session.execute(
-            select(Follow).where(
-                Follow.follower_id == user1.id,
-                Follow.following_id == user2.id
-            )
+            select(Follow).where(Follow.follower_id == user1.id, Follow.following_id == user2.id)
         )
         follow = result.scalar_one_or_none()
         assert follow is None
@@ -103,9 +117,24 @@ class TestSocialServiceGetFollowers:
     ):
         """Test get_followers() returns paginated list."""
         # Setup: target user with 2 followers
-        target = User(username="target", email="target@test.com", hashed_password=hash_password("pass"), is_active=True)
-        follower1 = User(username="f1", email="f1@test.com", hashed_password=hash_password("pass"), is_active=True)
-        follower2 = User(username="f2", email="f2@test.com", hashed_password=hash_password("pass"), is_active=True)
+        target = User(
+            username="target",
+            email="target@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        follower1 = User(
+            username="f1",
+            email="f1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        follower2 = User(
+            username="f2",
+            email="f2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(target)
         db_session.add(follower1)
         db_session.add(follower2)
@@ -146,9 +175,24 @@ class TestSocialServiceGetFollowing:
     ):
         """Test get_following() returns paginated list."""
         # Setup: user following 2 others
-        user = User(username="user", email="user@test.com", hashed_password=hash_password("pass"), is_active=True)
-        followed1 = User(username="fw1", email="fw1@test.com", hashed_password=hash_password("pass"), is_active=True)
-        followed2 = User(username="fw2", email="fw2@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user = User(
+            username="user",
+            email="user@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        followed1 = User(
+            username="fw1",
+            email="fw1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        followed2 = User(
+            username="fw2",
+            email="fw2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user)
         db_session.add(followed1)
         db_session.add(followed2)
@@ -187,8 +231,18 @@ class TestSocialServiceGetFollowStatus:
     ):
         """Test get_follow_status() returns True when following."""
         # Setup
-        user1 = User(username="u1", email="u1@test.com", hashed_password=hash_password("pass"), is_active=True)
-        user2 = User(username="u2", email="u2@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user1 = User(
+            username="u1",
+            email="u1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        user2 = User(
+            username="u2",
+            email="u2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user1)
         db_session.add(user2)
         p1 = UserProfile(user_id=user1.id)
@@ -220,8 +274,18 @@ class TestDuplicateFollowPrevention:
     ):
         """Test that following twice raises error."""
         # Setup
-        user1 = User(username="dup1", email="dup1@test.com", hashed_password=hash_password("pass"), is_active=True)
-        user2 = User(username="dup2", email="dup2@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user1 = User(
+            username="dup1",
+            email="dup1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        user2 = User(
+            username="dup2",
+            email="dup2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user1)
         db_session.add(user2)
         p1 = UserProfile(user_id=user1.id)
@@ -250,8 +314,18 @@ class TestCounterUpdateOnFollowUnfollow:
     ):
         """Test that counters increment correctly on follow."""
         # Setup
-        user1 = User(username="cnt1", email="cnt1@test.com", hashed_password=hash_password("pass"), is_active=True)
-        user2 = User(username="cnt2", email="cnt2@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user1 = User(
+            username="cnt1",
+            email="cnt1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        user2 = User(
+            username="cnt2",
+            email="cnt2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user1)
         db_session.add(user2)
         p1 = UserProfile(user_id=user1.id, following_count=0)
@@ -276,8 +350,18 @@ class TestCounterUpdateOnFollowUnfollow:
     ):
         """Test that counters decrement correctly on unfollow."""
         # Setup with existing follow
-        user1 = User(username="dcnt1", email="dcnt1@test.com", hashed_password=hash_password("pass"), is_active=True)
-        user2 = User(username="dcnt2", email="dcnt2@test.com", hashed_password=hash_password("pass"), is_active=True)
+        user1 = User(
+            username="dcnt1",
+            email="dcnt1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        user2 = User(
+            username="dcnt2",
+            email="dcnt2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
         db_session.add(user1)
         db_session.add(user2)
         p1 = UserProfile(user_id=user1.id, following_count=1)

@@ -6,14 +6,13 @@ with Spanish templates.
 """
 
 import logging
-from typing import List, Optional
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Optional
 
 import aiosmtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 from src.config import settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -63,10 +62,7 @@ async def send_email(
         # Send email
         if settings.is_testing or settings.is_development:
             # In dev/test, just log the email
-            logger.info(
-                f"[EMAIL] To: {to_email}, Subject: {subject}\n"
-                f"Body:\n{body_text}"
-            )
+            logger.info(f"[EMAIL] To: {to_email}, Subject: {subject}\n" f"Body:\n{body_text}")
             return True
 
         # Production: send via SMTP

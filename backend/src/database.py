@@ -5,19 +5,19 @@ Provides async SQLAlchemy engine and session factory for both SQLite and Postgre
 Includes SQLite foreign key pragma handler per data-model.md.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
-    create_async_engine,
     async_sessionmaker,
+    create_async_engine,
 )
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import NullPool, StaticPool
 
 from src.config import settings
-
 
 # Base class for all ORM models
 Base = declarative_base()
@@ -54,10 +54,7 @@ def _get_engine_kwargs() -> dict:
 
 
 # Create async engine
-engine = create_async_engine(
-    settings.database_url,
-    **_get_engine_kwargs()
-)
+engine = create_async_engine(settings.database_url, **_get_engine_kwargs())
 
 
 # Create async session factory

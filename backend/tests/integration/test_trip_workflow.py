@@ -5,11 +5,11 @@ Tests complete user journeys for Travel Diary feature.
 Functional Requirements: FR-001, FR-002, FR-003, FR-007
 """
 
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import date
 
 
 @pytest.mark.integration
@@ -40,9 +40,7 @@ class TestTripCreationWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
 
         # Step 2: Verify creation response
         assert create_response.status_code == 201
@@ -95,9 +93,7 @@ class TestTripCreationWorkflow:
             "tags": ["camino", "peregrinación", "bikepacking"],
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
 
         trip_id = create_response.json()["data"]["trip_id"]
@@ -115,16 +111,12 @@ class TestTripCreationWorkflow:
         assert "bikepacking" in tag_names
 
         # Step 3: Verify trip-tag associations
-        result = await db_session.execute(
-            select(TripTag).where(TripTag.trip_id == trip_id)
-        )
+        result = await db_session.execute(select(TripTag).where(TripTag.trip_id == trip_id))
         trip_tags = result.scalars().all()
         assert len(trip_tags) == 3
 
         # Step 4: Verify tag usage count
-        result = await db_session.execute(
-            select(Tag).where(Tag.name == "camino")
-        )
+        result = await db_session.execute(select(Tag).where(Tag.name == "camino"))
         camino_tag = result.scalar_one()
         assert camino_tag.usage_count >= 1
 
@@ -156,9 +148,7 @@ class TestTripCreationWorkflow:
             ],
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
 
         trip_id = create_response.json()["data"]["trip_id"]
@@ -215,9 +205,7 @@ class TestTripCreationWorkflow:
         }
 
         # Act
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
 
         # Assert
         assert create_response.status_code == 201
@@ -266,9 +254,7 @@ class TestTripPublicationWorkflow:
             "difficulty": "easy",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
 
         trip_id = create_response.json()["data"]["trip_id"]
@@ -280,9 +266,7 @@ class TestTripPublicationWorkflow:
         assert trip["published_at"] is None
 
         # Step 3: Publish trip
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
         assert publish_response.status_code == 200
 
         # Step 4: Verify status changed
@@ -320,15 +304,11 @@ class TestTripPublicationWorkflow:
             "start_date": "2024-05-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Step 2: Attempt to publish
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
         # Step 3: Verify rejection
         assert publish_response.status_code == 400
@@ -344,9 +324,7 @@ class TestTripPublicationWorkflow:
         trip = get_response.json()["data"]
         assert trip["status"] == "draft"
 
-    async def test_publish_trip_twice_idempotency(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_publish_trip_twice_idempotency(self, client: AsyncClient, auth_headers: dict):
         """
         Test publishing already-published trip is idempotent.
 
@@ -363,20 +341,14 @@ class TestTripPublicationWorkflow:
             "start_date": "2024-05-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
-        first_publish = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        first_publish = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
         first_published_at = first_publish.json()["data"]["published_at"]
 
         # Step 2: Publish again
-        second_publish = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        second_publish = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
         # Step 3: Verify success
         assert second_publish.status_code == 200
@@ -413,15 +385,11 @@ class TestTripPublicationWorkflow:
             "tags": ["cultura", "patrimonio"],
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Step 2: Publish
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
         assert publish_response.status_code == 200
 
         # Step 3: Verify all data preserved
@@ -437,9 +405,7 @@ class TestTripPublicationWorkflow:
         # Step 4: Verify tag usage_count
         from src.models.trip import Tag
 
-        result = await db_session.execute(
-            select(Tag).where(Tag.name == "cultura")
-        )
+        result = await db_session.execute(select(Tag).where(Tag.name == "cultura"))
         cultura_tag = result.scalar_one_or_none()
         assert cultura_tag is not None
         assert cultura_tag.usage_count >= 1

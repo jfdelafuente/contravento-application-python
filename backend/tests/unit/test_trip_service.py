@@ -5,14 +5,15 @@ Tests trip service methods in isolation with mocked dependencies.
 Functional Requirements: FR-001, FR-002, FR-003, FR-007
 """
 
-import pytest
 from datetime import date, datetime
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripLocation, TripPhoto
+import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.trip import Tag, Trip, TripDifficulty, TripLocation, TripPhoto, TripStatus
 from src.models.user import User
-from src.schemas.trip import TripCreateRequest, LocationInput
+from src.schemas.trip import LocationInput, TripCreateRequest
 
 
 @pytest.mark.unit
@@ -37,9 +38,7 @@ class TestTripServiceCreateTrip:
         await db_session.refresh(user)
         return user
 
-    async def test_create_trip_minimal(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_minimal(self, db_session: AsyncSession, test_user: User):
         """Test creating trip with only required fields."""
         # Arrange
         from src.services.trip_service import TripService
@@ -73,15 +72,11 @@ class TestTripServiceCreateTrip:
         assert trip.published_at is None
 
         # Assert - Database persistence
-        result = await db_session.execute(
-            select(Trip).where(Trip.trip_id == trip.trip_id)
-        )
+        result = await db_session.execute(select(Trip).where(Trip.trip_id == trip.trip_id))
         db_trip = result.scalar_one()
         assert db_trip.title == trip_data.title
 
-    async def test_create_trip_with_all_fields(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_with_all_fields(self, db_session: AsyncSession, test_user: User):
         """Test creating trip with all optional fields populated."""
         # Arrange
         from src.services.trip_service import TripService
@@ -111,9 +106,7 @@ class TestTripServiceCreateTrip:
         assert trip.distance_km == trip_data.distance_km
         assert trip.difficulty == TripDifficulty.VERY_DIFFICULT
 
-    async def test_create_trip_sanitizes_html(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_sanitizes_html(self, db_session: AsyncSession, test_user: User):
         """Test that HTML in description is sanitized."""
         # Arrange
         from src.services.trip_service import TripService
@@ -133,9 +126,7 @@ class TestTripServiceCreateTrip:
         assert "alert" not in trip.description
         assert "<p>Safe content</p>" in trip.description
 
-    async def test_create_trip_with_tags(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_with_tags(self, db_session: AsyncSession, test_user: User):
         """Test creating trip with tags creates/associates tags correctly."""
         # Arrange
         from src.services.trip_service import TripService
@@ -187,15 +178,11 @@ class TestTripServiceCreateTrip:
         assert len(trip.trip_tags) == 1
 
         # Verify only one tag in database
-        result = await db_session.execute(
-            select(Tag).where(Tag.normalized == "bikepacking")
-        )
+        result = await db_session.execute(select(Tag).where(Tag.normalized == "bikepacking"))
         tags = result.scalars().all()
         assert len(tags) == 1
 
-    async def test_create_trip_with_existing_tags(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_with_existing_tags(self, db_session: AsyncSession, test_user: User):
         """Test that existing tags are reused and usage_count is incremented."""
         # Arrange
         from src.services.trip_service import TripService
@@ -212,9 +199,7 @@ class TestTripServiceCreateTrip:
         await service.create_trip(user_id=test_user.id, data=trip_data_1)
 
         # Get initial usage count
-        result = await db_session.execute(
-            select(Tag).where(Tag.normalized == "andalucía")
-        )
+        result = await db_session.execute(select(Tag).where(Tag.normalized == "andalucía"))
         tag_before = result.scalar_one()
         usage_before = tag_before.usage_count
 
@@ -228,18 +213,14 @@ class TestTripServiceCreateTrip:
         await service.create_trip(user_id=test_user.id, data=trip_data_2)
 
         # Assert - Tag is reused, usage_count incremented
-        result = await db_session.execute(
-            select(Tag).where(Tag.normalized == "andalucía")
-        )
+        result = await db_session.execute(select(Tag).where(Tag.normalized == "andalucía"))
         tags = result.scalars().all()
         assert len(tags) == 1  # Only one tag exists
 
         tag_after = tags[0]
         assert tag_after.usage_count == usage_before + 1
 
-    async def test_create_trip_with_locations(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_with_locations(self, db_session: AsyncSession, test_user: User):
         """Test creating trip with locations sets correct sequence."""
         # Arrange
         from src.services.trip_service import TripService
@@ -300,9 +281,7 @@ class TestTripServicePublishTrip:
         return user
 
     @pytest.fixture
-    async def draft_trip_valid(
-        self, db_session: AsyncSession, test_user: User
-    ) -> Trip:
+    async def draft_trip_valid(self, db_session: AsyncSession, test_user: User) -> Trip:
         """Create a valid draft trip ready for publication."""
         trip = Trip(
             user_id=test_user.id,
@@ -317,9 +296,7 @@ class TestTripServicePublishTrip:
         return trip
 
     @pytest.fixture
-    async def draft_trip_short_description(
-        self, db_session: AsyncSession, test_user: User
-    ) -> Trip:
+    async def draft_trip_short_description(self, db_session: AsyncSession, test_user: User) -> Trip:
         """Create a draft trip with short description (invalid for publishing)."""
         trip = Trip(
             user_id=test_user.id,
@@ -436,9 +413,7 @@ class TestTripServicePublishTrip:
         assert published.status == TripStatus.PUBLISHED
         assert published.published_at is not None
 
-    async def test_publish_trip_not_found(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_publish_trip_not_found(self, db_session: AsyncSession, test_user: User):
         """Test publishing non-existent trip raises error."""
         # Arrange
         from src.services.trip_service import TripService
@@ -450,9 +425,10 @@ class TestTripServicePublishTrip:
         with pytest.raises(ValueError) as exc_info:
             await service.publish_trip(trip_id=fake_trip_id, user_id=test_user.id)
 
-        assert "no encontrado" in str(exc_info.value).lower() or "not found" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "no encontrado" in str(exc_info.value).lower()
+            or "not found" in str(exc_info.value).lower()
+        )
 
     async def test_publish_trip_unauthorized_different_user(
         self, db_session: AsyncSession, test_user: User, draft_trip_valid: Trip
@@ -475,13 +451,11 @@ class TestTripServicePublishTrip:
 
         # Act & Assert
         with pytest.raises(PermissionError) as exc_info:
-            await service.publish_trip(
-                trip_id=draft_trip_valid.trip_id, user_id=other_user.id
-            )
+            await service.publish_trip(trip_id=draft_trip_valid.trip_id, user_id=other_user.id)
 
-        assert "permiso" in str(exc_info.value).lower() or "permission" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "permiso" in str(exc_info.value).lower() or "permission" in str(exc_info.value).lower()
+        )
 
     async def test_publish_trip_idempotent(
         self, db_session: AsyncSession, test_user: User, draft_trip_valid: Trip
@@ -551,9 +525,11 @@ class TestTripServicePhotoUpload:
     ):
         """Test uploading photo to trip creates TripPhoto record."""
         # Arrange
-        from src.services.trip_service import TripService
         from io import BytesIO
+
         from PIL import Image
+
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -587,9 +563,11 @@ class TestTripServicePhotoUpload:
     ):
         """Test uploading multiple photos sets correct order."""
         # Arrange
-        from src.services.trip_service import TripService
         from io import BytesIO
+
         from PIL import Image
+
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -618,9 +596,11 @@ class TestTripServicePhotoUpload:
     ):
         """Test uploading more than 20 photos raises error."""
         # Arrange
-        from src.services.trip_service import TripService
         from io import BytesIO
+
         from PIL import Image
+
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -662,8 +642,9 @@ class TestTripServicePhotoUpload:
     ):
         """Test uploading invalid file type raises error."""
         # Arrange
-        from src.services.trip_service import TripService
         from io import BytesIO
+
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -687,9 +668,11 @@ class TestTripServicePhotoUpload:
     ):
         """Test uploading photo to published trip updates user stats."""
         # Arrange
-        from src.services.trip_service import TripService
         from io import BytesIO
+
         from PIL import Image
+
+        from src.services.trip_service import TripService
 
         # Create published trip
         trip = Trip(
@@ -815,9 +798,7 @@ class TestTripServicePhotoDelete:
         assert "eliminada" in result["message"].lower()
 
         # Verify photo deleted from database
-        result = await db_session.execute(
-            select(TripPhoto).where(TripPhoto.id == photo_id)
-        )
+        result = await db_session.execute(select(TripPhoto).where(TripPhoto.id == photo_id))
         deleted_photo = result.scalar_one_or_none()
         assert deleted_photo is None
 
@@ -866,9 +847,7 @@ class TestTripServicePhotoDelete:
 
         # Assert - Remaining photos reordered
         result = await db_session.execute(
-            select(TripPhoto)
-            .where(TripPhoto.trip_id == trip.trip_id)
-            .order_by(TripPhoto.order)
+            select(TripPhoto).where(TripPhoto.trip_id == trip.trip_id).order_by(TripPhoto.order)
         )
         remaining_photos = result.scalars().all()
 
@@ -895,9 +874,10 @@ class TestTripServicePhotoDelete:
                 trip_id=trip.trip_id, photo_id=fake_photo_id, user_id=test_user.id
             )
 
-        assert "no encontrada" in str(exc_info.value).lower() or "not found" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "no encontrada" in str(exc_info.value).lower()
+            or "not found" in str(exc_info.value).lower()
+        )
 
     async def test_delete_photo_unauthorized(
         self, db_session: AsyncSession, test_user: User, trip_with_photo
@@ -926,9 +906,9 @@ class TestTripServicePhotoDelete:
                 trip_id=trip.trip_id, photo_id=photo.id, user_id=other_user.id
             )
 
-        assert "permiso" in str(exc_info.value).lower() or "permission" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "permiso" in str(exc_info.value).lower() or "permission" in str(exc_info.value).lower()
+        )
 
     async def test_delete_photo_updates_stats_on_published_trip(
         self, db_session: AsyncSession, test_user: User
@@ -977,9 +957,7 @@ class TestTripServicePhotoDelete:
         service = TripService(db_session)
 
         # Act - Delete photo
-        await service.delete_photo(
-            trip_id=trip.trip_id, photo_id=photo.id, user_id=test_user.id
-        )
+        await service.delete_photo(trip_id=trip.trip_id, photo_id=photo.id, user_id=test_user.id)
 
         # Assert - Stats updated
         await db_session.refresh(stats)
@@ -1072,9 +1050,7 @@ class TestTripServicePhotoReorder:
 
         # Verify database order
         result = await db_session.execute(
-            select(TripPhoto)
-            .where(TripPhoto.trip_id == trip.trip_id)
-            .order_by(TripPhoto.order)
+            select(TripPhoto).where(TripPhoto.trip_id == trip.trip_id).order_by(TripPhoto.order)
         )
         reordered_photos = result.scalars().all()
 
@@ -1107,9 +1083,7 @@ class TestTripServicePhotoReorder:
                 trip_id=trip.trip_id, photo_order=fake_ids, user_id=test_user.id
             )
 
-        assert "inválido" in str(exc_info.value).lower() or "invalid" in str(
-            exc_info.value
-        ).lower()
+        assert "inválido" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
 
     async def test_reorder_photos_missing_photo_ids(
         self,
@@ -1133,9 +1107,7 @@ class TestTripServicePhotoReorder:
                 trip_id=trip.trip_id, photo_order=incomplete_order, user_id=test_user.id
             )
 
-        assert "todas" in str(exc_info.value).lower() or "all" in str(
-            exc_info.value
-        ).lower()
+        assert "todas" in str(exc_info.value).lower() or "all" in str(exc_info.value).lower()
 
     async def test_reorder_photos_unauthorized(
         self,
@@ -1168,9 +1140,9 @@ class TestTripServicePhotoReorder:
                 trip_id=trip.trip_id, photo_order=new_order, user_id=other_user.id
             )
 
-        assert "permiso" in str(exc_info.value).lower() or "permission" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "permiso" in str(exc_info.value).lower() or "permission" in str(exc_info.value).lower()
+        )
 
 
 # ============================================================================
@@ -1202,9 +1174,7 @@ class TestTripServiceGetUserTrips:
         return user
 
     @pytest.fixture
-    async def test_trips_with_tags(
-        self, db_session: AsyncSession, test_user: User
-    ) -> list[Trip]:
+    async def test_trips_with_tags(self, db_session: AsyncSession, test_user: User) -> list[Trip]:
         """Create multiple trips with different tags for testing."""
         from src.services.trip_service import TripService
 
@@ -1314,9 +1284,7 @@ class TestTripServiceGetUserTrips:
         assert published_trips[0].status == TripStatus.PUBLISHED
 
         # Act - Filter by DRAFT status
-        draft_trips = await service.get_user_trips(
-            user_id=test_user.id, status=TripStatus.DRAFT
-        )
+        draft_trips = await service.get_user_trips(user_id=test_user.id, status=TripStatus.DRAFT)
 
         # Assert
         assert len(draft_trips) == 2
@@ -1333,9 +1301,7 @@ class TestTripServiceGetUserTrips:
         service = TripService(db_session)
 
         # Publish first trip (has "montaña" tag)
-        await service.publish_trip(
-            trip_id=test_trips_with_tags[0].trip_id, user_id=test_user.id
-        )
+        await service.publish_trip(trip_id=test_trips_with_tags[0].trip_id, user_id=test_user.id)
 
         # Act - Filter by tag AND status
         trips = await service.get_user_trips(
@@ -1385,9 +1351,7 @@ class TestTripServiceGetUserTrips:
         service = TripService(db_session)
 
         # Act
-        trips = await service.get_user_trips(
-            user_id=test_user.id, tag="nonexistent_tag"
-        )
+        trips = await service.get_user_trips(user_id=test_user.id, tag="nonexistent_tag")
 
         # Assert
         assert len(trips) == 0
@@ -1432,13 +1396,11 @@ class TestTripServiceTagLimit:
         await db_session.refresh(user)
         return user
 
-    async def test_create_trip_with_max_tags(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_with_max_tags(self, db_session: AsyncSession, test_user: User):
         """Test creating trip with exactly 10 tags (max allowed)."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripCreateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1456,13 +1418,11 @@ class TestTripServiceTagLimit:
         # Assert
         assert len(trip.tags) == 10
 
-    async def test_create_trip_exceeds_max_tags(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_create_trip_exceeds_max_tags(self, db_session: AsyncSession, test_user: User):
         """Test creating trip with more than 10 tags raises ValueError."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripCreateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1490,13 +1450,11 @@ class TestTripServiceTagLimit:
         with pytest.raises(ValueError, match="máximo.*10 tags"):
             await service.create_trip(user_id=test_user.id, trip_data=trip_data)
 
-    async def test_update_trip_exceeds_max_tags(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_update_trip_exceeds_max_tags(self, db_session: AsyncSession, test_user: User):
         """Test updating trip to exceed 10 tags raises ValueError."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripCreateRequest, TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1536,8 +1494,8 @@ class TestTripServiceTagLimit:
     async def test_get_all_tags_returns_all(self, db_session: AsyncSession, test_user: User):
         """Test TripService.get_all_tags() returns all tags ordered by usage."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripCreateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1616,12 +1574,10 @@ class TestTripServiceUpdateTrip:
         return user
 
     @pytest.fixture
-    async def test_trip(
-        self, db_session: AsyncSession, test_user: User
-    ) -> Trip:
+    async def test_trip(self, db_session: AsyncSession, test_user: User) -> Trip:
         """Create a test trip for updating."""
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripCreateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1640,8 +1596,8 @@ class TestTripServiceUpdateTrip:
     ):
         """Test updating basic trip fields."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1670,8 +1626,8 @@ class TestTripServiceUpdateTrip:
     ):
         """Test partial update (only some fields provided)."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1703,8 +1659,8 @@ class TestTripServiceUpdateTrip:
     ):
         """Test optimistic locking prevents stale updates."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1741,8 +1697,8 @@ class TestTripServiceUpdateTrip:
     ):
         """Test updating trip as non-owner raises PermissionError."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1769,13 +1725,11 @@ class TestTripServiceUpdateTrip:
                 trip_data=update_data,
             )
 
-    async def test_update_trip_not_found(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_update_trip_not_found(self, db_session: AsyncSession, test_user: User):
         """Test updating non-existent trip raises ValueError."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1798,8 +1752,8 @@ class TestTripServiceUpdateTrip:
     ):
         """Test updating trip tags replaces old tags."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripUpdateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1861,12 +1815,10 @@ class TestTripServiceDeleteTrip:
         return user
 
     @pytest.fixture
-    async def test_trip(
-        self, db_session: AsyncSession, test_user: User
-    ) -> Trip:
+    async def test_trip(self, db_session: AsyncSession, test_user: User) -> Trip:
         """Create a test trip for deletion."""
-        from src.services.trip_service import TripService
         from src.schemas.trip import TripCreateRequest
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -1898,9 +1850,7 @@ class TestTripServiceDeleteTrip:
         assert result["trip_id"] == trip_id
 
         # Verify trip is deleted
-        deleted_trip_result = await db_session.execute(
-            select(Trip).where(Trip.trip_id == trip_id)
-        )
+        deleted_trip_result = await db_session.execute(select(Trip).where(Trip.trip_id == trip_id))
         deleted_trip = deleted_trip_result.scalar_one_or_none()
 
         assert deleted_trip is None
@@ -1931,9 +1881,7 @@ class TestTripServiceDeleteTrip:
                 user_id=other_user.id,
             )
 
-    async def test_delete_trip_not_found(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_delete_trip_not_found(self, db_session: AsyncSession, test_user: User):
         """Test deleting non-existent trip raises ValueError."""
         # Arrange
         from src.services.trip_service import TripService
@@ -1953,8 +1901,8 @@ class TestTripServiceDeleteTrip:
     ):
         """Test deleting published trip decrements user stats."""
         # Arrange
-        from src.services.trip_service import TripService
         from src.models.stats import UserStats
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -2021,8 +1969,8 @@ class TestStatsServiceDeletionHelper:
     ):
         """Test stats are decremented correctly on trip deletion."""
         # Arrange
-        from src.services.stats_service import StatsService
         from src.models.stats import UserStats
+        from src.services.stats_service import StatsService
 
         service = StatsService(db_session)
 
@@ -2056,8 +2004,8 @@ class TestStatsServiceDeletionHelper:
     ):
         """Test stats never go negative on deletion."""
         # Arrange
-        from src.services.stats_service import StatsService
         from src.models.stats import UserStats
+        from src.services.stats_service import StatsService
 
         service = StatsService(db_session)
 
@@ -2092,8 +2040,8 @@ class TestStatsServiceDeletionHelper:
     ):
         """Test that countries_visited is preserved on deletion."""
         # Arrange
-        from src.services.stats_service import StatsService
         from src.models.stats import UserStats
+        from src.services.stats_service import StatsService
 
         service = StatsService(db_session)
 
@@ -2173,9 +2121,7 @@ class TestDraftValidation:
         assert trip.status == TripStatus.DRAFT
         assert trip.published_at is None
 
-    async def test_draft_allows_minimal_fields(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_draft_allows_minimal_fields(self, db_session: AsyncSession, test_user: User):
         """
         Test that drafts only require title, description, and start_date.
 
@@ -2225,9 +2171,7 @@ class TestDraftValidation:
         from fastapi import HTTPException
 
         with pytest.raises(HTTPException) as exc_info:
-            await service.publish_trip(
-                trip_id=str(trip.id), current_user_id=str(test_user.id)
-            )
+            await service.publish_trip(trip_id=str(trip.id), current_user_id=str(test_user.id))
 
         # Assert - Should fail validation
         assert exc_info.value.status_code == 400

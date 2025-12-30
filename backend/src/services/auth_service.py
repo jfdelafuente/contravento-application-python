@@ -8,28 +8,32 @@ Business logic for authentication flows including:
 - Password reset flows
 """
 
-from datetime import datetime, timedelta
-from typing import Optional
 import logging
+from datetime import datetime, timedelta
 
-from sqlalchemy import select, or_
-from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError
+from sqlalchemy import or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User, UserProfile
+from src.config import settings
 from src.models.auth import PasswordReset
-from src.schemas.auth import RegisterRequest, RegisterResponse, LoginRequest, TokenResponse, LoginResponse
+from src.models.user import User, UserProfile
+from src.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    RegisterRequest,
+    RegisterResponse,
+    TokenResponse,
+)
 from src.schemas.user import UserResponse
+from src.utils.email import send_password_reset_email, send_verification_email
 from src.utils.security import (
-    hash_password,
-    verify_password,
     create_access_token,
     create_refresh_token,
     decode_token,
+    hash_password,
+    verify_password,
 )
-from src.utils.email import send_verification_email, send_password_reset_email
-from src.config import settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -66,16 +70,12 @@ class AuthService:
             ValueError: If username or email already exists
         """
         # Check for duplicate username
-        result = await self.db.execute(
-            select(User).where(User.username == data.username)
-        )
+        result = await self.db.execute(select(User).where(User.username == data.username))
         if result.scalar_one_or_none():
             raise ValueError(f"El nombre de usuario '{data.username}' ya está en uso")
 
         # Check for duplicate email
-        result = await self.db.execute(
-            select(User).where(User.email == data.email.lower())
-        )
+        result = await self.db.execute(select(User).where(User.email == data.email.lower()))
         if result.scalar_one_or_none():
             raise ValueError(f"El email '{data.email}' ya está registrado")
 
@@ -96,8 +96,7 @@ class AuthService:
 
         # Create verification token
         token = create_access_token(
-            {"sub": user.id, "type": "email_verification"},
-            expires_delta=timedelta(hours=24)
+            {"sub": user.id, "type": "email_verification"}, expires_delta=timedelta(hours=24)
         )
 
         # Store verification token
@@ -152,9 +151,7 @@ class AuthService:
             raise ValueError("Enlace de verificación inválido")
 
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await self.db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
 
         if not user:
@@ -173,7 +170,7 @@ class AuthService:
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "email_verification",
-                PasswordReset.used_at.is_(None)
+                PasswordReset.used_at.is_(None),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -203,9 +200,7 @@ class AuthService:
             ValueError: If rate limit exceeded
         """
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.email == email.lower())
-        )
+        result = await self.db.execute(select(User).where(User.email == email.lower()))
         user = result.scalar_one_or_none()
 
         if not user:
@@ -222,7 +217,7 @@ class AuthService:
             select(PasswordReset).where(
                 PasswordReset.user_id == user.id,
                 PasswordReset.token_type == "email_verification",
-                PasswordReset.created_at >= one_hour_ago
+                PasswordReset.created_at >= one_hour_ago,
             )
         )
         recent_tokens = result.scalars().all()
@@ -232,8 +227,7 @@ class AuthService:
 
         # Create new verification token
         token = create_access_token(
-            {"sub": user.id, "type": "email_verification"},
-            expires_delta=timedelta(hours=24)
+            {"sub": user.id, "type": "email_verification"}, expires_delta=timedelta(hours=24)
         )
 
         # Store token
@@ -269,20 +263,13 @@ class AuthService:
         """
         # Find user by email or username
         result = await self.db.execute(
-            select(User).where(
-                or_(
-                    User.email == data.login.lower(),
-                    User.username == data.login
-                )
-            )
+            select(User).where(or_(User.email == data.login.lower(), User.username == data.login))
         )
         user = result.scalar_one_or_none()
 
         # Check account lockout
         if user and user.locked_until and user.locked_until > datetime.utcnow():
-            raise ValueError(
-                "Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos."
-            )
+            raise ValueError("Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos.")
 
         # Verify credentials
         if not user or not verify_password(data.password, user.hashed_password):
@@ -316,12 +303,8 @@ class AuthService:
         user.last_login_at = datetime.utcnow()
 
         # Create tokens
-        access_token = create_access_token(
-            {"sub": user.id, "username": user.username}
-        )
-        refresh_token = create_refresh_token(
-            {"sub": user.id}
-        )
+        access_token = create_access_token({"sub": user.id, "username": user.username})
+        refresh_token = create_refresh_token({"sub": user.id})
 
         # Store refresh token
         token_hash = hash_password(refresh_token)
@@ -379,7 +362,7 @@ class AuthService:
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "refresh_token",
                 PasswordReset.used_at.is_(None),
-                PasswordReset.expires_at > datetime.utcnow()
+                PasswordReset.expires_at > datetime.utcnow(),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -388,9 +371,7 @@ class AuthService:
             raise ValueError("Token de refresco inválido o expirado")
 
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await self.db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
 
         if not user or not user.is_active:
@@ -400,12 +381,8 @@ class AuthService:
         token_record.used_at = datetime.utcnow()
 
         # Create new tokens
-        new_access_token = create_access_token(
-            {"sub": user.id, "username": user.username}
-        )
-        new_refresh_token = create_refresh_token(
-            {"sub": user.id}
-        )
+        new_access_token = create_access_token({"sub": user.id, "username": user.username})
+        new_refresh_token = create_refresh_token({"sub": user.id})
 
         # Store new refresh token
         new_token_hash = hash_password(new_refresh_token)
@@ -458,7 +435,7 @@ class AuthService:
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "refresh_token",
-                PasswordReset.used_at.is_(None)
+                PasswordReset.used_at.is_(None),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -484,9 +461,7 @@ class AuthService:
             True (always, for security)
         """
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.email == email.lower())
-        )
+        result = await self.db.execute(select(User).where(User.email == email.lower()))
         user = result.scalar_one_or_none()
 
         if not user:
@@ -495,8 +470,7 @@ class AuthService:
 
         # Create reset token
         token = create_access_token(
-            {"sub": user.id, "type": "password_reset"},
-            expires_delta=timedelta(hours=1)
+            {"sub": user.id, "type": "password_reset"}, expires_delta=timedelta(hours=1)
         )
 
         # Store token
@@ -544,9 +518,7 @@ class AuthService:
             raise ValueError("Enlace de restablecimiento inválido")
 
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await self.db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
 
         if not user:
@@ -559,7 +531,7 @@ class AuthService:
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "password_reset",
                 PasswordReset.used_at.is_(None),
-                PasswordReset.expires_at > datetime.utcnow()
+                PasswordReset.expires_at > datetime.utcnow(),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -582,7 +554,7 @@ class AuthService:
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "refresh_token",
-                PasswordReset.used_at.is_(None)
+                PasswordReset.used_at.is_(None),
             )
         )
         refresh_tokens = result.scalars().all()

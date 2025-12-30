@@ -4,13 +4,14 @@ Unit tests for TripPhotoService.
 Tests photo processing: validation, resize, optimization, thumbnail generation.
 """
 
-import pytest
-from pathlib import Path
-from PIL import Image
 import io
-import tempfile
-from unittest.mock import patch, MagicMock
-from src.utils.trip_photo_service import TripPhotoService, PhotoProcessingResult
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+from PIL import Image
+
+from src.utils.trip_photo_service import PhotoProcessingResult, TripPhotoService
 
 
 class TestTripPhotoService:
@@ -25,27 +26,27 @@ class TestTripPhotoService:
     def sample_jpeg_bytes(self) -> bytes:
         """Create sample JPEG image bytes for testing."""
         # Create 2000x1500 image (landscape)
-        img = Image.new('RGB', (2000, 1500), color='blue')
+        img = Image.new("RGB", (2000, 1500), color="blue")
         buffer = io.BytesIO()
-        img.save(buffer, format='JPEG', quality=95)
+        img.save(buffer, format="JPEG", quality=95)
         return buffer.getvalue()
 
     @pytest.fixture
     def sample_png_bytes(self) -> bytes:
         """Create sample PNG image bytes for testing."""
         # Create 800x600 image
-        img = Image.new('RGB', (800, 600), color='green')
+        img = Image.new("RGB", (800, 600), color="green")
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
         return buffer.getvalue()
 
     @pytest.fixture
     def sample_portrait_bytes(self) -> bytes:
         """Create sample portrait image (taller than wide)."""
         # Create 1000x1500 image (portrait)
-        img = Image.new('RGB', (1000, 1500), color='red')
+        img = Image.new("RGB", (1000, 1500), color="red")
         buffer = io.BytesIO()
-        img.save(buffer, format='JPEG', quality=95)
+        img.save(buffer, format="JPEG", quality=95)
         return buffer.getvalue()
 
     def test_validate_photo_accepts_valid_jpeg(
@@ -62,26 +63,22 @@ class TestTripPhotoService:
         error = photo_service.validate_photo(sample_png_bytes, "test.png")
         assert error is None
 
-    def test_validate_photo_rejects_invalid_format(
-        self, photo_service: TripPhotoService
-    ) -> None:
+    def test_validate_photo_rejects_invalid_format(self, photo_service: TripPhotoService) -> None:
         """Test that non-image files are rejected."""
         fake_file = b"This is not an image file"
         error = photo_service.validate_photo(fake_file, "test.txt")
 
         assert error is not None
-        assert 'formato' in error.lower()
+        assert "formato" in error.lower()
 
-    def test_validate_photo_rejects_oversized_file(
-        self, photo_service: TripPhotoService
-    ) -> None:
+    def test_validate_photo_rejects_oversized_file(self, photo_service: TripPhotoService) -> None:
         """Test that files exceeding max size are rejected."""
         # Create file larger than 10MB (default max)
         large_file = b"X" * (11 * 1024 * 1024)  # 11MB
         error = photo_service.validate_photo(large_file, "huge.jpg")
 
         assert error is not None
-        assert 'tamaño' in error.lower() or 'grande' in error.lower()
+        assert "tamaño" in error.lower() or "grande" in error.lower()
 
     def test_validate_photo_checks_actual_content_not_extension(
         self, photo_service: TripPhotoService
@@ -161,19 +158,19 @@ class TestTripPhotoService:
 
         # Check that output is JPEG format
         optimized_img = Image.open(io.BytesIO(result.optimized_bytes))
-        assert optimized_img.format == 'JPEG'
+        assert optimized_img.format == "JPEG"
 
         thumb_img = Image.open(io.BytesIO(result.thumbnail_bytes))
-        assert thumb_img.format == 'JPEG'
+        assert thumb_img.format == "JPEG"
 
     def test_process_photo_preserves_already_small_images(
         self, photo_service: TripPhotoService
     ) -> None:
         """Test that images smaller than max width are not upscaled."""
         # Create small image (800x600, below 1200px max width)
-        small_img = Image.new('RGB', (800, 600), color='yellow')
+        small_img = Image.new("RGB", (800, 600), color="yellow")
         buffer = io.BytesIO()
-        small_img.save(buffer, format='JPEG', quality=95)
+        small_img.save(buffer, format="JPEG", quality=95)
         small_bytes = buffer.getvalue()
 
         result = photo_service.process_photo(small_bytes, "small.jpg")
@@ -201,7 +198,7 @@ class TestTripPhotoService:
         self, photo_service: TripPhotoService, sample_jpeg_bytes: bytes
     ) -> None:
         """Test that quality settings from config are applied."""
-        with patch('src.utils.trip_photo_service.settings') as mock_settings:
+        with patch("src.utils.trip_photo_service.settings") as mock_settings:
             mock_settings.photo_quality_optimized = 50  # Low quality
             mock_settings.photo_quality_thumb = 50
             mock_settings.photo_max_width = 1200
@@ -219,13 +216,13 @@ class TestTripPhotoService:
         trip_id = "123e4567-e89b-12d3-a456-426614174000"
         filename = "photo.jpg"
 
-        with patch('src.utils.trip_photo_service.settings') as mock_settings:
+        with patch("src.utils.trip_photo_service.settings") as mock_settings:
             mock_settings.trip_photos_full_path = str(tmp_path)
 
             # Create dummy photo data
-            img = Image.new('RGB', (100, 100))
+            img = Image.new("RGB", (100, 100))
             buffer = io.BytesIO()
-            img.save(buffer, format='JPEG')
+            img.save(buffer, format="JPEG")
             photo_bytes = buffer.getvalue()
 
             result = PhotoProcessingResult(
@@ -233,7 +230,7 @@ class TestTripPhotoService:
                 thumbnail_bytes=photo_bytes,
                 width=100,
                 height=100,
-                file_size=len(photo_bytes)
+                file_size=len(photo_bytes),
             )
 
             paths = photo_service.save_photo(result, trip_id, filename)
@@ -252,12 +249,12 @@ class TestTripPhotoService:
         trip_id = "test-trip-id"
         filename = "photo.jpg"
 
-        with patch('src.utils.trip_photo_service.settings') as mock_settings:
+        with patch("src.utils.trip_photo_service.settings") as mock_settings:
             mock_settings.trip_photos_full_path = str(tmp_path)
 
-            img = Image.new('RGB', (100, 100))
+            img = Image.new("RGB", (100, 100))
             buffer = io.BytesIO()
-            img.save(buffer, format='JPEG')
+            img.save(buffer, format="JPEG")
             photo_bytes = buffer.getvalue()
 
             result = PhotoProcessingResult(
@@ -265,7 +262,7 @@ class TestTripPhotoService:
                 thumbnail_bytes=photo_bytes,
                 width=100,
                 height=100,
-                file_size=len(photo_bytes)
+                file_size=len(photo_bytes),
             )
 
             paths1 = photo_service.save_photo(result, trip_id, filename)

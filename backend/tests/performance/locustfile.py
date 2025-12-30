@@ -17,9 +17,10 @@ Targets (per constitution and quickstart.md):
 - Follow operation: <400ms p95
 """
 
-from locust import HttpUser, task, between
 import random
 import string
+
+from locust import HttpUser, between, task
 
 
 class ContraVentoUser(HttpUser):
@@ -45,7 +46,7 @@ class ContraVentoUser(HttpUser):
     def register_and_login(self):
         """Register a new user and login."""
         # Generate random username
-        random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         self.username = f"loadtest_{random_suffix}"
         email = f"{self.username}@loadtest.com"
         password = "LoadTest123!"
@@ -58,7 +59,7 @@ class ContraVentoUser(HttpUser):
                 "email": email,
                 "password": password,
             },
-            catch_response=True
+            catch_response=True,
         ) as response:
             if response.status_code == 201:
                 response.success()
@@ -73,7 +74,7 @@ class ContraVentoUser(HttpUser):
                 "username": self.username,
                 "password": password,
             },
-            catch_response=True
+            catch_response=True,
         ) as response:
             if response.status_code == 200:
                 data = response.json()
@@ -92,9 +93,7 @@ class ContraVentoUser(HttpUser):
             return
 
         with self.client.get(
-            f"/users/{self.username}",
-            catch_response=True,
-            name="/users/[username] (own)"
+            f"/users/{self.username}", catch_response=True, name="/users/[username] (own)"
         ) as response:
             if response.status_code == 200:
                 # Verify response time < 200ms per quickstart.md
@@ -112,9 +111,7 @@ class ContraVentoUser(HttpUser):
             return
 
         with self.client.get(
-            f"/users/{self.username}/stats",
-            catch_response=True,
-            name="/users/[username]/stats"
+            f"/users/{self.username}/stats", catch_response=True, name="/users/[username]/stats"
         ) as response:
             if response.status_code == 200:
                 # Verify response time < 300ms
@@ -134,7 +131,7 @@ class ContraVentoUser(HttpUser):
         with self.client.get(
             f"/users/{self.username}/achievements",
             catch_response=True,
-            name="/users/[username]/achievements"
+            name="/users/[username]/achievements",
         ) as response:
             if response.status_code == 200:
                 response.success()
@@ -154,7 +151,7 @@ class ContraVentoUser(HttpUser):
             json={"bio": bio},
             headers={"Authorization": f"Bearer {self.token}"},
             catch_response=True,
-            name="/users/[username] PATCH"
+            name="/users/[username] PATCH",
         ) as response:
             if response.status_code == 200:
                 response.success()
@@ -165,9 +162,7 @@ class ContraVentoUser(HttpUser):
     def list_all_achievements(self):
         """List all available achievements (low frequency)."""
         with self.client.get(
-            "/achievements",
-            catch_response=True,
-            name="/achievements"
+            "/achievements", catch_response=True, name="/achievements"
         ) as response:
             if response.status_code == 200:
                 response.success()
@@ -187,7 +182,7 @@ class RegistrationLoadTest(HttpUser):
     @task
     def register_user(self):
         """Register a new user."""
-        random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         username = f"regtest_{random_suffix}"
         email = f"{username}@regtest.com"
         password = "RegTest123!"
@@ -200,7 +195,7 @@ class RegistrationLoadTest(HttpUser):
                 "password": password,
             },
             catch_response=True,
-            name="/auth/register"
+            name="/auth/register",
         ) as response:
             if response.status_code == 201:
                 # Verify response time < 1000ms per quickstart.md
@@ -223,7 +218,7 @@ class AuthenticationLoadTest(HttpUser):
 
     def on_start(self):
         """Create a test user to login with."""
-        random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         self.username = f"authtest_{random_suffix}"
         self.password = "AuthTest123!"
         email = f"{self.username}@authtest.com"
@@ -235,7 +230,7 @@ class AuthenticationLoadTest(HttpUser):
                 "username": self.username,
                 "email": email,
                 "password": self.password,
-            }
+            },
         )
 
     @task
@@ -248,7 +243,7 @@ class AuthenticationLoadTest(HttpUser):
                 "password": self.password,
             },
             catch_response=True,
-            name="/auth/login"
+            name="/auth/login",
         ) as response:
             if response.status_code == 200:
                 # Verify response time < 500ms per quickstart.md

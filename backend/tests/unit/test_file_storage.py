@@ -4,15 +4,15 @@ Unit tests for file storage utilities.
 Tests photo validation, resizing, and storage functions.
 """
 
-import pytest
 from io import BytesIO
+
+import pytest
 from PIL import Image
-from pathlib import Path
 
 from src.utils.file_storage import (
-    validate_photo,
-    resize_photo,
     generate_photo_filename,
+    resize_photo,
+    validate_photo,
 )
 
 

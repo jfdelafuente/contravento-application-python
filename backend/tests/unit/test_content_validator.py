@@ -4,10 +4,12 @@ Unit tests for content validator utility.
 Tests spam/inappropriate content detection for trip descriptions.
 """
 
-import pytest
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+
 from src.utils.content_validator import ContentValidator
 
 
@@ -17,7 +19,7 @@ class TestContentValidator:
     @pytest.fixture
     def temp_blocked_words_file(self) -> Path:
         """Create temporary blocked words file for testing."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
             f.write("# Test blocked words\n")
             f.write("spam\n")
             f.write("viagra\n")
@@ -33,18 +35,20 @@ class TestContentValidator:
     @pytest.fixture
     def validator_with_custom_file(self, temp_blocked_words_file: Path) -> ContentValidator:
         """Create validator with custom blocked words file."""
-        with patch('src.utils.content_validator.settings') as mock_settings:
+        with patch("src.utils.content_validator.settings") as mock_settings:
             mock_settings.spam_detection_enabled = True
             mock_settings.blocked_words_file = str(temp_blocked_words_file)
             validator = ContentValidator()
         return validator
 
-    def test_validator_loads_blocked_words(self, validator_with_custom_file: ContentValidator) -> None:
+    def test_validator_loads_blocked_words(
+        self, validator_with_custom_file: ContentValidator
+    ) -> None:
         """Test that validator loads blocked words from file."""
-        assert 'spam' in validator_with_custom_file.blocked_words
-        assert 'viagra' in validator_with_custom_file.blocked_words
-        assert 'casino' in validator_with_custom_file.blocked_words
-        assert 'gratis' in validator_with_custom_file.blocked_words
+        assert "spam" in validator_with_custom_file.blocked_words
+        assert "viagra" in validator_with_custom_file.blocked_words
+        assert "casino" in validator_with_custom_file.blocked_words
+        assert "gratis" in validator_with_custom_file.blocked_words
 
     def test_validator_ignores_comments_and_empty_lines(
         self, validator_with_custom_file: ContentValidator
@@ -52,8 +56,8 @@ class TestContentValidator:
         """Test that comments and empty lines are ignored."""
         # Comments starting with # should not be in the list
         for word in validator_with_custom_file.blocked_words:
-            assert not word.startswith('#')
-            assert word.strip() != ''
+            assert not word.startswith("#")
+            assert word.strip() != ""
 
     def test_validate_content_detects_blocked_word(
         self, validator_with_custom_file: ContentValidator
@@ -63,18 +67,13 @@ class TestContentValidator:
         error = validator_with_custom_file.validate_content(content)
 
         assert error is not None
-        assert 'contenido inapropiado' in error.lower()
+        assert "contenido inapropiado" in error.lower()
 
     def test_validate_content_is_case_insensitive(
         self, validator_with_custom_file: ContentValidator
     ) -> None:
         """Test that detection is case-insensitive."""
-        test_cases = [
-            "This is SPAM",
-            "this is Spam",
-            "this is spam",
-            "this is SpAm"
-        ]
+        test_cases = ["This is SPAM", "this is Spam", "this is spam", "this is SpAm"]
 
         for content in test_cases:
             error = validator_with_custom_file.validate_content(content)
@@ -101,7 +100,7 @@ class TestContentValidator:
         error = validator_with_custom_file.validate_content(content)
 
         assert error is not None
-        assert 'inapropiado' in error.lower()
+        assert "inapropiado" in error.lower()
 
     def test_validate_content_allows_clean_content(
         self, validator_with_custom_file: ContentValidator
@@ -125,7 +124,7 @@ class TestContentValidator:
         error = validator_with_custom_file.validate_content(content)
 
         assert error is not None
-        assert 'repeticiones excesivas' in error.lower()
+        assert "repeticiones excesivas" in error.lower()
 
     def test_validate_content_allows_reasonable_repetition(
         self, validator_with_custom_file: ContentValidator
@@ -154,12 +153,12 @@ class TestContentValidator:
     ) -> None:
         """Test that excessive URLs are detected."""
         # 6 URLs (threshold is 5)
-        urls = ["https://example{}.com".format(i) for i in range(6)]
+        urls = [f"https://example{i}.com" for i in range(6)]
         content = " ".join(urls)
         error = validator_with_custom_file.validate_content(content)
 
         assert error is not None
-        assert 'demasiados enlaces' in error.lower()
+        assert "demasiados enlaces" in error.lower()
 
     def test_validate_content_allows_reasonable_urls(
         self, validator_with_custom_file: ContentValidator
@@ -180,8 +179,8 @@ class TestContentValidator:
         self, validator_with_custom_file: ContentValidator
     ) -> None:
         """Test that empty strings are handled gracefully."""
-        assert validator_with_custom_file.validate_content('') is None
-        assert validator_with_custom_file.validate_content('   ') is None
+        assert validator_with_custom_file.validate_content("") is None
+        assert validator_with_custom_file.validate_content("   ") is None
 
     def test_validate_content_custom_field_name_in_error(
         self, validator_with_custom_file: ContentValidator
@@ -191,13 +190,13 @@ class TestContentValidator:
         error = validator_with_custom_file.validate_content(content, "título")
 
         assert error is not None
-        assert 'título' in error
+        assert "título" in error
 
     def test_validator_disabled_returns_none(self) -> None:
         """Test that validation returns None when spam detection disabled."""
-        with patch('src.utils.content_validator.settings') as mock_settings:
+        with patch("src.utils.content_validator.settings") as mock_settings:
             mock_settings.spam_detection_enabled = False
-            mock_settings.blocked_words_file = 'nonexistent.txt'
+            mock_settings.blocked_words_file = "nonexistent.txt"
             validator = ContentValidator()
 
         # Should always return None when disabled
@@ -208,7 +207,7 @@ class TestContentValidator:
         """Test that validator handles missing blocked words file gracefully."""
         nonexistent_file = tmp_path / "nonexistent.txt"
 
-        with patch('src.utils.content_validator.settings') as mock_settings:
+        with patch("src.utils.content_validator.settings") as mock_settings:
             mock_settings.spam_detection_enabled = True
             mock_settings.blocked_words_file = str(nonexistent_file)
             validator = ContentValidator()
@@ -280,9 +279,9 @@ class TestContentValidator:
         """Cleanup temporary files after each test."""
         yield
         # Cleanup happens after test
-        if hasattr(request, 'node'):
+        if hasattr(request, "node"):
             for item in request.node.funcargs.values():
-                if isinstance(item, Path) and item.exists() and 'temp' in str(item):
+                if isinstance(item, Path) and item.exists() and "temp" in str(item):
                     try:
                         item.unlink()
                     except:

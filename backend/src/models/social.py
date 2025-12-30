@@ -7,7 +7,7 @@ Models for follow relationships and social interactions.
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, DateTime, ForeignKey, UniqueConstraint, CheckConstraint, Index
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
@@ -31,6 +31,7 @@ class Follow(Base):
     - following_id: Fast lookup of a user's followers
     - created_at: Chronological ordering
     """
+
     __tablename__ = "follows"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

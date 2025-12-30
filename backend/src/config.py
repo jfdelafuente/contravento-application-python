@@ -6,6 +6,7 @@ All configuration is immutable and validated at startup.
 """
 
 from typing import Any, Union
+
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -22,39 +23,31 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = Field(default="ContraVento", description="Application name")
-    app_env: str = Field(default="development", description="Environment (development, testing, production)")
+    app_env: str = Field(
+        default="development", description="Environment (development, testing, production)"
+    )
     debug: bool = Field(default=False, description="Debug mode")
 
     # Database
     database_url: str = Field(
-        default="sqlite+aiosqlite:///./contravento_dev.db",
-        description="Database connection URL"
+        default="sqlite+aiosqlite:///./contravento_dev.db", description="Database connection URL"
     )
 
     # Security & Authentication
     secret_key: str = Field(
-        ...,
-        min_length=32,
-        description="Secret key for JWT tokens (min 32 characters)"
+        ..., min_length=32, description="Secret key for JWT tokens (min 32 characters)"
     )
     algorithm: str = Field(default="HS256", description="JWT algorithm")
     access_token_expire_minutes: int = Field(
-        default=15,
-        ge=1,
-        description="Access token expiration in minutes"
+        default=15, ge=1, description="Access token expiration in minutes"
     )
     refresh_token_expire_days: int = Field(
-        default=30,
-        ge=1,
-        description="Refresh token expiration in days"
+        default=30, ge=1, description="Refresh token expiration in days"
     )
 
     # Password Hashing
     bcrypt_rounds: int = Field(
-        default=12,
-        ge=4,
-        le=31,
-        description="Bcrypt rounds (4-31, recommended 12 for production)"
+        default=12, ge=4, le=31, description="Bcrypt rounds (4-31, recommended 12 for production)"
     )
 
     # Email Configuration
@@ -68,73 +61,61 @@ class Settings(BaseSettings):
     # File Storage
     storage_path: str = Field(default="./storage", description="Local file storage path")
     upload_max_size_mb: int = Field(default=5, ge=1, description="Maximum upload size in MB")
-    profile_photo_size: int = Field(default=400, ge=100, description="Profile photo dimension (square)")
+    profile_photo_size: int = Field(
+        default=400, ge=100, description="Profile photo dimension (square)"
+    )
 
     # Travel Diary - Trip Photos
-    max_photos_per_trip: int = Field(default=20, ge=1, le=100, description="Maximum photos per trip")
+    max_photos_per_trip: int = Field(
+        default=20, ge=1, le=100, description="Maximum photos per trip"
+    )
     max_tags_per_trip: int = Field(default=10, ge=1, le=20, description="Maximum tags per trip")
     photo_quality_optimized: int = Field(
-        default=85,
-        ge=50,
-        le=100,
-        description="JPEG quality for optimized photos (50-100)"
+        default=85, ge=50, le=100, description="JPEG quality for optimized photos (50-100)"
     )
     photo_quality_thumb: int = Field(
-        default=80,
-        ge=50,
-        le=100,
-        description="JPEG quality for thumbnails (50-100)"
+        default=80, ge=50, le=100, description="JPEG quality for thumbnails (50-100)"
     )
     photo_max_width: int = Field(
-        default=1200,
-        ge=600,
-        le=4000,
-        description="Maximum width for optimized photos in pixels"
+        default=1200, ge=600, le=4000, description="Maximum width for optimized photos in pixels"
     )
     photo_thumb_size: int = Field(
-        default=200,
-        ge=100,
-        le=500,
-        description="Thumbnail size in pixels (square)"
+        default=200, ge=100, le=500, description="Thumbnail size in pixels (square)"
     )
     trip_photos_path: str = Field(
-        default="trip_photos",
-        description="Trip photos subdirectory relative to storage_path"
+        default="trip_photos", description="Trip photos subdirectory relative to storage_path"
     )
 
     # Travel Diary - Geocoding
     google_places_api_key: str = Field(
-        default="",
-        description="Google Places API key for geocoding (optional)"
+        default="", description="Google Places API key for geocoding (optional)"
     )
     geocoding_enabled: bool = Field(
-        default=False,
-        description="Enable geocoding for trip locations"
+        default=False, description="Enable geocoding for trip locations"
     )
 
     # Travel Diary - Content Moderation
     spam_detection_enabled: bool = Field(
-        default=True,
-        description="Enable spam/inappropriate content detection"
+        default=True, description="Enable spam/inappropriate content detection"
     )
     blocked_words_file: str = Field(
         default="config/blocked_words.txt",
-        description="Path to blocked words file relative to backend/"
+        description="Path to blocked words file relative to backend/",
     )
 
     # CORS (stored as Union to prevent automatic JSON parsing from env var)
     cors_origins: Union[str, list[str]] = Field(
         default="http://localhost:3000,http://localhost:5173",
-        description="Allowed CORS origins (comma-separated string or list)"
+        description="Allowed CORS origins (comma-separated string or list)",
     )
 
     # Rate Limiting
-    login_max_attempts: int = Field(default=5, ge=1, description="Max login attempts before lockout")
+    login_max_attempts: int = Field(
+        default=5, ge=1, description="Max login attempts before lockout"
+    )
     login_lockout_minutes: int = Field(default=15, ge=1, description="Lockout duration in minutes")
     verification_email_max_per_hour: int = Field(
-        default=3,
-        ge=1,
-        description="Max verification emails per hour"
+        default=3, ge=1, description="Max verification emails per hour"
     )
 
     # Session
@@ -207,6 +188,7 @@ class Settings(BaseSettings):
     def trip_photos_full_path(self) -> str:
         """Get full path for trip photos storage."""
         from pathlib import Path
+
         return str(Path(self.storage_path) / self.trip_photos_path)
 
 

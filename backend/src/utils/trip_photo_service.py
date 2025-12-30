@@ -5,15 +5,16 @@ Handles photo validation, resizing, optimization, and thumbnail generation
 for travel diary photos using Pillow.
 """
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Optional, Tuple
 import io
-import uuid
-from datetime import datetime
 import logging
+import uuid
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
 from PIL import Image, ImageOps
+
 from src.config import settings
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class TripPhotoService:
     """Service for processing trip photos."""
 
     # Supported image formats
-    SUPPORTED_FORMATS = {'JPEG', 'PNG', 'WEBP'}
+    SUPPORTED_FORMATS = {"JPEG", "PNG", "WEBP"}
 
     # Maximum file size (10MB)
     MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -125,15 +126,15 @@ class TripPhotoService:
             img = ImageOps.exif_transpose(img)
 
             # Convert to RGB if needed (handles PNG with transparency, etc.)
-            if img.mode in ('RGBA', 'LA', 'P'):
+            if img.mode in ("RGBA", "LA", "P"):
                 # Create white background
-                background = Image.new('RGB', img.size, (255, 255, 255))
-                if img.mode == 'P':
-                    img = img.convert('RGBA')
-                background.paste(img, mask=img.split()[-1] if 'A' in img.mode else None)
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                if img.mode == "P":
+                    img = img.convert("RGBA")
+                background.paste(img, mask=img.split()[-1] if "A" in img.mode else None)
                 img = background
-            elif img.mode != 'RGB':
-                img = img.convert('RGB')
+            elif img.mode != "RGB":
+                img = img.convert("RGB")
 
             # Store original dimensions
             original_width, original_height = img.size
@@ -146,12 +147,10 @@ class TripPhotoService:
 
             # Convert to bytes
             optimized_bytes = self._image_to_bytes(
-                optimized_img,
-                quality=settings.photo_quality_optimized
+                optimized_img, quality=settings.photo_quality_optimized
             )
             thumbnail_bytes = self._image_to_bytes(
-                thumbnail_img,
-                quality=settings.photo_quality_thumb
+                thumbnail_img, quality=settings.photo_quality_thumb
             )
 
             return PhotoProcessingResult(
@@ -159,7 +158,7 @@ class TripPhotoService:
                 thumbnail_bytes=thumbnail_bytes,
                 width=original_width,
                 height=original_height,
-                file_size=len(photo_bytes)
+                file_size=len(photo_bytes),
             )
 
         except Exception as e:
@@ -233,18 +232,15 @@ class TripPhotoService:
         buffer = io.BytesIO()
         img.save(
             buffer,
-            format='JPEG',
+            format="JPEG",
             quality=quality,
             optimize=True,  # Enable optimization
-            progressive=True  # Progressive JPEG (loads incrementally)
+            progressive=True,  # Progressive JPEG (loads incrementally)
         )
         return buffer.getvalue()
 
     def save_photo(
-        self,
-        result: PhotoProcessingResult,
-        trip_id: str,
-        original_filename: str
+        self, result: PhotoProcessingResult, trip_id: str, original_filename: str
     ) -> PhotoPaths:
         """
         Save processed photo to filesystem.
@@ -265,7 +261,9 @@ class TripPhotoService:
 
         # Build directory path: YYYY/MM/trip_id/
         now = datetime.utcnow()
-        dir_path = Path(settings.trip_photos_full_path) / str(now.year) / f"{now.month:02d}" / trip_id
+        dir_path = (
+            Path(settings.trip_photos_full_path) / str(now.year) / f"{now.month:02d}" / trip_id
+        )
 
         # Create directories if needed
         dir_path.mkdir(parents=True, exist_ok=True)
@@ -280,10 +278,7 @@ class TripPhotoService:
 
         logger.info(f"Saved trip photo: {optimized_path}")
 
-        return PhotoPaths(
-            optimized_path=optimized_path,
-            thumbnail_path=thumbnail_path
-        )
+        return PhotoPaths(optimized_path=optimized_path, thumbnail_path=thumbnail_path)
 
     def delete_photo(self, optimized_path: str, thumbnail_path: str) -> None:
         """

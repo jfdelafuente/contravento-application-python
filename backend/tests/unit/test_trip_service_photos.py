@@ -8,12 +8,13 @@ T052-T054: Photo service unit tests
 """
 
 import io
-import pytest
 from datetime import date
-from sqlalchemy.ext.asyncio import AsyncSession
-from PIL import Image
 
-from src.models.trip import Trip, TripStatus, TripPhoto
+import pytest
+from PIL import Image
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.trip import Trip, TripPhoto, TripStatus
 from src.models.user import User
 
 
@@ -112,9 +113,7 @@ class TestTripServiceUploadPhoto:
                 content_type="text/plain",
             )
 
-        assert "formato" in str(exc_info.value).lower() or "format" in str(
-            exc_info.value
-        ).lower()
+        assert "formato" in str(exc_info.value).lower() or "format" in str(exc_info.value).lower()
 
     async def test_upload_photo_exceeds_limit(
         self, db_session: AsyncSession, test_user: User, test_trip: Trip
@@ -154,9 +153,7 @@ class TestTripServiceUploadPhoto:
 
         assert "20" in str(exc_info.value)
 
-    async def test_upload_photo_trip_not_found(
-        self, db_session: AsyncSession, test_user: User
-    ):
+    async def test_upload_photo_trip_not_found(self, db_session: AsyncSession, test_user: User):
         """Test uploading photo to non-existent trip raises ValueError."""
         # Arrange
         from src.services.trip_service import TripService
@@ -179,13 +176,12 @@ class TestTripServiceUploadPhoto:
                 content_type="image/jpeg",
             )
 
-        assert "no encontrado" in str(exc_info.value).lower() or "not found" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "no encontrado" in str(exc_info.value).lower()
+            or "not found" in str(exc_info.value).lower()
+        )
 
-    async def test_upload_photo_unauthorized(
-        self, db_session: AsyncSession, test_trip: Trip
-    ):
+    async def test_upload_photo_unauthorized(self, db_session: AsyncSession, test_trip: Trip):
         """Test uploading photo by non-owner raises PermissionError."""
         # Arrange
         from src.services.trip_service import TripService
@@ -217,9 +213,9 @@ class TestTripServiceUploadPhoto:
                 content_type="image/jpeg",
             )
 
-        assert "permiso" in str(exc_info.value).lower() or "permission" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "permiso" in str(exc_info.value).lower() or "permission" in str(exc_info.value).lower()
+        )
 
     async def test_upload_photo_assigns_order_correctly(
         self, db_session: AsyncSession, test_user: User, test_trip: Trip
@@ -277,9 +273,7 @@ class TestTripServiceDeletePhoto:
         return user
 
     @pytest.fixture
-    async def test_trip_with_photos(
-        self, db_session: AsyncSession, test_user: User
-    ) -> Trip:
+    async def test_trip_with_photos(self, db_session: AsyncSession, test_user: User) -> Trip:
         """Create a test trip with 3 photos."""
         trip = Trip(
             user_id=test_user.id,
@@ -310,8 +304,9 @@ class TestTripServiceDeletePhoto:
     ):
         """Test deleting photo removes it from database."""
         # Arrange
-        from src.services.trip_service import TripService
         from sqlalchemy import select
+
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -344,8 +339,9 @@ class TestTripServiceDeletePhoto:
     ):
         """Test deleting middle photo reorders remaining photos."""
         # Arrange
-        from src.services.trip_service import TripService
         from sqlalchemy import select
+
+        from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
@@ -394,17 +390,19 @@ class TestTripServiceDeletePhoto:
                 user_id=test_user.id,
             )
 
-        assert "no encontrada" in str(exc_info.value).lower() or "not found" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "no encontrada" in str(exc_info.value).lower()
+            or "not found" in str(exc_info.value).lower()
+        )
 
     async def test_delete_photo_unauthorized(
         self, db_session: AsyncSession, test_trip_with_photos: Trip
     ):
         """Test deleting photo by non-owner raises PermissionError."""
         # Arrange
-        from src.services.trip_service import TripService
         from sqlalchemy import select
+
+        from src.services.trip_service import TripService
 
         # Create another user
         other_user = User(
@@ -432,9 +430,9 @@ class TestTripServiceDeletePhoto:
                 user_id=other_user.id,
             )
 
-        assert "permiso" in str(exc_info.value).lower() or "permission" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "permiso" in str(exc_info.value).lower() or "permission" in str(exc_info.value).lower()
+        )
 
 
 @pytest.mark.unit
@@ -499,8 +497,9 @@ class TestTripServiceReorderPhotos:
     ):
         """Test reordering photos updates order field correctly."""
         # Arrange
-        from src.services.trip_service import TripService
         from sqlalchemy import select
+
+        from src.services.trip_service import TripService
 
         trip, photos = test_trip_with_photos
         service = TripService(db_session)
@@ -516,9 +515,7 @@ class TestTripServiceReorderPhotos:
 
         # Assert - Photos have new order
         result = await db_session.execute(
-            select(TripPhoto)
-            .where(TripPhoto.trip_id == trip.trip_id)
-            .order_by(TripPhoto.order)
+            select(TripPhoto).where(TripPhoto.trip_id == trip.trip_id).order_by(TripPhoto.order)
         )
         reordered = result.scalars().all()
 
@@ -546,9 +543,7 @@ class TestTripServiceReorderPhotos:
                 trip_id=trip.trip_id, user_id=test_user.id, photo_order=invalid_order
             )
 
-        assert "inválido" in str(exc_info.value).lower() or "invalid" in str(
-            exc_info.value
-        ).lower()
+        assert "inválido" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
 
     async def test_reorder_photos_wrong_count(
         self, db_session: AsyncSession, test_user: User, test_trip_with_photos
@@ -569,9 +564,7 @@ class TestTripServiceReorderPhotos:
                 trip_id=trip.trip_id, user_id=test_user.id, photo_order=partial_order
             )
 
-        assert "cantidad" in str(exc_info.value).lower() or "count" in str(
-            exc_info.value
-        ).lower()
+        assert "cantidad" in str(exc_info.value).lower() or "count" in str(exc_info.value).lower()
 
     async def test_reorder_photos_unauthorized(
         self, db_session: AsyncSession, test_trip_with_photos
@@ -601,6 +594,6 @@ class TestTripServiceReorderPhotos:
                 trip_id=trip.trip_id, user_id=other_user.id, photo_order=new_order
             )
 
-        assert "permiso" in str(exc_info.value).lower() or "permission" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "permiso" in str(exc_info.value).lower() or "permission" in str(exc_info.value).lower()
+        )

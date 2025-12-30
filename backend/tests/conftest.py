@@ -5,17 +5,16 @@ Provides test fixtures for database, async client, authentication, and test data
 """
 
 import asyncio
-from typing import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Generator
 
 import pytest
 from faker import Faker
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from src.database import Base
 from src.main import app
-
 
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)
@@ -159,8 +158,8 @@ async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
             response = await client.get("/protected", headers=auth_headers)
             assert response.status_code == 200
     """
-    from src.utils.security import create_access_token, hash_password
     from src.models.user import User, UserProfile
+    from src.utils.security import create_access_token, hash_password
 
     # Create a test user in the database
     user = User(

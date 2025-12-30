@@ -4,8 +4,9 @@ Statistics and Achievements request/response schemas.
 Pydantic models for validating stats and achievements API requests and responses.
 """
 
-from datetime import datetime, date
-from typing import Optional, List
+from datetime import date, datetime
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -23,12 +24,8 @@ class CountryInfo(BaseModel):
 
     class Config:
         """Pydantic config."""
-        json_schema_extra = {
-            "example": {
-                "code": "ES",
-                "name": "España"
-            }
-        }
+
+        json_schema_extra = {"example": {"code": "ES", "name": "España"}}
 
 
 class StatsResponse(BaseModel):
@@ -49,7 +46,7 @@ class StatsResponse(BaseModel):
 
     total_trips: int = Field(..., description="Número total de viajes publicados")
     total_kilometers: float = Field(..., description="Kilómetros totales recorridos")
-    countries_visited: List[CountryInfo] = Field(..., description="Lista de países visitados")
+    countries_visited: list[CountryInfo] = Field(..., description="Lista de países visitados")
     total_photos: int = Field(..., description="Número total de fotos subidas")
     achievements_count: int = Field(..., description="Número de logros desbloqueados")
     last_trip_date: Optional[date] = Field(None, description="Fecha del último viaje")
@@ -57,6 +54,7 @@ class StatsResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -65,12 +63,12 @@ class StatsResponse(BaseModel):
                 "countries_visited": [
                     {"code": "ES", "name": "España"},
                     {"code": "FR", "name": "Francia"},
-                    {"code": "IT", "name": "Italia"}
+                    {"code": "IT", "name": "Italia"},
                 ],
                 "total_photos": 48,
                 "achievements_count": 5,
                 "last_trip_date": "2025-12-15",
-                "updated_at": "2025-12-20T14:30:00Z"
+                "updated_at": "2025-12-20T14:30:00Z",
             }
         }
 
@@ -96,14 +94,14 @@ class AchievementResponse(BaseModel):
     description: str = Field(..., description="Descripción del logro")
     badge_icon: str = Field(..., description="Icono o emoji del badge")
     requirement_type: str = Field(
-        ...,
-        description="Tipo de requisito: distance, trips, countries, photos, followers"
+        ..., description="Tipo de requisito: distance, trips, countries, photos, followers"
     )
     requirement_value: float = Field(..., description="Valor requerido para desbloquear")
     awarded_at: datetime = Field(..., description="Fecha y hora de obtención")
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -113,7 +111,7 @@ class AchievementResponse(BaseModel):
                 "badge_icon": "🌍",
                 "requirement_type": "distance",
                 "requirement_value": 1000,
-                "awarded_at": "2025-12-15T18:20:00Z"
+                "awarded_at": "2025-12-15T18:20:00Z",
             }
         }
 
@@ -139,13 +137,13 @@ class AchievementDefinition(BaseModel):
     description: str = Field(..., description="Descripción del logro")
     badge_icon: str = Field(..., description="Icono o emoji del badge")
     requirement_type: str = Field(
-        ...,
-        description="Tipo de requisito: distance, trips, countries, photos, followers"
+        ..., description="Tipo de requisito: distance, trips, countries, photos, followers"
     )
     requirement_value: float = Field(..., description="Valor requerido para desbloquear")
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -154,7 +152,7 @@ class AchievementDefinition(BaseModel):
                 "description": "Recorriste 100 km en total",
                 "badge_icon": "💯",
                 "requirement_type": "distance",
-                "requirement_value": 100
+                "requirement_value": 100,
             }
         }
 
@@ -170,11 +168,12 @@ class UserAchievementResponse(BaseModel):
         total_count: Total number of achievements earned
     """
 
-    achievements: List[AchievementResponse] = Field(..., description="Lista de logros obtenidos")
+    achievements: list[AchievementResponse] = Field(..., description="Lista de logros obtenidos")
     total_count: int = Field(..., description="Número total de logros obtenidos")
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "achievements": [
@@ -185,10 +184,10 @@ class UserAchievementResponse(BaseModel):
                         "badge_icon": "🌍",
                         "requirement_type": "distance",
                         "requirement_value": 1000,
-                        "awarded_at": "2025-12-15T18:20:00Z"
+                        "awarded_at": "2025-12-15T18:20:00Z",
                     }
                 ],
-                "total_count": 1
+                "total_count": 1,
             }
         }
 
@@ -204,11 +203,14 @@ class AchievementDefinitionList(BaseModel):
         total_count: Total number of available achievements
     """
 
-    achievements: List[AchievementDefinition] = Field(..., description="Lista de todos los logros disponibles")
+    achievements: list[AchievementDefinition] = Field(
+        ..., description="Lista de todos los logros disponibles"
+    )
     total_count: int = Field(..., description="Número total de logros disponibles")
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "achievements": [
@@ -218,7 +220,7 @@ class AchievementDefinitionList(BaseModel):
                         "description": "Publicaste tu primer viaje",
                         "badge_icon": "🚴",
                         "requirement_type": "trips",
-                        "requirement_value": 1
+                        "requirement_value": 1,
                     },
                     {
                         "code": "CENTURY",
@@ -226,9 +228,9 @@ class AchievementDefinitionList(BaseModel):
                         "description": "Recorriste 100 km en total",
                         "badge_icon": "💯",
                         "requirement_type": "distance",
-                        "requirement_value": 100
-                    }
+                        "requirement_value": 100,
+                    },
                 ],
-                "total_count": 9
+                "total_count": 9,
             }
         }

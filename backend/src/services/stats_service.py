@@ -7,24 +7,22 @@ Business logic for:
 - Retrieving stats and achievements
 """
 
-from datetime import datetime, date
-from typing import List, Optional
 import logging
+from datetime import date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.models.user import User, UserProfile
-from src.models.stats import UserStats, Achievement, UserAchievement
-from src.models.social import Follow  # Import to resolve SQLAlchemy relationships
+from src.models.stats import Achievement, UserAchievement, UserStats
+from src.models.user import User
 from src.schemas.stats import (
-    StatsResponse,
-    AchievementResponse,
     AchievementDefinition,
-    UserAchievementResponse,
     AchievementDefinitionList,
+    AchievementResponse,
     CountryInfo,
+    StatsResponse,
+    UserAchievementResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -85,18 +83,14 @@ class StatsService:
             ValueError: If user not found
         """
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
         # Get or create stats
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user.id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user.id))
         stats = result.scalar_one_or_none()
 
         if not stats:
@@ -114,8 +108,7 @@ class StatsService:
         countries_list = stats.countries_visited if stats.countries_visited is not None else []
         countries = [
             CountryInfo(
-                code=code,
-                name=COUNTRY_NAMES.get(code, code)  # Fallback to code if name not found
+                code=code, name=COUNTRY_NAMES.get(code, code)  # Fallback to code if name not found
             )
             for code in countries_list
         ]
@@ -158,9 +151,7 @@ class StatsService:
 
         # Sort achievements by awarded_at (most recent first)
         user_achievements = sorted(
-            user.user_achievements,
-            key=lambda ua: ua.awarded_at,
-            reverse=True
+            user.user_achievements, key=lambda ua: ua.awarded_at, reverse=True
         )
 
         # Format response
@@ -191,9 +182,7 @@ class StatsService:
         Returns:
             AchievementDefinitionList with all achievements
         """
-        result = await self.db.execute(
-            select(Achievement).order_by(Achievement.requirement_value)
-        )
+        result = await self.db.execute(select(Achievement).order_by(Achievement.requirement_value))
         achievements = result.scalars().all()
 
         achievement_defs = [
@@ -234,9 +223,7 @@ class StatsService:
             trip_date: Date of the trip
         """
         # Get or create stats
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats = result.scalar_one_or_none()
 
         if not stats:
@@ -298,9 +285,7 @@ class StatsService:
             old_photos_count: Previous photos count
             new_photos_count: New photos count
         """
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats = result.scalar_one_or_none()
 
         if not stats:
@@ -346,9 +331,7 @@ class StatsService:
             country_code: Country code (informational, we don't remove countries)
             photos_count: Photos count to subtract
         """
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats = result.scalar_one_or_none()
 
         if not stats:
@@ -369,7 +352,7 @@ class StatsService:
 
         logger.info(f"Updated stats for user {user_id} after trip delete")
 
-    async def check_achievements(self, user_id: str) -> List[Achievement]:
+    async def check_achievements(self, user_id: str) -> list[Achievement]:
         """
         T164: Check which achievements the user has newly earned.
 
@@ -383,9 +366,7 @@ class StatsService:
             List of newly earned achievements
         """
         # Get user stats
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats = result.scalar_one_or_none()
 
         if not stats:
@@ -397,8 +378,7 @@ class StatsService:
 
         # Get already awarded achievements
         result = await self.db.execute(
-            select(UserAchievement.achievement_id)
-            .where(UserAchievement.user_id == user_id)
+            select(UserAchievement.achievement_id).where(UserAchievement.user_id == user_id)
         )
         awarded_ids = {row[0] for row in result.all()}
 
@@ -486,8 +466,7 @@ class StatsService:
         # Check if already awarded (idempotency)
         result = await self.db.execute(
             select(UserAchievement).where(
-                UserAchievement.user_id == user_id,
-                UserAchievement.achievement_id == achievement_id
+                UserAchievement.user_id == user_id, UserAchievement.achievement_id == achievement_id
             )
         )
         existing = result.scalar_one_or_none()
@@ -504,9 +483,7 @@ class StatsService:
         self.db.add(user_achievement)
 
         # Increment achievements count
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats = result.scalar_one_or_none()
 
         if stats:
@@ -516,7 +493,7 @@ class StatsService:
 
         logger.info(f"Awarded achievement {achievement_id} to user {user_id}")
 
-    async def check_and_award_achievements(self, user_id: str) -> List[Achievement]:
+    async def check_and_award_achievements(self, user_id: str) -> list[Achievement]:
         """
         Check and automatically award newly earned achievements.
 

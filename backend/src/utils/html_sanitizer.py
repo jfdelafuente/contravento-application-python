@@ -5,36 +5,36 @@ Prevents XSS attacks while allowing safe rich text formatting.
 Uses Bleach library with strict whitelist of allowed tags and attributes.
 """
 
+
 import bleach
-from typing import List, Dict
 
 # Whitelist of allowed HTML tags for trip descriptions
 # Allows basic rich text formatting but prevents dangerous content
-ALLOWED_TAGS: List[str] = [
-    'p',       # Paragraphs
-    'br',      # Line breaks
-    'b',       # Bold (deprecated but widely used)
-    'strong',  # Bold (semantic)
-    'i',       # Italic (deprecated but widely used)
-    'em',      # Italic (semantic)
-    'ul',      # Unordered lists
-    'ol',      # Ordered lists
-    'li',      # List items
-    'a',       # Links
+ALLOWED_TAGS: list[str] = [
+    "p",  # Paragraphs
+    "br",  # Line breaks
+    "b",  # Bold (deprecated but widely used)
+    "strong",  # Bold (semantic)
+    "i",  # Italic (deprecated but widely used)
+    "em",  # Italic (semantic)
+    "ul",  # Unordered lists
+    "ol",  # Ordered lists
+    "li",  # List items
+    "a",  # Links
 ]
 
 # Whitelist of allowed attributes per tag
 # Only safe attributes that cannot execute JavaScript
-ALLOWED_ATTRIBUTES: Dict[str, List[str]] = {
-    'a': ['href', 'title'],  # Links can have URL and title
+ALLOWED_ATTRIBUTES: dict[str, list[str]] = {
+    "a": ["href", "title"],  # Links can have URL and title
 }
 
 # Allowed URL protocols for links
 # Prevents javascript: and data: URLs which can execute code
-ALLOWED_PROTOCOLS: List[str] = [
-    'http',
-    'https',
-    'mailto',
+ALLOWED_PROTOCOLS: list[str] = [
+    "http",
+    "https",
+    "mailto",
 ]
 
 # Maximum length for sanitized HTML content (50,000 characters)
@@ -75,19 +75,14 @@ def sanitize_html(dirty_html: str) -> str:
     # First: Remove dangerous tags and their content BEFORE bleach processing
     # This ensures script/style content is completely removed, not just tags
     import re
+
     # Remove script tags and all their content
     preprocessed = re.sub(
-        r'<script[^>]*>.*?</script>',
-        '',
-        dirty_html,
-        flags=re.DOTALL | re.IGNORECASE
+        r"<script[^>]*>.*?</script>", "", dirty_html, flags=re.DOTALL | re.IGNORECASE
     )
     # Remove style tags and all their content
     preprocessed = re.sub(
-        r'<style[^>]*>.*?</style>',
-        '',
-        preprocessed,
-        flags=re.DOTALL | re.IGNORECASE
+        r"<style[^>]*>.*?</style>", "", preprocessed, flags=re.DOTALL | re.IGNORECASE
     )
 
     # Now sanitize with Bleach
@@ -100,7 +95,7 @@ def sanitize_html(dirty_html: str) -> str:
         tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
         protocols=ALLOWED_PROTOCOLS,
-        strip=True  # Remove disallowed tags but keep content
+        strip=True,  # Remove disallowed tags but keep content
     )
 
     # Check length AFTER sanitization

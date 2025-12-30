@@ -9,19 +9,14 @@ Endpoints:
 - GET /achievements: List all available achievements (public)
 """
 
-from typing import Dict, Any
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db
 from src.services.stats_service import StatsService
-from src.schemas.stats import (
-    StatsResponse,
-    UserAchievementResponse,
-    AchievementDefinitionList,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +24,9 @@ router = APIRouter(prefix="/users", tags=["stats"])
 achievements_router = APIRouter(tags=["achievements"])
 
 
-def create_response(success: bool, data: Any = None, error: Dict = None, message: str = None) -> Dict:
+def create_response(
+    success: bool, data: Any = None, error: dict = None, message: str = None
+) -> dict:
     """
     Create standardized JSON response.
 
@@ -52,7 +49,7 @@ def create_response(success: bool, data: Any = None, error: Dict = None, message
 async def get_user_stats(
     username: str,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     T166: Get user statistics (public endpoint).
 
@@ -110,7 +107,7 @@ async def get_user_stats(
 async def get_user_achievements(
     username: str,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     T167: Get user's earned achievements (public endpoint).
 
@@ -161,7 +158,7 @@ async def get_user_achievements(
 @achievements_router.get("/achievements")
 async def list_all_achievements(
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     T168: List all available achievements (public endpoint).
 

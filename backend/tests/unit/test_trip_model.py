@@ -4,21 +4,22 @@ Unit tests for Trip SQLAlchemy models.
 Tests model creation, validation, relationships, and database operations.
 """
 
+from datetime import date, datetime
+
 import pytest
-from datetime import datetime, date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User
 from src.models.trip import (
-    Trip,
-    TripPhoto,
     Tag,
-    TripTag,
-    TripLocation,
-    TripStatus,
+    Trip,
     TripDifficulty,
+    TripLocation,
+    TripPhoto,
+    TripStatus,
+    TripTag,
 )
+from src.models.user import User
 
 
 class TestTripModel:
@@ -37,9 +38,7 @@ class TestTripModel:
         await db_session.refresh(user)
         return user
 
-    async def test_create_trip_minimal(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_create_trip_minimal(self, db_session: AsyncSession, test_user: User) -> None:
         """Test creating a trip with only required fields."""
         trip = Trip(
             user_id=test_user.id,
@@ -64,9 +63,7 @@ class TestTripModel:
         assert trip.updated_at is not None
         assert trip.published_at is None
 
-    async def test_create_trip_complete(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_create_trip_complete(self, db_session: AsyncSession, test_user: User) -> None:
         """Test creating a trip with all fields."""
         trip = Trip(
             user_id=test_user.id,
@@ -87,9 +84,7 @@ class TestTripModel:
         assert trip.difficulty == TripDifficulty.VERY_DIFFICULT
         assert trip.status == TripStatus.PUBLISHED
 
-    async def test_trip_status_enum(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_trip_status_enum(self, db_session: AsyncSession, test_user: User) -> None:
         """Test TripStatus enum values."""
         # Draft trip
         draft_trip = Trip(
@@ -120,9 +115,7 @@ class TestTripModel:
         assert published_trip.status == TripStatus.PUBLISHED
         assert published_trip.published_at is not None
 
-    async def test_trip_difficulty_enum(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_trip_difficulty_enum(self, db_session: AsyncSession, test_user: User) -> None:
         """Test TripDifficulty enum values."""
         difficulties = [
             TripDifficulty.EASY,
@@ -150,9 +143,7 @@ class TestTripModel:
         assert len(trips) == 4
         assert all(trip.difficulty in difficulties for trip in trips)
 
-    async def test_trip_user_relationship(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_trip_user_relationship(self, db_session: AsyncSession, test_user: User) -> None:
         """Test Trip -> User relationship."""
         trip = Trip(
             user_id=test_user.id,
@@ -170,9 +161,7 @@ class TestTripModel:
         assert trip.user.id == test_user.id
         assert trip.user.username == "testuser"
 
-    async def test_user_trips_relationship(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_user_trips_relationship(self, db_session: AsyncSession, test_user: User) -> None:
         """Test User -> Trip relationship (back_populates)."""
         # Create multiple trips
         trip1 = Trip(
@@ -196,9 +185,7 @@ class TestTripModel:
         assert trip1 in test_user.trips
         assert trip2 in test_user.trips
 
-    async def test_trip_cascade_delete(
-        self, db_session: AsyncSession, test_user: User
-    ) -> None:
+    async def test_trip_cascade_delete(self, db_session: AsyncSession, test_user: User) -> None:
         """Test that deleting a user cascades to trips."""
         trip = Trip(
             user_id=test_user.id,
@@ -215,9 +202,7 @@ class TestTripModel:
         await db_session.commit()
 
         # Trip should be deleted
-        result = await db_session.execute(
-            select(Trip).where(Trip.trip_id == trip_id)
-        )
+        result = await db_session.execute(select(Trip).where(Trip.trip_id == trip_id))
         deleted_trip = result.scalar_one_or_none()
         assert deleted_trip is None
 
@@ -247,9 +232,7 @@ class TestTripPhotoModel:
         await db_session.refresh(trip)
         return trip
 
-    async def test_create_trip_photo(
-        self, db_session: AsyncSession, test_trip: Trip
-    ) -> None:
+    async def test_create_trip_photo(self, db_session: AsyncSession, test_trip: Trip) -> None:
         """Test creating a trip photo."""
         photo = TripPhoto(
             trip_id=test_trip.trip_id,
@@ -296,9 +279,7 @@ class TestTripPhotoModel:
         assert test_trip.photos[0].display_order == 0
         assert test_trip.photos[1].display_order == 1
 
-    async def test_photo_cascade_delete(
-        self, db_session: AsyncSession, test_trip: Trip
-    ) -> None:
+    async def test_photo_cascade_delete(self, db_session: AsyncSession, test_trip: Trip) -> None:
         """Test that deleting a trip cascades to photos."""
         photo = TripPhoto(
             trip_id=test_trip.trip_id,
@@ -315,9 +296,7 @@ class TestTripPhotoModel:
         await db_session.commit()
 
         # Photo should be deleted
-        result = await db_session.execute(
-            select(TripPhoto).where(TripPhoto.photo_id == photo_id)
-        )
+        result = await db_session.execute(select(TripPhoto).where(TripPhoto.photo_id == photo_id))
         deleted_photo = result.scalar_one_or_none()
         assert deleted_photo is None
 
@@ -367,9 +346,7 @@ class TestTagModel:
         with pytest.raises(Exception):  # IntegrityError
             await db_session.commit()
 
-    async def test_tag_usage_count_increment(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_tag_usage_count_increment(self, db_session: AsyncSession) -> None:
         """Test incrementing tag usage count."""
         tag = Tag(name="Camino", normalized="camino", usage_count=0)
         db_session.add(tag)
@@ -440,9 +417,7 @@ class TestTripTagModel:
         assert saved_trip_tag.tag_id == test_tag.tag_id
         assert saved_trip_tag.created_at is not None
 
-    async def test_trip_tags_relationship(
-        self, db_session: AsyncSession, test_trip: Trip
-    ) -> None:
+    async def test_trip_tags_relationship(self, db_session: AsyncSession, test_trip: Trip) -> None:
         """Test Trip -> TripTag -> Tag relationship."""
         # Create multiple tags
         tag1 = Tag(name="Bikepacking", normalized="bikepacking")
@@ -480,9 +455,7 @@ class TestTripTagModel:
         assert deleted_trip_tag is None
 
         # Tag should still exist
-        result = await db_session.execute(
-            select(Tag).where(Tag.tag_id == test_tag.tag_id)
-        )
+        result = await db_session.execute(select(Tag).where(Tag.tag_id == test_tag.tag_id))
         tag_still_exists = result.scalar_one_or_none()
         assert tag_still_exists is not None
 
@@ -583,9 +556,7 @@ class TestTripLocationModel:
         assert test_trip.locations[1].name == "Baeza"
         assert test_trip.locations[2].name == "Úbeda"
 
-    async def test_location_cascade_delete(
-        self, db_session: AsyncSession, test_trip: Trip
-    ) -> None:
+    async def test_location_cascade_delete(self, db_session: AsyncSession, test_trip: Trip) -> None:
         """Test that deleting a trip cascades to locations."""
         location = TripLocation(
             trip_id=test_trip.trip_id,

@@ -5,9 +5,9 @@ Provides consistent response structure for all API endpoints
 according to ContraVento constitution requirements.
 """
 
-from typing import Generic, TypeVar, Optional
-from pydantic import BaseModel, Field
+from typing import Generic, Optional, TypeVar
 
+from pydantic import BaseModel, Field
 
 # Generic type for data payload
 T = TypeVar("T")
@@ -27,7 +27,15 @@ class ErrorDetail(BaseModel):
     message: str = Field(..., description="Human-readable error message (Spanish)")
     field: Optional[str] = Field(None, description="Field name for field-specific errors")
 
-    model_config = {"json_schema_extra": {"example": {"code": "VALIDATION_ERROR", "message": "El email ya está registrado", "field": "email"}}}
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "code": "VALIDATION_ERROR",
+                "message": "El email ya está registrado",
+                "field": "email",
+            }
+        }
+    }
 
 
 class ErrorResponse(BaseModel):
@@ -46,7 +54,15 @@ class ErrorResponse(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "example": {"success": False, "data": None, "error": {"code": "VALIDATION_ERROR", "message": "El email ya está registrado", "field": "email"}}
+            "example": {
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "El email ya está registrado",
+                    "field": "email",
+                },
+            }
         }
     }
 
@@ -79,7 +95,11 @@ class ApiResponse(BaseModel, Generic[T]):
         "json_schema_extra": {
             "example": {
                 "success": True,
-                "data": {"id": "123e4567-e89b-12d3-a456-426614174000", "username": "ciclista", "email": "usuario@ejemplo.com"},
+                "data": {
+                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                    "username": "ciclista",
+                    "email": "usuario@ejemplo.com",
+                },
                 "error": None,
             }
         }

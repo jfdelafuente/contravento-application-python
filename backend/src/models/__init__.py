@@ -4,11 +4,11 @@ Database models for ContraVento application.
 Exports all models for Alembic autogenerate.
 """
 
-from src.models.user import User, UserProfile
 from src.models.auth import PasswordReset
 from src.models.social import Follow
-from src.models.stats import UserStats, Achievement, UserAchievement
-from src.models.trip import Trip, TripPhoto, Tag, TripTag, TripLocation
+from src.models.stats import Achievement, UserAchievement, UserStats
+from src.models.trip import Tag, Trip, TripLocation, TripPhoto, TripTag
+from src.models.user import User, UserProfile
 
 __all__ = [
     "User",

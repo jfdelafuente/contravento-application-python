@@ -5,16 +5,16 @@ Provides REST API for creating, reading, updating, and publishing trips.
 Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013
 """
 
-from typing import Dict, Any, List, Optional
 import logging
+from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_db, get_current_user
-from src.models.user import User
+from src.api.deps import get_current_user, get_db
 from src.models.trip import TripStatus
+from src.models.user import User
 from src.schemas.trip import TripCreateRequest, TripResponse
 from src.services.trip_service import TripService
 
@@ -27,7 +27,7 @@ user_router = APIRouter(tags=["trips"])
 
 @router.post(
     "",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     status_code=status.HTTP_201_CREATED,
     summary="Create new trip",
     description="Create a new trip entry. Trip is created as 'draft' by default.",
@@ -36,7 +36,7 @@ async def create_trip(
     data: TripCreateRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create a new trip (FR-001, FR-002, FR-003).
 
@@ -97,7 +97,7 @@ async def create_trip(
 
 @router.get(
     "/{trip_id}",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Get trip by ID",
     description="Retrieve detailed trip information. Published trips visible to all, drafts only to owner.",
 )
@@ -105,7 +105,7 @@ async def get_trip(
     trip_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get trip by ID (FR-007, FR-008).
 
@@ -182,7 +182,7 @@ async def get_trip(
 
 @router.post(
     "/{trip_id}/publish",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Publish trip",
     description="Change trip status from 'draft' to 'published'. Validates publication requirements.",
 )
@@ -190,7 +190,7 @@ async def publish_trip(
     trip_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Publish a trip (FR-007).
 
@@ -282,12 +282,13 @@ async def publish_trip(
 # Pydantic schema for photo reorder request
 class PhotoReorderRequest(BaseModel):
     """Request schema for reordering photos."""
-    photo_order: List[str]
+
+    photo_order: list[str]
 
 
 @router.post(
     "/{trip_id}/photos",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     status_code=status.HTTP_201_CREATED,
     summary="Upload photo to trip",
     description="Upload a photo to trip gallery. Max 20 photos per trip, max 10MB per photo.",
@@ -297,7 +298,7 @@ async def upload_photo(
     photo: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Upload photo to trip (FR-009, FR-010, FR-011).
 
@@ -350,7 +351,9 @@ async def upload_photo(
                 "file_size": photo_record.file_size,
                 "width": photo_record.width,
                 "height": photo_record.height,
-                "uploaded_at": photo_record.uploaded_at.isoformat() + "Z" if photo_record.uploaded_at else None,
+                "uploaded_at": photo_record.uploaded_at.isoformat() + "Z"
+                if photo_record.uploaded_at
+                else None,
             },
             "error": None,
         }
@@ -407,7 +410,7 @@ async def upload_photo(
 
 @router.delete(
     "/{trip_id}/photos/{photo_id}",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Delete photo from trip",
     description="Remove a photo from trip gallery and delete files from storage.",
 )
@@ -416,7 +419,7 @@ async def delete_photo(
     photo_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Delete photo from trip (FR-013).
 
@@ -493,7 +496,7 @@ async def delete_photo(
 
 @router.put(
     "/{trip_id}/photos/reorder",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Reorder photos in trip gallery",
     description="Update the order of photos in trip gallery.",
 )
@@ -502,7 +505,7 @@ async def reorder_photos(
     request: PhotoReorderRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Reorder photos in trip gallery (FR-012).
 
@@ -589,7 +592,7 @@ async def reorder_photos(
 
 @router.put(
     "/{trip_id}",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Update trip",
     description="Update existing trip. Supports partial updates with optimistic locking.",
 )
@@ -598,7 +601,7 @@ async def update_trip(
     data: dict,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update trip (FR-016, FR-020)."""
     try:
         service = TripService(db)
@@ -606,19 +609,52 @@ async def update_trip(
         trip_response = TripResponse.model_validate(trip)
         return {"success": True, "data": trip_response.model_dump(), "error": None}
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail={"success": False, "data": None, "error": {"code": "FORBIDDEN", "message": str(e)}})
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "FORBIDDEN", "message": str(e)},
+            },
+        )
     except ValueError as e:
-        status_code = 404 if "no encontrado" in str(e).lower() else 409 if "modificado" in str(e).lower() else 400
-        error_code = "NOT_FOUND" if status_code == 404 else "CONFLICT" if status_code == 409 else "VALIDATION_ERROR"
-        raise HTTPException(status_code=status_code, detail={"success": False, "data": None, "error": {"code": error_code, "message": str(e)}})
+        status_code = (
+            404
+            if "no encontrado" in str(e).lower()
+            else 409
+            if "modificado" in str(e).lower()
+            else 400
+        )
+        error_code = (
+            "NOT_FOUND"
+            if status_code == 404
+            else "CONFLICT"
+            if status_code == 409
+            else "VALIDATION_ERROR"
+        )
+        raise HTTPException(
+            status_code=status_code,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": error_code, "message": str(e)},
+            },
+        )
     except Exception as e:
         logger.error(f"Error updating trip {trip_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail={"success": False, "data": None, "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"}})
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"},
+            },
+        )
 
 
 @router.delete(
     "/{trip_id}",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Delete trip",
     description="Permanently delete trip and all associated data.",
 )
@@ -626,19 +662,40 @@ async def delete_trip(
     trip_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Delete trip (FR-017, FR-018)."""
     try:
         service = TripService(db)
         result = await service.delete_trip(trip_id=trip_id, user_id=current_user.id)
         return {"success": True, "data": result, "error": None}
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail={"success": False, "data": None, "error": {"code": "FORBIDDEN", "message": str(e)}})
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "FORBIDDEN", "message": str(e)},
+            },
+        )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail={"success": False, "data": None, "error": {"code": "NOT_FOUND", "message": str(e)}})
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "NOT_FOUND", "message": str(e)},
+            },
+        )
     except Exception as e:
         logger.error(f"Error deleting trip {trip_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail={"success": False, "data": None, "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"}})
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"},
+            },
+        )
 
 
 # ============================================================================
@@ -648,7 +705,7 @@ async def delete_trip(
 
 @user_router.get(
     "/users/{username}/trips",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Get user trips with filters",
     description="FR-025: List user's trips with optional tag and status filtering",
 )
@@ -659,7 +716,7 @@ async def get_user_trips(
     limit: int = Query(50, ge=1, le=100, description="Maximum trips to return"),
     offset: int = Query(0, ge=0, description="Number of trips to skip"),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get user's trips with optional filtering (T088, FR-025).
 
@@ -674,8 +731,9 @@ async def get_user_trips(
     - Ordered by created_at descending (newest first)
     """
     try:
-        from src.models.user import User
         from sqlalchemy import select
+
+        from src.models.user import User
 
         # Get user by username
         result = await db.execute(select(User).where(User.username == username))
@@ -752,13 +810,13 @@ async def get_user_trips(
 
 @user_router.get(
     "/tags",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Get all tags",
     description="FR-027: List all available tags ordered by popularity",
 )
 async def get_all_tags(
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get all tags ordered by usage count (T089, FR-027).
 

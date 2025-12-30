@@ -4,19 +4,21 @@ Unit tests for Trip Pydantic schemas.
 Tests request/response validation for Travel Diary API.
 """
 
-import pytest
 from datetime import date, datetime
+
+import pytest
 from pydantic import ValidationError
+
 from src.schemas.trip import (
     LocationInput,
-    TripCreateRequest,
-    TripUpdateRequest,
     TagResponse,
+    TripCreateRequest,
+    TripListItemResponse,
+    TripListResponse,
     TripLocationResponse,
     TripPhotoResponse,
     TripResponse,
-    TripListItemResponse,
-    TripListResponse,
+    TripUpdateRequest,
 )
 
 
@@ -167,6 +169,7 @@ class TestTripCreateRequest:
     def test_start_date_cannot_be_future(self) -> None:
         """Test that start_date cannot be in the future."""
         from datetime import timedelta
+
         future_date = date.today() + timedelta(days=30)
 
         with pytest.raises(ValidationError) as exc_info:

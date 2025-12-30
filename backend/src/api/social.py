@@ -9,18 +9,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database import get_db
-from src.services.social_service import SocialService
-from src.schemas.social import (
-    FollowResponse,
-    FollowersListResponse,
-    FollowingListResponse,
-    FollowStatusResponse,
-)
-from src.schemas.api_response import ApiResponse, ErrorResponse, ErrorDetail
 from src.api.deps import get_current_user
+from src.database import get_db
 from src.models.user import User
-
+from src.schemas.api_response import ApiResponse, ErrorDetail, ErrorResponse
+from src.services.social_service import SocialService
 
 router = APIRouter(prefix="/users", tags=["social"])
 

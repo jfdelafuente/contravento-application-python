@@ -9,10 +9,10 @@ Uses configurable blocked words list and pattern matching to detect:
 Balances spam prevention with false positive avoidance.
 """
 
-from pathlib import Path
-from typing import List, Optional
-import re
 import logging
+import re
+from pathlib import Path
+from typing import Optional
 
 from src.config import settings
 
@@ -28,7 +28,7 @@ class ContentValidator:
 
         Loads blocked words from configuration file if spam detection enabled.
         """
-        self.blocked_words: List[str] = []
+        self.blocked_words: list[str] = []
         self._load_blocked_words()
 
     def _load_blocked_words(self) -> None:
@@ -43,12 +43,12 @@ class ContentValidator:
                 logger.warning(f"Blocked words file not found: {blocked_file}")
                 return
 
-            with open(blocked_file, 'r', encoding='utf-8') as f:
+            with open(blocked_file, encoding="utf-8") as f:
                 self.blocked_words = [
                     line.strip().lower()
                     for line in f
                     if line.strip()  # Not empty
-                    and not line.strip().startswith('#')  # Not a comment
+                    and not line.strip().startswith("#")  # Not a comment
                 ]
 
             logger.info(f"Loaded {len(self.blocked_words)} blocked words from {blocked_file}")
@@ -57,11 +57,7 @@ class ContentValidator:
             logger.error(f"Error loading blocked words file: {e}")
             # Continue with empty list - don't fail startup
 
-    def validate_content(
-        self,
-        content: str,
-        field_name: str = "contenido"
-    ) -> Optional[str]:
+    def validate_content(self, content: str, field_name: str = "contenido") -> Optional[str]:
         """
         Validate content for spam and inappropriate material.
 
@@ -118,7 +114,7 @@ class ContentValidator:
         for word in self.blocked_words:
             # Use word boundary regex for whole word matching
             # This prevents 'spam' from matching 'spamming' or 'gratis' from matching 'graficar'
-            pattern = r'\b' + re.escape(word) + r'\b'
+            pattern = r"\b" + re.escape(word) + r"\b"
 
             if re.search(pattern, normalized_content):
                 logger.warning(f"Blocked word detected in {field_name}: {word}")
@@ -170,7 +166,7 @@ class ContentValidator:
         MAX_URLS = 5
 
         # Regex pattern for HTTP/HTTPS URLs
-        url_pattern = r'https?://\S+'
+        url_pattern = r"https?://\S+"
         urls = re.findall(url_pattern, content)
 
         if len(urls) > MAX_URLS:

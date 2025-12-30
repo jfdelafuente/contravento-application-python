@@ -4,8 +4,9 @@ Profile request/response schemas.
 Pydantic models for validating profile API requests and responses.
 """
 
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 from src.utils.validators import validate_bio, validate_cycling_type
@@ -29,12 +30,9 @@ class ProfileStatsPreview(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
-            "example": {
-                "total_trips": 12,
-                "total_kilometers": 1547.85,
-                "achievements_count": 5
-            }
+            "example": {"total_trips": 12, "total_kilometers": 1547.85, "achievements_count": 5}
         }
 
 
@@ -65,8 +63,7 @@ class ProfileResponse(BaseModel):
     photo_url: Optional[str] = Field(None, description="URL to profile photo")
     location: Optional[str] = Field(None, description="User's location")
     cycling_type: Optional[str] = Field(
-        None,
-        description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
+        None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
     show_email: bool = Field(..., description="Email visibility in public profile")
     show_location: bool = Field(..., description="Location visibility in public profile")
@@ -77,6 +74,7 @@ class ProfileResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -90,7 +88,7 @@ class ProfileResponse(BaseModel):
                 "show_location": True,
                 "followers_count": 42,
                 "following_count": 58,
-                "created_at": "2025-01-15T10:30:00Z"
+                "created_at": "2025-01-15T10:30:00Z",
             }
         }
 
@@ -111,37 +109,24 @@ class ProfileUpdateRequest(BaseModel):
     """
 
     full_name: Optional[str] = Field(
-        None,
-        max_length=100,
-        description="User's full name (max 100 characters)"
+        None, max_length=100, description="User's full name (max 100 characters)"
     )
 
     bio: Optional[str] = Field(
-        None,
-        max_length=500,
-        description="Profile biography (max 500 characters)"
+        None, max_length=500, description="Profile biography (max 500 characters)"
     )
 
     location: Optional[str] = Field(
-        None,
-        max_length=100,
-        description="User's location (max 100 characters)"
+        None, max_length=100, description="User's location (max 100 characters)"
     )
 
     cycling_type: Optional[str] = Field(
-        None,
-        description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
+        None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
 
-    show_email: Optional[bool] = Field(
-        None,
-        description="Show email in public profile"
-    )
+    show_email: Optional[bool] = Field(None, description="Show email in public profile")
 
-    show_location: Optional[bool] = Field(
-        None,
-        description="Show location in public profile"
-    )
+    show_location: Optional[bool] = Field(None, description="Show location in public profile")
 
     @field_validator("bio")
     @classmethod
@@ -161,6 +146,7 @@ class ProfileUpdateRequest(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "full_name": "María García López",
@@ -168,7 +154,7 @@ class ProfileUpdateRequest(BaseModel):
                 "location": "Barcelona, España",
                 "cycling_type": "mountain",
                 "show_email": False,
-                "show_location": True
+                "show_location": True,
             }
         }
 
@@ -184,24 +170,14 @@ class PrivacySettings(BaseModel):
         show_location: Whether to show location in public profile
     """
 
-    show_email: Optional[bool] = Field(
-        None,
-        description="Show email in public profile"
-    )
+    show_email: Optional[bool] = Field(None, description="Show email in public profile")
 
-    show_location: Optional[bool] = Field(
-        None,
-        description="Show location in public profile"
-    )
+    show_location: Optional[bool] = Field(None, description="Show location in public profile")
 
     class Config:
         """Pydantic config."""
-        json_schema_extra = {
-            "example": {
-                "show_email": False,
-                "show_location": True
-            }
-        }
+
+        json_schema_extra = {"example": {"show_email": False, "show_location": True}}
 
 
 class PhotoUploadResponse(BaseModel):
@@ -222,10 +198,11 @@ class PhotoUploadResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "photo_url": "https://api.contravento.com/storage/profile_photos/2025/12/user123.jpg",
                 "photo_width": 400,
-                "photo_height": 400
+                "photo_height": 400,
             }
         }

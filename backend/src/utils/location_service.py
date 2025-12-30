@@ -4,9 +4,9 @@ Location geocoding service using Google Places API.
 Converts location names to coordinates (latitude, longitude) for trip locations.
 """
 
+import logging
 from dataclasses import dataclass
 from typing import Optional
-import logging
 
 try:
     import googlemaps
@@ -91,12 +91,12 @@ class LocationService:
 
             # Use first (most relevant) result
             first_result = results[0]
-            location = first_result['geometry']['location']
+            location = first_result["geometry"]["location"]
 
             return GeocodingResult(
-                latitude=location['lat'],
-                longitude=location['lng'],
-                formatted_address=first_result['formatted_address']
+                latitude=location["lat"],
+                longitude=location["lng"],
+                formatted_address=first_result["formatted_address"],
             )
 
         except Exception as e:

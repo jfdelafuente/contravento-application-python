@@ -7,12 +7,12 @@ following, unfollowing, listing followers/following, and counter updates.
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User, UserProfile
 from src.models.social import Follow
-from src.utils.security import hash_password, create_access_token
+from src.models.user import User, UserProfile
+from src.utils.security import create_access_token, hash_password
 
 
 @pytest.mark.asyncio
@@ -64,8 +64,7 @@ class TestFollowWorkflow:
 
         # 2. User A follows User B
         follow_response = await async_client.post(
-            f"/users/{user_b.username}/follow",
-            headers={"Authorization": f"Bearer {token_a}"}
+            f"/users/{user_b.username}/follow", headers={"Authorization": f"Bearer {token_a}"}
         )
         assert follow_response.status_code == 200
 
@@ -85,8 +84,7 @@ class TestFollowWorkflow:
 
         # 5. User A unfollows User B
         unfollow_response = await async_client.delete(
-            f"/users/{user_b.username}/follow",
-            headers={"Authorization": f"Bearer {token_a}"}
+            f"/users/{user_b.username}/follow", headers={"Authorization": f"Bearer {token_a}"}
         )
         assert unfollow_response.status_code == 200
 
@@ -143,8 +141,7 @@ class TestFollowerCounterUpdates:
         # User1 follows User2
         token = create_access_token({"sub": user1.id, "type": "access"})
         await async_client.post(
-            f"/users/{user2.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Refresh and verify counters
@@ -155,8 +152,7 @@ class TestFollowerCounterUpdates:
 
         # User1 unfollows User2
         await async_client.delete(
-            f"/users/{user2.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Refresh and verify counters back to 0
@@ -265,8 +261,7 @@ class TestSelfFollowPrevention:
 
         # Try to follow self
         response = await async_client.post(
-            f"/users/{user.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Should return 400 error
@@ -275,9 +270,7 @@ class TestSelfFollowPrevention:
         assert data["error"]["code"] == "CANNOT_FOLLOW_SELF"
 
         # Verify no follow relationship created
-        result = await db_session.execute(
-            select(Follow).where(Follow.follower_id == user.id)
-        )
+        result = await db_session.execute(select(Follow).where(Follow.follower_id == user.id))
         follows = result.scalars().all()
         assert len(follows) == 0
 

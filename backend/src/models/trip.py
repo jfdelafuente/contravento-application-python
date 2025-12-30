@@ -5,25 +5,23 @@ Defines Trip, TripPhoto, Tag, TripTag, and TripLocation models.
 Supports both PostgreSQL (production) and SQLite (development/testing).
 """
 
+import enum
+import uuid
 from datetime import datetime
-from typing import List, Optional
+
 from sqlalchemy import (
     Column,
-    String,
-    Integer,
-    Float,
-    Text,
     Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
-    Boolean,
-    JSON,
+    Integer,
+    String,
+    Text,
 )
-from sqlalchemy.orm import relationship, Mapped
-import enum
-import uuid
+from sqlalchemy.orm import Mapped, relationship
 
 from src.database import Base
 
@@ -89,19 +87,19 @@ class Trip(Base):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="trips")  # type: ignore
-    photos: Mapped[List["TripPhoto"]] = relationship(
+    photos: Mapped[list["TripPhoto"]] = relationship(
         "TripPhoto",
         back_populates="trip",
         cascade="all, delete-orphan",
         order_by="TripPhoto.order",
     )
-    locations: Mapped[List["TripLocation"]] = relationship(
+    locations: Mapped[list["TripLocation"]] = relationship(
         "TripLocation",
         back_populates="trip",
         cascade="all, delete-orphan",
         order_by="TripLocation.sequence",
     )
-    trip_tags: Mapped[List["TripTag"]] = relationship(
+    trip_tags: Mapped[list["TripTag"]] = relationship(
         "TripTag",
         back_populates="trip",
         cascade="all, delete-orphan",
@@ -139,7 +137,9 @@ class TripPhoto(Base):
 
     # Photo metadata
     caption = Column(String(500), nullable=True)  # Optional caption
-    order = Column(Integer, nullable=False, default=0)  # Order in gallery (renamed from display_order)
+    order = Column(
+        Integer, nullable=False, default=0
+    )  # Order in gallery (renamed from display_order)
     file_size = Column(Integer, nullable=False, default=0)  # File size in bytes
     width = Column(Integer, nullable=False, default=0)  # Image width in pixels
     height = Column(Integer, nullable=False, default=0)  # Image height in pixels
@@ -194,7 +194,7 @@ class Tag(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     # Relationships
-    trip_tags: Mapped[List["TripTag"]] = relationship(
+    trip_tags: Mapped[list["TripTag"]] = relationship(
         "TripTag",
         back_populates="tag",
         cascade="all, delete-orphan",
@@ -256,7 +256,9 @@ class TripLocation(Base):
     trip_id = Column(String(36), ForeignKey("trips.trip_id", ondelete="CASCADE"), nullable=False)
 
     # Location data
-    name = Column(String(200), nullable=False)  # Location name (e.g., "Madrid", "Camino de Santiago")
+    name = Column(
+        String(200), nullable=False
+    )  # Location name (e.g., "Madrid", "Camino de Santiago")
     latitude = Column(Float, nullable=True)  # Decimal degrees (optional, from geocoding)
     longitude = Column(Float, nullable=True)  # Decimal degrees (optional, from geocoding)
     sequence = Column(Integer, nullable=False)  # Order along route (0 = start, 1 = next, etc.)
@@ -274,4 +276,6 @@ class TripLocation(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<TripLocation(location_id={self.location_id}, name={self.name}, seq={self.sequence})>"
+        return (
+            f"<TripLocation(location_id={self.location_id}, name={self.name}, seq={self.sequence})>"
+        )

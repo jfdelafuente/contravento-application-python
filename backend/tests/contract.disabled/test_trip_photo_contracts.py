@@ -9,6 +9,7 @@ Functional Requirements: FR-009, FR-010, FR-011, FR-012, FR-013
 """
 
 import io
+
 import pytest
 from httpx import AsyncClient
 from PIL import Image
@@ -24,9 +25,7 @@ class TestTripPhotoUploadContract:
     Functional Requirements: FR-009, FR-010, FR-011
     """
 
-    async def test_upload_photo_success_schema(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_upload_photo_success_schema(self, client: AsyncClient, auth_headers: dict):
         """Test uploading photo to trip matches success response schema."""
         # Arrange - Create a trip first
         trip_payload = {
@@ -34,9 +33,7 @@ class TestTripPhotoUploadContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Create a fake image file
@@ -71,9 +68,7 @@ class TestTripPhotoUploadContract:
         assert "thumb_url" in photo_data
         assert "order" in photo_data
 
-    async def test_upload_photo_invalid_format(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_upload_photo_invalid_format(self, client: AsyncClient, auth_headers: dict):
         """Test uploading non-image file returns 400 validation error."""
         # Arrange - Create a trip
         trip_payload = {
@@ -81,9 +76,7 @@ class TestTripPhotoUploadContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Create a fake text file
@@ -103,9 +96,7 @@ class TestTripPhotoUploadContract:
         assert data["error"] is not None
         assert data["error"]["code"] == "VALIDATION_ERROR"
 
-    async def test_upload_photo_trip_not_found(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_upload_photo_trip_not_found(self, client: AsyncClient, auth_headers: dict):
         """Test uploading photo to non-existent trip returns 404."""
         # Arrange
         fake_trip_id = "00000000-0000-0000-0000-000000000000"
@@ -148,9 +139,7 @@ class TestTripPhotoUploadContract:
         assert data["success"] is False
         assert data["error"]["code"] == "UNAUTHORIZED"
 
-    async def test_upload_photo_exceeds_limit(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_upload_photo_exceeds_limit(self, client: AsyncClient, auth_headers: dict):
         """Test uploading more than 20 photos returns 400 error."""
         # Arrange - Create trip
         trip_payload = {
@@ -158,9 +147,7 @@ class TestTripPhotoUploadContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Upload 20 photos (max limit)
@@ -206,9 +193,7 @@ class TestTripPhotoDeleteContract:
     Functional Requirement: FR-013
     """
 
-    async def test_delete_photo_success_schema(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_delete_photo_success_schema(self, client: AsyncClient, auth_headers: dict):
         """Test deleting photo from trip matches success response schema."""
         # Arrange - Create trip and upload photo
         trip_payload = {
@@ -216,9 +201,7 @@ class TestTripPhotoDeleteContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Upload a photo first
@@ -236,9 +219,7 @@ class TestTripPhotoDeleteContract:
         photo_id = photo_data["id"]  # Contract uses 'id', not 'photo_id'
 
         # Act - Delete photo
-        response = await client.delete(
-            f"/trips/{trip_id}/photos/{photo_id}", headers=auth_headers
-        )
+        response = await client.delete(f"/trips/{trip_id}/photos/{photo_id}", headers=auth_headers)
 
         # Assert
         assert response.status_code == 200
@@ -247,9 +228,7 @@ class TestTripPhotoDeleteContract:
         assert data["data"] is not None
         assert data["error"] is None
 
-    async def test_delete_photo_not_found(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_delete_photo_not_found(self, client: AsyncClient, auth_headers: dict):
         """Test deleting non-existent photo returns 404."""
         # Arrange - Create trip
         trip_payload = {
@@ -257,9 +236,7 @@ class TestTripPhotoDeleteContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
         fake_photo_id = "00000000-0000-0000-0000-000000000000"
 
@@ -281,9 +258,7 @@ class TestTripPhotoDeleteContract:
         fake_photo_id = "00000000-0000-0000-0000-000000000000"
 
         # Act - No auth headers
-        response = await client.delete(
-            f"/trips/{fake_trip_id}/photos/{fake_photo_id}"
-        )
+        response = await client.delete(f"/trips/{fake_trip_id}/photos/{fake_photo_id}")
 
         # Assert
         assert response.status_code == 401
@@ -302,9 +277,7 @@ class TestTripPhotoReorderContract:
     Functional Requirement: FR-012
     """
 
-    async def test_reorder_photos_success_schema(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_reorder_photos_success_schema(self, client: AsyncClient, auth_headers: dict):
         """Test reordering photos matches success response schema."""
         # Arrange - Create trip and upload 3 photos
         trip_payload = {
@@ -312,9 +285,7 @@ class TestTripPhotoReorderContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         photo_ids = []
@@ -332,9 +303,7 @@ class TestTripPhotoReorderContract:
             photo_ids.append(upload_response.json()["data"]["id"])  # Contract uses 'id'
 
         # Act - Reorder photos (reverse order)
-        reorder_payload = {
-            "photo_order": [photo_ids[2], photo_ids[1], photo_ids[0]]
-        }
+        reorder_payload = {"photo_order": [photo_ids[2], photo_ids[1], photo_ids[0]]}
         response = await client.put(
             f"/trips/{trip_id}/photos/reorder",
             json=reorder_payload,
@@ -348,9 +317,7 @@ class TestTripPhotoReorderContract:
         assert data["data"] is not None
         assert data["error"] is None
 
-    async def test_reorder_photos_invalid_photo_ids(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_reorder_photos_invalid_photo_ids(self, client: AsyncClient, auth_headers: dict):
         """Test reordering with invalid photo IDs returns 400."""
         # Arrange - Create trip
         trip_payload = {
@@ -358,9 +325,7 @@ class TestTripPhotoReorderContract:
             "description": "A" * 60,
             "start_date": "2024-05-15",
         }
-        create_response = await client.post(
-            "/trips", json=trip_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=trip_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Act - Try to reorder with fake photo IDs
@@ -389,9 +354,7 @@ class TestTripPhotoReorderContract:
         reorder_payload = {"photo_order": []}
 
         # Act - No auth headers
-        response = await client.put(
-            f"/trips/{fake_trip_id}/photos/reorder", json=reorder_payload
-        )
+        response = await client.put(f"/trips/{fake_trip_id}/photos/reorder", json=reorder_payload)
 
         # Assert
         assert response.status_code == 401

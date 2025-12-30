@@ -5,10 +5,10 @@ Pydantic models for validating authentication API requests and responses.
 """
 
 from datetime import datetime
-from typing import Optional
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from src.utils.validators import validate_username, validate_password
+from src.utils.validators import validate_password, validate_username
 
 
 class RegisterRequest(BaseModel):
@@ -28,20 +28,16 @@ class RegisterRequest(BaseModel):
         min_length=3,
         max_length=30,
         description="Unique username (3-30 alphanumeric + underscores)",
-        examples=["maria_garcia"]
+        examples=["maria_garcia"],
     )
 
-    email: EmailStr = Field(
-        ...,
-        description="Valid email address",
-        examples=["maria@example.com"]
-    )
+    email: EmailStr = Field(..., description="Valid email address", examples=["maria@example.com"])
 
     password: str = Field(
         ...,
         min_length=8,
         description="Strong password (min 8 chars with complexity requirements)",
-        examples=["SecurePass123!"]
+        examples=["SecurePass123!"],
     )
 
     @field_validator("username")
@@ -58,11 +54,12 @@ class RegisterRequest(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "username": "maria_garcia",
                 "email": "maria@example.com",
-                "password": "SecurePass123!"
+                "password": "SecurePass123!",
             }
         }
 
@@ -89,6 +86,7 @@ class RegisterResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -96,7 +94,7 @@ class RegisterResponse(BaseModel):
                 "username": "maria_garcia",
                 "email": "maria@example.com",
                 "is_verified": False,
-                "created_at": "2025-12-23T10:30:00Z"
+                "created_at": "2025-12-23T10:30:00Z",
             }
         }
 
@@ -113,25 +111,15 @@ class LoginRequest(BaseModel):
     """
 
     login: str = Field(
-        ...,
-        description="Username or email",
-        examples=["maria_garcia", "maria@example.com"]
+        ..., description="Username or email", examples=["maria_garcia", "maria@example.com"]
     )
 
-    password: str = Field(
-        ...,
-        description="User password",
-        examples=["SecurePass123!"]
-    )
+    password: str = Field(..., description="User password", examples=["SecurePass123!"])
 
     class Config:
         """Pydantic config."""
-        json_schema_extra = {
-            "example": {
-                "login": "maria_garcia",
-                "password": "SecurePass123!"
-            }
-        }
+
+        json_schema_extra = {"example": {"login": "maria_garcia", "password": "SecurePass123!"}}
 
 
 class TokenResponse(BaseModel):
@@ -154,12 +142,13 @@ class TokenResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "token_type": "bearer",
-                "expires_in": 900
+                "expires_in": 900,
             }
         }
 
@@ -186,6 +175,7 @@ class LoginResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
 
 
@@ -200,18 +190,13 @@ class PasswordResetRequest(BaseModel):
     """
 
     email: EmailStr = Field(
-        ...,
-        description="Email address to send reset link to",
-        examples=["maria@example.com"]
+        ..., description="Email address to send reset link to", examples=["maria@example.com"]
     )
 
     class Config:
         """Pydantic config."""
-        json_schema_extra = {
-            "example": {
-                "email": "maria@example.com"
-            }
-        }
+
+        json_schema_extra = {"example": {"email": "maria@example.com"}}
 
 
 class PasswordResetConfirm(BaseModel):
@@ -228,14 +213,11 @@ class PasswordResetConfirm(BaseModel):
     token: str = Field(
         ...,
         description="Password reset token from email",
-        examples=["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."]
+        examples=["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."],
     )
 
     new_password: str = Field(
-        ...,
-        min_length=8,
-        description="New password",
-        examples=["NewSecurePass456!"]
+        ..., min_length=8, description="New password", examples=["NewSecurePass456!"]
     )
 
     @field_validator("new_password")
@@ -246,14 +228,16 @@ class PasswordResetConfirm(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         json_schema_extra = {
             "example": {
                 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                "new_password": "NewSecurePass456!"
+                "new_password": "NewSecurePass456!",
             }
         }
 
 
 # Forward reference resolution
 from src.schemas.user import UserResponse
+
 LoginResponse.model_rebuild()

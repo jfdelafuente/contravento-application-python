@@ -5,14 +5,13 @@ Tests validation logic for user input fields.
 """
 
 import pytest
-from pydantic import ValidationError
 
 from src.utils.validators import (
-    validate_username,
-    validate_email,
-    validate_password,
     validate_bio,
     validate_cycling_type,
+    validate_email,
+    validate_password,
+    validate_username,
 )
 
 
@@ -60,8 +59,8 @@ class TestUsernameValidator:
             "user.name",  # Dot not allowed
             "user name",  # Space not allowed
             "user@name",  # @ not allowed
-            "user#123",   # # not allowed
-            "maría",      # Accents not allowed
+            "user#123",  # # not allowed
+            "maría",  # Accents not allowed
         ]
 
         for username in invalid_usernames:

@@ -8,23 +8,26 @@ Business logic for profile management including:
 - Public profile views
 """
 
-from datetime import datetime
-from typing import Optional
-from pathlib import Path
-import logging
 import asyncio
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
+from fastapi import UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
-from fastapi import UploadFile
 
-from src.models.user import User, UserProfile
-from src.models.stats import UserStats
-from src.schemas.profile import ProfileUpdateRequest, PrivacySettings, ProfileResponse, ProfileStatsPreview
-from src.utils.file_storage import validate_photo, resize_photo, generate_photo_filename
 from src.config import settings
-
+from src.models.user import User, UserProfile
+from src.schemas.profile import (
+    PrivacySettings,
+    ProfileResponse,
+    ProfileStatsPreview,
+    ProfileUpdateRequest,
+)
+from src.utils.file_storage import generate_photo_filename, resize_photo, validate_photo
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +49,7 @@ class ProfileService:
         self.db = db
 
     async def get_profile(
-        self,
-        username: str,
-        viewer_username: Optional[str] = None
+        self, username: str, viewer_username: Optional[str] = None
     ) -> ProfileResponse:
         """
         T118: Get user profile respecting privacy settings.
@@ -66,10 +67,7 @@ class ProfileService:
         # T226: Optimized query with eager loading for profile and stats
         result = await self.db.execute(
             select(User)
-            .options(
-                joinedload(User.profile),
-                joinedload(User.stats)
-            )
+            .options(joinedload(User.profile), joinedload(User.stats))
             .where(User.username == username)
         )
         user = result.unique().scalar_one_or_none()
@@ -116,9 +114,7 @@ class ProfileService:
         )
 
     async def update_profile(
-        self,
-        username: str,
-        update_data: ProfileUpdateRequest
+        self, username: str, update_data: ProfileUpdateRequest
     ) -> ProfileResponse:
         """
         T119: Update user profile.
@@ -136,17 +132,13 @@ class ProfileService:
             ValueError: If user not found or validation fails
         """
         # Get user and profile
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
-        result = await self.db.execute(
-            select(UserProfile).where(UserProfile.user_id == user.id)
-        )
+        result = await self.db.execute(select(UserProfile).where(UserProfile.user_id == user.id))
         profile = result.scalar_one_or_none()
 
         if not profile:
@@ -186,11 +178,7 @@ class ProfileService:
         # Return updated profile
         return await self.get_profile(username, viewer_username=username)
 
-    async def upload_photo(
-        self,
-        username: str,
-        photo_file: UploadFile
-    ) -> dict:
+    async def upload_photo(self, username: str, photo_file: UploadFile) -> dict:
         """
         T120: Upload and process profile photo.
 
@@ -207,17 +195,13 @@ class ProfileService:
             ValueError: If validation fails or user not found
         """
         # Get user and profile
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
-        result = await self.db.execute(
-            select(UserProfile).where(UserProfile.user_id == user.id)
-        )
+        result = await self.db.execute(select(UserProfile).where(UserProfile.user_id == user.id))
         profile = result.scalar_one()
 
         # Read file content
@@ -225,6 +209,7 @@ class ProfileService:
 
         # Validate photo (size, format)
         from io import BytesIO
+
         photo_bytes = BytesIO(content)
 
         try:
@@ -240,7 +225,9 @@ class ProfileService:
         filename = generate_photo_filename(user.id, file_ext)
 
         # Create storage directory
-        storage_dir = Path(settings.storage_path) / "profile_photos" / datetime.utcnow().strftime("%Y/%m")
+        storage_dir = (
+            Path(settings.storage_path) / "profile_photos" / datetime.utcnow().strftime("%Y/%m")
+        )
         storage_dir.mkdir(parents=True, exist_ok=True)
 
         # T227: Async photo processing to avoid blocking event loop
@@ -268,7 +255,9 @@ class ProfileService:
 
         # Generate URL
         # TODO: Use actual base URL from settings
-        photo_url = f"/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
+        photo_url = (
+            f"/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
+        )
 
         # Update profile
         profile.profile_photo_url = photo_url
@@ -300,17 +289,13 @@ class ProfileService:
             ValueError: If user not found
         """
         # Get user and profile
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
-        result = await self.db.execute(
-            select(UserProfile).where(UserProfile.user_id == user.id)
-        )
+        result = await self.db.execute(select(UserProfile).where(UserProfile.user_id == user.id))
         profile = result.scalar_one()
 
         # Delete file if exists
@@ -327,11 +312,7 @@ class ProfileService:
 
         return True
 
-    async def update_privacy(
-        self,
-        username: str,
-        privacy_settings: PrivacySettings
-    ) -> dict:
+    async def update_privacy(self, username: str, privacy_settings: PrivacySettings) -> dict:
         """
         T122: Update privacy settings.
 
@@ -348,17 +329,13 @@ class ProfileService:
             ValueError: If user not found
         """
         # Get user and profile
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
-        result = await self.db.execute(
-            select(UserProfile).where(UserProfile.user_id == user.id)
-        )
+        result = await self.db.execute(select(UserProfile).where(UserProfile.user_id == user.id))
         profile = result.scalar_one()
 
         # Update privacy settings (only if provided)

@@ -4,12 +4,12 @@ Unit tests for ProfileService business logic.
 Tests profile management service methods.
 """
 
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.schemas.profile import ProfileUpdateRequest
 from src.services.profile_service import ProfileService
-from src.schemas.profile import ProfileUpdateRequest, PrivacySettings
 
 
 @pytest.mark.unit
@@ -38,7 +38,9 @@ class TestProfileServiceGetProfile:
         with pytest.raises(ValueError) as exc_info:
             await profile_service.get_profile("nonexistent_user")
 
-        assert "no existe" in str(exc_info.value).lower() or "not found" in str(exc_info.value).lower()
+        assert (
+            "no existe" in str(exc_info.value).lower() or "not found" in str(exc_info.value).lower()
+        )
 
 
 @pytest.mark.unit
@@ -79,7 +81,10 @@ class TestProfileServiceUpdateProfile:
         with pytest.raises(ValueError) as exc_info:
             await profile_service.update_profile("user123", update_data)
 
-        assert "ciclismo" in str(exc_info.value).lower() or "cycling_type" in str(exc_info.value).lower()
+        assert (
+            "ciclismo" in str(exc_info.value).lower()
+            or "cycling_type" in str(exc_info.value).lower()
+        )
 
     async def test_update_profile_strips_whitespace_from_bio(self, db_session: AsyncSession):
         """Verify that bio whitespace is stripped."""

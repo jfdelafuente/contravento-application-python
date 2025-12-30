@@ -5,16 +5,14 @@ Business logic for trip creation, publication, and management.
 Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013
 """
 
-import io
 import logging
-import os
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import BinaryIO, List, Optional
+from typing import BinaryIO, Optional
 
 from PIL import Image
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -523,12 +521,12 @@ class TripService:
             await self._update_photo_count_in_stats(user_id, increment=-1)
             logger.info(f"Decremented photo count in stats for user {user_id}")
 
-        logger.info(f"Deleted photo {photo_id} from trip {trip_id}, reordered {len(remaining_photos)} remaining photos")
+        logger.info(
+            f"Deleted photo {photo_id} from trip {trip_id}, reordered {len(remaining_photos)} remaining photos"
+        )
         return {"message": "Foto eliminada correctamente"}
 
-    async def reorder_photos(
-        self, trip_id: str, user_id: str, photo_order: List[str]
-    ) -> dict:
+    async def reorder_photos(self, trip_id: str, user_id: str, photo_order: list[str]) -> dict:
         """
         Reorder photos in trip gallery.
 
@@ -578,9 +576,7 @@ class TripService:
 
         # Update order for each photo
         for new_order, photo_id in enumerate(photo_order):
-            result = await self.db.execute(
-                select(TripPhoto).where(TripPhoto.photo_id == photo_id)
-            )
+            result = await self.db.execute(select(TripPhoto).where(TripPhoto.photo_id == photo_id))
             photo = result.scalar_one()
             photo.order = new_order
 
@@ -589,9 +585,7 @@ class TripService:
         logger.info(f"Reordered {len(photo_order)} photos for trip {trip_id}")
         return {"message": "Fotos reordenadas correctamente"}
 
-    async def update_trip(
-        self, trip_id: str, user_id: str, update_data: dict
-    ) -> Trip:
+    async def update_trip(self, trip_id: str, user_id: str, update_data: dict) -> Trip:
         """
         Update an existing trip.
 
@@ -648,26 +642,20 @@ class TripService:
 
         if "difficulty" in update_data:
             trip.difficulty = (
-                TripDifficulty(update_data["difficulty"])
-                if update_data["difficulty"]
-                else None
+                TripDifficulty(update_data["difficulty"]) if update_data["difficulty"] else None
             )
 
         # Update tags if provided
         if "tags" in update_data:
             # Remove old tag associations
-            await self.db.execute(
-                select(TripTag).where(TripTag.trip_id == trip_id)
-            )
+            await self.db.execute(select(TripTag).where(TripTag.trip_id == trip_id))
             # Process new tags
             await self._process_tags(trip, update_data["tags"])
 
         # Update locations if provided
         if "locations" in update_data:
             # Remove old locations
-            await self.db.execute(
-                select(TripLocation).where(TripLocation.trip_id == trip_id)
-            )
+            await self.db.execute(select(TripLocation).where(TripLocation.trip_id == trip_id))
             # Process new locations
             await self._process_locations(trip, update_data["locations"])
 
@@ -790,9 +778,7 @@ class TripService:
         from src.models.stats import UserStats
 
         # Get user stats
-        result = await self.db.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats = result.scalar_one_or_none()
 
         if stats:
@@ -811,7 +797,7 @@ class TripService:
         status: Optional[TripStatus] = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Trip]:
+    ) -> list[Trip]:
         """
         T087: Get user's trips with optional filtering.
 
@@ -855,8 +841,7 @@ class TripService:
             tag_normalized = tag.lower().strip()
             # Join with TripTag and Tag to filter
             query = (
-                query
-                .join(TripTag, Trip.trip_id == TripTag.trip_id)
+                query.join(TripTag, Trip.trip_id == TripTag.trip_id)
                 .join(Tag, TripTag.tag_id == Tag.tag_id)
                 .where(Tag.normalized == tag_normalized)
             )
@@ -878,7 +863,7 @@ class TripService:
 
         return list(trips)
 
-    async def get_all_tags(self) -> List[Tag]:
+    async def get_all_tags(self) -> list[Tag]:
         """
         T089: Get all tags ordered by usage count.
 

@@ -9,7 +9,7 @@ from httpx import AsyncClient
 from openapi_core import Spec
 from openapi_core.contrib.requests import RequestsOpenAPIRequest
 from openapi_core.contrib.requests import RequestsOpenAPIResponse
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.response.validators import V3ResponseValidator
 from pathlib import Path
 import yaml
 

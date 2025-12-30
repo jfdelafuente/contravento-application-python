@@ -5,13 +5,13 @@ Tests complete user journeys for photo upload, deletion, and reordering.
 Functional Requirements: FR-010, FR-011, FR-012, FR-013
 """
 
+from io import BytesIO
+
 import pytest
 from httpx import AsyncClient
+from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from io import BytesIO
-from PIL import Image
-import os
 
 from src.models.user import User
 
@@ -45,9 +45,7 @@ class TestPhotoUploadWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -80,9 +78,7 @@ class TestPhotoUploadWorkflow:
         # Step 3: Verify database persistence
         from src.models.trip import TripPhoto
 
-        result = await db_session.execute(
-            select(TripPhoto).where(TripPhoto.id == photo_id)
-        )
+        result = await db_session.execute(select(TripPhoto).where(TripPhoto.id == photo_id))
         db_photo = result.scalar_one_or_none()
 
         assert db_photo is not None
@@ -102,9 +98,7 @@ class TestPhotoUploadWorkflow:
         assert len(trip["photos"]) == 1
         assert trip["photos"][0]["id"] == photo_id
 
-    async def test_upload_multiple_photos_workflow(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_upload_multiple_photos_workflow(self, client: AsyncClient, auth_headers: dict):
         """
         Test uploading multiple photos to same trip.
 
@@ -120,9 +114,7 @@ class TestPhotoUploadWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Step 2: Upload 3 photos
@@ -171,15 +163,11 @@ class TestPhotoUploadWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Publish trip
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
         assert publish_response.status_code == 200
 
         # Get initial stats
@@ -189,9 +177,7 @@ class TestPhotoUploadWorkflow:
         get_user_response = await client.get("/users/me", headers=auth_headers)
         user_id = get_user_response.json()["data"]["id"]
 
-        result = await db_session.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await db_session.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats_before = result.scalar_one()
         initial_photo_count = stats_before.total_trip_photos
 
@@ -241,9 +227,7 @@ class TestPhotoDeleteWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Upload photo
@@ -271,9 +255,7 @@ class TestPhotoDeleteWorkflow:
         # Step 3: Verify database removal
         from src.models.trip import TripPhoto
 
-        result = await db_session.execute(
-            select(TripPhoto).where(TripPhoto.id == photo_id)
-        )
+        result = await db_session.execute(select(TripPhoto).where(TripPhoto.id == photo_id))
         db_photo = result.scalar_one_or_none()
         assert db_photo is None
 
@@ -300,9 +282,7 @@ class TestPhotoDeleteWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Publish trip
@@ -326,9 +306,7 @@ class TestPhotoDeleteWorkflow:
         get_user_response = await client.get("/users/me", headers=auth_headers)
         user_id = get_user_response.json()["data"]["id"]
 
-        result = await db_session.execute(
-            select(UserStats).where(UserStats.user_id == user_id)
-        )
+        result = await db_session.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats_before = result.scalar_one()
         initial_photo_count = stats_before.total_trip_photos
 
@@ -371,9 +349,7 @@ class TestPhotoReorderWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Upload 4 photos
@@ -408,9 +384,7 @@ class TestPhotoReorderWorkflow:
         from src.models.trip import TripPhoto
 
         result = await db_session.execute(
-            select(TripPhoto)
-            .where(TripPhoto.trip_id == trip_id)
-            .order_by(TripPhoto.order)
+            select(TripPhoto).where(TripPhoto.trip_id == trip_id).order_by(TripPhoto.order)
         )
         photos = result.scalars().all()
 
@@ -446,9 +420,7 @@ class TestPhotoReorderWorkflow:
             "start_date": "2024-05-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         photo_ids = []
@@ -467,9 +439,7 @@ class TestPhotoReorderWorkflow:
         # Step 2: Reorder (reverse)
         new_order = list(reversed(photo_ids))
         payload = {"photo_order": new_order}
-        await client.put(
-            f"/trips/{trip_id}/photos/reorder", json=payload, headers=auth_headers
-        )
+        await client.put(f"/trips/{trip_id}/photos/reorder", json=payload, headers=auth_headers)
 
         # Step 3: Verify all photos still exist
         get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
@@ -545,9 +515,7 @@ class TestTagFilteringWorkflow:
 
         # Step 2: Publish first 3 trips (leave last one as draft)
         for trip_id in trip_ids[:3]:
-            response = await client.post(
-                f"/trips/{trip_id}/publish", headers=auth_headers
-            )
+            response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
             assert response.status_code == 200
 
         username = "testuser"
@@ -605,9 +573,7 @@ class TestTagFilteringWorkflow:
         # Should return 2 trips (Bikepacking 1 and Montaña)
         assert len(trips_mountain) == 2
 
-    async def test_tag_filtering_with_pagination(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_tag_filtering_with_pagination(self, client: AsyncClient, auth_headers: dict):
         """Test tag filtering works with pagination parameters."""
         # Create 5 trips with same tag
         for i in range(5):
@@ -675,7 +641,6 @@ class TestTagPopularityWorkflow:
         3. Verify tags are ordered by usage_count descending
         4. Verify usage counts are accurate
         """
-        from src.models.trip import Tag
 
         # Step 1: Create trips with varying tag usage
         # Tag "very_popular" will be used 5 times
@@ -746,7 +711,6 @@ class TestTagPopularityWorkflow:
         self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
     ):
         """Test that tag usage_count increases when trips are created."""
-        from src.models.trip import Tag
 
         # Get initial tag list
         response_before = await client.get("/tags", headers=auth_headers)
@@ -841,9 +805,7 @@ class TestTripUpdateWorkflow:
             "tags": ["original", "inicial"],
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
         original_updated_at = create_response.json()["data"]["updated_at"]
@@ -880,9 +842,7 @@ class TestTripUpdateWorkflow:
             "client_updated_at": new_updated_at,
         }
 
-        tag_response = await client.put(
-            f"/trips/{trip_id}", json=tag_update, headers=auth_headers
-        )
+        tag_response = await client.put(f"/trips/{trip_id}", json=tag_update, headers=auth_headers)
 
         assert tag_response.status_code == 200
 
@@ -922,10 +882,12 @@ class TestTripDeletionWorkflow:
         7. Verify stats are updated (decremented)
         """
         from io import BytesIO
+
         from PIL import Image
-        from src.models.trip import Trip
-        from src.models.stats import UserStats
         from sqlalchemy import select
+
+        from src.models.stats import UserStats
+        from src.models.trip import Trip
 
         # Step 1: Create trip
         create_payload = {
@@ -935,9 +897,7 @@ class TestTripDeletionWorkflow:
             "distance_km": 75.0,
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
         user_id = create_response.json()["data"]["user_id"]
 
@@ -955,9 +915,7 @@ class TestTripDeletionWorkflow:
             )
 
         # Step 3: Publish trip
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
         assert publish_response.status_code == 200
 
         # Get stats before deletion
@@ -980,9 +938,7 @@ class TestTripDeletionWorkflow:
         assert get_response.status_code == 404
 
         # Verify in database
-        trip_result = await db_session.execute(
-            select(Trip).where(Trip.trip_id == trip_id)
-        )
+        trip_result = await db_session.execute(select(Trip).where(Trip.trip_id == trip_id))
         deleted_trip = trip_result.scalar_one_or_none()
         assert deleted_trip is None
 
@@ -1027,9 +983,7 @@ class TestOptimisticLockingWorkflow:
             "start_date": "2024-06-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
         initial_updated_at = create_response.json()["data"]["updated_at"]
 
@@ -1043,9 +997,7 @@ class TestOptimisticLockingWorkflow:
             "client_updated_at": user_a_timestamp,
         }
 
-        response_a = await client.put(
-            f"/trips/{trip_id}", json=user_a_update, headers=auth_headers
-        )
+        response_a = await client.put(f"/trips/{trip_id}", json=user_a_update, headers=auth_headers)
 
         assert response_a.status_code == 200
         new_updated_at = response_a.json()["data"]["updated_at"]
@@ -1057,9 +1009,7 @@ class TestOptimisticLockingWorkflow:
             "client_updated_at": user_b_timestamp,  # Stale!
         }
 
-        response_b = await client.put(
-            f"/trips/{trip_id}", json=user_b_update, headers=auth_headers
-        )
+        response_b = await client.put(f"/trips/{trip_id}", json=user_b_update, headers=auth_headers)
 
         # Assert - Conflict detected
         assert response_b.status_code == 409
@@ -1083,9 +1033,7 @@ class TestOptimisticLockingWorkflow:
             "start_date": "2024-06-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Edit 1
@@ -1095,9 +1043,7 @@ class TestOptimisticLockingWorkflow:
             "client_updated_at": updated_at_1,
         }
 
-        response_1 = await client.put(
-            f"/trips/{trip_id}", json=edit_1, headers=auth_headers
-        )
+        response_1 = await client.put(f"/trips/{trip_id}", json=edit_1, headers=auth_headers)
 
         assert response_1.status_code == 200
 
@@ -1108,9 +1054,7 @@ class TestOptimisticLockingWorkflow:
             "client_updated_at": updated_at_2,
         }
 
-        response_2 = await client.put(
-            f"/trips/{trip_id}", json=edit_2, headers=auth_headers
-        )
+        response_2 = await client.put(f"/trips/{trip_id}", json=edit_2, headers=auth_headers)
 
         # Should succeed because timestamp is current
         assert response_2.status_code == 200
@@ -1132,9 +1076,7 @@ class TestDraftCreationWorkflow:
     Functional Requirements: FR-028, FR-029
     """
 
-    async def test_create_draft_with_minimal_fields(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_draft_with_minimal_fields(self, client: AsyncClient, auth_headers: dict):
         """Test creating a draft with only required fields."""
         payload = {
             "title": "My Draft Trip",
@@ -1150,9 +1092,7 @@ class TestDraftCreationWorkflow:
         assert data["status"].lower() == "draft"  # Case-insensitive check
         assert data["published_at"] is None
 
-    async def test_create_draft_without_description(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_draft_without_description(self, client: AsyncClient, auth_headers: dict):
         """Test that draft creation still requires description field."""
         payload = {
             "title": "Draft Without Description",
@@ -1171,9 +1111,7 @@ class TestDraftCreationWorkflow:
 class TestDraftVisibility:
     """T093: Integration test for draft visibility (owner-only)."""
 
-    async def test_draft_visible_to_owner(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_draft_visible_to_owner(self, client: AsyncClient, auth_headers: dict):
         """Test that owner can see their own draft."""
         payload = {
             "title": "My Private Draft",
@@ -1181,9 +1119,7 @@ class TestDraftVisibility:
             "start_date": "2024-06-15",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -1209,9 +1145,7 @@ class TestDraftVisibility:
             "start_date": "2024-07-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -1239,9 +1173,7 @@ class TestDraftVisibility:
 
         assert get_response.status_code == 404  # Not found (hidden from other users)
 
-    async def test_draft_not_visible_without_auth(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_draft_not_visible_without_auth(self, client: AsyncClient, auth_headers: dict):
         """Test that unauthenticated users cannot see drafts."""
         payload = {
             "title": "Draft for Auth Test",
@@ -1249,9 +1181,7 @@ class TestDraftVisibility:
             "start_date": "2024-08-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -1267,9 +1197,7 @@ class TestDraftVisibility:
 class TestDraftListing:
     """T094: Integration test for draft listing (separate from published)."""
 
-    async def test_list_only_drafts(
-        self, client: AsyncClient, auth_headers: dict, test_user: User
-    ):
+    async def test_list_only_drafts(self, client: AsyncClient, auth_headers: dict, test_user: User):
         """Test filtering user trips to show only drafts."""
         # Create 2 drafts and 1 published trip
         draft1_payload = {
@@ -1293,17 +1221,13 @@ class TestDraftListing:
         await client.post("/trips", json=draft2_payload, headers=auth_headers)
 
         # Create and publish trip
-        pub_response = await client.post(
-            "/trips", json=published_payload, headers=auth_headers
-        )
+        pub_response = await client.post("/trips", json=published_payload, headers=auth_headers)
         pub_trip_id = pub_response.json()["data"]["trip_id"]
         await client.post(f"/trips/{pub_trip_id}/publish", headers=auth_headers)
 
         # List only drafts
         username = test_user.username
-        response = await client.get(
-            f"/users/{username}/trips?status=DRAFT", headers=auth_headers
-        )
+        response = await client.get(f"/users/{username}/trips?status=DRAFT", headers=auth_headers)
 
         assert response.status_code == 200
         data = response.json()["data"]
@@ -1341,15 +1265,11 @@ class TestDraftListing:
         await client.post("/trips", json=draft_payload, headers=auth_headers)
 
         # Create and publish trips
-        pub1_response = await client.post(
-            "/trips", json=pub1_payload, headers=auth_headers
-        )
+        pub1_response = await client.post("/trips", json=pub1_payload, headers=auth_headers)
         pub1_id = pub1_response.json()["data"]["trip_id"]
         await client.post(f"/trips/{pub1_id}/publish", headers=auth_headers)
 
-        pub2_response = await client.post(
-            "/trips", json=pub2_payload, headers=auth_headers
-        )
+        pub2_response = await client.post("/trips", json=pub2_payload, headers=auth_headers)
         pub2_id = pub2_response.json()["data"]["trip_id"]
         await client.post(f"/trips/{pub2_id}/publish", headers=auth_headers)
 
@@ -1376,9 +1296,7 @@ class TestDraftListing:
 class TestDraftToPublishedTransition:
     """T095: Integration test for draft → published transition."""
 
-    async def test_publish_valid_draft(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_publish_valid_draft(self, client: AsyncClient, auth_headers: dict):
         """Test publishing a draft that meets publication requirements."""
         draft_payload = {
             "title": "Trip Ready to Publish",
@@ -1388,9 +1306,7 @@ class TestDraftToPublishedTransition:
             "distance_km": 250.5,
         }
 
-        create_response = await client.post(
-            "/trips", json=draft_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=draft_payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -1400,9 +1316,7 @@ class TestDraftToPublishedTransition:
         assert get_response.json()["data"]["published_at"] is None
 
         # Publish the draft
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
         assert publish_response.status_code == 200
         data = publish_response.json()["data"]
@@ -1424,24 +1338,18 @@ class TestDraftToPublishedTransition:
             "start_date": "2024-07-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=draft_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=draft_payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Try to publish - should fail
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
         assert publish_response.status_code == 400
         error = publish_response.json()["error"]
         assert "descripción" in error["message"].lower()
 
-    async def test_edit_draft_then_publish(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_edit_draft_then_publish(self, client: AsyncClient, auth_headers: dict):
         """Test the workflow: create draft → edit → publish."""
         draft_payload = {
             "title": "Initial Draft",
@@ -1449,9 +1357,7 @@ class TestDraftToPublishedTransition:
             "start_date": "2024-08-01",
         }
 
-        create_response = await client.post(
-            "/trips", json=draft_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=draft_payload, headers=auth_headers)
         trip_id = create_response.json()["data"]["trip_id"]
 
         # Edit draft to add more content
@@ -1466,9 +1372,7 @@ class TestDraftToPublishedTransition:
         assert edit_response.status_code == 200
 
         # Now publish the completed draft
-        publish_response = await client.post(
-            f"/trips/{trip_id}/publish", headers=auth_headers
-        )
+        publish_response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
         assert publish_response.status_code == 200
         data = publish_response.json()["data"]

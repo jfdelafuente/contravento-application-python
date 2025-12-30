@@ -15,10 +15,9 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.main import app
-from src.models.user import User, UserProfile
 from src.models.social import Follow
-from src.utils.security import hash_password, create_access_token
+from src.models.user import User, UserProfile
+from src.utils.security import create_access_token, hash_password
 
 
 @pytest.mark.asyncio
@@ -64,8 +63,7 @@ class TestFollowUserContract:
 
         # Make request
         response = await async_client.post(
-            f"/users/{user2.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
@@ -123,8 +121,7 @@ class TestFollowUserContract:
 
         # Try to follow self
         response = await async_client.post(
-            f"/users/{user.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
@@ -177,8 +174,7 @@ class TestFollowUserContract:
 
         # Try to follow again
         response = await async_client.post(
-            f"/users/{user2.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
@@ -235,8 +231,7 @@ class TestUnfollowUserContract:
 
         # Unfollow
         response = await async_client.delete(
-            f"/users/{user2.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
@@ -282,8 +277,7 @@ class TestUnfollowUserContract:
 
         # Try to unfollow when not following
         response = await async_client.delete(
-            f"/users/{user2.username}/follow",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
@@ -520,8 +514,7 @@ class TestGetFollowStatusContract:
 
         # Make request
         response = await async_client.get(
-            f"/users/{user2.username}/follow-status",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow-status", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
@@ -574,8 +567,7 @@ class TestGetFollowStatusContract:
 
         # Make request
         response = await async_client.get(
-            f"/users/{user2.username}/follow-status",
-            headers={"Authorization": f"Bearer {token}"}
+            f"/users/{user2.username}/follow-status", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Verify status code
