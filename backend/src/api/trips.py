@@ -5,21 +5,24 @@ Provides REST API for creating, reading, updating, and publishing trips.
 Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, get_current_user
 from src.models.user import User
+from src.models.trip import TripStatus
 from src.schemas.trip import TripCreateRequest, TripResponse
 from src.services.trip_service import TripService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/trips", tags=["trips"])
+# Separate router for user-facing endpoints (no prefix needed)
+user_router = APIRouter(tags=["trips"])
 
 
 @router.post(
@@ -643,7 +646,7 @@ async def delete_trip(
 # ============================================================================
 
 
-@router.get(
+@user_router.get(
     "/users/{username}/trips",
     response_model=Dict[str, Any],
     summary="Get user trips with filters",
@@ -747,7 +750,7 @@ async def get_user_trips(
         )
 
 
-@router.get(
+@user_router.get(
     "/tags",
     response_model=Dict[str, Any],
     summary="Get all tags",

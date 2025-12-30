@@ -248,3 +248,4 @@ app.include_router(stats.router)
 app.include_router(stats.achievements_router)
 app.include_router(social.router)
 app.include_router(trips.router)
+app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints

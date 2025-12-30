@@ -1171,3 +1171,417 @@ class TestTripServicePhotoReorder:
         assert "permiso" in str(exc_info.value).lower() or "permission" in str(
             exc_info.value
         ).lower()
+
+
+# ============================================================================
+# Phase 6: User Story 4 - Tags & Categorization Unit Tests (T084-T085)
+# ============================================================================
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestTripServiceGetUserTrips:
+    """
+    T084: Unit tests for TripService.get_user_trips() method.
+
+    Tests tag filtering, status filtering, and pagination logic.
+    Functional Requirements: FR-025 (Trip listing with filters)
+    """
+
+    @pytest.fixture
+    async def test_user(self, db_session: AsyncSession) -> User:
+        """Create a test user for trip ownership."""
+        user = User(
+            username="filteruser",
+            email="filter@example.com",
+            hashed_password="hashed_password",
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    @pytest.fixture
+    async def test_trips_with_tags(
+        self, db_session: AsyncSession, test_user: User
+    ) -> list[Trip]:
+        """Create multiple trips with different tags for testing."""
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        trip_data = [
+            {
+                "title": "Ruta Bikepacking",
+                "description": "Descripción mínima de 50 caracteres para ruta bikepacking de prueba...",
+                "start_date": date(2024, 6, 1),
+                "tags": ["bikepacking", "montaña"],
+            },
+            {
+                "title": "Ruta Gravel",
+                "description": "Descripción mínima de 50 caracteres para ruta gravel de prueba rural...",
+                "start_date": date(2024, 7, 1),
+                "tags": ["gravel", "costa"],
+            },
+            {
+                "title": "Ruta Montaña",
+                "description": "Descripción mínima de 50 caracteres para ruta montaña puerto alto...",
+                "start_date": date(2024, 8, 1),
+                "tags": ["montaña", "puerto"],
+            },
+        ]
+
+        trips = []
+        for data in trip_data:
+            from src.schemas.trip import TripCreateRequest
+
+            request = TripCreateRequest(**data)
+            trip = await service.create_trip(user_id=test_user.id, trip_data=request)
+            trips.append(trip)
+
+        return trips
+
+    async def test_get_user_trips_no_filters(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test getting all user trips without filters."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Act
+        trips = await service.get_user_trips(user_id=test_user.id)
+
+        # Assert
+        assert len(trips) == 3
+        for trip in trips:
+            assert trip.user_id == test_user.id
+
+    async def test_get_user_trips_filter_by_tag(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test filtering trips by tag."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Act - Filter by "montaña" tag (should match 2 trips)
+        trips = await service.get_user_trips(user_id=test_user.id, tag="montaña")
+
+        # Assert
+        assert len(trips) == 2
+        for trip in trips:
+            tag_names = [tag_rel.tag.name for tag_rel in trip.tags]
+            assert "montaña" in tag_names
+
+    async def test_get_user_trips_filter_by_tag_case_insensitive(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test that tag filtering is case-insensitive."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Act - Filter with UPPERCASE tag
+        trips = await service.get_user_trips(user_id=test_user.id, tag="MONTAÑA")
+
+        # Assert - Should match same trips as lowercase
+        assert len(trips) == 2
+
+    async def test_get_user_trips_filter_by_status(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test filtering trips by status."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Publish one trip
+        trip_to_publish = test_trips_with_tags[0]
+        await service.publish_trip(trip_id=trip_to_publish.trip_id, user_id=test_user.id)
+
+        # Act - Filter by PUBLISHED status
+        published_trips = await service.get_user_trips(
+            user_id=test_user.id, status=TripStatus.PUBLISHED
+        )
+
+        # Assert
+        assert len(published_trips) == 1
+        assert published_trips[0].status == TripStatus.PUBLISHED
+
+        # Act - Filter by DRAFT status
+        draft_trips = await service.get_user_trips(
+            user_id=test_user.id, status=TripStatus.DRAFT
+        )
+
+        # Assert
+        assert len(draft_trips) == 2
+        for trip in draft_trips:
+            assert trip.status == TripStatus.DRAFT
+
+    async def test_get_user_trips_combined_filters(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test combining tag and status filters."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Publish first trip (has "montaña" tag)
+        await service.publish_trip(
+            trip_id=test_trips_with_tags[0].trip_id, user_id=test_user.id
+        )
+
+        # Act - Filter by tag AND status
+        trips = await service.get_user_trips(
+            user_id=test_user.id, tag="montaña", status=TripStatus.PUBLISHED
+        )
+
+        # Assert
+        assert len(trips) == 1
+        assert trips[0].status == TripStatus.PUBLISHED
+
+        tag_names = [tag_rel.tag.name for tag_rel in trips[0].tags]
+        assert "montaña" in tag_names
+
+    async def test_get_user_trips_pagination(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test pagination with limit and offset."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Act - Get first page (limit=2, offset=0)
+        page1 = await service.get_user_trips(user_id=test_user.id, limit=2, offset=0)
+
+        # Assert
+        assert len(page1) == 2
+
+        # Act - Get second page (limit=2, offset=2)
+        page2 = await service.get_user_trips(user_id=test_user.id, limit=2, offset=2)
+
+        # Assert
+        assert len(page2) == 1  # Only 1 trip left
+
+        # Verify no overlap
+        page1_ids = {trip.trip_id for trip in page1}
+        page2_ids = {trip.trip_id for trip in page2}
+        assert len(page1_ids & page2_ids) == 0
+
+    async def test_get_user_trips_nonexistent_tag(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test filtering by non-existent tag returns empty list."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Act
+        trips = await service.get_user_trips(
+            user_id=test_user.id, tag="nonexistent_tag"
+        )
+
+        # Assert
+        assert len(trips) == 0
+
+    async def test_get_user_trips_ordered_by_created_at_desc(
+        self, db_session: AsyncSession, test_user: User, test_trips_with_tags: list[Trip]
+    ):
+        """Test trips are ordered by created_at descending (newest first)."""
+        # Arrange
+        from src.services.trip_service import TripService
+
+        service = TripService(db_session)
+
+        # Act
+        trips = await service.get_user_trips(user_id=test_user.id)
+
+        # Assert
+        for i in range(len(trips) - 1):
+            assert trips[i].created_at >= trips[i + 1].created_at
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestTripServiceTagLimit:
+    """
+    T085: Unit tests for tag count validation.
+
+    Tests that trips cannot exceed 10 tags.
+    Functional Requirements: FR-023 (Tag count limit)
+    """
+
+    @pytest.fixture
+    async def test_user(self, db_session: AsyncSession) -> User:
+        """Create a test user for trip ownership."""
+        user = User(
+            username="taglimituser",
+            email="taglimit@example.com",
+            hashed_password="hashed_password",
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    async def test_create_trip_with_max_tags(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test creating trip with exactly 10 tags (max allowed)."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripCreateRequest
+
+        service = TripService(db_session)
+
+        # Create trip with 10 tags
+        trip_data = TripCreateRequest(
+            title="Trip with Max Tags",
+            description="Descripción de al menos 50 caracteres para trip con máximo de tags permitidos...",
+            start_date=date(2024, 6, 1),
+            tags=["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
+        )
+
+        # Act
+        trip = await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+
+        # Assert
+        assert len(trip.tags) == 10
+
+    async def test_create_trip_exceeds_max_tags(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test creating trip with more than 10 tags raises ValueError."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripCreateRequest
+
+        service = TripService(db_session)
+
+        # Create trip with 11 tags (exceeds limit)
+        trip_data = TripCreateRequest(
+            title="Trip with Too Many Tags",
+            description="Descripción de al menos 50 caracteres para trip con exceso de tags...",
+            start_date=date(2024, 6, 1),
+            tags=[
+                "tag1",
+                "tag2",
+                "tag3",
+                "tag4",
+                "tag5",
+                "tag6",
+                "tag7",
+                "tag8",
+                "tag9",
+                "tag10",
+                "tag11",  # 11th tag - exceeds limit
+            ],
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="máximo.*10 tags"):
+            await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+
+    async def test_update_trip_exceeds_max_tags(
+        self, db_session: AsyncSession, test_user: User
+    ):
+        """Test updating trip to exceed 10 tags raises ValueError."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripCreateRequest, TripUpdateRequest
+
+        service = TripService(db_session)
+
+        # Create trip with 5 tags
+        create_data = TripCreateRequest(
+            title="Trip to Update",
+            description="Descripción de al menos 50 caracteres para trip que se actualizará luego...",
+            start_date=date(2024, 6, 1),
+            tags=["tag1", "tag2", "tag3", "tag4", "tag5"],
+        )
+        trip = await service.create_trip(user_id=test_user.id, trip_data=create_data)
+
+        # Prepare update with 11 tags
+        update_data = TripUpdateRequest(
+            tags=[
+                "tag1",
+                "tag2",
+                "tag3",
+                "tag4",
+                "tag5",
+                "tag6",
+                "tag7",
+                "tag8",
+                "tag9",
+                "tag10",
+                "tag11",  # 11th tag - exceeds limit
+            ],
+            client_updated_at=datetime.utcnow(),
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError, match="máximo.*10 tags"):
+            await service.update_trip(
+                trip_id=trip.trip_id, user_id=test_user.id, trip_data=update_data
+            )
+
+    async def test_get_all_tags_returns_all(self, db_session: AsyncSession, test_user: User):
+        """Test TripService.get_all_tags() returns all tags ordered by usage."""
+        # Arrange
+        from src.services.trip_service import TripService
+        from src.schemas.trip import TripCreateRequest
+
+        service = TripService(db_session)
+
+        # Create trips with different tags
+        trip_data_list = [
+            {
+                "title": "Trip 1",
+                "description": "Descripción de al menos 50 caracteres para trip número uno con tags...",
+                "start_date": date(2024, 6, 1),
+                "tags": ["popular", "tag2"],
+            },
+            {
+                "title": "Trip 2",
+                "description": "Descripción de al menos 50 caracteres para trip número dos con tags...",
+                "start_date": date(2024, 6, 2),
+                "tags": ["popular", "tag3"],
+            },
+            {
+                "title": "Trip 3",
+                "description": "Descripción de al menos 50 caracteres para trip número tres con tags...",
+                "start_date": date(2024, 6, 3),
+                "tags": ["rare"],
+            },
+        ]
+
+        for data in trip_data_list:
+            request = TripCreateRequest(**data)
+            await service.create_trip(user_id=test_user.id, trip_data=request)
+
+        # Act
+        tags = await service.get_all_tags()
+
+        # Assert
+        assert len(tags) >= 4  # At least our 4 tags (popular, tag2, tag3, rare)
+
+        # Verify ordering by usage_count (descending)
+        for i in range(len(tags) - 1):
+            assert tags[i].usage_count >= tags[i + 1].usage_count
+
+        # Find our tags
+        tag_map = {tag.name: tag for tag in tags}
+
+        assert "popular" in tag_map
+        assert tag_map["popular"].usage_count == 2  # Used in 2 trips
+
+        assert "rare" in tag_map
+        assert tag_map["rare"].usage_count == 1  # Used in 1 trip

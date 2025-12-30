@@ -476,3 +476,325 @@ class TestPhotoReorderWorkflow:
         assert len(trip["photos"]) == 3
         returned_ids = [p["id"] for p in trip["photos"]]
         assert set(returned_ids) == set(photo_ids)
+
+
+# ============================================================================
+# Phase 6: User Story 4 - Tags & Categorization Integration Tests (T082-T083)
+# ============================================================================
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestTagFilteringWorkflow:
+    """
+    T082: Integration test for tag filtering workflow.
+
+    Tests the journey: create trips with tags → filter by tag → verify results.
+    Functional Requirements: FR-025 (Trip listing with tag filtering)
+    """
+
+    async def test_tag_filtering_complete_workflow(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """
+        Test complete tag filtering workflow.
+
+        Steps:
+        1. Create multiple trips with different tags
+        2. Publish some trips
+        3. Filter by specific tag
+        4. Verify only trips with that tag are returned
+        5. Test case-insensitive filtering
+        6. Test combined tag + status filtering
+        """
+        # Step 1: Create trips with different tags
+        trip_payloads = [
+            {
+                "title": "Ruta Bikepacking 1",
+                "description": "Primera ruta de bikepacking por los Pirineos con acampada salvaje...",
+                "start_date": "2024-06-01",
+                "tags": ["bikepacking", "montaña"],
+            },
+            {
+                "title": "Ruta Bikepacking 2",
+                "description": "Segunda ruta de bikepacking por la costa con vistas espectaculares...",
+                "start_date": "2024-07-01",
+                "tags": ["bikepacking", "costa"],
+            },
+            {
+                "title": "Ruta Gravel",
+                "description": "Ruta de gravel por caminos de tierra y carreteras secundarias rurales...",
+                "start_date": "2024-08-01",
+                "tags": ["gravel", "rural"],
+            },
+            {
+                "title": "Ruta Montaña",
+                "description": "Ascenso a puertos de montaña con desniveles pronunciados y paisajes...",
+                "start_date": "2024-09-01",
+                "tags": ["montaña", "puerto"],
+            },
+        ]
+
+        trip_ids = []
+        for payload in trip_payloads:
+            response = await client.post("/trips", json=payload, headers=auth_headers)
+            assert response.status_code == 201
+            trip_ids.append(response.json()["data"]["trip_id"])
+
+        # Step 2: Publish first 3 trips (leave last one as draft)
+        for trip_id in trip_ids[:3]:
+            response = await client.post(
+                f"/trips/{trip_id}/publish", headers=auth_headers
+            )
+            assert response.status_code == 200
+
+        username = "testuser"
+
+        # Step 3: Filter by "bikepacking" tag
+        response = await client.get(
+            f"/users/{username}/trips?tag=bikepacking", headers=auth_headers
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        trips = data["data"]["trips"]
+
+        # Step 4: Verify only trips with "bikepacking" tag are returned
+        assert len(trips) == 2
+        for trip in trips:
+            assert "bikepacking" in [t.lower() for t in trip["tags"]]
+
+        # Step 5: Test case-insensitive filtering
+        response_upper = await client.get(
+            f"/users/{username}/trips?tag=BIKEPACKING", headers=auth_headers
+        )
+
+        assert response_upper.status_code == 200
+        trips_upper = response_upper.json()["data"]["trips"]
+
+        # Should return same results
+        assert len(trips_upper) == len(trips)
+
+        # Step 6: Test combined tag + status filtering
+        response_published = await client.get(
+            f"/users/{username}/trips?tag=bikepacking&status=PUBLISHED",
+            headers=auth_headers,
+        )
+
+        assert response_published.status_code == 200
+        trips_published = response_published.json()["data"]["trips"]
+
+        # Should return only published trips with tag
+        assert len(trips_published) == 2
+        for trip in trips_published:
+            assert "bikepacking" in [t.lower() for t in trip["tags"]]
+            assert trip["status"].upper() == "PUBLISHED"
+
+        # Verify filtering by tag "montaña"
+        response_mountain = await client.get(
+            f"/users/{username}/trips?tag=montaña", headers=auth_headers
+        )
+
+        assert response_mountain.status_code == 200
+        trips_mountain = response_mountain.json()["data"]["trips"]
+
+        # Should return 2 trips (Bikepacking 1 and Montaña)
+        assert len(trips_mountain) == 2
+
+    async def test_tag_filtering_with_pagination(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test tag filtering works with pagination parameters."""
+        # Create 5 trips with same tag
+        for i in range(5):
+            payload = {
+                "title": f"Viaje Popular {i}",
+                "description": f"Descripción del viaje popular número {i} con tag común de prueba...",
+                "start_date": "2024-06-01",
+                "tags": ["popular"],
+            }
+            await client.post("/trips", json=payload, headers=auth_headers)
+
+        username = "testuser"
+
+        # Test pagination with limit=2
+        response_page1 = await client.get(
+            f"/users/{username}/trips?tag=popular&limit=2&offset=0",
+            headers=auth_headers,
+        )
+
+        assert response_page1.status_code == 200
+        data_page1 = response_page1.json()["data"]
+
+        assert data_page1["limit"] == 2
+        assert data_page1["offset"] == 0
+        assert len(data_page1["trips"]) <= 2
+
+        # Get second page
+        response_page2 = await client.get(
+            f"/users/{username}/trips?tag=popular&limit=2&offset=2",
+            headers=auth_headers,
+        )
+
+        assert response_page2.status_code == 200
+        data_page2 = response_page2.json()["data"]
+
+        assert data_page2["limit"] == 2
+        assert data_page2["offset"] == 2
+
+        # Verify pages don't overlap
+        page1_ids = [t["trip_id"] for t in data_page1["trips"]]
+        page2_ids = [t["trip_id"] for t in data_page2["trips"]]
+
+        assert len(set(page1_ids) & set(page2_ids)) == 0
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestTagPopularityWorkflow:
+    """
+    T083: Integration test for tag popularity ordering.
+
+    Tests the journey: create trips with tags → verify tag usage counts → verify ordering.
+    Functional Requirements: FR-027 (Tag browsing with popularity)
+    """
+
+    async def test_tag_popularity_ordering_workflow(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """
+        Test complete tag popularity workflow.
+
+        Steps:
+        1. Create trips with varying tag usage
+        2. Get all tags
+        3. Verify tags are ordered by usage_count descending
+        4. Verify usage counts are accurate
+        """
+        from src.models.trip import Tag
+
+        # Step 1: Create trips with varying tag usage
+        # Tag "very_popular" will be used 5 times
+        for i in range(5):
+            payload = {
+                "title": f"Viaje Very Popular {i}",
+                "description": f"Descripción del viaje muy popular número {i} para conteo de tags...",
+                "start_date": "2024-06-01",
+                "tags": ["very_popular"],
+            }
+            await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Tag "moderately_popular" will be used 3 times
+        for i in range(3):
+            payload = {
+                "title": f"Viaje Moderate {i}",
+                "description": f"Descripción del viaje moderado número {i} para testing de popularidad...",
+                "start_date": "2024-06-01",
+                "tags": ["moderately_popular"],
+            }
+            await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Tag "rare" will be used 1 time
+        payload_rare = {
+            "title": "Viaje Raro",
+            "description": "Descripción del viaje raro único para testing de tag con poco uso...",
+            "start_date": "2024-06-01",
+            "tags": ["rare"],
+        }
+        await client.post("/trips", json=payload_rare, headers=auth_headers)
+
+        # Step 2: Get all tags
+        response = await client.get("/tags", headers=auth_headers)
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        tags = data["data"]["tags"]
+
+        # Step 3: Verify tags are ordered by usage_count descending
+        for i in range(len(tags) - 1):
+            assert (
+                tags[i]["usage_count"] >= tags[i + 1]["usage_count"]
+            ), f"Tags not ordered by popularity: {tags[i]['name']}({tags[i]['usage_count']}) should be >= {tags[i+1]['name']}({tags[i+1]['usage_count']})"
+
+        # Step 4: Verify usage counts are accurate
+        tag_map = {tag["name"]: tag for tag in tags}
+
+        if "very_popular" in tag_map:
+            assert (
+                tag_map["very_popular"]["usage_count"] == 5
+            ), "very_popular should have usage_count of 5"
+
+        if "moderately_popular" in tag_map:
+            assert (
+                tag_map["moderately_popular"]["usage_count"] == 3
+            ), "moderately_popular should have usage_count of 3"
+
+        if "rare" in tag_map:
+            assert tag_map["rare"]["usage_count"] == 1, "rare should have usage_count of 1"
+
+        # Verify normalized field is lowercase
+        for tag in tags:
+            assert tag["normalized"] == tag["name"].lower()
+
+    async def test_tag_usage_count_updates_on_trip_creation(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """Test that tag usage_count increases when trips are created."""
+        from src.models.trip import Tag
+
+        # Get initial tag list
+        response_before = await client.get("/tags", headers=auth_headers)
+        tags_before = response_before.json()["data"]["tags"]
+
+        tag_map_before = {tag["name"]: tag["usage_count"] for tag in tags_before}
+        initial_count = tag_map_before.get("test_increment", 0)
+
+        # Create trip with tag
+        payload = {
+            "title": "Viaje para incrementar tag",
+            "description": "Descripción del viaje para testing de incremento de contador de tags...",
+            "start_date": "2024-06-01",
+            "tags": ["test_increment"],
+        }
+        await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Get updated tag list
+        response_after = await client.get("/tags", headers=auth_headers)
+        tags_after = response_after.json()["data"]["tags"]
+
+        tag_map_after = {tag["name"]: tag["usage_count"] for tag in tags_after}
+
+        # Verify usage count increased
+        assert tag_map_after["test_increment"] == initial_count + 1
+
+    async def test_tag_usage_count_with_multiple_tags_per_trip(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test that all tags in a trip get their usage_count incremented."""
+        # Create trip with 3 tags
+        payload = {
+            "title": "Viaje con múltiples tags",
+            "description": "Descripción del viaje con múltiples tags para testing de incremento múltiple...",
+            "start_date": "2024-06-01",
+            "tags": ["tag_a", "tag_b", "tag_c"],
+        }
+        await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Get all tags
+        response = await client.get("/tags", headers=auth_headers)
+        tags = response.json()["data"]["tags"]
+
+        tag_map = {tag["name"]: tag["usage_count"] for tag in tags}
+
+        # All 3 tags should exist and have at least 1 usage
+        assert "tag_a" in tag_map
+        assert "tag_b" in tag_map
+        assert "tag_c" in tag_map
+
+        assert tag_map["tag_a"] >= 1
+        assert tag_map["tag_b"] >= 1
+        assert tag_map["tag_c"] >= 1
