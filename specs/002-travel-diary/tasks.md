@@ -260,15 +260,20 @@ Web application structure:
 - **Integration Tests**: 5/5 passing (100%) ✅
   - TestTagFilteringWorkflow: 2/2 passing
   - TestTagPopularityWorkflow: 3/3 passing
-- **Fixed Issues**:
+- **Fixed Issues (Implementation)**:
   - Corrected `Trip.tags` → `Trip.trip_tags` relationship reference
   - Fixed test username mismatch (`testuser` → `test_user`)
   - Fixed TripStatus enum values (uppercase → lowercase)
+- **Fixed Issues (Test Script)**:
+  - Corrected login endpoint field: `email` → `login`
+  - Fixed trip ID extraction: `"id"` → `"trip_id"`
+  - Fixed status parameter values: `PUBLISHED/DRAFT` → `published/draft`
 - **Functionality Verified**:
   - Case-insensitive tag filtering working
   - Combined tag + status filtering working
   - Pagination with tag filters working
   - Tag popularity ordering working correctly
+- **Manual Testing Script**: `backend/scripts/test_tags.sh` ✅ Corrected and ready
 
 ---
 

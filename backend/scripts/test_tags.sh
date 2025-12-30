@@ -47,7 +47,7 @@ echo ""
 
 LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"email\": \"$EMAIL\", \"password\": \"$PASSWORD\"}")
+  -d "{\"login\": \"$EMAIL\", \"password\": \"$PASSWORD\"}")
 
 TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"access_token":"[^"]*' | sed 's/"access_token":"//')
 USERNAME=$(echo "$LOGIN_RESPONSE" | grep -o '"username":"[^"]*' | sed 's/"username":"//')
@@ -144,25 +144,25 @@ print_info "=== STEP 4: Filtrado por tags (case-insensitive) ==="
 print_test "Filtrar por tag 'montaña' (lowercase)"
 FILTER1=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=montaña" \
   -H "Authorization: Bearer $TOKEN")
-COUNT1=$(echo "$FILTER1" | grep -o '"id"' | wc -l)
+COUNT1=$(echo "$FILTER1" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT1 trips (esperado: 2 - trip1 y trip3)"
 
 print_test "Filtrar por tag 'MONTAÑA' (uppercase)"
 FILTER2=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=MONTAÑA" \
   -H "Authorization: Bearer $TOKEN")
-COUNT2=$(echo "$FILTER2" | grep -o '"id"' | wc -l)
+COUNT2=$(echo "$FILTER2" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT2 trips (esperado: 2 - case insensitive)"
 
 print_test "Filtrar por tag 'playa'"
 FILTER3=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=playa" \
   -H "Authorization: Bearer $TOKEN")
-COUNT3=$(echo "$FILTER3" | grep -o '"id"' | wc -l)
+COUNT3=$(echo "$FILTER3" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT3 trips (esperado: 1 - trip2)"
 
 print_test "Filtrar por tag inexistente 'ciudad'"
 FILTER4=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=ciudad" \
   -H "Authorization: Bearer $TOKEN")
-COUNT4=$(echo "$FILTER4" | grep -o '"id"' | wc -l)
+COUNT4=$(echo "$FILTER4" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT4 trips (esperado: 0)"
 echo ""
 
@@ -170,15 +170,15 @@ echo ""
 print_info "=== STEP 5: Filtrado por status ==="
 
 print_test "Filtrar solo PUBLISHED"
-STATUS1=$(curl -s "$BASE_URL/users/$USERNAME/trips?status=PUBLISHED" \
+STATUS1=$(curl -s "$BASE_URL/users/$USERNAME/trips?status=published" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_PUB=$(echo "$STATUS1" | grep -o '"id"' | wc -l)
+COUNT_PUB=$(echo "$STATUS1" | grep -o '"trip_id"' | wc -l)
 print_success "PUBLISHED: $COUNT_PUB trips (esperado: 2 - trip1 y trip2)"
 
 print_test "Filtrar solo DRAFT"
-STATUS2=$(curl -s "$BASE_URL/users/$USERNAME/trips?status=DRAFT" \
+STATUS2=$(curl -s "$BASE_URL/users/$USERNAME/trips?status=draft" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_DRAFT=$(echo "$STATUS2" | grep -o '"id"' | wc -l)
+COUNT_DRAFT=$(echo "$STATUS2" | grep -o '"trip_id"' | wc -l)
 print_success "DRAFT: $COUNT_DRAFT trips (esperado: 2 - trip3 y trip4)"
 echo ""
 
@@ -186,21 +186,21 @@ echo ""
 print_info "=== STEP 6: Filtros combinados (tag + status) ==="
 
 print_test "Filtrar tag='montaña' + status='PUBLISHED'"
-COMBINED1=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=montaña&status=PUBLISHED" \
+COMBINED1=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=montaña&status=published" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_C1=$(echo "$COMBINED1" | grep -o '"id"' | wc -l)
+COUNT_C1=$(echo "$COMBINED1" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT_C1 trips (esperado: 1 - solo trip1)"
 
 print_test "Filtrar tag='montaña' + status='DRAFT'"
-COMBINED2=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=montaña&status=DRAFT" \
+COMBINED2=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=montaña&status=draft" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_C2=$(echo "$COMBINED2" | grep -o '"id"' | wc -l)
+COUNT_C2=$(echo "$COMBINED2" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT_C2 trips (esperado: 1 - solo trip3)"
 
 print_test "Filtrar tag='playa' + status='DRAFT'"
-COMBINED3=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=playa&status=DRAFT" \
+COMBINED3=$(curl -s "$BASE_URL/users/$USERNAME/trips?tag=playa&status=draft" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_C3=$(echo "$COMBINED3" | grep -o '"id"' | wc -l)
+COUNT_C3=$(echo "$COMBINED3" | grep -o '"trip_id"' | wc -l)
 print_success "Encontrados: $COUNT_C3 trips (esperado: 0 - playa está published)"
 echo ""
 
@@ -210,19 +210,19 @@ print_info "=== STEP 7: Paginación ==="
 print_test "Obtener primeros 2 trips (limit=2, offset=0)"
 PAGE1=$(curl -s "$BASE_URL/users/$USERNAME/trips?limit=2&offset=0" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_P1=$(echo "$PAGE1" | grep -o '"id"' | wc -l)
+COUNT_P1=$(echo "$PAGE1" | grep -o '"trip_id"' | wc -l)
 print_success "Página 1: $COUNT_P1 trips (esperado: 2)"
 
 print_test "Obtener siguientes 2 trips (limit=2, offset=2)"
 PAGE2=$(curl -s "$BASE_URL/users/$USERNAME/trips?limit=2&offset=2" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_P2=$(echo "$PAGE2" | grep -o '"id"' | wc -l)
+COUNT_P2=$(echo "$PAGE2" | grep -o '"trip_id"' | wc -l)
 print_success "Página 2: $COUNT_P2 trips (esperado: 2)"
 
 print_test "Obtener más allá del total (limit=2, offset=10)"
 PAGE3=$(curl -s "$BASE_URL/users/$USERNAME/trips?limit=2&offset=10" \
   -H "Authorization: Bearer $TOKEN")
-COUNT_P3=$(echo "$PAGE3" | grep -o '"id"' | wc -l)
+COUNT_P3=$(echo "$PAGE3" | grep -o '"trip_id"' | wc -l)
 print_success "Página 3: $COUNT_P3 trips (esperado: 0 - offset fuera de rango)"
 echo ""
 
