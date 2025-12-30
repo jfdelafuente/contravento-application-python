@@ -66,7 +66,7 @@ class ProfileResponse(BaseModel):
     location: Optional[str] = Field(None, description="User's location")
     cycling_type: Optional[str] = Field(
         None,
-        description="Type of cycling: road, mountain, gravel, touring, commuting"
+        description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
     show_email: bool = Field(..., description="Email visibility in public profile")
     show_location: bool = Field(..., description="Location visibility in public profile")
@@ -130,7 +130,7 @@ class ProfileUpdateRequest(BaseModel):
 
     cycling_type: Optional[str] = Field(
         None,
-        description="Type of cycling: road, mountain, gravel, touring, commuting"
+        description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
 
     show_email: Optional[bool] = Field(

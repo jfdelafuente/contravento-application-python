@@ -177,7 +177,7 @@ def validate_cycling_type(value: str) -> str:
     Validate cycling type.
 
     Rules (FR-015):
-    - Must be one of: road, mountain, gravel, touring, commuting
+    - Must be one of: road, mountain, gravel, touring, commuting, bikepacking
 
     Args:
         value: Cycling type to validate
@@ -191,16 +191,18 @@ def validate_cycling_type(value: str) -> str:
     Example:
         >>> validate_cycling_type("mountain")
         'mountain'
+        >>> validate_cycling_type("bikepacking")
+        'bikepacking'
     """
     if not value:
         return None
 
-    allowed_types = {"road", "mountain", "gravel", "touring", "commuting"}
+    allowed_types = {"road", "mountain", "gravel", "touring", "commuting", "bikepacking"}
     value_lower = value.lower()
 
     if value_lower not in allowed_types:
         raise ValueError(
-            f"El tipo de ciclismo debe ser uno de: {', '.join(allowed_types)}"
+            f"El tipo de ciclismo debe ser uno de: {', '.join(sorted(allowed_types))}"
         )
 
     return value_lower
