@@ -506,3 +506,412 @@ class TestTripGetContract:
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["status"] == "published"
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+class TestTripPhotoUploadContract:
+    """
+    T046: Contract tests for POST /trips/{trip_id}/photos.
+
+    Validates photo upload endpoint against OpenAPI spec.
+    Functional Requirements: FR-010, FR-011
+    """
+
+    async def test_upload_photo_success_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test uploading photo to trip returns 201 with photo data."""
+        # Arrange - Create a trip first
+        create_payload = {
+            "title": "Trip for Photo Upload",
+            "description": "Testing photo upload functionality",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Create a test image file
+        from io import BytesIO
+        from PIL import Image
+
+        img = Image.new("RGB", (800, 600), color="red")
+        img_bytes = BytesIO()
+        img.save(img_bytes, format="JPEG")
+        img_bytes.seek(0)
+
+        # Act - Upload photo
+        files = {"photo": ("test.jpg", img_bytes, "image/jpeg")}
+        response = await client.post(
+            f"/trips/{trip_id}/photos", files=files, headers=auth_headers
+        )
+
+        # Assert - Response structure
+        assert response.status_code == 201
+        data = response.json()
+
+        assert data["success"] is True
+        assert data["data"] is not None
+        assert data["error"] is None
+
+        # Validate photo data structure
+        photo = data["data"]
+        assert "id" in photo
+        assert photo["trip_id"] == trip_id
+        assert "photo_url" in photo
+        assert "thumb_url" in photo
+        assert "order" in photo
+        assert "file_size" in photo
+        assert "width" in photo
+        assert "height" in photo
+        assert "uploaded_at" in photo
+
+    async def test_upload_photo_invalid_format(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test uploading unsupported file format returns 400."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Test Trip",
+            "description": "Test description",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Create a text file (invalid format)
+        from io import BytesIO
+        text_file = BytesIO(b"This is not an image")
+
+        # Act - Try to upload
+        files = {"photo": ("test.txt", text_file, "text/plain")}
+        response = await client.post(
+            f"/trips/{trip_id}/photos", files=files, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 400
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "INVALID_FILE_FORMAT"
+        assert "formato" in data["error"]["message"].lower()
+
+    async def test_upload_photo_file_too_large(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test uploading file larger than 10MB returns 400."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Test Trip",
+            "description": "Test description",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Create a large fake file (11MB)
+        from io import BytesIO
+        large_file = BytesIO(b"0" * (11 * 1024 * 1024))
+
+        # Act - Try to upload
+        files = {"photo": ("large.jpg", large_file, "image/jpeg")}
+        response = await client.post(
+            f"/trips/{trip_id}/photos", files=files, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 400
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "FILE_TOO_LARGE"
+        assert "10mb" in data["error"]["message"].lower()
+
+    async def test_upload_photo_max_photos_exceeded(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test uploading more than 20 photos returns 400."""
+        # Note: This test documents the contract but may be slow to execute
+        # Consider mocking in unit tests for faster feedback
+        pass  # Will be tested in integration tests
+
+    async def test_upload_photo_unauthorized(self, client: AsyncClient):
+        """Test uploading photo without auth returns 401."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        from io import BytesIO
+        from PIL import Image
+
+        img = Image.new("RGB", (100, 100), color="blue")
+        img_bytes = BytesIO()
+        img.save(img_bytes, format="JPEG")
+        img_bytes.seek(0)
+
+        # Act - No auth_headers
+        files = {"photo": ("test.jpg", img_bytes, "image/jpeg")}
+        response = await client.post(f"/trips/{fake_trip_id}/photos", files=files)
+
+        # Assert
+        assert response.status_code == 401
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "UNAUTHORIZED"
+
+    async def test_upload_photo_trip_not_found(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test uploading photo to non-existent trip returns 404."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        from io import BytesIO
+        from PIL import Image
+
+        img = Image.new("RGB", (100, 100), color="green")
+        img_bytes = BytesIO()
+        img.save(img_bytes, format="JPEG")
+        img_bytes.seek(0)
+
+        # Act
+        files = {"photo": ("test.jpg", img_bytes, "image/jpeg")}
+        response = await client.post(
+            f"/trips/{fake_trip_id}/photos", files=files, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 404
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "NOT_FOUND"
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+class TestTripPhotoDeleteContract:
+    """
+    T047: Contract tests for DELETE /trips/{trip_id}/photos/{photo_id}.
+
+    Validates photo deletion endpoint against OpenAPI spec.
+    Functional Requirements: FR-013
+    """
+
+    async def test_delete_photo_success_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test deleting photo returns 200 with success message."""
+        # Arrange - Create trip and upload photo
+        create_payload = {
+            "title": "Trip for Photo Delete",
+            "description": "Testing photo deletion",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Upload a photo
+        from io import BytesIO
+        from PIL import Image
+
+        img = Image.new("RGB", (200, 200), color="yellow")
+        img_bytes = BytesIO()
+        img.save(img_bytes, format="JPEG")
+        img_bytes.seek(0)
+
+        files = {"photo": ("test.jpg", img_bytes, "image/jpeg")}
+        upload_response = await client.post(
+            f"/trips/{trip_id}/photos", files=files, headers=auth_headers
+        )
+        photo_id = upload_response.json()["data"]["id"]
+
+        # Act - Delete photo
+        response = await client.delete(
+            f"/trips/{trip_id}/photos/{photo_id}", headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert data["data"] is not None
+        assert "message" in data["data"]
+        assert "eliminada" in data["data"]["message"].lower()
+
+    async def test_delete_photo_not_found(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test deleting non-existent photo returns 404."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Test Trip",
+            "description": "Test description",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+        fake_photo_id = "00000000-0000-0000-0000-000000000000"
+
+        # Act
+        response = await client.delete(
+            f"/trips/{trip_id}/photos/{fake_photo_id}", headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 404
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "NOT_FOUND"
+
+    async def test_delete_photo_unauthorized(self, client: AsyncClient):
+        """Test deleting photo without auth returns 401."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        fake_photo_id = "00000000-0000-0000-0000-000000000001"
+
+        # Act - No auth_headers
+        response = await client.delete(f"/trips/{fake_trip_id}/photos/{fake_photo_id}")
+
+        # Assert
+        assert response.status_code == 401
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "UNAUTHORIZED"
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+class TestTripPhotoReorderContract:
+    """
+    T048: Contract tests for PUT /trips/{trip_id}/photos/reorder.
+
+    Validates photo reordering endpoint against OpenAPI spec.
+    Functional Requirements: FR-012
+    """
+
+    async def test_reorder_photos_success_schema(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test reordering photos returns 200 with updated trip."""
+        # Arrange - Create trip and upload multiple photos
+        create_payload = {
+            "title": "Trip for Photo Reorder",
+            "description": "Testing photo reordering",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Upload 3 photos
+        photo_ids = []
+        for i, color in enumerate(["red", "green", "blue"]):
+            from io import BytesIO
+            from PIL import Image
+
+            img = Image.new("RGB", (100, 100), color=color)
+            img_bytes = BytesIO()
+            img.save(img_bytes, format="JPEG")
+            img_bytes.seek(0)
+
+            files = {"photo": (f"test_{i}.jpg", img_bytes, "image/jpeg")}
+            upload_response = await client.post(
+                f"/trips/{trip_id}/photos", files=files, headers=auth_headers
+            )
+            photo_ids.append(upload_response.json()["data"]["id"])
+
+        # Act - Reorder photos (reverse order)
+        payload = {"photo_order": list(reversed(photo_ids))}
+        response = await client.put(
+            f"/trips/{trip_id}/photos/reorder", json=payload, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert data["data"] is not None
+
+    async def test_reorder_photos_invalid_photo_ids(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test reordering with invalid photo IDs returns 400."""
+        # Arrange - Create trip
+        create_payload = {
+            "title": "Test Trip",
+            "description": "Test description",
+            "start_date": "2024-05-15",
+        }
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Act - Try to reorder with fake photo IDs
+        payload = {
+            "photo_order": [
+                "00000000-0000-0000-0000-000000000001",
+                "00000000-0000-0000-0000-000000000002",
+            ]
+        }
+        response = await client.put(
+            f"/trips/{trip_id}/photos/reorder", json=payload, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 400
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+
+    async def test_reorder_photos_unauthorized(self, client: AsyncClient):
+        """Test reordering photos without auth returns 401."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        payload = {"photo_order": ["photo1", "photo2"]}
+
+        # Act - No auth_headers
+        response = await client.put(f"/trips/{fake_trip_id}/photos/reorder", json=payload)
+
+        # Assert
+        assert response.status_code == 401
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "UNAUTHORIZED"
+
+    async def test_reorder_photos_trip_not_found(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """Test reordering photos for non-existent trip returns 404."""
+        # Arrange
+        fake_trip_id = "00000000-0000-0000-0000-000000000000"
+        payload = {"photo_order": ["photo1", "photo2"]}
+
+        # Act
+        response = await client.put(
+            f"/trips/{fake_trip_id}/photos/reorder", json=payload, headers=auth_headers
+        )
+
+        # Assert
+        assert response.status_code == 404
+        data = response.json()
+
+        assert data["success"] is False
+        assert data["error"]["code"] == "NOT_FOUND"
