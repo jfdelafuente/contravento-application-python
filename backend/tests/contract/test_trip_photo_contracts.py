@@ -61,9 +61,9 @@ class TestTripPhotoUploadContract:
         assert data["data"] is not None
         assert data["error"] is None
 
-        # Validate photo data
+        # Validate photo data (matches OpenAPI spec: trips-api.yaml lines 354-363)
         photo_data = data["data"]
-        assert "photo_id" in photo_data
+        assert "id" in photo_data  # Contract uses 'id', not 'photo_id'
         assert "trip_id" in photo_data
         assert photo_data["trip_id"] == trip_id
         assert "photo_url" in photo_data
