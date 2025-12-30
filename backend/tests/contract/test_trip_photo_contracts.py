@@ -233,7 +233,7 @@ class TestTripPhotoDeleteContract:
             headers=auth_headers,
         )
         photo_data = upload_response.json()["data"]
-        photo_id = photo_data["photo_id"]
+        photo_id = photo_data["id"]  # Contract uses 'id', not 'photo_id'
 
         # Act - Delete photo
         response = await client.delete(
@@ -329,7 +329,7 @@ class TestTripPhotoReorderContract:
                 files={"photo": (f"test{i}.jpg", img_bytes, "image/jpeg")},
                 headers=auth_headers,
             )
-            photo_ids.append(upload_response.json()["data"]["photo_id"])
+            photo_ids.append(upload_response.json()["data"]["id"])  # Contract uses 'id'
 
         # Act - Reorder photos (reverse order)
         reorder_payload = {
