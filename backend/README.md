@@ -90,10 +90,16 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 Las migraciones de Alembic se ejecutan desde el directorio `backend/`:
 
 ```bash
+# Aplicar migraciones (crear tablas)
 poetry run alembic upgrade head
+
+# Seedear achievements (logros predefinidos)
+poetry run python scripts/seed_achievements.py
 ```
 
 > **Nota**: El archivo `alembic.ini` en la raíz de `backend/` apunta automáticamente a `src/migrations/`. No es necesario cambiar de directorio.
+>
+> **Importante**: El script `seed_achievements.py` debe ejecutarse **una sola vez** después de crear las tablas. Es idempotente (puede ejecutarse múltiples veces sin duplicar datos).
 
 ### 5. Ejecutar Servidor de Desarrollo
 
