@@ -75,6 +75,7 @@ contravento_test.db
 backend/storage/
 !backend/storage/.gitkeep
 test_storage/
+temp_photos/
 
 # Logs
 *.log
