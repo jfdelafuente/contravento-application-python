@@ -1,6 +1,6 @@
-# Manual Testing Guide - Travel Diary Photo Gallery
+# Manual Testing Guide - Travel Diary API
 
-Esta guía proporciona comandos `curl` para probar manualmente todos los endpoints de la funcionalidad de galería de fotos del Travel Diary.
+Esta guía proporciona comandos `curl` para probar manualmente todos los endpoints de la API del Travel Diary (Trip CRUD + Photo Management).
 
 ## Tabla de Contenidos
 
@@ -196,6 +196,234 @@ curl -X POST "$API_URL/trips/$TRIP_ID/publish" \
     "trip_id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "published",
     "published_at": "2024-12-28T12:05:00Z"
+  },
+  "error": null
+}
+```
+
+### 4. Editar trip (FR-016, FR-020) ⭐ NUEVO
+
+```bash
+curl -X PUT "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Vía Verde del Aceite - Actualizado",
+    "description": "Un recorrido espectacular de 127 kilómetros entre Jaén y Córdoba. ACTUALIZADO: Añadido tramo nocturno espectacular bajo la luna llena.",
+    "distance_km": 135.5,
+    "client_updated_at": "2024-12-28T12:00:00Z"
+  }'
+```
+
+**Respuesta esperada:**
+```json
+{
+  "success": true,
+  "data": {
+    "trip_id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Vía Verde del Aceite - Actualizado",
+    "description": "Un recorrido espectacular de 127 kilómetros entre Jaén y Córdoba. ACTUALIZADO: Añadido tramo nocturno espectacular bajo la luna llena.",
+    "distance_km": 135.5,
+    "updated_at": "2024-12-28T12:10:00Z",
+    ...
+  },
+  "error": null
+}
+```
+
+#### Actualización parcial (solo algunos campos)
+
+```bash
+# Solo actualizar título y distancia
+curl -X PUT "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Nuevo Título",
+    "distance_km": 150.0,
+    "client_updated_at": "2024-12-28T12:10:00Z"
+  }'
+```
+
+#### Validación: Conflicto de edición concurrente (Optimistic Locking)
+
+```bash
+# Usar timestamp antiguo (debe fallar con 409)
+curl -X PUT "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Intento de actualización obsoleta",
+    "client_updated_at": "2024-01-01T00:00:00Z"
+  }'
+```
+
+**Respuesta esperada (error 409):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "CONFLICT",
+    "message": "El viaje ha sido modificado por otra persona. Por favor, recarga y vuelve a intentarlo."
+  }
+}
+```
+
+#### Validación: Sin permisos (no eres el owner)
+
+```bash
+# Login como otro usuario
+USER2_TOKEN=$(curl -s -X POST "$API_URL/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"login": "maria@example.com", "password": "SecurePass456!"}' \
+  | jq -r '.data.access_token')
+
+# Intentar editar trip de otro usuario (debe fallar con 403)
+curl -X PUT "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $USER2_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Intento de edición no autorizada"
+  }'
+```
+
+**Respuesta esperada (error 403):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "No tienes permiso para editar este viaje"
+  }
+}
+```
+
+#### Validación: Trip no encontrado
+
+```bash
+curl -X PUT "$API_URL/trips/00000000-0000-0000-0000-000000000000" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Nuevo título"}'
+```
+
+**Respuesta esperada (error 404):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Viaje no encontrado"
+  }
+}
+```
+
+### 5. Eliminar trip (FR-017, FR-018) ⭐ NUEVO
+
+```bash
+curl -X DELETE "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Respuesta esperada:**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Viaje eliminado correctamente",
+    "trip_id": "550e8400-e29b-41d4-a716-446655440000"
+  },
+  "error": null
+}
+```
+
+#### Verificar que el trip ya no existe
+
+```bash
+curl -X GET "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Respuesta esperada (error 404):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Viaje no encontrado"
+  }
+}
+```
+
+#### Validación: Sin permisos (no eres el owner)
+
+```bash
+# Login como otro usuario
+USER2_TOKEN=$(curl -s -X POST "$API_URL/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"login": "maria@example.com", "password": "SecurePass456!"}' \
+  | jq -r '.data.access_token')
+
+# Intentar eliminar trip de otro usuario (debe fallar con 403)
+curl -X DELETE "$API_URL/trips/$TRIP_ID" \
+  -H "Authorization: Bearer $USER2_TOKEN"
+```
+
+**Respuesta esperada (error 403):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "No tienes permiso para eliminar este viaje"
+  }
+}
+```
+
+#### Validación: Trip no encontrado
+
+```bash
+curl -X DELETE "$API_URL/trips/00000000-0000-0000-0000-000000000000" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Respuesta esperada (error 404):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Viaje no encontrado"
+  }
+}
+```
+
+#### Verificar actualización de estadísticas del usuario
+
+Después de eliminar un trip, las estadísticas del usuario deben actualizarse automáticamente:
+
+```bash
+# Obtener estadísticas del usuario
+curl -X GET "$API_URL/users/me/stats" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Respuesta esperada:**
+```json
+{
+  "success": true,
+  "data": {
+    "total_trips": 0,
+    "published_trips": 0,
+    "draft_trips": 0,
+    "total_distance_km": 0.0,
+    "total_photos": 0
   },
   "error": null
 }
@@ -868,5 +1096,5 @@ curl -X GET "$API_URL/trips/$TRIP_ID" -H "Authorization: Bearer $TOKEN"
 
 ---
 
-**Última actualización:** 2024-12-28
-**Versión:** 0.2.0 (User Story 2 - Photo Gallery)
+**Última actualización:** 2025-12-30
+**Versión:** 0.3.0 (User Story 3 - Edit/Delete Trips)

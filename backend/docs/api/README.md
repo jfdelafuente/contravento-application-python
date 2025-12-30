@@ -44,12 +44,16 @@ Guía para usar Postman/Insomnia con la API.
 
 ## Features Documentadas
 
-### Travel Diary - Photo Gallery (v0.2.0)
+### Travel Diary - Trip Management (v0.3.0)
 
-**Endpoints:**
+**Trip CRUD Endpoints:**
 - `POST /trips` - Crear trip
 - `GET /trips/{trip_id}` - Obtener trip
+- `PUT /trips/{trip_id}` - Editar trip ⭐ NUEVO
+- `DELETE /trips/{trip_id}` - Eliminar trip ⭐ NUEVO
 - `POST /trips/{trip_id}/publish` - Publicar trip
+
+**Photo Management Endpoints:**
 - `POST /trips/{trip_id}/photos` - Upload foto
 - `DELETE /trips/{trip_id}/photos/{photo_id}` - Eliminar foto
 - `PUT /trips/{trip_id}/photos/reorder` - Reordenar fotos
@@ -60,6 +64,8 @@ Guía para usar Postman/Insomnia con la API.
 - FR-009, FR-010, FR-011: Photo upload and processing
 - FR-012: Photo reordering
 - FR-013: Photo deletion
+- FR-016, FR-020: Trip editing with optimistic locking ⭐ NUEVO
+- FR-017, FR-018: Trip deletion with stats update ⭐ NUEVO
 
 **Características:**
 - Upload: Max 20 fotos/trip, max 10MB/foto, formatos JPG/PNG/WebP
@@ -132,5 +138,5 @@ Para preguntas o issues:
 ---
 
 **Última actualización:** 2025-12-30
-**Versión API:** 0.2.0 (User Story 2 - Photo Gallery) ✅ COMPLETE
-**Test Coverage:** 25 tests (9 contract + 3 integration + 13 unit)
+**Versión API:** 0.3.0 (User Story 3 - Edit/Delete Trips) ✅ COMPLETE
+**Test Coverage:** 25 tests (9 contract + 3 integration + 13 unit) + Phase 5 pending
