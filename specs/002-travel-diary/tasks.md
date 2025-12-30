@@ -29,17 +29,17 @@
   - **Test Status**: 14/34 automated tests passing (41%)
   - **Functional Status**: Core features verified working via manual testing
   - **Known Issue**: Some automated test failures due to schema differences
-- ⏳ **User Story 3 (Edit/Delete)**: Service layer complete with **stats sync** (T073-T075) ✅
-  - TripService methods: update_trip(), delete_trip()
-  - ⏳ API endpoints pending (T076-T077)
-  - ⏳ Tests pending (T064-T072)
+- ✅ **User Story 3 (Edit/Delete)**: Implementation complete with **stats sync** (T073-T077) ✅
+  - TripService methods: update_trip(), delete_trip() ✅
+  - API endpoints: PUT /trips/{id}, DELETE /trips/{id} ✅
+  - ⏳ Tests pending (T064-T072, T078-T079)
 - ✅ **Stats Integration Feature**:
   - Auto-update on publish/edit/delete trips
   - Photo count tracking (add/remove)
   - Achievement verification & awarding
   - See: [backend/docs/STATS_INTEGRATION.md](../../backend/docs/STATS_INTEGRATION.md) for full documentation
 
-**Next Steps**: Phase 5 - User Story 3 (Edit/Delete) - Implement API endpoints (T076-T077) and write tests (T064-T072)
+**Next Steps**: Complete Phase 5 testing (T078-T079), then Phase 6 - User Story 4 (Tags & Categorization)
 
 ---
 
@@ -208,8 +208,8 @@ Web application structure:
 - [x] T073 [US3] Implement TripService.update_trip() in backend/src/services/trip_service.py (optimistic locking, partial updates, HTML sanitization, **stats sync** ✅)
 - [x] T074 [US3] Implement TripService.delete_trip() in backend/src/services/trip_service.py (cascade delete, photo cleanup, **stats update** ✅)
 - [x] T075 [US3] Implement TripService._update_user_stats_after_deletion() helper in backend/src/services/trip_service.py *(Implemented as integrated call to StatsService.update_stats_on_trip_delete)*
-- [ ] T076 [US3] Implement PUT /trips/{id} endpoint in backend/src/api/trips.py (with if_unmodified_since query param)
-- [ ] T077 [US3] Implement DELETE /trips/{id} endpoint in backend/src/api/trips.py
+- [x] T076 [US3] Implement PUT /trips/{id} endpoint in backend/src/api/trips.py ✅
+- [x] T077 [US3] Implement DELETE /trips/{id} endpoint in backend/src/api/trips.py ✅
 - [ ] T078 Run US3 tests (T064-T071) - all should PASS (Green)
 - [ ] T079 [US3] Test manually: edit trip → verify optimistic lock warning on concurrent edit → delete → verify stats updated
 
