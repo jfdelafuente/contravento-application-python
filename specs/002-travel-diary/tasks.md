@@ -235,11 +235,11 @@ Web application structure:
 
 ### Implementation for User Story 4
 
-- [ ] T087 [US4] Implement TripService.get_user_trips() in backend/src/services/trip_service.py (pagination, tag filtering, status filtering)
-- [ ] T088 [US4] Implement GET /users/{username}/trips endpoint in backend/src/api/trips.py (with tag, status, limit, offset params)
-- [ ] T089 [US4] Implement GET /tags endpoint in backend/src/api/trips.py (ordered by usage_count)
+- [X] T087 [US4] Implement TripService.get_user_trips() in backend/src/services/trip_service.py (pagination, tag filtering, status filtering)
+- [X] T088 [US4] Implement GET /users/{username}/trips endpoint in backend/src/api/trips.py (with tag, status, limit, offset params)
+- [X] T089 [US4] Implement GET /tags endpoint in backend/src/api/trips.py (ordered by usage_count)
 - [ ] T090 Run US4 tests (T080-T085) - all should PASS (Green)
-- [ ] T091 [US4] Test manually: create trips with tags → filter by tag → verify case-insensitive matching
+- [X] T091 [US4] Test manually: create trips with tags → filter by tag → verify case-insensitive matching
 
 **Checkpoint**: Tag discovery and filtering fully functional
 

@@ -636,3 +636,164 @@ async def delete_trip(
     except Exception as e:
         logger.error(f"Error deleting trip {trip_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail={"success": False, "data": None, "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"}})
+
+
+# ============================================================================
+# Phase 6: Tags & Categorization (User Story 4)
+# ============================================================================
+
+
+@router.get(
+    "/users/{username}/trips",
+    response_model=Dict[str, Any],
+    summary="Get user trips with filters",
+    description="FR-025: List user's trips with optional tag and status filtering",
+)
+async def get_user_trips(
+    username: str,
+    tag: Optional[str] = Query(None, description="Filter by tag name (case-insensitive)"),
+    status: Optional[TripStatus] = Query(None, description="Filter by trip status"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum trips to return"),
+    offset: int = Query(0, ge=0, description="Number of trips to skip"),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Get user's trips with optional filtering (T088, FR-025).
+
+    **Filters:**
+    - tag: Filter by tag name (case-insensitive)
+    - status: Filter by trip status (DRAFT or PUBLISHED)
+    - limit: Max trips to return (1-100, default 50)
+    - offset: Pagination offset (default 0)
+
+    **Returns:**
+    - List of trips with photos, tags, and locations
+    - Ordered by created_at descending (newest first)
+    """
+    try:
+        from src.models.user import User
+        from sqlalchemy import select
+
+        # Get user by username
+        result = await db.execute(select(User).where(User.username == username))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "USER_NOT_FOUND",
+                        "message": f"Usuario '{username}' no encontrado",
+                    },
+                },
+            )
+
+        service = TripService(db)
+        trips = await service.get_user_trips(
+            user_id=user.id,
+            tag=tag,
+            status=status,
+            limit=limit,
+            offset=offset,
+        )
+
+        # Convert to response format
+        trips_data = [
+            {
+                "trip_id": trip.trip_id,
+                "user_id": trip.user_id,
+                "title": trip.title,
+                "description": trip.description,
+                "start_date": trip.start_date.isoformat() if trip.start_date else None,
+                "end_date": trip.end_date.isoformat() if trip.end_date else None,
+                "distance_km": trip.distance_km,
+                "status": trip.status.value,
+                "photos_count": len(trip.photos),
+                "tags": [tag_rel.tag.name for tag_rel in trip.tags],
+                "created_at": trip.created_at.isoformat(),
+                "updated_at": trip.updated_at.isoformat(),
+            }
+            for trip in trips
+        ]
+
+        return {
+            "success": True,
+            "data": {
+                "trips": trips_data,
+                "count": len(trips_data),
+                "limit": limit,
+                "offset": offset,
+            },
+            "error": None,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting trips for user {username}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+@router.get(
+    "/tags",
+    response_model=Dict[str, Any],
+    summary="Get all tags",
+    description="FR-027: List all available tags ordered by popularity",
+)
+async def get_all_tags(
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Get all tags ordered by usage count (T089, FR-027).
+
+    **Returns:**
+    - List of tags with usage counts
+    - Ordered by usage_count descending (most popular first)
+    """
+    try:
+        service = TripService(db)
+        tags = await service.get_all_tags()
+
+        tags_data = [
+            {
+                "tag_id": tag.tag_id,
+                "name": tag.name,
+                "normalized": tag.normalized,
+                "usage_count": tag.usage_count,
+                "created_at": tag.created_at.isoformat(),
+            }
+            for tag in tags
+        ]
+
+        return {
+            "success": True,
+            "data": {"tags": tags_data, "count": len(tags_data)},
+            "error": None,
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting tags: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )

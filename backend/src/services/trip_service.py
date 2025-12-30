@@ -803,3 +803,99 @@ class TripService:
             logger.debug(f"Updated photo count for user {user_id}: {increment:+d}")
         else:
             logger.warning(f"Stats not found for user {user_id}, cannot update photo count")
+
+    async def get_user_trips(
+        self,
+        user_id: str,
+        tag: Optional[str] = None,
+        status: Optional[TripStatus] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Trip]:
+        """
+        T087: Get user's trips with optional filtering.
+
+        Args:
+            user_id: User ID to filter by
+            tag: Optional tag name to filter by (case-insensitive)
+            status: Optional status to filter by (DRAFT, PUBLISHED)
+            limit: Maximum number of results (default 50)
+            offset: Number of results to skip (default 0)
+
+        Returns:
+            List of Trip objects matching the criteria
+
+        Examples:
+            # Get all published trips
+            trips = await service.get_user_trips(user_id, status=TripStatus.PUBLISHED)
+
+            # Get trips with tag "camino"
+            trips = await service.get_user_trips(user_id, tag="camino")
+
+            # Pagination
+            trips = await service.get_user_trips(user_id, limit=10, offset=20)
+        """
+        # Build base query
+        query = (
+            select(Trip)
+            .where(Trip.user_id == user_id)
+            .options(
+                selectinload(Trip.photos),
+                selectinload(Trip.tags).selectinload(TripTag.tag),
+                selectinload(Trip.locations),
+            )
+        )
+
+        # Filter by status if provided
+        if status is not None:
+            query = query.where(Trip.status == status)
+
+        # Filter by tag if provided (case-insensitive)
+        if tag:
+            tag_normalized = tag.lower().strip()
+            # Join with TripTag and Tag to filter
+            query = (
+                query
+                .join(TripTag, Trip.trip_id == TripTag.trip_id)
+                .join(Tag, TripTag.tag_id == Tag.tag_id)
+                .where(Tag.normalized == tag_normalized)
+            )
+
+        # Order by created_at descending (most recent first)
+        query = query.order_by(Trip.created_at.desc())
+
+        # Apply pagination
+        query = query.limit(limit).offset(offset)
+
+        # Execute query
+        result = await self.db.execute(query)
+        trips = result.scalars().unique().all()
+
+        logger.debug(
+            f"Retrieved {len(trips)} trips for user {user_id} "
+            f"(tag={tag}, status={status}, limit={limit}, offset={offset})"
+        )
+
+        return list(trips)
+
+    async def get_all_tags(self) -> List[Tag]:
+        """
+        T089: Get all tags ordered by usage count.
+
+        Returns tags sorted by usage_count descending (most popular first).
+
+        Returns:
+            List of Tag objects
+
+        Examples:
+            tags = await service.get_all_tags()
+            # Returns: [Tag(name="camino", usage_count=50), Tag(name="costa", usage_count=30), ...]
+        """
+        query = select(Tag).order_by(Tag.usage_count.desc(), Tag.name)
+
+        result = await self.db.execute(query)
+        tags = result.scalars().all()
+
+        logger.debug(f"Retrieved {len(tags)} tags ordered by usage count")
+
+        return list(tags)
