@@ -2103,6 +2103,8 @@ class TestDraftValidation:
 
         Published trips require description ≥50 chars, but drafts should allow shorter.
         """
+        from src.services.trip_service import TripService
+
         service = TripService(db_session)
 
         # Create draft with short description (would fail for published)
@@ -2127,6 +2129,8 @@ class TestDraftValidation:
 
         Optional fields like distance, difficulty, end_date can be omitted.
         """
+        from src.services.trip_service import TripService
+
         service = TripService(db_session)
 
         # Create draft with only required fields
@@ -2155,6 +2159,8 @@ class TestDraftValidation:
 
         Drafts can have short descriptions, but publishing requires ≥50 chars.
         """
+        from src.services.trip_service import TripService
+
         service = TripService(db_session)
 
         # Create draft with short description
@@ -2168,14 +2174,12 @@ class TestDraftValidation:
         assert trip.status == TripStatus.DRAFT
 
         # Act - Try to publish
-        from fastapi import HTTPException
-
-        with pytest.raises(HTTPException) as exc_info:
-            await service.publish_trip(trip_id=str(trip.id), current_user_id=str(test_user.id))
+        with pytest.raises(ValueError) as exc_info:
+            await service.publish_trip(trip_id=str(trip.trip_id), user_id=str(test_user.id))
 
         # Assert - Should fail validation
-        assert exc_info.value.status_code == 400
-        assert "descripción" in exc_info.value.detail["message"].lower()
+        assert "descripción" in str(exc_info.value).lower()
+        assert "50 caracteres" in str(exc_info.value).lower()
 
     async def test_draft_to_published_transition_updates_status(
         self, db_session: AsyncSession, test_user: User
@@ -2183,6 +2187,8 @@ class TestDraftValidation:
         """
         Test that publishing a valid draft updates status and published_at.
         """
+        from src.services.trip_service import TripService
+
         service = TripService(db_session)
 
         # Create draft with valid content for publication
@@ -2199,7 +2205,7 @@ class TestDraftValidation:
 
         # Act - Publish the draft
         published_trip = await service.publish_trip(
-            trip_id=str(trip.id), current_user_id=str(test_user.id)
+            trip_id=str(trip.trip_id), user_id=str(test_user.id)
         )
 
         # Assert - Status changed and published_at set
@@ -2214,6 +2220,8 @@ class TestDraftValidation:
         """
         Test that publishing an already published trip doesn't change published_at.
         """
+        from src.services.trip_service import TripService
+
         service = TripService(db_session)
 
         # Create and publish trip
@@ -2225,14 +2233,14 @@ class TestDraftValidation:
 
         trip = await service.create_trip(user_id=str(test_user.id), data=data)
         first_publish = await service.publish_trip(
-            trip_id=str(trip.id), current_user_id=str(test_user.id)
+            trip_id=str(trip.trip_id), user_id=str(test_user.id)
         )
 
         original_published_at = first_publish.published_at
 
         # Act - Publish again (idempotent operation)
         second_publish = await service.publish_trip(
-            trip_id=str(trip.id), current_user_id=str(test_user.id)
+            trip_id=str(trip.trip_id), user_id=str(test_user.id)
         )
 
         # Assert - published_at unchanged
