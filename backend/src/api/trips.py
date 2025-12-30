@@ -582,3 +582,57 @@ async def reorder_photos(
                 },
             },
         )
+
+
+@router.put(
+    "/{trip_id}",
+    response_model=Dict[str, Any],
+    summary="Update trip",
+    description="Update existing trip. Supports partial updates with optimistic locking.",
+)
+async def update_trip(
+    trip_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """Update trip (FR-016, FR-020)."""
+    try:
+        service = TripService(db)
+        trip = await service.update_trip(trip_id=trip_id, user_id=current_user.id, data=data)
+        trip_response = TripResponse.model_validate(trip)
+        return {"success": True, "data": trip_response.model_dump(), "error": None}
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail={"success": False, "data": None, "error": {"code": "FORBIDDEN", "message": str(e)}})
+    except ValueError as e:
+        status_code = 404 if "no encontrado" in str(e).lower() else 409 if "modificado" in str(e).lower() else 400
+        error_code = "NOT_FOUND" if status_code == 404 else "CONFLICT" if status_code == 409 else "VALIDATION_ERROR"
+        raise HTTPException(status_code=status_code, detail={"success": False, "data": None, "error": {"code": error_code, "message": str(e)}})
+    except Exception as e:
+        logger.error(f"Error updating trip {trip_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail={"success": False, "data": None, "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"}})
+
+
+@router.delete(
+    "/{trip_id}",
+    response_model=Dict[str, Any],
+    summary="Delete trip",
+    description="Permanently delete trip and all associated data.",
+)
+async def delete_trip(
+    trip_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """Delete trip (FR-017, FR-018)."""
+    try:
+        service = TripService(db)
+        result = await service.delete_trip(trip_id=trip_id, user_id=current_user.id)
+        return {"success": True, "data": result, "error": None}
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail={"success": False, "data": None, "error": {"code": "FORBIDDEN", "message": str(e)}})
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail={"success": False, "data": None, "error": {"code": "NOT_FOUND", "message": str(e)}})
+    except Exception as e:
+        logger.error(f"Error deleting trip {trip_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail={"success": False, "data": None, "error": {"code": "INTERNAL_ERROR", "message": "Error interno del servidor"}})
