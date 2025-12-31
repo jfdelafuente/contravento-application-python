@@ -1,26 +1,12 @@
 """
 Contract tests for authentication API endpoints.
 
-Tests validate that responses conform to the OpenAPI schema in auth.yaml.
+Tests validate that responses conform to the expected API schema structure.
+Manual validation approach - each test asserts response structure matches expectations.
 """
 
 import pytest
 from httpx import AsyncClient
-from openapi_core import Spec
-from openapi_core.contrib.requests import RequestsOpenAPIRequest
-from openapi_core.contrib.requests import RequestsOpenAPIResponse
-from openapi_core.validation.response.validators import V3ResponseValidator
-from pathlib import Path
-import yaml
-
-
-@pytest.fixture(scope="module")
-def openapi_spec():
-    """Load the OpenAPI specification for auth endpoints."""
-    spec_path = Path(__file__).parents[3] / "specs" / "001-user-profiles" / "contracts" / "auth.yaml"
-    with open(spec_path, "r", encoding="utf-8") as f:
-        spec_dict = yaml.safe_load(f)
-    return Spec.from_dict(spec_dict)
 
 
 @pytest.mark.contract
@@ -28,8 +14,8 @@ def openapi_spec():
 class TestAuthRegisterContract:
     """Contract tests for POST /auth/register."""
 
-    async def test_register_success_schema(self, client: AsyncClient, openapi_spec, faker_instance):
-        """T037: Validate successful registration response matches OpenAPI schema."""
+    async def test_register_success_schema(self, client: AsyncClient, faker_instance):
+        """T037: Validate successful registration response matches expected schema."""
         # Arrange
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
@@ -61,7 +47,7 @@ class TestAuthRegisterContract:
         assert "created_at" in user_data
 
     async def test_register_duplicate_username_schema(self, client: AsyncClient, faker_instance):
-        """T037: Validate duplicate username error matches OpenAPI schema."""
+        """T037: Validate duplicate username error matches expected schema."""
         # Arrange
         username = faker_instance.user_name().lower().replace(".", "_")
         email1 = faker_instance.email()
@@ -96,7 +82,7 @@ class TestAuthRegisterContract:
         assert error.get("field") == "username"
 
     async def test_register_duplicate_email_schema(self, client: AsyncClient, faker_instance):
-        """T037: Validate duplicate email error matches OpenAPI schema."""
+        """T037: Validate duplicate email error matches expected schema."""
         # Arrange
         username1 = faker_instance.user_name().lower().replace(".", "_")
         username2 = faker_instance.user_name().lower().replace(".", "_")
@@ -127,7 +113,7 @@ class TestAuthRegisterContract:
         assert data["error"].get("field") == "email"
 
     async def test_register_weak_password_schema(self, client: AsyncClient, faker_instance):
-        """T037: Validate weak password error matches OpenAPI schema."""
+        """T037: Validate weak password error matches expected schema."""
         # Arrange
         payload = {
             "username": faker_instance.user_name().lower().replace(".", "_"),
@@ -155,7 +141,7 @@ class TestAuthVerifyEmailContract:
     """Contract tests for POST /auth/verify-email."""
 
     async def test_verify_email_success_schema(self, client: AsyncClient, faker_instance):
-        """T038: Validate email verification success response matches OpenAPI schema."""
+        """T038: Validate email verification success response matches expected schema."""
         # Arrange - Register a user first
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
@@ -180,7 +166,7 @@ class TestAuthVerifyEmailContract:
         assert "message" in data
 
     async def test_verify_email_invalid_token_schema(self, client: AsyncClient):
-        """T038: Validate invalid token error matches OpenAPI schema."""
+        """T038: Validate invalid token error matches expected schema."""
         # Act
         response = await client.post("/auth/verify-email", json={"token": "invalid_token"})
 
@@ -199,7 +185,7 @@ class TestAuthResendVerificationContract:
     """Contract tests for POST /auth/resend-verification."""
 
     async def test_resend_verification_success_schema(self, client: AsyncClient, faker_instance):
-        """T039: Validate resend verification success response matches OpenAPI schema."""
+        """T039: Validate resend verification success response matches expected schema."""
         # Arrange - Register a user first
         email = faker_instance.email()
         await client.post("/auth/register", json={
@@ -219,7 +205,7 @@ class TestAuthResendVerificationContract:
         assert "message" in data
 
     async def test_resend_verification_rate_limit_schema(self, client: AsyncClient, faker_instance):
-        """T039: Validate rate limit error matches OpenAPI schema."""
+        """T039: Validate rate limit error matches expected schema."""
         # Arrange
         email = faker_instance.email()
         await client.post("/auth/register", json={
@@ -247,7 +233,7 @@ class TestAuthLoginContract:
     """Contract tests for POST /auth/login."""
 
     async def test_login_success_schema(self, client: AsyncClient, faker_instance):
-        """T040: Validate successful login response matches OpenAPI schema."""
+        """T040: Validate successful login response matches expected schema."""
         # Arrange - Register and verify a user
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
@@ -291,7 +277,7 @@ class TestAuthLoginContract:
         assert user_data["is_verified"] is True
 
     async def test_login_invalid_credentials_schema(self, client: AsyncClient):
-        """T040: Validate invalid credentials error matches OpenAPI schema."""
+        """T040: Validate invalid credentials error matches expected schema."""
         # Act
         response = await client.post("/auth/login", json={
             "login": "nonexistent@example.com",
@@ -307,7 +293,7 @@ class TestAuthLoginContract:
         assert data["error"]["code"] == "INVALID_CREDENTIALS"
 
     async def test_login_unverified_email_schema(self, client: AsyncClient, faker_instance):
-        """T040: Validate unverified email error matches OpenAPI schema."""
+        """T040: Validate unverified email error matches expected schema."""
         # Arrange - Register but don't verify
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
@@ -334,7 +320,7 @@ class TestAuthLoginContract:
         assert data["error"]["code"] == "EMAIL_NOT_VERIFIED"
 
     async def test_login_account_locked_schema(self, client: AsyncClient, faker_instance):
-        """T040: Validate account locked error matches OpenAPI schema."""
+        """T040: Validate account locked error matches expected schema."""
         # Arrange - Register and verify a user
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
@@ -368,7 +354,7 @@ class TestAuthRefreshContract:
     """Contract tests for POST /auth/refresh."""
 
     async def test_refresh_token_success_schema(self, client: AsyncClient, faker_instance):
-        """T041: Validate token refresh success response matches OpenAPI schema."""
+        """T041: Validate token refresh success response matches expected schema."""
         # Arrange - Login to get tokens
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
@@ -398,7 +384,7 @@ class TestAuthRefreshContract:
         assert data["data"]["token_type"] == "bearer"
 
     async def test_refresh_token_invalid_schema(self, client: AsyncClient):
-        """T041: Validate invalid refresh token error matches OpenAPI schema."""
+        """T041: Validate invalid refresh token error matches expected schema."""
         # Act
         response = await client.post("/auth/refresh", json={"refresh_token": "invalid_token"})
 
@@ -417,7 +403,7 @@ class TestAuthLogoutContract:
     """Contract tests for POST /auth/logout."""
 
     async def test_logout_success_schema(self, client: AsyncClient, auth_headers):
-        """T042: Validate logout success response matches OpenAPI schema."""
+        """T042: Validate logout success response matches expected schema."""
         # Arrange
         # TODO: Get actual refresh token from login
         refresh_token = "valid_refresh_token_placeholder"
@@ -437,7 +423,7 @@ class TestAuthLogoutContract:
         assert "message" in data
 
     async def test_logout_unauthorized_schema(self, client: AsyncClient):
-        """T042: Validate unauthorized error matches OpenAPI schema."""
+        """T042: Validate unauthorized error matches expected schema."""
         # Act
         response = await client.post("/auth/logout", json={"refresh_token": "some_token"})
 
@@ -456,7 +442,7 @@ class TestAuthPasswordResetRequestContract:
     """Contract tests for POST /auth/password-reset/request."""
 
     async def test_password_reset_request_success_schema(self, client: AsyncClient, faker_instance):
-        """T043: Validate password reset request success response matches OpenAPI schema."""
+        """T043: Validate password reset request success response matches expected schema."""
         # Arrange
         email = faker_instance.email()
         await client.post("/auth/register", json={
@@ -497,7 +483,7 @@ class TestAuthPasswordResetConfirmContract:
     """Contract tests for POST /auth/password-reset/confirm."""
 
     async def test_password_reset_confirm_success_schema(self, client: AsyncClient):
-        """T044: Validate password reset confirm success response matches OpenAPI schema."""
+        """T044: Validate password reset confirm success response matches expected schema."""
         # Arrange
         # TODO: Request password reset and get token
         reset_token = "valid_reset_token_placeholder"
@@ -516,7 +502,7 @@ class TestAuthPasswordResetConfirmContract:
         assert "message" in data
 
     async def test_password_reset_confirm_invalid_token_schema(self, client: AsyncClient):
-        """T044: Validate invalid token error matches OpenAPI schema."""
+        """T044: Validate invalid token error matches expected schema."""
         # Act
         response = await client.post("/auth/password-reset/confirm", json={
             "token": "invalid_token",
@@ -532,7 +518,7 @@ class TestAuthPasswordResetConfirmContract:
         assert data["error"]["code"] in ["INVALID_TOKEN", "TOKEN_EXPIRED"]
 
     async def test_password_reset_confirm_weak_password_schema(self, client: AsyncClient):
-        """T044: Validate weak password error matches OpenAPI schema."""
+        """T044: Validate weak password error matches expected schema."""
         # Arrange
         # TODO: Get valid reset token
         reset_token = "valid_reset_token_placeholder"
@@ -558,7 +544,7 @@ class TestAuthGetCurrentUserContract:
     """Contract tests for GET /auth/me."""
 
     async def test_get_current_user_success_schema(self, client: AsyncClient, auth_headers):
-        """T045: Validate get current user success response matches OpenAPI schema."""
+        """T045: Validate get current user success response matches expected schema."""
         # Act
         response = await client.get("/auth/me", headers=auth_headers)
 
@@ -579,7 +565,7 @@ class TestAuthGetCurrentUserContract:
         assert "created_at" in user_data
 
     async def test_get_current_user_unauthorized_schema(self, client: AsyncClient):
-        """T045: Validate unauthorized error matches OpenAPI schema."""
+        """T045: Validate unauthorized error matches expected schema."""
         # Act
         response = await client.get("/auth/me")
 
@@ -592,7 +578,7 @@ class TestAuthGetCurrentUserContract:
         assert data["error"]["code"] == "UNAUTHORIZED"
 
     async def test_get_current_user_invalid_token_schema(self, client: AsyncClient):
-        """T045: Validate invalid token error matches OpenAPI schema."""
+        """T045: Validate invalid token error matches expected schema."""
         # Act
         response = await client.get("/auth/me", headers={"Authorization": "Bearer invalid_token"})
 

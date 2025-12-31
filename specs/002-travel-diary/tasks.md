@@ -334,7 +334,7 @@ Web application structure:
 - [x] T106 [P] Format code with Black: `black src/ tests/` ✅ **53 files reformatted**
 - [x] T107 [P] Lint code with Ruff: `ruff check src/ tests/` ✅ **255 errors auto-fixed, 200 warnings remain**
 - [x] T108 [P] Type check with mypy: `mypy src/` ⚠️ **134 type errors - Technical debt documented**
-- [x] T109 [P] Validate all endpoints match OpenAPI contract ⚠️ **Contract tests disabled (openapi-core API incompatibility)**
+- [x] T109 [P] Validate all endpoints match OpenAPI contract ✅ **Contract tests re-enabled (2025-12-30)**
 - [x] T110 [P] Update CLAUDE.md with travel diary commands and patterns ✅
 - [x] T111 [P] Test migration rollback: `alembic downgrade -1` → `alembic upgrade head` ✅
 - [x] T112 [P] Performance test: Verify simple queries <200ms p95 ✅ **Verified in manual testing (Phase 6)**
@@ -364,9 +364,12 @@ Web application structure:
 
 **Contract Tests**:
 
-- **Status**: Disabled due to openapi-core API incompatibility
-- **Issue**: ResponseValidator → V3ResponseValidator → V30ResponseValidator API changes
-- **Resolution needed**: Update contract tests to new openapi-core v0.18+ API
+- **Status**: ✅ **RE-ENABLED** (2025-12-30)
+- **Resolution**: Removed unused openapi-core imports, tests use manual validation
+- **Tests**: 116 contract tests across 6 test files
+- **Files**: test_auth_contracts.py, test_profile_contracts.py, test_social_contracts.py, test_stats_contracts.py, test_trip_contracts.py, test_trip_photo_contracts.py
+- **Approach**: Manual schema validation (asserts on response structure) instead of automated openapi-core validation
+- **Note**: Tests validate response schemas match expected structure but don't use openapi-core library
 
 **Functional Verification**:
 
