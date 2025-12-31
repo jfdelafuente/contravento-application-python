@@ -2,6 +2,27 @@
 
 Guía completa para ejecutar tests y verificar cobertura.
 
+## Estado Actual ✅
+
+**Última actualización**: 2025-12-31
+
+| Categoría | Total | Estado |
+|-----------|-------|--------|
+| **Total Tests** | 515 tests | ✅ |
+| Contract Tests | 116 tests | ✅ Re-enabled |
+| Integration Tests | ~151 tests | ✅ |
+| Unit Tests | ~248 tests | ✅ |
+| **Phase 7 (Drafts)** | 15/15 | ✅ 100% passing |
+| - Integration | 10/10 | ✅ 100% passing |
+| - Unit | 5/5 | ✅ 100% passing |
+| **Coverage** | 41.73% | ⚠️ Target: ≥90% |
+
+**Logros Recientes**:
+- ✅ Contract tests re-enabled (2025-12-30) - 116 tests
+- ✅ Phase 7 integration tests 100% passing (10/10)
+- ✅ Phase 7 unit tests 100% passing (5/5)
+- ✅ Travel Diary feature completamente testeado
+
 ## Índice
 
 - [Ejecutar Tests](#ejecutar-tests)
@@ -28,8 +49,20 @@ poetry run pytest tests/ --cov=src --cov-report=html --cov-report=term -v
 
 **Contract Tests** (validan respuestas contra OpenAPI spec):
 ```bash
+# Ejecutar todos los contract tests (116 tests) ✅ RE-ENABLED 2025-12-30
 poetry run pytest tests/contract/ -v
+
+# Por módulo
+poetry run pytest tests/contract/test_auth_contracts.py -v       # 22 tests
+poetry run pytest tests/contract/test_profile_contracts.py -v    # 14 tests
+poetry run pytest tests/contract/test_social_contracts.py -v     # 22 tests
+poetry run pytest tests/contract/test_stats_contracts.py -v      # 14 tests
+poetry run pytest tests/contract/test_trip_contracts.py -v       # 35 tests
+poetry run pytest tests/contract/test_trip_photo_contracts.py -v # 9 tests
 ```
+
+> **Nota**: Los contract tests usan validación manual de schemas (sin openapi-core).
+> Validan estructura de respuestas JSON y campos requeridos.
 
 **Integration Tests** (workflows completos con DB):
 ```bash
@@ -48,6 +81,8 @@ locust -f tests/performance/locustfile.py --host http://localhost:8000
 
 ### Tests por User Story
 
+#### User Profile Features (001-user-profiles)
+
 ```bash
 # User Story 1: Authentication
 poetry run pytest tests/contract/test_auth_contracts.py -v
@@ -64,6 +99,63 @@ poetry run pytest tests/integration/test_stats_calculation.py -v
 # User Story 4: Social Features
 poetry run pytest tests/contract/test_social_contracts.py -v
 poetry run pytest tests/integration/test_follow_workflow.py -v
+```
+
+#### Travel Diary Features (002-travel-diary)
+
+```bash
+# User Story 1: Crear Viajes (Create Trips)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py::TestCreateTripContract -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py::TestCreateTrip -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py::TestCreateTrip -v
+
+# User Story 2: Subir Fotos de Viajes (Upload Trip Photos)
+# Contract tests
+poetry run pytest tests/contract/test_trip_photo_contracts.py -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py -k "photo" -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py -k "photo" -v
+
+# User Story 3: Editar y Eliminar Viajes (Edit & Delete Trips)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py::TestUpdateTripContract -v
+poetry run pytest tests/contract/test_trip_contracts.py::TestDeleteTripContract -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py::TestUpdateTrip -v
+poetry run pytest tests/integration/test_trips_api.py::TestDeleteTrip -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py::TestUpdateTrip -v
+poetry run pytest tests/unit/test_trip_service.py::TestDeleteTrip -v
+
+# User Story 4: Etiquetas y Categorización (Tags & Categorization)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py -k "tag" -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py::TestTagFilteringWorkflow -v
+poetry run pytest tests/integration/test_trips_api.py::TestTagPopularityWorkflow -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py -k "tag" -v
+
+# User Story 5: Borradores de Viaje (Draft Trips)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py -k "draft" -v
+# Integration tests - TODOS PASANDO ✅ (10/10)
+poetry run pytest tests/integration/test_trips_api.py -k "draft" -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftCreationWorkflow -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftVisibility -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftListing -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftToPublishedTransition -v
+# Unit tests - TODOS PASANDO ✅ (5/5)
+poetry run pytest tests/unit/test_trip_service.py::TestDraftValidation -v
+
+# Ejecutar TODOS los tests de Travel Diary
+poetry run pytest tests/contract/test_trip_contracts.py tests/contract/test_trip_photo_contracts.py -v
+poetry run pytest tests/integration/test_trips_api.py -v
+poetry run pytest tests/unit/test_trip_service.py -v
 ```
 
 ---
