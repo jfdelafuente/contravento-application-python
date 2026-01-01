@@ -7,38 +7,44 @@ ContraVento es una plataforma social de cicloturismo con una arquitectura de 3 c
 ## Layered Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        API Layer                             │
-│  (FastAPI Routers - HTTP Interface)                         │
-│                                                              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐      │
-│  │  auth.py │ │profile.py│ │ stats.py │ │social.py │      │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘      │
-│       ↓             ↓            ↓            ↓             │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        API Layer                                         │
+│  (FastAPI Routers - HTTP Interface)                                     │
+│                                                                          │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │
+│  │  auth.py │ │profile.py│ │ stats.py │ │social.py │ │ trips.py │    │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘    │
+│       ↓             ↓            ↓            ↓            ↓             │
+└─────────────────────────────────────────────────────────────────────────┘
                             ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Service Layer                           │
-│  (Business Logic & Domain Rules)                            │
-│                                                              │
-│  ┌──────────────┐ ┌───────────────┐ ┌──────────────┐      │
-│  │AuthService   │ │ProfileService │ │StatsService  │      │
-│  └──────────────┘ └───────────────┘ └──────────────┘      │
-│  ┌──────────────┐                                          │
-│  │SocialService │                                          │
-│  └──────────────┘                                          │
-│       ↓                   ↓                ↓                │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Service Layer                                       │
+│  (Business Logic & Domain Rules)                                        │
+│                                                                          │
+│  ┌──────────────┐ ┌───────────────┐ ┌──────────────┐ ┌─────────────┐ │
+│  │AuthService   │ │ProfileService │ │StatsService  │ │ TripService │ │
+│  └──────────────┘ └───────────────┘ └──────────────┘ └─────────────┘ │
+│  ┌──────────────┐                                                      │
+│  │SocialService │                                                      │
+│  └──────────────┘                                                      │
+│       ↓                   ↓                ↓               ↓            │
+└─────────────────────────────────────────────────────────────────────────┘
                             ↓
-┌─────────────────────────────────────────────────────────────┐
-│                       Data Layer                             │
-│  (ORM Models & Database Access)                             │
-│                                                              │
-│  ┌──────┐ ┌───────────┐ ┌──────┐ ┌──────────┐ ┌────────┐ │
-│  │ User │ │UserProfile│ │Stats │ │Achievement│ │ Follow │ │
-│  └──────┘ └───────────┘ └──────┘ └──────────┘ └────────┘ │
-│       ↓          ↓           ↓         ↓           ↓        │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       Data Layer                                         │
+│  (ORM Models & Database Access)                                         │
+│                                                                          │
+│  ┌──────┐ ┌───────────┐ ┌──────┐ ┌──────────┐ ┌────────┐ ┌────────┐  │
+│  │ User │ │UserProfile│ │Stats │ │Achievement│ │ Follow │ │  Trip  │  │
+│  └──────┘ └───────────┘ └──────┘ └──────────┘ └────────┘ └────────┘  │
+│                                                            ┌──────────┐  │
+│                                                            │TripPhoto │  │
+│                                                            └──────────┘  │
+│                                                            ┌──────────┐  │
+│                                                            │   Tag    │  │
+│                                                            └──────────┘  │
+│       ↓          ↓           ↓         ↓           ↓           ↓         │
+└─────────────────────────────────────────────────────────────────────────┘
                             ↓
                     ┌────────────────┐
                     │   PostgreSQL   │
@@ -107,6 +113,7 @@ ContraVento es una plataforma social de cicloturismo con una arquitectura de 3 c
 - `profile.py` - Profile CRUD, photo upload
 - `stats.py` - User statistics and achievements
 - `social.py` - Follow/unfollow, followers/following lists
+- `trips.py` - Trip CRUD, photos, tags, draft/publish workflow
 - `deps.py` - Shared dependencies (auth, DB session)
 
 **Key Pattern**: Thin controllers - minimal logic, delegate to services
@@ -128,6 +135,7 @@ ContraVento es una plataforma social de cicloturismo con una arquitectura de 3 c
 - `profile_service.py` - Profile management, privacy rules
 - `stats_service.py` - Stats calculation, achievement awarding
 - `social_service.py` - Follow logic, counter management
+- `trip_service.py` - Trip management, draft workflow, tag normalization, photo handling
 
 **Key Pattern**: Rich domain services - all business logic lives here
 
@@ -146,6 +154,7 @@ ContraVento es una plataforma social de cicloturismo con una arquitectura de 3 c
 - `auth.py` - PasswordReset model
 - `stats.py` - UserStats, Achievement, UserAchievement models
 - `social.py` - Follow model
+- `trip.py` - Trip, TripPhoto, TripLocation, Tag, trip_tags (association table) models
 
 **Key Pattern**: Anemic models - minimal logic, pure data structures
 
@@ -164,6 +173,7 @@ ContraVento es una plataforma social de cicloturismo con una arquitectura de 3 c
 - `profile.py` - Profile update, response schemas
 - `stats.py` - Stats and achievement schemas
 - `social.py` - Follow, followers, following schemas
+- `trip.py` - Trip create/update, photo upload, tag schemas, TripStatus enum
 - `api_response.py` - Standard response envelope
 
 **Key Pattern**: DTO (Data Transfer Objects) for API boundary
@@ -262,15 +272,190 @@ User (1) ──── (1) UserProfile
   │
   ├─── (N) Follow (as follower)
   │
-  └─── (N) Follow (as following)
+  ├─── (N) Follow (as following)
+  │
+  └─── (N) Trip
+         │
+         ├─── (N) TripPhoto
+         │
+         ├─── (0..1) TripLocation
+         │
+         └─── (N) trip_tags ──── (N) Tag (many-to-many)
 ```
+
+**Trip Domain Relationships**:
+
+- Each **User** can have many **Trips** (1:N)
+- Each **Trip** can have up to 20 **TripPhotos** (1:N, max 20)
+- Each **Trip** can have one optional **TripLocation** (1:0..1)
+- **Trips** and **Tags** have a many-to-many relationship via **trip_tags** table
+- **Tags** are normalized (lowercase) for case-insensitive matching
+- **Trip status**: DRAFT (owner-only) or PUBLISHED (public)
 
 ### Key Constraints
 
-- **Unique constraints**: username, email, (follower_id, following_id)
+- **Unique constraints**:
+  - User: username, email
+  - Follow: (follower_id, following_id)
+  - Tag: normalized (case-insensitive uniqueness)
+  - trip_tags: (trip_id, tag_id)
 - **Foreign keys**: All with CASCADE delete
-- **Check constraints**: follower_id != following_id (prevent self-follow)
-- **Indexes**: On username, email, foreign keys, created_at
+- **Check constraints**:
+  - Follow: follower_id != following_id (prevent self-follow)
+  - Trip: start_date <= end_date
+  - TripPhoto: order >= 0
+- **Indexes**:
+  - User: username, email
+  - Trip: user_id, status, created_at
+  - TripPhoto: trip_id, order
+  - Tag: normalized, usage_count (for popular tags)
+  - Foreign keys (auto-indexed)
+
+## Travel Diary Architecture (002-travel-diary)
+
+### Draft Workflow System
+
+Travel Diary implements a **draft-to-published workflow** for content creation:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  Trip Creation Flow                      │
+└─────────────────────────────────────────────────────────┘
+
+1. CREATE TRIP (Default: DRAFT)
+   POST /trips
+   ↓
+   - Minimal validation (title + description required)
+   - No stats update
+   - Owner-only visibility
+   - Can attach photos, tags, location
+
+2. DRAFT STATE
+   ↓
+   - Edit freely (PUT /trips/{trip_id})
+   - Upload photos (POST /trips/{trip_id}/photos)
+   - Add/remove tags
+   - Update location
+   - Only visible to owner (403 for others)
+
+3. PUBLISH TRIP
+   POST /trips/{trip_id}/publish
+   ↓
+   - Full validation (description ≥50 chars, valid dates)
+   - Update UserStats (trip_count++, distance_km+=)
+   - Check achievements (milestones)
+   - Become publicly visible
+   - Status: DRAFT → PUBLISHED (irreversible)
+
+4. PUBLISHED STATE
+   ↓
+   - Public visibility (anyone can view)
+   - Stats integrated
+   - Can still edit/delete (stats adjusted)
+   - Photos contribute to photo_count
+```
+
+### Tag Normalization System
+
+**Case-Insensitive Tag Matching**:
+
+```python
+# User submits: ["Bikepacking", "MONTAÑA", "MoNtAñA"]
+# System stores:
+Tag(name="Bikepacking", normalized="bikepacking")  # New tag
+Tag(name="MONTAÑA", normalized="montaña")          # New tag
+# "MoNtAñA" matches existing "montaña" → reuse same tag
+
+# Result: Trip has 2 unique tags (not 3)
+```
+
+**Tag Usage Tracking**:
+
+- Each tag has `usage_count` field
+- Incremented when tag added to trip
+- Decremented when tag removed or trip deleted
+- Used for "popular tags" endpoint (GET /tags)
+
+### Photo Storage Strategy
+
+```
+storage/
+└── trip_photos/
+    └── {year}/          # e.g., 2024
+        └── {month}/     # e.g., 05
+            └── {trip_id}/
+                ├── {uuid}_0.jpg  # order=0
+                ├── {uuid}_1.jpg  # order=1
+                └── {uuid}_2.jpg  # order=2
+
+Constraints:
+- Max 20 photos per trip
+- Max 10MB per photo
+- Formats: JPEG, PNG
+- Metadata: file_size, width, height, caption (max 500 chars)
+- Order field for sorting (drag-and-drop reordering)
+```
+
+### Stats Integration
+
+**Automatic Stats Updates on Trip Publish**:
+
+```python
+# On trip publish:
+UserStats.trip_count += 1
+UserStats.distance_km += trip.distance_km
+UserStats.countries = set(UserStats.countries) | {trip.location.country}
+UserStats.longest_trip_km = max(UserStats.longest_trip_km, trip.distance_km)
+
+# Check achievements:
+if UserStats.trip_count >= 1:
+    award_achievement("FIRST_TRIP")
+if UserStats.distance_km >= 1000:
+    award_achievement("1000_KM")
+# ... etc.
+
+# On trip edit (if published):
+recalculate_stats()  # Recompute from all published trips
+
+# On trip delete (if published):
+UserStats.trip_count -= 1
+UserStats.distance_km -= trip.distance_km
+recalculate_stats()  # Recompute longest_trip_km, countries
+```
+
+### Access Control Rules
+
+| Action | Draft | Published |
+|--------|-------|-----------|
+| **View trip** | Owner only (403) | Public |
+| **Edit trip** | Owner only | Owner only |
+| **Delete trip** | Owner only | Owner only |
+| **Upload photo** | Owner only | Owner only |
+| **Publish trip** | Owner only | N/A (already published) |
+| **List in /users/{username}/trips** | Owner only (with ?status=draft) | Public |
+
+### Query Performance Optimizations
+
+**Eager Loading**:
+
+```python
+# Load trip with all related data in single query
+select(Trip).options(
+    joinedload(Trip.photos),
+    joinedload(Trip.location),
+    selectinload(Trip.tags)
+).where(Trip.id == trip_id)
+```
+
+**Filtering & Pagination**:
+
+```python
+# GET /users/{username}/trips?tag=bikepacking&status=published&page=1&limit=20
+# - Index on (user_id, status, created_at)
+# - Tags filtered via join
+# - Max 50 items per page
+# - Ordered by created_at DESC
+```
 
 ## Authentication & Authorization
 
@@ -448,34 +633,41 @@ backend/
 │   │   ├── profile.py
 │   │   ├── stats.py
 │   │   ├── social.py
+│   │   ├── trips.py      # Travel Diary endpoints
 │   │   └── deps.py       # Shared dependencies
 │   │
 │   ├── services/         # Business logic
 │   │   ├── auth_service.py
 │   │   ├── profile_service.py
 │   │   ├── stats_service.py
-│   │   └── social_service.py
+│   │   ├── social_service.py
+│   │   └── trip_service.py  # Travel Diary service
 │   │
 │   ├── models/           # ORM models
 │   │   ├── user.py
 │   │   ├── auth.py
 │   │   ├── stats.py
-│   │   └── social.py
+│   │   ├── social.py
+│   │   └── trip.py       # Trip, TripPhoto, Tag, TripLocation
 │   │
 │   ├── schemas/          # Pydantic schemas
 │   │   ├── auth.py
 │   │   ├── profile.py
 │   │   ├── stats.py
 │   │   ├── social.py
+│   │   ├── trip.py       # Trip schemas, TripStatus enum
 │   │   └── api_response.py
 │   │
 │   ├── utils/            # Utilities
 │   │   ├── security.py
 │   │   ├── file_storage.py
+│   │   ├── validators.py # HTML sanitization, etc.
 │   │   └── auth.py
 │   │
 │   ├── migrations/       # Alembic migrations
 │   │   └── versions/
+│   │       ├── 001_*.py  # User profiles migrations
+│   │       └── 002_*.py  # Travel Diary migrations
 │   │
 │   ├── config.py         # Configuration
 │   ├── database.py       # DB setup
@@ -483,23 +675,67 @@ backend/
 │
 ├── tests/
 │   ├── contract/         # API contract tests
+│   │   ├── test_auth_contracts.py
+│   │   ├── test_profile_contracts.py
+│   │   ├── test_stats_contracts.py
+│   │   ├── test_social_contracts.py
+│   │   ├── test_trip_contracts.py        # Trip API contracts
+│   │   └── test_trip_photo_contracts.py  # Photo API contracts
+│   │
 │   ├── integration/      # Integration tests
+│   │   ├── test_auth_workflow.py
+│   │   ├── test_profile_management.py
+│   │   ├── test_stats_calculation.py
+│   │   ├── test_follow_workflow.py
+│   │   └── test_trips_api.py  # Trip workflows (515 tests total)
+│   │
 │   ├── unit/             # Unit tests
+│   │   ├── test_auth_service.py
+│   │   ├── test_profile_service.py
+│   │   ├── test_stats_service.py
+│   │   ├── test_social_service.py
+│   │   └── test_trip_service.py  # TripService tests
+│   │
 │   └── performance/      # Load tests (Locust)
+│       └── locustfile.py
 │
 ├── scripts/              # Utility scripts
-│   └── seed_achievements.py
+│   ├── seed_achievements.py
+│   ├── create_verified_user.py
+│   └── test_tags.sh      # Manual testing for tags
 │
 ├── storage/              # File storage
-│   └── profile_photos/
+│   ├── profile_photos/
+│   │   └── {year}/{month}/{user_id}_{uuid}.jpg
+│   └── trip_photos/
+│       └── {year}/{month}/{trip_id}/{uuid}_{order}.jpg
 │
 ├── docs/                 # Documentation
 │   ├── ARCHITECTURE.md   # This file
-│   └── API.md           # API documentation
+│   ├── TESTING_GUIDE.md  # Testing documentation
+│   ├── STATS_INTEGRATION.md
+│   ├── FINAL_VALIDATION.md
+│   └── api/
+│       ├── MANUAL_TESTING.md
+│       ├── POSTMAN_COLLECTION.md
+│       └── TAGS_TESTING.md
+│
+├── specs/                # Feature specifications
+│   ├── 001-user-profiles/
+│   │   ├── spec.md
+│   │   ├── plan.md
+│   │   └── contracts/
+│   └── 002-travel-diary/
+│       ├── spec.md
+│       ├── plan.md
+│       ├── data-model.md
+│       ├── tasks.md
+│       └── contracts/
 │
 ├── pyproject.toml        # Dependencies
 ├── alembic.ini          # Alembic config
 ├── .env.example         # Environment template
+├── CLAUDE.md            # Claude Code instructions
 └── README.md            # Quick start guide
 ```
 

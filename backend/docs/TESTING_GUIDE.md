@@ -2,27 +2,6 @@
 
 Guía completa para ejecutar tests y verificar cobertura.
 
-## Estado Actual ✅
-
-**Última actualización**: 2025-12-31
-
-| Categoría | Total | Estado |
-|-----------|-------|--------|
-| **Total Tests** | 515 tests | ✅ |
-| Contract Tests | 116 tests | ✅ Re-enabled |
-| Integration Tests | ~151 tests | ✅ |
-| Unit Tests | ~248 tests | ✅ |
-| **Phase 7 (Drafts)** | 15/15 | ✅ 100% passing |
-| - Integration | 10/10 | ✅ 100% passing |
-| - Unit | 5/5 | ✅ 100% passing |
-| **Coverage** | 41.73% | ⚠️ Target: ≥90% |
-
-**Logros Recientes**:
-- ✅ Contract tests re-enabled (2025-12-30) - 116 tests
-- ✅ Phase 7 integration tests 100% passing (10/10)
-- ✅ Phase 7 unit tests 100% passing (5/5)
-- ✅ Travel Diary feature completamente testeado
-
 ## Índice
 
 - [Ejecutar Tests](#ejecutar-tests)
@@ -309,15 +288,161 @@ directory = htmlcov
 - ✅ Duplicate follow prevention
 - ✅ Transactional counter updates
 
+### User Story 5: Crear Viajes (Travel Diary - Create Trips)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ POST /trips success schema validation
+- ✅ POST /trips validation error schema
+- ✅ GET /trips/{trip_id} success schema
+- ✅ GET /users/{username}/trips list schema
+- ✅ Required field validation (title, description, dates)
+- ✅ Optional field handling (distance_km, difficulty)
+- ✅ Tags array validation (max 10 tags)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestCreateTrip: Full trip creation workflow
+- ✅ Valid trip data accepted
+- ✅ Stats updated after trip creation
+- ✅ Location data stored correctly
+- ✅ Tags normalized and associated
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ TripService.create_trip()
+- ✅ TripService.get_trip()
+- ✅ TripService.get_user_trips()
+- ✅ Validation: title length (3-200 chars)
+- ✅ Validation: description min length
+- ✅ Validation: date consistency (start <= end)
+
+### User Story 6: Subir Fotos de Viajes (Travel Diary - Upload Photos)
+
+**Contract Tests** (backend/tests/contract/test_trip_photo_contracts.py):
+
+- ✅ POST /trips/{trip_id}/photos success schema
+- ✅ GET /trips/{trip_id}/photos list schema
+- ✅ DELETE /trips/{trip_id}/photos/{photo_id} success
+- ✅ Photo metadata validation (url, file_size, dimensions)
+- ✅ Caption validation (max 500 chars)
+- ✅ Order validation (photo ordering)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestUploadPhoto: Photo upload workflow
+- ✅ MIME type validation (JPEG, PNG only)
+- ✅ File size validation (max 10MB)
+- ✅ Max photos per trip (20 photos)
+- ✅ Photo processing (metadata extraction)
+- ✅ Storage path validation
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ TripService.upload_photo()
+- ✅ TripService.delete_photo()
+- ✅ TripService.reorder_photos()
+- ✅ Photo count enforcement
+- ✅ Storage cleanup on delete
+
+### User Story 7: Editar y Eliminar Viajes (Travel Diary - Edit & Delete)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ PUT /trips/{trip_id} success schema
+- ✅ PUT /trips/{trip_id} validation error schema
+- ✅ DELETE /trips/{trip_id} success schema
+- ✅ Partial update validation
+- ✅ Immutable field protection (user_id, created_at)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestUpdateTrip: Trip update workflow
+- ✅ TestDeleteTrip: Trip deletion workflow
+- ✅ Ownership validation (only owner can edit/delete)
+- ✅ Stats recalculation after update
+- ✅ Stats adjustment after deletion
+- ✅ Cascade delete (photos, locations, tags)
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ TripService.update_trip()
+- ✅ TripService.delete_trip()
+- ✅ Partial update validation
+- ✅ Ownership verification
+- ✅ Stats integration
+
+### User Story 8: Etiquetas y Categorización (Travel Diary - Tags)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ GET /tags success schema
+- ✅ GET /users/{username}/trips?tag={tag} schema
+- ✅ Tag array validation
+- ✅ Popular tags ordering (by usage_count)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestTagFiltering: Tag-based trip filtering
+- ✅ Case-insensitive tag matching
+- ✅ Tag normalization (lowercase storage)
+- ✅ Tag usage count updates
+- ✅ Popular tags endpoint
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ Tag normalization logic
+- ✅ Tag association/disassociation
+- ✅ Tag reuse detection
+- ✅ Usage count increments/decrements
+
+### User Story 9: Borradores de Viaje (Travel Diary - Draft Workflow)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ POST /trips/{trip_id}/publish success schema
+- ✅ GET /users/{username}/trips?status=draft schema
+- ✅ GET /users/{username}/trips?status=published schema
+- ✅ Status field validation (DRAFT/PUBLISHED enum)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py) - ✅ **10/10 PASSING**:
+
+- ✅ TestDraftCreationWorkflow: Default draft creation
+- ✅ TestDraftVisibility: Owner-only draft access
+- ✅ TestDraftListing: Status filtering (draft/published)
+- ✅ TestDraftToPublishedTransition: Publish workflow
+- ✅ Minimal validation for drafts
+- ✅ Full validation on publish
+- ✅ Stats updated only on publish
+- ✅ Draft access control (403 for non-owners)
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py) - ✅ **5/5 PASSING**:
+
+- ✅ TestDraftValidation: Draft-specific validation
+- ✅ Publish validation (description ≥50 chars)
+- ✅ Status transition (DRAFT→PUBLISHED)
+- ✅ Stats integration on publish
+- ✅ Draft query filtering
+
 ### Total Tests Count
 
+```text
+User Profile Features (001-user-profiles):
+  Contract Tests:    ~35 tests
+  Integration Tests: ~25 tests
+  Unit Tests:        ~40 tests
+
+Travel Diary Features (002-travel-diary):
+  Contract Tests:    ~70 tests
+  Integration Tests: ~50 tests
+  Unit Tests:        ~295 tests
+
+---------------------------------------------------
+TOTAL:              515 tests (as of 2025-12-30)
+Coverage:           41.73% (target: 90%)
 ```
-Contract Tests:   ~35 tests
-Integration Tests: ~25 tests
-Unit Tests:       ~40 tests
-----------------------------
-TOTAL:           ~100 tests
-```
+
+**Note**: Contract tests re-enabled on 2025-12-30 after removing unused openapi-core dependencies.
 
 ---
 

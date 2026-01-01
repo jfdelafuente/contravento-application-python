@@ -16,9 +16,9 @@ async def main():
             stats_service = StatsService(db)
             stats = await stats_service.get_user_stats("testuser")
 
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("STATS RETRIEVAL SUCCESS")
-            print("="*60)
+            print("=" * 60)
             print(f"Total trips: {stats.total_trips}")
             print(f"Total kilometers: {stats.total_kilometers}")
             print(f"Countries visited: {stats.countries_visited}")
@@ -26,15 +26,16 @@ async def main():
             print(f"Achievements count: {stats.achievements_count}")
             print(f"Last trip date: {stats.last_trip_date}")
             print(f"Updated at: {stats.updated_at}")
-            print("="*60)
+            print("=" * 60)
 
         except ValueError as e:
             print(f"\n[ERROR] ValueError: {e}")
         except Exception as e:
             print(f"\n[ERROR] Unexpected error: {e}")
             import traceback
+
             traceback.print_exc()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

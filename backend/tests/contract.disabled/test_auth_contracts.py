@@ -53,18 +53,24 @@ class TestAuthRegisterContract:
         email1 = faker_instance.email()
         email2 = faker_instance.email()
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email1,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email1,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Act - Try to register with same username
-        response = await client.post("/auth/register", json={
-            "username": username,
-            "email": email2,
-            "password": "SecurePass123!",
-        })
+        response = await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email2,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Assert
         assert response.status_code == 400
@@ -88,18 +94,24 @@ class TestAuthRegisterContract:
         username2 = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
 
-        await client.post("/auth/register", json={
-            "username": username1,
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username1,
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Act - Try to register with same email
-        response = await client.post("/auth/register", json={
-            "username": username2,
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        response = await client.post(
+            "/auth/register",
+            json={
+                "username": username2,
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Assert
         assert response.status_code == 400
@@ -145,11 +157,14 @@ class TestAuthVerifyEmailContract:
         # Arrange - Register a user first
         username = faker_instance.user_name().lower().replace(".", "_")
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # TODO: Extract verification token from email/database
         # For now, this is a placeholder that will fail until implementation
@@ -188,11 +203,14 @@ class TestAuthResendVerificationContract:
         """T039: Validate resend verification success response matches expected schema."""
         # Arrange - Register a user first
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": faker_instance.user_name().lower().replace(".", "_"),
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": faker_instance.user_name().lower().replace(".", "_"),
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Act
         response = await client.post("/auth/resend-verification", json={"email": email})
@@ -208,11 +226,14 @@ class TestAuthResendVerificationContract:
         """T039: Validate rate limit error matches expected schema."""
         # Arrange
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": faker_instance.user_name().lower().replace(".", "_"),
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": faker_instance.user_name().lower().replace(".", "_"),
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Act - Send 4 requests to trigger rate limit (3 allowed per hour)
         for _ in range(4):
@@ -239,20 +260,26 @@ class TestAuthLoginContract:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # TODO: Verify email programmatically
         # For now, this test will fail until email verification is implemented
 
         # Act
-        response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         # Assert
         assert response.status_code == 200
@@ -279,10 +306,13 @@ class TestAuthLoginContract:
     async def test_login_invalid_credentials_schema(self, client: AsyncClient):
         """T040: Validate invalid credentials error matches expected schema."""
         # Act
-        response = await client.post("/auth/login", json={
-            "login": "nonexistent@example.com",
-            "password": "WrongPassword123!",
-        })
+        response = await client.post(
+            "/auth/login",
+            json={
+                "login": "nonexistent@example.com",
+                "password": "WrongPassword123!",
+            },
+        )
 
         # Assert
         assert response.status_code == 401
@@ -299,17 +329,23 @@ class TestAuthLoginContract:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # Act
-        response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         # Assert
         assert response.status_code == 400
@@ -326,18 +362,24 @@ class TestAuthLoginContract:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # Act - Try to login with wrong password 5 times
         for _ in range(5):
-            response = await client.post("/auth/login", json={
-                "login": username,
-                "password": "WrongPassword123!",
-            })
+            response = await client.post(
+                "/auth/login",
+                json={
+                    "login": username,
+                    "password": "WrongPassword123!",
+                },
+            )
 
         # Assert
         assert response.status_code == 429
@@ -360,11 +402,14 @@ class TestAuthRefreshContract:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # TODO: Verify email and login to get refresh token
         refresh_token = "valid_refresh_token_placeholder"
@@ -410,9 +455,7 @@ class TestAuthLogoutContract:
 
         # Act
         response = await client.post(
-            "/auth/logout",
-            json={"refresh_token": refresh_token},
-            headers=auth_headers
+            "/auth/logout", json={"refresh_token": refresh_token}, headers=auth_headers
         )
 
         # Assert
@@ -445,11 +488,14 @@ class TestAuthPasswordResetRequestContract:
         """T043: Validate password reset request success response matches expected schema."""
         # Arrange
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": faker_instance.user_name().lower().replace(".", "_"),
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": faker_instance.user_name().lower().replace(".", "_"),
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Act
         response = await client.post("/auth/password-reset/request", json={"email": email})
@@ -465,8 +511,7 @@ class TestAuthPasswordResetRequestContract:
         """T043: Validate password reset request for nonexistent email (still 200)."""
         # Act
         response = await client.post(
-            "/auth/password-reset/request",
-            json={"email": "nonexistent@example.com"}
+            "/auth/password-reset/request", json={"email": "nonexistent@example.com"}
         )
 
         # Assert - Should still return 200 to not leak user existence
@@ -489,10 +534,10 @@ class TestAuthPasswordResetConfirmContract:
         reset_token = "valid_reset_token_placeholder"
 
         # Act
-        response = await client.post("/auth/password-reset/confirm", json={
-            "token": reset_token,
-            "new_password": "NewSecurePass456!"
-        })
+        response = await client.post(
+            "/auth/password-reset/confirm",
+            json={"token": reset_token, "new_password": "NewSecurePass456!"},
+        )
 
         # Assert
         assert response.status_code == 200
@@ -504,10 +549,10 @@ class TestAuthPasswordResetConfirmContract:
     async def test_password_reset_confirm_invalid_token_schema(self, client: AsyncClient):
         """T044: Validate invalid token error matches expected schema."""
         # Act
-        response = await client.post("/auth/password-reset/confirm", json={
-            "token": "invalid_token",
-            "new_password": "NewSecurePass456!"
-        })
+        response = await client.post(
+            "/auth/password-reset/confirm",
+            json={"token": "invalid_token", "new_password": "NewSecurePass456!"},
+        )
 
         # Assert
         assert response.status_code == 400
@@ -524,10 +569,9 @@ class TestAuthPasswordResetConfirmContract:
         reset_token = "valid_reset_token_placeholder"
 
         # Act
-        response = await client.post("/auth/password-reset/confirm", json={
-            "token": reset_token,
-            "new_password": "weak"
-        })
+        response = await client.post(
+            "/auth/password-reset/confirm", json={"token": reset_token, "new_password": "weak"}
+        )
 
         # Assert
         assert response.status_code == 400

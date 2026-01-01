@@ -204,13 +204,12 @@ async def test_user(db_session: AsyncSession) -> "User":
             assert response.status_code == 200
     """
     from sqlalchemy import select
+
     from src.models.user import User
 
     # Query the existing test user created by auth_headers fixture
     # If auth_headers fixture hasn't run yet, this will return None and we create the user
-    result = await db_session.execute(
-        select(User).where(User.username == "test_user")
-    )
+    result = await db_session.execute(select(User).where(User.username == "test_user"))
     user = result.scalar_one_or_none()
 
     if not user:

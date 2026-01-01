@@ -227,11 +227,20 @@ alembic heads
 
 #### Migraciones Existentes
 
-```
+**User Profiles (001-user-profiles):**
+
+```text
 001_initial_auth_schema.py        - Users, profiles, password resets
 002_add_privacy_settings.py       - Privacy columns
 003_stats_and_achievements.py     - Stats and achievements
 004_social_features.py            - Follow relationships
+```
+
+**Travel Diary (002-travel-diary):**
+
+```text
+005_travel_diary_trips.py         - Trips, photos, locations, tags
+006_trip_tags_association.py      - Trip-tag many-to-many relationship
 ```
 
 #### Testing Migrations
@@ -250,6 +259,8 @@ docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
 ```
 
 **Expected tables:**
+
+**User Profiles:**
 - users
 - user_profiles
 - password_resets
@@ -257,6 +268,16 @@ docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
 - achievements
 - user_achievements
 - follows
+
+**Travel Diary:**
+- trips
+- trip_photos
+- trip_locations
+- tags
+- trip_tags (association table)
+
+**System:**
+
 - alembic_version
 
 #### Rollback en Caso de Error
@@ -381,9 +402,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Static files (if needed)
-    location /storage/ {
-        alias /app/storage/;
+    # Static files - Profile photos
+    location /storage/profile_photos/ {
+        alias /app/storage/profile_photos/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Static files - Trip photos
+    location /storage/trip_photos/ {
+        alias /app/storage/trip_photos/;
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
