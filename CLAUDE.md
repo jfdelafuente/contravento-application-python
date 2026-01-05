@@ -41,6 +41,38 @@ poetry run alembic downgrade -1
 poetry run alembic history
 ```
 
+### PostgreSQL Testing Environment
+
+Test backend with PostgreSQL before staging (minimal setup without Redis/MailHog):
+
+```bash
+# Automated setup (recommended)
+bash backend/scripts/setup-postgres-testing.sh        # Linux/Mac
+.\backend\scripts\setup-postgres-testing.ps1          # Windows PowerShell
+
+# Manual setup
+docker-compose up postgres -d
+docker exec -it contravento-db psql -U postgres -c "
+  CREATE DATABASE contravento_test;
+  CREATE USER contravento_test WITH PASSWORD 'test_password';
+  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
+"
+
+# Set DATABASE_URL and run migrations
+export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
+cd backend
+poetry run alembic upgrade head
+
+# Start backend with PostgreSQL
+poetry run uvicorn src.main:app --reload --port 8000
+
+# Clean up
+docker-compose down        # Stop
+docker-compose down -v     # Stop and delete data
+```
+
+See [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md#entorno-de-testing-con-postgresql) for full testing guide.
+
 ### Development Server
 
 ```bash
