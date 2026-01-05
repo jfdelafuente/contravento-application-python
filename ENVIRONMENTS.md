@@ -16,39 +16,48 @@ backend/
 
 Docker Compose resuelve variables en este orden (de mayor a menor prioridad):
 
-1. **Valores directos en la sección `environment` de docker-compose.yml** (hardcoded)
-2. **Variables de entorno del shell** (exportadas con `export`)
-3. **Archivo especificado con `--env-file`**
-4. **Archivo `.env` en el directorio de docker-compose.yml** (por defecto)
-5. **Valores por defecto en docker-compose.yml** (`${VAR:-default}`)
+1. **Variables de entorno del shell** (exportadas con `export`)
+2. **Archivo especificado con `--env-file`**
+3. **Archivo `.env` en el directorio de docker-compose.yml** (por defecto)
+4. **Valores por defecto en docker-compose.yml** (`${VAR:-default}`)
+
+**✨ Importante:** Este proyecto **NO usa valores hardcoded** en docker-compose.yml. Todas las variables usan el patrón `${VAR:-default}`, lo que te da máxima flexibilidad para configurar cualquier entorno.
 
 **Ejemplo práctico:**
 
 ```yaml
-# docker-compose.yml
+# docker-compose.yml (configuración actual del proyecto)
 services:
+  postgres:
+    environment:
+      # Todo es flexible con defaults razonables
+      POSTGRES_DB: ${POSTGRES_DB:-contravento}
+      POSTGRES_USER: ${POSTGRES_USER:-contravento_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
+
   backend:
     environment:
-      # Prioridad 1: Valor hardcoded (siempre gana)
-      APP_NAME: ContraVento
-
-      # Prioridad 2-5: Usa shell > --env-file > .env > default
-      DATABASE_URL: ${DATABASE_URL:-postgresql://default}
+      # Todas las variables son configurables
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://contravento_user:changeme@postgres:5432/contravento}
+      DEBUG: ${DEBUG:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
 ```
 
 ```bash
-# Prioridad 2: Shell variable (segunda más alta)
+# Prioridad 1: Shell variable (más alta)
 export DATABASE_URL="postgresql://from_shell"
+docker-compose up
 
-# Prioridad 3: --env-file (tercera)
+# Prioridad 2: --env-file (segunda)
 echo "DATABASE_URL=postgresql://from_envfile" > custom.env
 docker-compose --env-file custom.env up
 
-# Prioridad 4: .env file (cuarta)
+# Prioridad 3: .env file (tercera)
 echo "DATABASE_URL=postgresql://from_dotenv" > .env
+docker-compose up
 
-# Prioridad 5: Default value (última, solo si no hay ninguna otra)
-# ${DATABASE_URL:-postgresql://default}
+# Prioridad 4: Default value (última, solo si no hay ninguna otra)
+# Se usa el valor después de :- en docker-compose.yml
 ```
 
 ### ⚠️ Importante
