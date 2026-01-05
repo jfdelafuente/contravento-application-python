@@ -58,35 +58,9 @@ poetry run uvicorn src.main:app --reload
 
 **Archivo:** `backend/.env.testing`
 
-#### Opción A: Con `--env-file` (Recomendado)
+Este entorno usa PostgreSQL en Docker pero el backend corre localmente (no en Docker) para facilitar el debugging.
 
-```bash
-# 1. Crear archivo de testing
-cp backend/.env.testing.example backend/.env.testing
-
-# 2. Editar si es necesario (valores por defecto están OK)
-nano backend/.env.testing
-
-# 3. Iniciar SOLO PostgreSQL
-docker-compose up postgres -d
-
-# 4. Crear base de datos de testing
-docker exec -it contravento-db psql -U postgres -c "
-  CREATE DATABASE contravento_test;
-  CREATE USER contravento_test WITH PASSWORD 'test_password';
-  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
-"
-
-# 5. Aplicar migraciones
-cd backend
-export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
-poetry run alembic upgrade head
-
-# 6. Iniciar backend localmente (no con Docker)
-poetry run uvicorn src.main:app --reload
-```
-
-#### Opción B: Script Automatizado
+#### Opción A: Script Automatizado (Más Fácil)
 
 ```bash
 # Linux/Mac
@@ -94,7 +68,82 @@ bash backend/scripts/setup-postgres-testing.sh
 
 # Windows PowerShell
 .\backend\scripts\setup-postgres-testing.ps1
+
+# El script hace todo automáticamente:
+# ✓ Inicia PostgreSQL
+# ✓ Crea database y usuario
+# ✓ Aplica migraciones
+# ✓ Te da instrucciones para iniciar backend
 ```
+
+Después de ejecutar el script:
+
+```bash
+# Iniciar backend localmente
+cd backend
+poetry run uvicorn src.main:app --reload
+```
+
+#### Opción B: Manual Paso a Paso
+
+```bash
+# 1. Crear archivo de configuración
+cp backend/.env.testing.example backend/.env.testing
+
+# 2. (Opcional) Editar valores si es necesario
+# Los valores por defecto están bien para testing local
+# nano backend/.env.testing
+
+# 3. Iniciar solo PostgreSQL (sin backend en Docker)
+docker-compose up postgres -d
+
+# 4. Esperar a que PostgreSQL esté listo (5-10 segundos)
+sleep 10
+
+# 5. Crear base de datos y usuario de testing
+docker exec -it contravento-db psql -U postgres -c "
+  CREATE DATABASE contravento_test;
+  CREATE USER contravento_test WITH PASSWORD 'test_password';
+  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
+"
+
+# 6. Configurar DATABASE_URL para las migraciones
+export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
+
+# 7. Aplicar migraciones
+cd backend
+poetry run alembic upgrade head
+
+# 8. Iniciar backend localmente (usa .env.testing automáticamente)
+poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+#### Opción C: Backend en Docker (menos común)
+
+Si prefieres correr el backend también en Docker:
+
+```bash
+# 1. Crear .env.testing
+cp backend/.env.testing.example backend/.env.testing
+
+# 2. Iniciar backend + postgres con --env-file
+docker-compose --env-file backend/.env.testing up backend postgres -d
+
+# 3. Crear database dentro del container
+docker exec -it contravento-db psql -U postgres -c "
+  CREATE DATABASE contravento_test;
+  CREATE USER contravento_test WITH PASSWORD 'test_password';
+  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
+"
+
+# 4. Aplicar migraciones desde el container
+docker-compose exec backend alembic upgrade head
+
+# 5. Ver logs
+docker-compose logs -f backend
+```
+
+**Nota importante:** Si usas esta opción, el DATABASE_URL debe usar `postgres` como host (no `localhost`) porque el backend está dentro de Docker.
 
 **Características:**
 - Base de datos: PostgreSQL (solo container de DB)
@@ -102,6 +151,37 @@ bash backend/scripts/setup-postgres-testing.sh
 - Redis: NO incluido
 - MailHog: NO incluido
 - Setup: 5 minutos
+
+**¿Cómo lee FastAPI el archivo .env?**
+
+FastAPI/Pydantic Settings busca automáticamente archivos `.env` en este orden:
+
+1. `.env` en el directorio actual (donde ejecutas el comando)
+2. Variables de entorno del sistema
+
+Por eso, cuando ejecutas el backend localmente:
+
+```bash
+# Si tienes backend/.env.testing
+cd backend
+poetry run uvicorn src.main:app --reload
+
+# FastAPI buscará automáticamente:
+# - backend/.env (por defecto)
+#
+# Para usar .env.testing, tienes 2 opciones:
+# Opción 1: Renombrar temporalmente
+mv backend/.env backend/.env.old
+mv backend/.env.testing backend/.env
+poetry run uvicorn src.main:app --reload
+
+# Opción 2: Exportar DATABASE_URL manualmente
+export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
+export SECRET_KEY="test-secret-key-min-32-characters-for-jwt-signing"
+poetry run uvicorn src.main:app --reload
+```
+
+**Recomendación:** Para testing, lo más simple es usar `.env` (no `.env.testing`) cuando corres el backend localmente, o exportar las variables necesarias.
 
 ---
 
@@ -268,12 +348,12 @@ docker exec -it contravento-db psql -U postgres -c "
 
 ### Error: Docker Compose no lee mi archivo .env.testing
 
-**Causa:** Docker Compose solo lee `.env` por defecto.
+**Causa:** Docker Compose solo lee `.env` por defecto. Los archivos `.env.testing`, `.env.staging`, etc. deben especificarse explícitamente con `--env-file`.
 
 **Solución:**
 
 ```bash
-# Opción 1: Usar --env-file
+# Opción 1: Usar --env-file (RECOMENDADO)
 docker-compose --env-file backend/.env.testing up -d
 
 # Opción 2: Copiar a .env
@@ -284,6 +364,40 @@ docker-compose up -d
 export DATABASE_URL="postgresql+asyncpg://..."
 docker-compose up -d
 ```
+
+### Error: FastAPI no lee mi archivo .env.testing
+
+**Causa:** Pydantic Settings (usado por FastAPI) solo busca archivos llamados `.env` por defecto.
+
+**Solución:**
+
+```bash
+# Opción 1: Usar .env como nombre de archivo (RECOMENDADO para local)
+cp backend/.env.testing backend/.env
+cd backend
+poetry run uvicorn src.main:app --reload
+
+# Opción 2: Exportar variables de entorno
+export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
+export SECRET_KEY="test-secret-key-min-32-characters-for-jwt-signing"
+cd backend
+poetry run uvicorn src.main:app --reload
+
+# Opción 3: Especificar archivo en código (requiere cambios en config.py)
+# NO RECOMENDADO - mejor usar opciones 1 o 2
+```
+
+**Diferencia importante:**
+
+| Tool | Archivo por defecto | Cómo usar otros archivos |
+|------|---------------------|--------------------------|
+| **Docker Compose** | `.env` | `--env-file ruta/archivo.env` |
+| **FastAPI/Pydantic** | `.env` | Exportar variables o renombrar a `.env` |
+
+Por eso, para testing local recomendamos:
+1. **PostgreSQL en Docker** → usa `docker-compose up postgres -d` (no necesita .env)
+2. **Backend local** → usa `backend/.env` (crear/modificar desde .env.testing)
+3. **Migraciones** → usa `export DATABASE_URL=...` antes de ejecutar
 
 ### Error: Variable no definida en docker-compose
 
