@@ -125,37 +125,79 @@ poetry run uvicorn src.main:app --reload
 
 #### Opción B: Manual Paso a Paso
 
+**Paso 1: Crear archivo de configuración**
+
 ```bash
-# 1. Crear archivo de configuración
 cp backend/.env.testing.example backend/.env.testing
 
-# 2. (Opcional) Editar valores si es necesario
+# (Opcional) Editar valores si es necesario
 # Los valores por defecto están bien para testing local
 # nano backend/.env.testing
+```
 
-# 3. Iniciar solo PostgreSQL (sin backend en Docker)
+**Paso 2: Exportar variables para PostgreSQL container**
+
+```bash
+# Opción B1: Usar --env-file (RECOMENDADO)
+# Docker Compose leerá las variables del archivo .env.testing
+export COMPOSE_FILE=docker-compose.yml
+
+# Opción B2: Exportar variables manualmente
+# Estas variables tienen PRIORIDAD 1 (más alta)
+export POSTGRES_DB=contravento_test
+export POSTGRES_USER=contravento_test
+export POSTGRES_PASSWORD=test_password
+
+# Opción B3: Copiar a .env (si no tienes otro .env)
+# cp backend/.env.testing .env
+```
+
+**Paso 3: Iniciar PostgreSQL con variables correctas**
+
+```bash
+# Si usaste Opción B1 (--env-file)
+docker-compose --env-file backend/.env.testing up postgres -d
+
+# Si usaste Opción B2 (export)
 docker-compose up postgres -d
 
-# 4. Esperar a que PostgreSQL esté listo (5-10 segundos)
-sleep 10
+# Si usaste Opción B3 (.env)
+docker-compose up postgres -d
 
-# 5. Crear base de datos y usuario de testing
-docker exec -it contravento-db psql -U postgres -c "
-  CREATE DATABASE contravento_test;
-  CREATE USER contravento_test WITH PASSWORD 'test_password';
-  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
-"
+# Verificar que PostgreSQL está corriendo con las variables correctas
+docker-compose ps postgres
+docker exec contravento-db psql -U contravento_test -d contravento_test -c "SELECT current_database(), current_user;"
+```
 
-# 6. Configurar DATABASE_URL para las migraciones
+**Paso 4: Aplicar migraciones**
+
+```bash
+# Configurar DATABASE_URL para las migraciones (Prioridad 1)
 export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
 
-# 7. Aplicar migraciones
 cd backend
 poetry run alembic upgrade head
+```
 
-# 8. Iniciar backend localmente (usa .env.testing automáticamente)
+**Paso 5: Iniciar backend localmente**
+
+```bash
+# El backend leerá backend/.env.testing si existe, o usa las variables exportadas
+cd backend
 poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+**¿Qué variables usa Docker Compose?**
+
+Si ejecutas `docker-compose up postgres -d` sin `--env-file`:
+
+- ✅ **Con exports (Opción B2)**: Usa `POSTGRES_DB=contravento_test`, `POSTGRES_USER=contravento_test` (Prioridad 1)
+- ✅ **Con .env (Opción B3)**: Usa valores de `.env` si existe (Prioridad 3)
+- ❌ **Sin exports ni .env**: Usa valores por defecto `POSTGRES_DB=contravento`, `POSTGRES_USER=contravento_user` (Prioridad 4)
+
+Si ejecutas `docker-compose --env-file backend/.env.testing up postgres -d`:
+
+- ✅ **Con --env-file**: Usa `POSTGRES_DB=contravento_test` del archivo (Prioridad 2)
 
 #### Opción C: Backend en Docker (menos común)
 
