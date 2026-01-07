@@ -5,9 +5,12 @@ Provides test fixtures for database, async client, authentication, and test data
 """
 
 import asyncio
+import os
 from collections.abc import AsyncGenerator, Generator
+from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
 from faker import Faker
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -18,6 +21,29 @@ from src.main import app
 
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_test_env():
+    """
+    Load test environment variables from .env.test.
+
+    This runs once per test session before any tests execute.
+    Sets APP_ENV=testing to ensure test configuration is used.
+    """
+    # Get path to .env.test (backend/.env.test)
+    env_file = Path(__file__).parent.parent / ".env.test"
+
+    if env_file.exists():
+        load_dotenv(env_file, override=True)
+        # Ensure APP_ENV is set to testing
+        os.environ["APP_ENV"] = "testing"
+    else:
+        # Fallback: set minimal test environment variables
+        os.environ.setdefault("APP_ENV", "testing")
+        os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+        os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
+        os.environ.setdefault("BCRYPT_ROUNDS", "4")
 
 
 @pytest.fixture(scope="session")
