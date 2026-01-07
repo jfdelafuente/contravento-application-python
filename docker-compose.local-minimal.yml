@@ -65,6 +65,15 @@ services:
   # NOTE: Redis service not included in minimal setup
   # If you need Redis for cache testing, use docker-compose.local.yml
 
+  # ==========================================================================
+  # pgAdmin - Database UI (Optional - Uncomment to enable)
+  # ==========================================================================
+  # pgAdmin is available as a container but port is not exposed by default
+  # Uncomment the lines below to access pgAdmin UI at http://localhost:5050
+  # pgadmin:
+  #   ports:
+  #     - "5050:80"  # Web UI at http://localhost:5050
+
 # ============================================================================
 # Notes
 # ============================================================================
