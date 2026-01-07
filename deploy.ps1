@@ -63,10 +63,10 @@ function Check-DockerCompose {
 function Validate-Env {
     param([string]$Env)
 
-    $validEnvs = @("local", "dev", "staging", "prod")
+    $validEnvs = @("local", "local-minimal", "dev", "staging", "prod")
     if ($validEnvs -notcontains $Env) {
         Print-Error "Invalid environment: $Env"
-        Write-Host "Valid environments: local, dev, staging, prod"
+        Write-Host "Valid environments: local, local-minimal, dev, staging, prod"
         exit 1
     }
 }
@@ -143,13 +143,27 @@ function Start-Env {
 
     # Environment-specific messages
     switch ($Env) {
+        "local-minimal" {
+            Write-Host ""
+            Print-Info "Access your minimal local environment:"
+            Write-Host "  Backend API:     http://localhost:8000"
+            Write-Host "  API Docs:        http://localhost:8000/docs"
+            Write-Host "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
+            Write-Host ""
+            Print-Warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+            Print-Info "For MailHog, Redis, pgAdmin → use: .\deploy.ps1 local"
+        }
         "local" {
             Write-Host ""
-            Print-Info "Access your local environment:"
+            Print-Info "Access your full local environment:"
             Write-Host "  Backend API:     http://localhost:8000"
             Write-Host "  API Docs:        http://localhost:8000/docs"
             Write-Host "  MailHog UI:      http://localhost:8025"
             Write-Host "  pgAdmin:         http://localhost:5050"
+            Write-Host "  PostgreSQL:      localhost:5432"
+            Write-Host "  Redis:           localhost:6379"
+            Write-Host ""
+            Print-Info "For lighter setup → use: .\deploy.ps1 local-minimal"
         }
         "dev" {
             Write-Host ""

@@ -1,0 +1,82 @@
+# ============================================================================
+# ContraVento - Local Minimal Development Environment
+# ============================================================================
+# Lightweight development setup with only essential services:
+#   - PostgreSQL (database)
+#   - Backend API (FastAPI)
+#
+# This overlay is perfect for:
+#   - Quick development iterations
+#   - Working on features that don't require email/cache
+#   - Testing database changes
+#   - Minimal resource usage
+#
+# NOT included (use docker-compose.local.yml if you need these):
+#   - Redis (cache) - Not currently used in the app
+#   - MailHog (email testing) - Only needed for auth/email features
+#   - pgAdmin (DB UI) - Use DBeaver or psql instead
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml up -d
+#   OR use script: ./deploy.sh local-minimal
+#
+# Access:
+#   Backend API:        http://localhost:8000
+#   API Docs:           http://localhost:8000/docs
+#   PostgreSQL:         localhost:5432 (use psql, DBeaver, etc.)
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Local Development
+  # ==========================================================================
+  postgres:
+    ports:
+      - "5432:5432"  # Expose for local DB clients (DBeaver, psql, etc.)
+
+  # ==========================================================================
+  # Backend API - Local Development (Minimal)
+  # ==========================================================================
+  backend:
+    build:
+      target: development  # Use development stage from Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reload
+      - ./backend/src:/app/src:ro
+      # Mount storage as local directory for easy access
+      - ./backend/storage:/app/storage
+    environment:
+      DEBUG: "true"
+      LOG_LEVEL: DEBUG
+      LOG_FORMAT: text  # Human-readable logs for development
+      BCRYPT_ROUNDS: "4"  # Fast hashing for quicker tests
+      # Email: Log to console instead of sending (no MailHog needed)
+      SMTP_HOST: ""
+      SMTP_PORT: "1025"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # NOTE: Redis dependency removed - not needed for basic development
+
+  # NOTE: Redis service not included in minimal setup
+  # If you need Redis for cache testing, use docker-compose.local.yml
+
+# ============================================================================
+# Notes
+# ============================================================================
+# Removed services from full local setup:
+#   - redis: Not currently used in the application
+#   - mailhog: Only needed when testing email functionality
+#   - pgadmin: Use external DB clients (DBeaver, TablePlus, psql)
+#
+# To use the full local environment:
+#   ./deploy.sh local
+#
+# To switch back to minimal:
+#   ./deploy.sh local-minimal down
+#   ./deploy.sh local-minimal
+# ============================================================================

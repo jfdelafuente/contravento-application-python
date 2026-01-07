@@ -60,12 +60,12 @@ check_docker_compose() {
 validate_env() {
     local env=$1
     case $env in
-        local|dev|staging|prod)
+        local|local-minimal|dev|staging|prod)
             return 0
             ;;
         *)
             print_error "Invalid environment: $env"
-            echo "Valid environments: local, dev, staging, prod"
+            echo "Valid environments: local, local-minimal, dev, staging, prod"
             exit 1
             ;;
     esac
@@ -140,13 +140,27 @@ start_env() {
 
     # Environment-specific messages
     case $env in
+        local-minimal)
+            echo ""
+            print_info "Access your minimal local environment:"
+            echo "  Backend API:     http://localhost:8000"
+            echo "  API Docs:        http://localhost:8000/docs"
+            echo "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
+            echo ""
+            print_warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+            print_info "For MailHog, Redis, pgAdmin → use: ./deploy.sh local"
+            ;;
         local)
             echo ""
-            print_info "Access your local environment:"
+            print_info "Access your full local environment:"
             echo "  Backend API:     http://localhost:8000"
             echo "  API Docs:        http://localhost:8000/docs"
             echo "  MailHog UI:      http://localhost:8025"
             echo "  pgAdmin:         http://localhost:5050"
+            echo "  PostgreSQL:      localhost:5432"
+            echo "  Redis:           localhost:6379"
+            echo ""
+            print_info "For lighter setup → use: ./deploy.sh local-minimal"
             ;;
         dev)
             echo ""
@@ -220,10 +234,11 @@ main() {
         print_error "Usage: $0 <environment> [command]"
         echo ""
         echo "Environments:"
-        echo "  local      - Local development (hot reload, MailHog, pgAdmin)"
-        echo "  dev        - Development/Integration (production-like)"
-        echo "  staging    - Staging/Pre-production (production mirror)"
-        echo "  prod       - Production (maximum security)"
+        echo "  local-minimal  - Minimal local (PostgreSQL + Backend only) ⚡ FASTEST"
+        echo "  local          - Full local (+ Redis, MailHog, pgAdmin)"
+        echo "  dev            - Development/Integration (production-like)"
+        echo "  staging        - Staging/Pre-production (production mirror)"
+        echo "  prod           - Production (maximum security)"
         echo ""
         echo "Commands:"
         echo "  (default)  - Start environment"
@@ -233,9 +248,10 @@ main() {
         echo "  restart    - Restart environment"
         echo ""
         echo "Examples:"
-        echo "  $0 local           # Start local development"
-        echo "  $0 local logs      # View local logs"
-        echo "  $0 prod down       # Stop production"
+        echo "  $0 local-minimal       # Start minimal local (recommended for dev)"
+        echo "  $0 local               # Start full local with all tools"
+        echo "  $0 local-minimal logs  # View logs"
+        echo "  $0 prod down           # Stop production"
         exit 1
     fi
 

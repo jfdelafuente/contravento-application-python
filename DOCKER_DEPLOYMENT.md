@@ -43,11 +43,32 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 
 ## Environment Types
 
-### 1. LOCAL (Development)
+### 1. LOCAL MINIMAL (Quick Development)
 
-**Purpose**: Local development with hot reload and debugging tools
+**Purpose**: Minimal local setup for fast development iterations
 
 **Characteristics**:
+- ✅ PostgreSQL + Backend only
+- ✅ Hot reload for code changes
+- ✅ Debug mode enabled
+- ✅ Fast startup (2 containers vs 5)
+- ✅ Low resource usage
+- ✅ Fast bcrypt (4 rounds)
+- ✅ Verbose logging
+- ❌ No Redis (not needed yet)
+- ❌ No MailHog (emails logged to console)
+- ❌ No pgAdmin (use external DB tools)
+
+**Use when**: Daily development on trips, stats, profiles, any non-email features
+
+---
+
+### 2. LOCAL FULL (Complete Development)
+
+**Purpose**: Full local development environment with all tools
+
+**Characteristics**:
+- ✅ PostgreSQL + Redis + Backend
 - ✅ Hot reload for code changes
 - ✅ Debug mode enabled
 - ✅ MailHog for email testing
@@ -56,11 +77,11 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 - ✅ Fast bcrypt (4 rounds)
 - ✅ Verbose logging
 
-**Use when**: Developing features, writing code, debugging issues
+**Use when**: Testing auth/email features, implementing cache, prefer visual DB tools
 
 ---
 
-### 2. DEV (Integration)
+### 3. DEV (Integration)
 
 **Purpose**: Integration testing with production-like build
 

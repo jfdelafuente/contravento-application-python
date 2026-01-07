@@ -45,45 +45,55 @@ poetry run alembic history
 
 ContraVento supports multiple deployment environments with Docker Compose:
 
-**Quick Start:**
+**Quick Start (Recommended - Minimal Setup):**
 
 ```bash
-# Local development (hot reload, MailHog, pgAdmin)
-./deploy.sh local           # Linux/Mac
-.\deploy.ps1 local          # Windows PowerShell
+# ⚡ LOCAL MINIMAL - PostgreSQL + Backend only (FASTEST)
+./deploy.sh local-minimal      # Linux/Mac
+.\deploy.ps1 local-minimal     # Windows PowerShell
 
-# Development/Integration
-./deploy.sh dev
+# Configuration:
+cp .env.local-minimal.example .env.local-minimal
+python -c "import secrets; print(secrets.token_urlsafe(64))"  # Generate SECRET_KEY
+nano .env.local-minimal  # Edit and configure
+./deploy.sh local-minimal
 
-# Staging (production mirror)
-./deploy.sh staging
-
-# Production
-./deploy.sh prod
+# Access:
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - PostgreSQL: localhost:5432 (use DBeaver, psql, etc.)
 ```
 
-**Environment Configuration:**
+**Full Local Setup (When you need email testing or pgAdmin):**
 
 ```bash
-# 1. Copy environment template
-cp .env.local.example .env.local
-
-# 2. Generate strong SECRET_KEY
-python -c "import secrets; print(secrets.token_urlsafe(64))"
-
-# 3. Edit .env.local and configure variables
-nano .env.local
-
-# 4. Deploy
+# LOCAL FULL - All services (PostgreSQL + Backend + Redis + MailHog + pgAdmin)
 ./deploy.sh local
+
+# Configuration:
+cp .env.local.example .env.local
+nano .env.local
+./deploy.sh local
+
+# Access:
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - MailHog UI: http://localhost:8025 (email testing)
+# - pgAdmin: http://localhost:5050 (database UI)
 ```
 
-**Access Points (Local):**
+**Other Environments:**
 
-- Backend API: <http://localhost:8000>
-- API Docs: <http://localhost:8000/docs>
-- MailHog UI: <http://localhost:8025>
-- pgAdmin: <http://localhost:5050>
+```bash
+./deploy.sh dev       # Development/Integration
+./deploy.sh staging   # Staging (production mirror)
+./deploy.sh prod      # Production
+```
+
+**When to use each local environment:**
+
+- **local-minimal**: ✅ Daily development, working on trips/stats/profiles
+- **local**: ✅ Testing auth/email, need Redis cache, prefer pgAdmin
 
 See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete deployment guide.
 
