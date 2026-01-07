@@ -162,69 +162,297 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 
 ---
 
-### Option B: Docker Environments
+### Option B1: Docker Local Minimal (PostgreSQL + Backend)
 
-#### Prerequisites
+**Perfect for testing with PostgreSQL without extra services**
 
-```bash
-# Install Docker and Docker Compose
-# Verify installation
-docker --version
-docker-compose --version
-```
+#### Services Included
+- ✅ PostgreSQL 16 (database)
+- ✅ Backend FastAPI (hot reload)
+- ❌ Redis, MailHog, pgAdmin (not included)
 
-### 1. Clone and Setup
+#### Quick Start
 
 ```bash
-cd contravento-application-python
+# 1. Copy environment file
+cp .env.local-minimal.example .env.local-minimal
 
-# Copy environment files
-cp .env.local.example .env.local
-cp .env.dev.example .env.dev
-cp .env.staging.example .env.staging
-cp .env.prod.example .env.prod
-```
-
-### 2. Configure Environment
-
-Edit `.env.<environment>` and set required variables:
-
-```bash
-# CRITICAL: Generate strong SECRET_KEY
+# 2. Generate SECRET_KEY
 python -c "import secrets; print(secrets.token_urlsafe(64))"
 
-# Edit environment file
-nano .env.local  # or vim, code, etc.
+# 3. Edit .env.local-minimal and set:
+#    - SECRET_KEY (generated above)
+#    - POSTGRES_PASSWORD
+
+# 4. Start environment
+./deploy.sh local-minimal        # Linux/Mac
+.\deploy.ps1 local-minimal       # Windows
+
+# 5. Access
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - PostgreSQL: localhost:5432
 ```
 
-**Required variables**:
-- `SECRET_KEY` (min 32 chars for local, min 64 for prod)
-- `POSTGRES_PASSWORD`
-- `REDIS_PASSWORD`
-- `SMTP_*` (for email functionality)
+#### When to Use
+- Testing PostgreSQL-specific features before staging
+- Need PostgreSQL but want minimal resource usage
+- Quick database testing without visual tools
 
-### 3. Deploy
+---
+
+### Option B2: Docker Local Full (All Development Tools)
+
+**Complete local development with Redis, MailHog, and pgAdmin**
+
+#### Services Included
+- ✅ PostgreSQL 16 (database)
+- ✅ Redis 7 (cache/sessions)
+- ✅ Backend FastAPI (hot reload)
+- ✅ MailHog (email testing UI)
+- ✅ pgAdmin 4 (database management UI)
+
+#### Quick Start
 
 ```bash
-# Linux/Mac
-./deploy.sh local
+# 1. Copy environment file
+cp .env.local.example .env.local
 
-# Windows PowerShell
-.\deploy.ps1 local
+# 2. Generate SECRET_KEY
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# 3. Edit .env.local and set:
+#    - SECRET_KEY (generated above)
+#    - POSTGRES_PASSWORD
+#    - REDIS_PASSWORD
+#    - PGADMIN_PASSWORD
+
+# 4. Start environment
+./deploy.sh local                # Linux/Mac
+.\deploy.ps1 local               # Windows
+
+# 5. Access
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - MailHog UI: http://localhost:8025
+# - pgAdmin: http://localhost:5050
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
 ```
 
-### 4. Verify
+#### When to Use
+- Developing/testing email features (MailHog)
+- Implementing cache with Redis
+- Prefer visual database tools (pgAdmin)
+- Full local integration testing
+
+---
+
+### Option B3: Docker Dev (Integration Testing)
+
+**Production-like build for integration testing**
+
+#### Services Included
+- ✅ PostgreSQL 16
+- ✅ Redis 7
+- ✅ Backend (production build, no hot reload)
+- ✅ Nginx reverse proxy
+- ✅ Real SMTP server
+- ❌ Debug mode, MailHog, pgAdmin
+
+#### Quick Start
 
 ```bash
-# Check running containers
-docker ps
+# 1. Copy environment file
+cp .env.dev.example .env.dev
 
-# View logs
-./deploy.sh local logs
+# 2. Generate SECRET_KEY
+python -c "import secrets; print(secrets.token_urlsafe(64))"
 
-# Test API
-curl http://localhost:8000/health
+# 3. Edit .env.dev and set:
+#    - SECRET_KEY (min 64 chars)
+#    - POSTGRES_PASSWORD
+#    - REDIS_PASSWORD
+#    - SMTP_HOST, SMTP_USER, SMTP_PASSWORD (real SMTP like Mailtrap)
+
+# 4. Start environment
+./deploy.sh dev                  # Linux/Mac
+.\deploy.ps1 dev                 # Windows
+
+# 5. Access
+# - Backend API: http://dev.contravento.local:8000
+# - API Docs: http://dev.contravento.local:8000/docs
 ```
+
+#### Configuration Highlights
+```bash
+APP_ENV=development
+DEBUG=false
+BCRYPT_ROUNDS=10              # Moderate security
+LOG_FORMAT=json               # Structured logging
+```
+
+#### When to Use
+- Testing integrations before staging
+- CI/CD pipeline testing
+- Team collaboration environment
+- Validate production build works
+
+---
+
+### Option B4: Docker Staging (Pre-Production)
+
+**Identical to production for final testing**
+
+#### Services Included
+- ✅ PostgreSQL 16
+- ✅ Redis 7
+- ✅ Backend (production build)
+- ✅ Nginx reverse proxy
+- ✅ SSL/TLS certificates
+- ✅ Prometheus (metrics)
+- ✅ Grafana (dashboards)
+- ✅ Automated backups
+
+#### Quick Start
+
+```bash
+# 1. Copy environment file
+cp .env.staging.example .env.staging
+
+# 2. Generate strong SECRET_KEY (min 64 chars)
+python -c "import secrets; print(secrets.token_urlsafe(96))"
+
+# 3. Edit .env.staging and set:
+#    - SECRET_KEY (generated above)
+#    - POSTGRES_PASSWORD (min 32 chars)
+#    - REDIS_PASSWORD
+#    - SMTP_HOST, SMTP_USER, SMTP_PASSWORD
+#    - DOMAIN (staging.contravento.com)
+#    - GRAFANA_ADMIN_PASSWORD
+
+# 4. Start environment
+./deploy.sh staging              # Linux/Mac
+.\deploy.ps1 staging             # Windows
+
+# 5. Access
+# - Backend API: https://staging.contravento.com
+# - Grafana: http://localhost:3000
+# - Prometheus: http://localhost:9090
+```
+
+#### Configuration Highlights
+```bash
+APP_ENV=production
+DEBUG=false
+BCRYPT_ROUNDS=12              # Production-level security
+CORS_ORIGINS=https://staging.contravento.com
+```
+
+#### When to Use
+- Final testing before production release
+- Client demos and UAT
+- Performance testing under production conditions
+- Validate monitoring and alerting
+
+---
+
+### Option B5: Docker Prod (Production)
+
+**Live production environment with high availability**
+
+#### Services Included
+- ✅ PostgreSQL 16 (with connection pooling)
+- ✅ Redis 7
+- ✅ Backend (3 replicas for HA)
+- ✅ Nginx reverse proxy
+- ✅ Certbot (automated SSL renewal)
+- ✅ Prometheus + exporters
+- ✅ Grafana
+- ✅ Automated backups to external storage
+- ✅ Log aggregation
+
+#### Quick Start
+
+```bash
+# 1. Copy environment file
+cp .env.prod.example .env.prod
+
+# 2. Generate STRONG SECRET_KEY (min 96 chars)
+python -c "import secrets; print(secrets.token_urlsafe(128))"
+
+# 3. Generate strong passwords
+openssl rand -base64 48  # Database password
+openssl rand -base64 32  # Redis password
+
+# 4. Edit .env.prod and set:
+#    - SECRET_KEY (min 96 chars)
+#    - POSTGRES_PASSWORD (min 48 chars)
+#    - REDIS_PASSWORD (min 32 chars)
+#    - SMTP_* (production SMTP credentials)
+#    - DOMAIN (api.contravento.com)
+#    - GRAFANA_ADMIN_PASSWORD
+#    - All monitoring/alerting credentials
+
+# 5. Configure external secret manager (recommended)
+#    - AWS Secrets Manager
+#    - HashiCorp Vault
+#    - Azure Key Vault
+
+# 6. Start environment
+./deploy.sh prod                 # Linux/Mac
+.\deploy.ps1 prod                # Windows
+
+# 7. Verify SSL certificates
+curl -I https://api.contravento.com
+
+# 8. Access
+# - Backend API: https://api.contravento.com
+# - Monitoring: https://monitoring.contravento.com
+```
+
+#### Configuration Highlights
+```bash
+APP_ENV=production
+DEBUG=false
+BCRYPT_ROUNDS=14              # Maximum security
+LOG_LEVEL=WARNING             # Only warnings/errors
+# Backend replicas: 3 (high availability)
+```
+
+#### Security Checklist
+- [ ] All secrets stored in secret manager (not .env files)
+- [ ] Firewall configured (only ports 80, 443 exposed)
+- [ ] SSL certificates valid and auto-renewing
+- [ ] Database backups tested and verified
+- [ ] Monitoring alerts configured (email, Slack, PagerDuty)
+- [ ] Rate limiting enabled
+- [ ] CORS restricted to specific domains (no `*`)
+
+#### When to Use
+- Serving real users in production
+- Requires 24/7 uptime
+- Needs automatic failover and scaling
+
+---
+
+### Docker Deployment Comparison
+
+| Feature | Local Minimal | Local Full | Dev | Staging | Prod |
+|---------|:-------------:|:----------:|:---:|:-------:|:----:|
+| **Startup time** | ~10s | ~30s | ~20s | ~40s | ~60s |
+| **Memory usage** | ~500 MB | ~1 GB | ~800 MB | ~2 GB | ~3 GB |
+| **PostgreSQL** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Redis** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **MailHog** | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **pgAdmin** | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Nginx** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **SSL/TLS** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Monitoring** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Hot reload** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Debug mode** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Bcrypt rounds** | 4 | 4 | 10 | 12 | 14 |
+| **Replicas** | 1 | 1 | 1 | 1 | 3 |
 
 ---
 
