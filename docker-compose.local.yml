@@ -95,25 +95,5 @@ services:
   # Alternatives: DBeaver, TablePlus, psql command line, VS Code extensions
   # If you prefer external tools, use: ./deploy.sh local-minimal
   pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: contravento-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@contravento.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "5050:80"  # Web UI at http://localhost:5050
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - postgres
-    restart: unless-stopped
-    networks:
-      - contravento-network
-
-# ============================================================================
-# Volumes (Development)
-# ============================================================================
-volumes:
-  pgadmin_data:
-    driver: local
