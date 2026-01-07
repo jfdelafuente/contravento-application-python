@@ -25,8 +25,45 @@ RUN poetry config virtualenvs.create false
 # Install dependencies (production only, no dev dependencies)
 RUN poetry install --no-dev --no-interaction --no-ansi
 
-# Stage 2: Runtime
-FROM python:3.11-slim
+# Stage 2: Development (with hot reload)
+FROM python:3.11-slim AS development
+
+# Set working directory
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry for development
+RUN pip install --no-cache-dir poetry==1.7.1
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Configure poetry to not create virtual env
+RUN poetry config virtualenvs.create false
+
+# Install all dependencies (including dev dependencies for hot reload)
+RUN poetry install --no-interaction --no-ansi
+
+# Copy application code (will be mounted as volume in docker-compose)
+COPY src/ ./src/
+COPY alembic.ini ./
+COPY scripts/ ./scripts/
+
+# Create storage directory
+RUN mkdir -p storage/profile_photos storage/trip_photos
+
+# Expose port
+EXPOSE 8000
+
+# Development server with hot reload
+CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"]
+
+# Stage 3: Production Runtime
+FROM python:3.11-slim AS production
 
 # Set working directory
 WORKDIR /app
@@ -46,7 +83,7 @@ COPY alembic.ini ./
 COPY scripts/ ./scripts/
 
 # Create storage directory
-RUN mkdir -p storage/profile_photos
+RUN mkdir -p storage/profile_photos storage/trip_photos
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
