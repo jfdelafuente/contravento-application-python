@@ -98,9 +98,9 @@ Guía simplificada de las diferentes formas de arrancar el proyecto para desarro
 
 - ✅ PostgreSQL 16 (base de datos)
 - ✅ Backend FastAPI (con hot reload)
-- ❌ Redis (no incluido)
+- ❌ Redis (deshabilitado - usa `./deploy.sh local` si lo necesitas)
 - ❌ MailHog (emails se logean en consola)
-- ❌ pgAdmin (usa DBeaver, TablePlus, o psql)
+- 🔧 pgAdmin (disponible pero deshabilitado - ver abajo cómo habilitarlo)
 
 ### Acceso
 
@@ -116,6 +116,43 @@ Guía simplificada de las diferentes formas de arrancar el proyecto para desarro
 Primera vez: Edita `.env.local-minimal` y configura:
 - `SECRET_KEY` (generar con: `python -c "import secrets; print(secrets.token_urlsafe(64))"`)
 - `POSTGRES_PASSWORD`
+
+### Habilitar pgAdmin (Opcional)
+
+pgAdmin está disponible como contenedor pero deshabilitado por defecto para mantener el setup ligero. Para habilitarlo:
+
+1. Edita `docker-compose.local-minimal.yml` (líneas 86-88)
+
+2. Reemplaza:
+
+   ```yaml
+   pgadmin:
+     deploy:
+       replicas: 0
+   ```
+
+   Por:
+
+   ```yaml
+   pgadmin:
+     deploy:
+       replicas: 1
+     ports:
+       - "5050:80"
+   ```
+
+3. Reinicia:
+
+   ```bash
+   ./deploy.sh local-minimal down
+   ./deploy.sh local-minimal
+   ```
+
+4. Accede a <http://localhost:5050>
+   - Email: `admin@contravento.local`
+   - Password: `admin`
+
+**Alternativas a pgAdmin**: DBeaver, TablePlus, psql, VS Code PostgreSQL extension
 
 ---
 
