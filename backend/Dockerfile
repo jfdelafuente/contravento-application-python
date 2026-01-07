@@ -53,14 +53,20 @@ COPY src/ ./src/
 COPY alembic.ini ./
 COPY scripts/ ./scripts/
 
+# Make entrypoint script executable
+RUN chmod +x scripts/docker-entrypoint.sh
+
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
 
 # Expose port
 EXPOSE 8000
 
+# Use entrypoint script to run migrations and seed data
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+
 # Development server with hot reload
-CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # Stage 3: Production Runtime
 FROM python:3.11-slim AS production
@@ -82,6 +88,9 @@ COPY src/ ./src/
 COPY alembic.ini ./
 COPY scripts/ ./scripts/
 
+# Make entrypoint script executable
+RUN chmod +x scripts/docker-entrypoint.sh
+
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
 
@@ -96,5 +105,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
-# Run migrations and start server
-CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"]
+# Use entrypoint script to run migrations (no seed data in production)
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+
+# Production server (no reload)
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
