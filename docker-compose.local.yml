@@ -1,0 +1,97 @@
+# ============================================================================
+# ContraVento - Local Development Environment
+# ============================================================================
+# This overlay adds development-specific configurations:
+#   - Hot reload for backend code changes
+#   - MailHog for email testing (no real emails sent)
+#   - pgAdmin for database management
+#   - Debug mode enabled
+#   - Exposed ports for direct access
+#   - Minimal security (fast bcrypt rounds)
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
+#   OR use script: ./deploy.sh local
+#
+# Access:
+#   Backend API:        http://localhost:8000
+#   API Docs:           http://localhost:8000/docs
+#   MailHog UI:         http://localhost:8025
+#   pgAdmin:            http://localhost:5050
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Local Development
+  # ==========================================================================
+  postgres:
+    ports:
+      - "5432:5432"  # Expose for local DB clients (DBeaver, psql, etc.)
+
+  # ==========================================================================
+  # Redis - Local Development
+  # ==========================================================================
+  redis:
+    ports:
+      - "6379:6379"  # Expose for local Redis clients
+
+  # ==========================================================================
+  # Backend API - Local Development
+  # ==========================================================================
+  backend:
+    build:
+      target: development  # Use development stage from Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reload (override production volume)
+      - ./backend/src:/app/src:ro
+      # Mount storage as local directory for easy access
+      - ./backend/storage:/app/storage
+    environment:
+      DEBUG: "true"
+      LOG_LEVEL: DEBUG
+      LOG_FORMAT: text  # Human-readable logs for development
+      BCRYPT_ROUNDS: "4"  # Fast hashing for quicker tests
+
+  # ==========================================================================
+  # MailHog - Email Testing (Development Only)
+  # ==========================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: contravento-mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI at http://localhost:8025
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # pgAdmin - Database UI (Development Only)
+  # ==========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: contravento-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@contravento.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"  # Web UI at http://localhost:5050
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+# ============================================================================
+# Volumes (Development)
+# ============================================================================
+volumes:
+  pgadmin_data:
+    driver: local

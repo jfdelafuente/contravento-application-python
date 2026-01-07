@@ -41,37 +41,51 @@ poetry run alembic downgrade -1
 poetry run alembic history
 ```
 
-### PostgreSQL Testing Environment
+### Docker Multi-Environment Deployment
 
-Test backend with PostgreSQL before staging (minimal setup without Redis/MailHog):
+ContraVento supports multiple deployment environments with Docker Compose:
+
+**Quick Start:**
 
 ```bash
-# Automated setup (recommended)
-bash backend/scripts/setup-postgres-testing.sh        # Linux/Mac
-.\backend\scripts\setup-postgres-testing.ps1          # Windows PowerShell
+# Local development (hot reload, MailHog, pgAdmin)
+./deploy.sh local           # Linux/Mac
+.\deploy.ps1 local          # Windows PowerShell
 
-# Manual setup
-docker-compose up postgres -d
-docker exec -it contravento-db psql -U postgres -c "
-  CREATE DATABASE contravento_test;
-  CREATE USER contravento_test WITH PASSWORD 'test_password';
-  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
-"
+# Development/Integration
+./deploy.sh dev
 
-# Set DATABASE_URL and run migrations
-export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
-cd backend
-poetry run alembic upgrade head
+# Staging (production mirror)
+./deploy.sh staging
 
-# Start backend with PostgreSQL
-poetry run uvicorn src.main:app --reload --port 8000
-
-# Clean up
-docker-compose down        # Stop
-docker-compose down -v     # Stop and delete data
+# Production
+./deploy.sh prod
 ```
 
-See [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md#entorno-de-testing-con-postgresql) for full testing guide.
+**Environment Configuration:**
+
+```bash
+# 1. Copy environment template
+cp .env.local.example .env.local
+
+# 2. Generate strong SECRET_KEY
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# 3. Edit .env.local and configure variables
+nano .env.local
+
+# 4. Deploy
+./deploy.sh local
+```
+
+**Access Points (Local):**
+
+- Backend API: <http://localhost:8000>
+- API Docs: <http://localhost:8000/docs>
+- MailHog UI: <http://localhost:8025>
+- pgAdmin: <http://localhost:5050>
+
+See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete deployment guide.
 
 ### Development Server
 
