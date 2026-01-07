@@ -195,13 +195,16 @@ function Show-Help {
     Write-Host "  .\run-local-dev.ps1 -Reset    # Reset DB"
 }
 
-# Main
+# Main execution
+if ($Help) {
+    Show-Help
+    exit 0
+}
+
 Check-Directory
 Check-Poetry
 
-if ($Help) {
-    Show-Help
-} elseif ($Setup) {
+if ($Setup) {
     Setup-Environment
 } elseif ($Reset) {
     Reset-Database
