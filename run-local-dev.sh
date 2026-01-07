@@ -109,6 +109,10 @@ setup() {
     print_info "Creating test user..."
     poetry run python scripts/create_verified_user.py || true
 
+    # Load achievements
+    print_info "Loading achievements..."
+    poetry run python scripts/seed_achievements.py || true
+
     cd ..
 
     print_success "Setup complete!"
@@ -145,6 +149,10 @@ reset_db() {
     # Create test user
     print_info "Creating test user..."
     poetry run python scripts/create_verified_user.py || true
+
+    # Load achievements
+    print_info "Loading achievements..."
+    poetry run python scripts/seed_achievements.py || true
 
     cd ..
 
