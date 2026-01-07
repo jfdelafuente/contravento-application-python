@@ -133,7 +133,31 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 
 ## Quick Start
 
-### Prerequisites
+### Option A: SQLite Development (No Docker) ⚡ FASTEST
+
+**Perfect for daily development - zero configuration!**
+
+```bash
+# First-time setup
+./run-local-dev.sh --setup      # Linux/Mac
+.\run-local-dev.ps1 -Setup      # Windows
+
+# Start server (instant!)
+./run-local-dev.sh              # Linux/Mac
+.\run-local-dev.ps1             # Windows
+
+# Access
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+```
+
+**No Docker needed!** Database stored in `backend/contravento_dev.db`
+
+---
+
+### Option B: Docker Environments
+
+#### Prerequisites
 
 ```bash
 # Install Docker and Docker Compose

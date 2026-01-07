@@ -41,59 +41,97 @@ poetry run alembic downgrade -1
 poetry run alembic history
 ```
 
-### Docker Multi-Environment Deployment
+### Local Development Options
 
-ContraVento supports multiple deployment environments with Docker Compose:
+ContraVento offers multiple ways to develop locally, from instant SQLite setup to full Docker environments:
 
-**Quick Start (Recommended - Minimal Setup):**
+#### Option 1: LOCAL-DEV (SQLite - No Docker) ⚡ FASTEST & RECOMMENDED
+
+**Zero configuration, instant startup with SQLite database**
 
 ```bash
-# ⚡ LOCAL MINIMAL - PostgreSQL + Backend only (FASTEST)
-./deploy.sh local-minimal      # Linux/Mac
-.\deploy.ps1 local-minimal     # Windows PowerShell
+# First-time setup (one-time)
+./run-local-dev.sh --setup      # Linux/Mac
+.\run-local-dev.ps1 -Setup      # Windows PowerShell
 
-# Configuration:
+# Start development server
+./run-local-dev.sh              # Linux/Mac
+.\run-local-dev.ps1             # Windows PowerShell
+
+# Access:
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - Database: backend/contravento_dev.db (SQLite file)
+```
+
+**Perfect for:**
+- ✅ Quick development iterations
+- ✅ Learning the codebase
+- ✅ Working on trips, stats, profiles
+- ✅ Prototyping features
+- ✅ No Docker needed!
+
+---
+
+#### Option 2: LOCAL-MINIMAL (PostgreSQL via Docker)
+
+**When you need PostgreSQL compatibility testing**
+
+```bash
+# Setup
 cp .env.local-minimal.example .env.local-minimal
-python -c "import secrets; print(secrets.token_urlsafe(64))"  # Generate SECRET_KEY
-nano .env.local-minimal  # Edit and configure
+nano .env.local-minimal
 ./deploy.sh local-minimal
 
 # Access:
 # - Backend API: http://localhost:8000
-# - API Docs: http://localhost:8000/docs
-# - PostgreSQL: localhost:5432 (use DBeaver, psql, etc.)
+# - PostgreSQL: localhost:5432
 ```
 
-**Full Local Setup (When you need email testing or pgAdmin):**
+**Perfect for:**
+- ✅ Testing PostgreSQL-specific features
+- ✅ Pre-staging validation
+- ✅ Database migration testing
+
+---
+
+#### Option 3: LOCAL-FULL (Complete Stack via Docker)
+
+**When you need email testing, Redis, or visual DB tools**
 
 ```bash
-# LOCAL FULL - All services (PostgreSQL + Backend + Redis + MailHog + pgAdmin)
-./deploy.sh local
-
-# Configuration:
-cp .env.local.example .env.local
-nano .env.local
 ./deploy.sh local
 
 # Access:
 # - Backend API: http://localhost:8000
-# - API Docs: http://localhost:8000/docs
 # - MailHog UI: http://localhost:8025 (email testing)
 # - pgAdmin: http://localhost:5050 (database UI)
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
 ```
 
-**Other Environments:**
+**Perfect for:**
+- ✅ Testing auth/email features
+- ✅ Implementing Redis cache
+- ✅ Full-stack integration testing
+
+---
+
+#### Other Environments
 
 ```bash
-./deploy.sh dev       # Development/Integration
-./deploy.sh staging   # Staging (production mirror)
-./deploy.sh prod      # Production
+./deploy.sh dev       # Development/Integration (Nginx, real SMTP)
+./deploy.sh staging   # Staging (production mirror with monitoring)
+./deploy.sh prod      # Production (high availability, SSL/TLS)
 ```
 
-**When to use each local environment:**
+**Quick Reference:**
 
-- **local-minimal**: ✅ Daily development, working on trips/stats/profiles
-- **local**: ✅ Testing auth/email, need Redis cache, prefer pgAdmin
+| Environment | Startup | Docker | Database | Use When |
+|------------|---------|--------|----------|----------|
+| **local-dev** | ⚡ Instant | ❌ No | SQLite | Daily development (RECOMMENDED) |
+| **local-minimal** | ~10s | ✅ Yes | PostgreSQL | PostgreSQL testing |
+| **local-full** | ~20s | ✅ Yes | PostgreSQL | Email/cache testing |
 
 See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete deployment guide.
 
