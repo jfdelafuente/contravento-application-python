@@ -62,17 +62,30 @@ services:
         condition: service_healthy
       # NOTE: Redis dependency removed - not needed for basic development
 
-  # NOTE: Redis service not included in minimal setup
-  # If you need Redis for cache testing, use docker-compose.local.yml
+  # ==========================================================================
+  # Redis - Disabled in minimal setup
+  # ==========================================================================
+  # Redis service is disabled by default in minimal setup to save resources
+  # If you need Redis for cache testing, use: ./deploy.sh local
+  redis:
+    deploy:
+      replicas: 0
 
   # ==========================================================================
   # pgAdmin - Database UI (Optional - Uncomment to enable)
   # ==========================================================================
-  # pgAdmin is available as a container but port is not exposed by default
+  # pgAdmin is disabled by default but can be enabled by uncommenting below
   # Uncomment the lines below to access pgAdmin UI at http://localhost:5050
   # pgadmin:
+  #   deploy:
+  #     replicas: 1
   #   ports:
   #     - "5050:80"  # Web UI at http://localhost:5050
+
+  # By default, pgAdmin is disabled to keep minimal setup lightweight
+  pgadmin:
+    deploy:
+      replicas: 0
 
 # ============================================================================
 # Notes
