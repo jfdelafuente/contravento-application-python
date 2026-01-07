@@ -26,11 +26,11 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 
 ### Service Stack
 
-| Service | Description | All Envs | Local | Dev | Staging | Prod |
-|---------|-------------|:--------:|:-----:|:---:|:-------:|:----:|
+| Service | Description | Local Minimal | Local Full | Dev | Staging | Prod |
+|---------|-------------|:-------------:|:----------:|:---:|:-------:|:----:|
 | **postgres** | PostgreSQL 16 database | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **redis** | Redis 7 cache | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **backend** | FastAPI application | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **redis** | Redis 7 cache | ❌ | ✅ | ✅ | ✅ | ✅ |
 | **mailhog** | Email testing | ❌ | ✅ | ❌ | ❌ | ❌ |
 | **pgadmin** | Database UI | ❌ | ✅ | ❌ | ❌ | ❌ |
 | **nginx** | Reverse proxy | ❌ | ❌ | ✅ | ✅ | ✅ |
@@ -97,7 +97,7 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 
 ---
 
-### 3. STAGING (Pre-Production)
+### 4. STAGING (Pre-Production)
 
 **Purpose**: Production mirror for final testing
 
@@ -113,7 +113,7 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 
 ---
 
-### 4. PROD (Production)
+### 5. PROD (Production)
 
 **Purpose**: Live production environment
 
@@ -150,6 +150,13 @@ ContraVento uses a **multi-file Docker Compose approach** with:
 # - Backend API: http://localhost:8000
 # - API Docs: http://localhost:8000/docs
 ```
+
+**Setup automáticamente**:
+- ✅ Instala dependencias con Poetry
+- ✅ Genera SECRET_KEY
+- ✅ Ejecuta migraciones Alembic
+- ✅ Crea usuarios de prueba (testuser, maria_garcia)
+- ✅ Carga 9 achievements predefinidos
 
 **No Docker needed!** Database stored in `backend/contravento_dev.db`
 
