@@ -47,7 +47,7 @@ function Print-Header {
 }
 
 # Check if we're in the project root
-function Check-Directory {
+function CheckDirectory {
     if (!(Test-Path "backend")) {
         Print-Error "Must run from project root directory"
         exit 1
@@ -55,7 +55,7 @@ function Check-Directory {
 }
 
 # Check if poetry is installed
-function Check-Poetry {
+function CheckPoetry {
     if (!(Get-Command poetry -ErrorAction SilentlyContinue)) {
         Print-Error "Poetry not found. Install with: pip install poetry"
         exit 1
@@ -63,7 +63,7 @@ function Check-Poetry {
 }
 
 # Setup environment
-function Setup-Environment {
+function SetupEnvironment {
     Print-Header "First-Time Setup"
 
     Set-Location backend
@@ -115,7 +115,7 @@ function Setup-Environment {
 }
 
 # Reset database
-function Reset-Database {
+function ResetDatabase {
     Print-Header "Reset Database"
 
     Set-Location backend
@@ -150,7 +150,7 @@ function Reset-Database {
 }
 
 # Start server
-function Start-Server {
+function StartServer {
     Print-Header "Starting Local Development Server"
 
     Set-Location backend
@@ -180,7 +180,7 @@ function Start-Server {
 }
 
 # Show help
-function Show-Help {
+function ShowHelp {
     Write-Host "Usage: .\run-local-dev.ps1 [command]"
     Write-Host ""
     Write-Host "Commands:"
@@ -197,17 +197,17 @@ function Show-Help {
 
 # Main execution
 if ($Help) {
-    Show-Help
+    ShowHelp
     exit 0
 }
 
-Check-Directory
-Check-Poetry
+CheckDirectory
+CheckPoetry
 
 if ($Setup) {
-    Setup-Environment
+    SetupEnvironment
 } elseif ($Reset) {
-    Reset-Database
+    ResetDatabase
 } else {
-    Start-Server
+    StartServer
 }
