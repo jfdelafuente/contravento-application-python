@@ -376,7 +376,7 @@ cat .env.local-minimal
 
 ## Enlaces Útiles
 
-- **Documentación completa**: [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)
+- **Documentación completa**: [backend/docs/DOCKER_DEPLOYMENT.md](backend/docs/DOCKER_DEPLOYMENT.md)
 - **CLAUDE.md**: [Guía para Claude Code](CLAUDE.md)
 - **API Docs (cuando el servidor esté corriendo)**: http://localhost:8000/docs
 

@@ -24,22 +24,22 @@ param(
 # Functions
 function Print-Info {
     param([string]$Message)
-    Write-Host "ℹ️  $Message" -ForegroundColor Blue
+    Write-Host "[INFO] $Message" -ForegroundColor Blue
 }
 
 function Print-Success {
     param([string]$Message)
-    Write-Host "✅ $Message" -ForegroundColor Green
+    Write-Host "[SUCCESS] $Message" -ForegroundColor Green
 }
 
 function Print-Warning {
     param([string]$Message)
-    Write-Host "⚠️  $Message" -ForegroundColor Yellow
+    Write-Host "[WARNING] $Message" -ForegroundColor Yellow
 }
 
 function Print-Error {
     param([string]$Message)
-    Write-Host "❌ $Message" -ForegroundColor Red
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
 function Print-Header {
@@ -84,8 +84,8 @@ function Check-EnvFile {
         $exampleFile = "$envFile.example"
         if (Test-Path $exampleFile) {
             Copy-Item $exampleFile $envFile
-            Print-Warning "⚠️  IMPORTANT: Edit $envFile and configure all variables!"
-            Print-Warning "⚠️  Generate strong SECRET_KEY with: python -c `"import secrets; print(secrets.token_urlsafe(64))`""
+            Print-Warning "IMPORTANT: Edit $envFile and configure all variables!"
+            Print-Warning "Generate strong SECRET_KEY with: python -c `"import secrets; print(secrets.token_urlsafe(64))`""
             Read-Host "Press Enter after configuring $envFile to continue..."
         } else {
             Print-Error "Example file not found: $exampleFile"
@@ -112,7 +112,7 @@ function Start-Env {
 
     # Confirmation for production
     if ($Env -eq "prod") {
-        Print-Warning "⚠️  You are about to deploy to PRODUCTION!"
+        Print-Warning "You are about to deploy to PRODUCTION!"
         $confirm = Read-Host "Are you sure? (yes/no)"
         if ($confirm -ne "yes") {
             Print-Info "Deployment cancelled"
@@ -150,8 +150,8 @@ function Start-Env {
             Write-Host "  API Docs:        http://localhost:8000/docs"
             Write-Host "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
             Write-Host ""
-            Print-Warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
-            Print-Info "For MailHog, Redis, pgAdmin → use: .\deploy.ps1 local"
+            Print-Warning "Minimal setup (PostgreSQL + Backend only)"
+            Print-Info "For MailHog, Redis, pgAdmin use: .\deploy.ps1 local"
         }
         "local" {
             Write-Host ""
@@ -163,7 +163,7 @@ function Start-Env {
             Write-Host "  PostgreSQL:      localhost:5432"
             Write-Host "  Redis:           localhost:6379"
             Write-Host ""
-            Print-Info "For lighter setup → use: .\deploy.ps1 local-minimal"
+            Print-Info "For lighter setup use: .\deploy.ps1 local-minimal"
         }
         "dev" {
             Write-Host ""

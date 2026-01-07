@@ -133,7 +133,7 @@ nano .env.local-minimal
 | **local-minimal** | ~10s | ✅ Yes | PostgreSQL | PostgreSQL testing |
 | **local-full** | ~20s | ✅ Yes | PostgreSQL | Email/cache testing |
 
-See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete deployment guide.
+See [backend/docs/DOCKER_DEPLOYMENT.md](backend/docs/DOCKER_DEPLOYMENT.md) for complete deployment guide.
 
 ### Development Server
 
