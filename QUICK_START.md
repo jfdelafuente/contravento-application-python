@@ -98,6 +98,7 @@ Guía simplificada de las diferentes formas de arrancar el proyecto para desarro
 
 - ✅ PostgreSQL 16 (base de datos)
 - ✅ Backend FastAPI (con hot reload)
+- ✅ Datos de prueba (cargados automáticamente)
 - ❌ Redis (deshabilitado - usa `./deploy.sh local` si lo necesitas)
 - ❌ MailHog (emails se logean en consola)
 - 🔧 pgAdmin (disponible pero deshabilitado - ver abajo cómo habilitarlo)
@@ -110,6 +111,18 @@ Guía simplificada de las diferentes formas de arrancar el proyecto para desarro
   - User: `${POSTGRES_USER}` (ver `.env.local-minimal`)
   - Password: `${POSTGRES_PASSWORD}`
   - Database: `${POSTGRES_DB}`
+
+### Usuarios de prueba (creados automáticamente)
+
+| Usuario | Email | Password |
+|---------|-------|----------|
+| testuser | test@example.com | TestPass123! |
+| maria_garcia | maria@example.com | SecurePass456! |
+
+**Nota**: Al iniciar el contenedor por primera vez, se cargan automáticamente:
+
+- 9 achievements predefinidos
+- 2 usuarios de prueba verificados
 
 ### Configuración requerida
 
@@ -181,6 +194,7 @@ pgAdmin está disponible como contenedor pero deshabilitado por defecto para man
 - ✅ PostgreSQL 16 (base de datos)
 - ✅ Redis 7 (cache/sesiones)
 - ✅ Backend FastAPI (con hot reload)
+- ✅ Datos de prueba (cargados automáticamente)
 - ✅ MailHog (para probar emails)
 - ✅ pgAdmin 4 (interfaz web para PostgreSQL)
 
@@ -195,9 +209,14 @@ pgAdmin está disponible como contenedor pero deshabilitado por defecto para man
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
 
+### Usuarios de prueba (creados automáticamente)
+
+Los mismos que en Docker Minimal - ver sección anterior.
+
 ### Configuración requerida
 
 Primera vez: Edita `.env.local` y configura:
+
 - `SECRET_KEY`
 - `POSTGRES_PASSWORD`
 - `REDIS_PASSWORD`
