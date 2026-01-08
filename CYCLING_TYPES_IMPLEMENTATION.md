@@ -95,6 +95,27 @@ Se ha implementado un sistema completo para gestionar dinámicamente los tipos d
 
 ### Setup Inicial
 
+#### Opción 1: Usando `run-local-dev.sh` (Recomendado)
+
+```bash
+# Desde el directorio raíz del proyecto
+./run-local-dev.sh --setup      # Linux/Mac
+.\run-local-dev.ps1 -Setup      # Windows PowerShell
+
+# Los cycling types se cargarán automáticamente junto con achievements y usuarios
+```
+
+#### Opción 2: Usando Docker
+
+```bash
+# Los cycling types se cargan automáticamente durante el inicio
+./deploy.sh local-minimal
+# o
+./deploy.sh local
+```
+
+#### Opción 3: Manualmente
+
 ```bash
 cd backend
 

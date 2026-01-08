@@ -3,7 +3,8 @@ Initialize development database with seed data.
 
 This script combines:
 1. Seeding achievements (seed_achievements.py)
-2. Creating test users (create_verified_user.py)
+2. Seeding cycling types (seed_cycling_types.py)
+3. Creating test users (create_verified_user.py)
 
 Usage:
     python scripts/init_dev_data.py
@@ -43,10 +44,11 @@ async def main():
 
     # Import here to avoid circular imports
     from scripts.seed_achievements import seed_achievements
+    from scripts.seed_cycling_types import seed_cycling_types
     from scripts.create_verified_user import create_verified_user
 
     # Step 1: Seed achievements
-    print("📋 Paso 1/2: Cargando achievements predefinidos")
+    print("📋 Paso 1/3: Cargando achievements predefinidos")
     print("-" * 70)
     try:
         await seed_achievements()
@@ -55,13 +57,28 @@ async def main():
         import traceback
 
         traceback.print_exc()
-        # Continue anyway, users are more important
+        # Continue anyway
 
     print()
     print()
 
-    # Step 2: Create test users
-    print("👥 Paso 2/2: Creando usuarios de prueba")
+    # Step 2: Seed cycling types
+    print("🚴 Paso 2/3: Cargando tipos de ciclismo")
+    print("-" * 70)
+    try:
+        await seed_cycling_types(force=False)
+    except Exception as e:
+        print(f"\n❌ Error al cargar cycling types: {e}")
+        import traceback
+
+        traceback.print_exc()
+        # Continue anyway
+
+    print()
+    print()
+
+    # Step 3: Create test users
+    print("👥 Paso 3/3: Creando usuarios de prueba")
     print("-" * 70)
 
     # User 1: testuser

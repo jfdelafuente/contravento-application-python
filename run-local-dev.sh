@@ -113,6 +113,10 @@ setup() {
     print_info "Loading achievements..."
     poetry run python scripts/seed_achievements.py || true
 
+    # Load cycling types
+    print_info "Loading cycling types..."
+    poetry run python scripts/seed_cycling_types.py || true
+
     cd ..
 
     print_success "Setup complete!"
@@ -153,6 +157,10 @@ reset_db() {
     # Load achievements
     print_info "Loading achievements..."
     poetry run python scripts/seed_achievements.py || true
+
+    # Load cycling types
+    print_info "Loading cycling types..."
+    poetry run python scripts/seed_cycling_types.py || true
 
     cd ..
 

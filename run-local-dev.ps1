@@ -107,6 +107,10 @@ if ($Setup) {
         Write-Host "[INFO] Loading achievements..." -ForegroundColor Blue
         poetry run python scripts/seed_achievements.py
 
+        # Load cycling types
+        Write-Host "[INFO] Loading cycling types..." -ForegroundColor Blue
+        poetry run python scripts/seed_cycling_types.py
+
         Write-Host "[SUCCESS] Setup complete!" -ForegroundColor Green
         Write-Host ""
         Write-Host "[INFO] Start development server with: .\run-local-dev.ps1" -ForegroundColor Blue
@@ -157,6 +161,10 @@ if ($Reset) {
         # Load achievements
         Write-Host "[INFO] Loading achievements..." -ForegroundColor Blue
         poetry run python scripts/seed_achievements.py
+
+        # Load cycling types
+        Write-Host "[INFO] Loading cycling types..." -ForegroundColor Blue
+        poetry run python scripts/seed_cycling_types.py
 
         Write-Host "[SUCCESS] Database reset complete!" -ForegroundColor Green
     }
