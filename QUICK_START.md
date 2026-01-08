@@ -123,7 +123,7 @@ Continúa a la **Pregunta 2** 👇
 ./deploy.sh prod      # Producción con HA
 ```
 
-Ver [DOCKER_DEPLOYMENT.md](backend/docs/DOCKER_DEPLOYMENT.md) para detalles.
+Ver [DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) para detalles completos.
 
 </details>
 
@@ -558,7 +558,7 @@ cat .env.local-minimal
 
 ## Enlaces Útiles
 
-- **Documentación completa**: [backend/docs/DOCKER_DEPLOYMENT.md](backend/docs/DOCKER_DEPLOYMENT.md)
+- **Documentación completa**: [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md)
 - **CLAUDE.md**: [Guía para Claude Code](CLAUDE.md)
 - **API Docs (cuando el servidor esté corriendo)**: http://localhost:8000/docs
 

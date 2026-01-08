@@ -539,7 +539,7 @@ diff backend/.env.testing backend/.env.testing.example
 ### Documentación del Proyecto
 
 - **[QUICK_START.md](QUICK_START.md)** - Guía rápida de deployment (recomendado empezar aquí)
-- **[backend/docs/DOCKER_DEPLOYMENT.md](backend/docs/DOCKER_DEPLOYMENT.md)** - Guía completa de deployment con Docker
+- **[backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md)** - Guía completa de deployment (Docker, cloud, tradicional)
 - **[backend/docs/TESTING_CONFIGURATION.md](backend/docs/TESTING_CONFIGURATION.md)** - Configuración de tests con `.env.test`
 
 ### Archivos de Configuración (Raíz - Docker Compose)

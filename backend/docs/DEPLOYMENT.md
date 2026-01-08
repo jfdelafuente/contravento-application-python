@@ -1,330 +1,1696 @@
-# Deployment Guide - ContraVento Backend
+# ContraVento - Complete Deployment Guide
 
-Guía completa para desplegar ContraVento en entornos de Staging y Producción.
+> **Notice**: This guide consolidates DEPLOYMENT.md and DOCKER_DEPLOYMENT.md (archived 2026-01-08)
+> For quick start scenarios, see [QUICK_START.md](../../QUICK_START.md)
 
-## Índice
-
-- [Pre-requisitos](#pre-requisitos)
-- [Entorno de Testing con PostgreSQL](#entorno-de-testing-con-postgresql)
-  - [Quick Start - Solo Backend + PostgreSQL](#quick-start---solo-backend--postgresql)
-  - [Testing de Migraciones con PostgreSQL](#testing-de-migraciones-con-postgresql)
-  - [Cuándo usar Testing vs Staging](#cuándo-usar-testing-vs-staging)
-- [Entorno de Staging](#entorno-de-staging)
-  - [Configuración de Staging](#configuración-de-staging)
-  - [Deployment de Staging](#deployment-de-staging)
-  - [Testing en Staging](#testing-en-staging)
-- [Entorno de Producción](#entorno-de-producción)
-  - [Configuración de Producción](#configuración-de-producción)
-  - [Deployment de Producción](#deployment-de-producción)
-  - [Verificación Post-Deployment](#verificación-post-deployment)
-- [PostgreSQL Setup](#postgresql-setup)
-- [Migrations](#migrations)
-- [Reverse Proxy (Nginx)](#reverse-proxy-nginx)
-- [Monitoreo](#monitoreo)
-- [Backup & Recovery](#backup--recovery)
-- [Troubleshooting](#troubleshooting)
+**Last Updated**: 2026-01-08
 
 ---
 
-## Pre-requisitos
+## Table of Contents
 
-### Software Requerido
+1. [Introduction & Prerequisites](#1-introduction--prerequisites)
+2. [Quick Decision Tree](#2-quick-decision-tree)
+3. [Local Development Environments](#3-local-development-environments)
+4. [Docker-Based Deployments](#4-docker-based-deployments)
+5. [Traditional & Cloud Deployments](#5-traditional--cloud-deployments)
+6. [Database Management](#6-database-management)
+7. [Reverse Proxy & SSL](#7-reverse-proxy--ssl)
+8. [Monitoring & Logging](#8-monitoring--logging)
+9. [Security](#9-security)
+10. [Scaling & Performance](#10-scaling--performance)
+11. [CI/CD Integration](#11-cicd-integration)
+12. [Troubleshooting](#12-troubleshooting)
+13. [Reference](#13-reference)
 
-- **Docker 24.0+** y **Docker Compose 2.0+**
-- **PostgreSQL 14+** (si no usa Docker)
-- **Python 3.11+** (para desarrollo local)
-- **Git**
+---
 
-### Servicios Externos
+## 1. Introduction & Prerequisites
 
-- **SMTP Provider**: SendGrid, AWS SES, Mailgun, o Gmail (para emails transaccionales)
-- **Dominio**: Con DNS configurado
-- **SSL Certificate**: Let's Encrypt (recomendado) o certificado propio
-- **Monitoreo** (recomendado): Sentry, DataDog, CloudWatch
+ContraVento is a FastAPI-based cycling social platform designed to run across multiple environments, from local SQLite development to high-availability production clusters.
 
-### Arquitectura de Deployment
+### 1.1 Software Requirements
+
+**Essential:**
+- **Docker 24.0+** and **Docker Compose 2.0+** (for Docker-based deployments)
+- **Python 3.11+** (for local development)
+- **Git** (for version control)
+
+**Database Options:**
+- **SQLite 3** (local development, zero configuration)
+- **PostgreSQL 14+** (staging, production, and PostgreSQL-specific testing)
+
+**Optional but Recommended:**
+- **Poetry 1.7+** (Python dependency management)
+- **psql** (PostgreSQL client for database administration)
+- **Redis 7+** (caching, sessions - required for production)
+
+### 1.2 External Services
+
+**Production Requirements:**
+- **SMTP Provider**: SendGrid, AWS SES, Mailgun, or Gmail for transactional emails
+- **Domain Name**: With DNS properly configured
+- **SSL Certificate**: Let's Encrypt (recommended) or commercial certificate
+- **Monitoring** (recommended): Sentry, DataDog, CloudWatch, or Prometheus/Grafana
+
+### 1.3 Deployment Philosophy
+
+ContraVento follows a **progressive complexity** approach:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    DEVELOPMENT                              │
-│  - SQLite (local file)                                      │
-│  - MailHog (email testing)                                  │
-│  - DEBUG=true, hot reload                                   │
-└─────────────────────────────────────────────────────────────┘
-                          ↓ (unit tests pass)
-┌─────────────────────────────────────────────────────────────┐
-│              TESTING (Backend + PostgreSQL)                 │
-│  - PostgreSQL (test DB, minimal setup)                      │
-│  - Backend only (no Redis, no MailHog)                      │
-│  - Testing de migraciones                                   │
-│  - Validación rápida PostgreSQL                             │
-└─────────────────────────────────────────────────────────────┘
-                          ↓ (PostgreSQL validated)
-┌─────────────────────────────────────────────────────────────┐
-│                     STAGING                                 │
-│  - PostgreSQL + Redis (full stack)                          │
-│  - MailHog OR real SMTP                                     │
-│  - DEBUG=false, production-like config                      │
-│  - QA testing, integration tests                            │
-└─────────────────────────────────────────────────────────────┘
-                          ↓ (approval & release)
-┌─────────────────────────────────────────────────────────────┐
-│                    PRODUCTION                               │
-│  - PostgreSQL (production DB with backups)                  │
-│  - Real SMTP (SendGrid, SES, etc.)                          │
-│  - DEBUG=false, optimized                                   │
-│  - HTTPS enforced, monitoring active                        │
-└─────────────────────────────────────────────────────────────┘
+SQLite Local (No Docker)  →  Docker Local  →  Docker Dev  →  Staging  →  Production
+     Instant                   ~10-30s          ~20s          ~40s       ~60s
+     Zero config              Minimal          Moderate      Complete   Full stack
+```
+
+**Core Principles:**
+1. **Development Speed First**: Start with SQLite, scale up as needed
+2. **Environment Parity**: Staging mirrors production exactly
+3. **Docker Compose Primary**: Traditional deployments are alternatives
+4. **Security by Default**: Production-grade security from staging onwards
+
+---
+
+## 2. Quick Decision Tree
+
+### 2.1 Choose Your Development Environment
+
+```
+┌─ Do you need Docker? ───────────────────────────────────┐
+│                                                          │
+│  NO ──► SQLite Local (Fastest, zero config)             │
+│         ./run-local-dev.sh                               │
+│         Perfect for: Daily development                   │
+│                                                          │
+│  YES ──► Continue below...                               │
+└──────────────────────────────────────────────────────────┘
+
+┌─ What are you working on? ──────────────────────────────┐
+│                                                          │
+│  Basic features (trips, profiles, stats)                 │
+│  ──► Docker Local Minimal                                │
+│      ./deploy.sh local-minimal                           │
+│      PostgreSQL + Backend only                           │
+│                                                          │
+│  Email/Auth features                                     │
+│  ──► Docker Local Full                                   │
+│      ./deploy.sh local                                   │
+│      + MailHog + pgAdmin + Redis                         │
+│                                                          │
+│  Integration testing                                     │
+│  ──► Docker Dev                                          │
+│      ./deploy.sh dev                                     │
+│      + Nginx + Real SMTP                                 │
+│                                                          │
+│  Pre-production testing                                  │
+│  ──► Docker Staging                                      │
+│      ./deploy.sh staging                                 │
+│      + SSL + Monitoring                                  │
+│                                                          │
+│  Live production                                         │
+│  ──► Docker Production                                   │
+│      ./deploy.sh prod                                    │
+│      + HA + Auto-scaling                                 │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Quick Command Reference
+
+| Scenario | Environment | Command | Startup Time |
+|----------|-------------|---------|--------------|
+| "I want to start NOW" | SQLite Local | `./run-local-dev.sh` | Instant |
+| "I need PostgreSQL" | Docker Minimal | `./deploy.sh local-minimal` | ~10s |
+| "Testing emails" | Docker Full | `./deploy.sh local` | ~30s |
+| "Integration tests" | Docker Dev | `./deploy.sh dev` | ~20s |
+| "Final QA testing" | Docker Staging | `./deploy.sh staging` | ~40s |
+| "Serve real users" | Docker Production | `./deploy.sh prod` | ~60s |
+
+---
+
+## 3. Local Development Environments
+
+### 3.1 SQLite Local (No Docker) - FASTEST ⚡
+
+**Perfect for**: Daily development, quick prototyping, learning the codebase.
+
+#### 3.1.1 Quick Start
+
+**Linux/Mac:**
+```bash
+# First-time setup
+cd contravento-application-python
+./run-local-dev.sh --setup
+
+# Start development server
+./run-local-dev.sh
+
+# Access:
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+```
+
+**Windows:**
+```powershell
+# First-time setup
+cd contravento-application-python
+.\run-local-dev.ps1 -Setup
+
+# Start development server
+.\run-local-dev.ps1
+
+# Access:
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+```
+
+#### 3.1.2 What Setup Does Automatically
+
+1. ✅ Copies `.env` from `backend/.env.dev.example`
+2. ✅ Installs dependencies with Poetry
+3. ✅ Generates `SECRET_KEY` automatically
+4. ✅ Runs Alembic migrations
+5. ✅ Creates test users (`testuser`, `maria_garcia`)
+6. ✅ Loads 9 predefined achievements
+
+#### 3.1.3 Test Users
+
+| Username | Email | Password |
+|----------|-------|----------|
+| testuser | test@example.com | TestPass123! |
+| maria_garcia | maria@example.com | SecurePass456! |
+
+#### 3.1.4 Database Location
+
+SQLite database stored at: `backend/contravento_dev.db`
+
+#### 3.1.5 Advantages & Limitations
+
+**Advantages:**
+- ⚡ Instant startup (no Docker overhead)
+- 🎯 Zero configuration required
+- 💻 Works on any OS with Python 3.11+
+- 🔧 Perfect for daily development
+- 📦 Minimal disk space (~50 MB)
+
+**Limitations:**
+- 📊 SQLite only (not PostgreSQL)
+- 📧 No email testing UI (emails logged to console)
+- 💾 No Redis (not needed for basic features)
+- 🖥️ No pgAdmin (use VS Code extensions or sqlite3 CLI)
+
+#### 3.1.6 Useful Commands
+
+```bash
+# Reset database (deletes all data)
+./run-local-dev.sh --reset           # Linux/Mac
+.\run-local-dev.ps1 -Reset           # Windows
+
+# View help
+./run-local-dev.sh --help
+.\run-local-dev.ps1 -Help
+
+# View SQLite database
+sqlite3 backend/contravento_dev.db
+.tables
+SELECT * FROM users;
+.quit
+
+# Run tests against SQLite
+cd backend
+poetry run pytest
 ```
 
 ---
 
-## Entorno de Testing con PostgreSQL
+### 3.2 Docker Local Minimal (PostgreSQL + Backend)
 
-El entorno de **Testing** es un setup minimalista para validar el backend con PostgreSQL **antes** de pasar a staging completo. Es ideal para:
+**Perfect for**: Testing PostgreSQL compatibility, migration validation, minimal resource usage.
 
-- ✅ **Validar migraciones** con PostgreSQL sin configurar todo el stack
-- ✅ **Probar compatibilidad** SQLite → PostgreSQL
-- ✅ **Testing rápido** de endpoints con base de datos real
-- ✅ **Desarrollo local** con PostgreSQL en lugar de SQLite
-- ✅ **Debugging** de issues específicos de PostgreSQL
+#### 3.2.1 Services Included
 
-**Servicios incluidos:**
-- `backend` - FastAPI application
-- `postgres` - PostgreSQL 16
+- ✅ **PostgreSQL 16** (database)
+- ✅ **Backend FastAPI** (with hot reload)
+- ❌ Redis, MailHog, pgAdmin (not included)
 
-**Servicios NO incluidos** (vs Staging):
-- ❌ Redis (no necesario para pruebas básicas)
-- ❌ MailHog (se puede usar SMTP local o deshabilitar emails)
-- ❌ pgAdmin (se puede conectar externamente si se necesita)
-
-### Quick Start - Solo Backend + PostgreSQL
-
-#### Opción 1: Con archivo .env.testing (Recomendado)
-
-**1. Crear archivo de configuración**
+#### 3.2.2 Quick Start
 
 ```bash
-# Crear .env.test desde .env.example
-cp backend/.env.example backend/.env.test
+# 1. Copy environment file
+cp .env.local-minimal.example .env.local-minimal
+
+# 2. Generate SECRET_KEY
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# 3. Edit .env.local-minimal and set:
+#    - SECRET_KEY (from step 2)
+#    - POSTGRES_PASSWORD (any secure password)
+
+# 4. Start environment
+./deploy.sh local-minimal        # Linux/Mac
+.\deploy.ps1 local-minimal       # Windows
+
+# 5. Access
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - PostgreSQL: localhost:5432
 ```
 
-**2. Editar `.env.test` con valores mínimos**
+#### 3.2.3 Configuration Highlights
 
 ```bash
-# =============================================================================
-# TESTING ENVIRONMENT - PostgreSQL Validation
-# =============================================================================
+# .env.local-minimal
+APP_NAME=ContraVento-LocalMinimal
+APP_ENV=local
+DEBUG=true
+DATABASE_URL=postgresql+asyncpg://contravento:password@postgres:5432/contravento
+BCRYPT_ROUNDS=4  # Fast for development
+LOG_LEVEL=DEBUG
+SMTP_HOST=localhost  # Emails logged to console
+```
 
-APP_NAME=ContraVento-Testing
-APP_ENV=testing
-DEBUG=true  # Para ver errores detallados
+#### 3.2.4 Database Access
 
-# Database - PostgreSQL (cambiar de SQLite)
-DATABASE_URL=postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test
+```bash
+# Connect to PostgreSQL with psql
+docker exec -it contravento-db-local-minimal psql -U contravento -d contravento
 
-# Security (valores simples para testing)
-SECRET_KEY=test-secret-key-min-32-characters-for-jwt-signing
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-REFRESH_TOKEN_EXPIRE_DAYS=30
-BCRYPT_ROUNDS=4  # Más rápido para tests
+# Common psql commands
+\dt          # List tables
+\d users     # Describe table
+\du          # List users
+\l           # List databases
+\q           # Quit
 
-# Email - Deshabilitar o usar localhost
-SMTP_HOST=localhost
+# Run SQL directly
+docker exec -it contravento-db-local-minimal psql -U contravento -d contravento -c "SELECT COUNT(*) FROM users;"
+```
+
+#### 3.2.5 When to Use
+
+- ✅ Testing PostgreSQL-specific features (ARRAY types, native UUID)
+- ✅ Validating migrations before staging
+- ✅ Pre-staging PostgreSQL compatibility checks
+- ✅ Debugging PostgreSQL-specific issues
+- ✅ Want PostgreSQL but minimal resource usage (~500 MB RAM)
+
+---
+
+### 3.3 Docker Local Full (Complete Stack)
+
+**Perfect for**: Email testing, Redis cache development, visual database tools, complete integration testing.
+
+#### 3.3.1 Services Included
+
+- ✅ **PostgreSQL 16** (database)
+- ✅ **Redis 7** (cache/sessions)
+- ✅ **Backend FastAPI** (with hot reload)
+- ✅ **MailHog** (email testing UI)
+- ✅ **pgAdmin 4** (database management UI)
+
+#### 3.3.2 Quick Start
+
+```bash
+# 1. Copy environment file
+cp .env.local.example .env.local
+
+# 2. Generate SECRET_KEY
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# 3. Edit .env.local and set:
+#    - SECRET_KEY (from step 2)
+#    - POSTGRES_PASSWORD
+#    - REDIS_PASSWORD
+#    - PGADMIN_PASSWORD
+
+# 4. Start environment
+./deploy.sh local                # Linux/Mac
+.\deploy.ps1 local               # Windows
+
+# 5. Access
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - MailHog UI: http://localhost:8025
+# - pgAdmin: http://localhost:5050
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
+```
+
+#### 3.3.3 Service Access Details
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Backend API | http://localhost:8000 | - |
+| API Docs (Swagger) | http://localhost:8000/docs | - |
+| MailHog Web UI | http://localhost:8025 | - |
+| pgAdmin | http://localhost:5050 | See `.env.local` |
+| PostgreSQL | localhost:5432 | See `.env.local` |
+| Redis | localhost:6379 | See `.env.local` |
+
+#### 3.3.4 Configuration Highlights
+
+```bash
+# .env.local
+APP_NAME=ContraVento-Local
+APP_ENV=local
+DEBUG=true
+DATABASE_URL=postgresql+asyncpg://contravento:password@postgres:5432/contravento
+REDIS_URL=redis://:password@redis:6379/0
+BCRYPT_ROUNDS=4  # Fast for development
+LOG_LEVEL=DEBUG
+SMTP_HOST=mailhog
 SMTP_PORT=1025
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM=test@contravento.com
 SMTP_TLS=false
+```
 
-# CORS - Permitir todo para testing
-CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8080
+#### 3.3.5 MailHog Usage
+
+**Purpose**: Test email sending without a real SMTP server.
+
+```bash
+# All emails sent from backend appear in MailHog UI
+# Access: http://localhost:8025
+
+# Example: Test registration email
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testmail",
+    "email": "testmail@example.com",
+    "password": "TestPass123!",
+    "full_name": "Test Mail"
+  }'
+
+# Check MailHog UI - you'll see the verification email
+```
+
+#### 3.3.6 pgAdmin Setup
+
+See [QUICK_START.md - pgAdmin Setup Guide](../../QUICK_START.md#pgadmin-setup) for detailed instructions.
+
+**Quick Setup:**
+1. Open http://localhost:5050
+2. Login with credentials from `.env.local` (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`)
+3. Add server:
+   - Name: `Local ContraVento`
+   - Host: `postgres` (Docker network)
+   - Port: `5432`
+   - Username: `contravento` (from `POSTGRES_USER`)
+   - Password: (from `POSTGRES_PASSWORD`)
+
+#### 3.3.7 When to Use
+
+- ✅ Developing authentication/email features
+- ✅ Testing password reset emails
+- ✅ Implementing Redis cache
+- ✅ Prefer visual database tools (pgAdmin)
+- ✅ Full local integration testing
+- ✅ Demonstrating features to stakeholders
+
+#### 3.3.8 Resource Requirements
+
+- **RAM**: ~1 GB
+- **Disk**: ~2 GB
+- **Startup time**: ~30 seconds
+
+---
+
+### 3.4 Environment Comparison
+
+| Feature | SQLite Local | Docker Minimal | Docker Full |
+|---------|:------------:|:--------------:|:-----------:|
+| **Startup Time** | Instant | ~10s | ~30s |
+| **RAM Usage** | ~100 MB | ~500 MB | ~1 GB |
+| **Docker Required** | ❌ | ✅ | ✅ |
+| **Database** | SQLite | PostgreSQL | PostgreSQL |
+| **Redis** | ❌ | ❌ | ✅ |
+| **Email Testing UI** | ❌ | ❌ | ✅ (MailHog) |
+| **Database UI** | ❌ | ❌ | ✅ (pgAdmin) |
+| **Hot Reload** | ✅ | ✅ | ✅ |
+| **Debug Mode** | ✅ | ✅ | ✅ |
+| **Test Data** | ✅ Auto | ✅ Auto | ✅ Auto |
+| **Best For** | Daily dev | PostgreSQL testing | Email/cache features |
+
+---
+
+## 4. Docker-Based Deployments
+
+### 4.1 Docker Compose Architecture
+
+ContraVento uses a **multi-file Docker Compose approach**:
+
+- **Base file** (`docker-compose.yml`): Common service definitions
+- **Overlay files** (`docker-compose.<env>.yml`): Environment-specific configurations
+- **Environment files** (`.env.<env>`): Environment variables
+
+**Benefits:**
+- ✅ Single source of truth (DRY principle)
+- ✅ Environment-specific overrides without duplication
+- ✅ Easy to maintain and extend
+- ✅ Clear separation of concerns
+
+**Service Stack Overview:**
+
+| Service | Local Minimal | Local Full | Dev | Staging | Prod |
+|---------|:-------------:|:----------:|:---:|:-------:|:----:|
+| **postgres** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **backend** | ✅ | ✅ | ✅ | ✅ | ✅ (3 replicas) |
+| **redis** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **mailhog** | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **pgadmin** | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **nginx** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **certbot** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **prometheus** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **grafana** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **exporters** | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+### 4.2 Dev Environment (Integration Testing)
+
+**Purpose**: Integration testing with production-like build (no hot reload).
+
+#### 4.2.1 Characteristics
+
+- ✅ Production build (Docker image rebuilt, no volume mounts)
+- ✅ Nginx reverse proxy
+- ✅ Real SMTP server (Mailtrap, Mailgun, etc.)
+- ✅ Structured logging (JSON format)
+- ❌ No debug mode
+- ❌ No MailHog (use real SMTP)
+- ❌ No pgAdmin
+
+#### 4.2.2 Quick Start
+
+```bash
+# 1. Copy environment file
+cp .env.dev.example .env.dev
+
+# 2. Generate SECRET_KEY (min 64 chars)
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# 3. Edit .env.dev and set:
+#    - SECRET_KEY (from step 2)
+#    - POSTGRES_PASSWORD
+#    - REDIS_PASSWORD
+#    - SMTP_HOST, SMTP_USER, SMTP_PASSWORD (e.g., Mailtrap)
+
+# 4. Start environment
+./deploy.sh dev                  # Linux/Mac
+.\deploy.ps1 dev                 # Windows
+
+# 5. Access
+# - Backend API: http://dev.contravento.local:8000
+# - API Docs: http://dev.contravento.local:8000/docs
+```
+
+#### 4.2.3 Configuration Highlights
+
+```bash
+# .env.dev
+APP_NAME=ContraVento-Dev
+APP_ENV=development
+DEBUG=false                    # Production-like behavior
+BCRYPT_ROUNDS=10               # Moderate security
+LOG_FORMAT=json                # Structured logging
+LOG_LEVEL=INFO
+
+# Real SMTP (example: Mailtrap)
+SMTP_HOST=smtp.mailtrap.io
+SMTP_PORT=587
+SMTP_USER=your_mailtrap_user
+SMTP_PASSWORD=your_mailtrap_password
+SMTP_TLS=true
+```
+
+#### 4.2.4 Nginx Configuration
+
+The dev environment includes Nginx as a reverse proxy:
+
+```nginx
+# Nginx proxies requests to backend container
+upstream backend {
+    server backend:8000;
+}
+
+server {
+    listen 80;
+    server_name dev.contravento.local;
+
+    location / {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+#### 4.2.5 When to Use
+
+- ✅ Testing integrations before staging
+- ✅ CI/CD pipeline validation
+- ✅ Team collaboration environment
+- ✅ Validate production build works
+- ✅ Test with real SMTP without production credentials
+
+#### 4.2.6 Testing in Dev
+
+```bash
+# View logs
+./deploy.sh dev logs
+
+# Run integration tests
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+  --env-file .env.dev exec backend poetry run pytest tests/integration/
+
+# Check Nginx status
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
+  --env-file .env.dev exec nginx nginx -t
+```
+
+---
+
+### 4.3 Staging Environment
+
+**Purpose**: Production mirror for final testing, QA, and UAT.
+
+#### 4.3.1 Characteristics
+
+- ✅ Identical to production configuration
+- ✅ Monitoring (Prometheus + Grafana)
+- ✅ SSL/TLS certificates
+- ✅ Resource limits and health checks
+- ✅ Automated backups
+- ✅ Full security (bcrypt rounds = 12)
+- ✅ Separate database from production
+
+#### 4.3.2 Quick Start
+
+```bash
+# 1. Copy environment file
+cp .env.staging.example .env.staging
+
+# 2. Generate STRONG SECRET_KEY (min 96 chars)
+python -c "import secrets; print(secrets.token_urlsafe(96))"
+
+# 3. Generate strong passwords
+openssl rand -base64 32  # Database password
+openssl rand -base64 32  # Redis password
+
+# 4. Edit .env.staging and set:
+#    - SECRET_KEY (min 96 chars)
+#    - POSTGRES_PASSWORD (min 32 chars)
+#    - REDIS_PASSWORD
+#    - SMTP_* (production SMTP or Mailtrap)
+#    - DOMAIN (staging.contravento.com)
+#    - GRAFANA_ADMIN_PASSWORD
+
+# 5. Configure DNS
+# Point staging.contravento.com to server IP
+
+# 6. Start environment
+./deploy.sh staging              # Linux/Mac
+.\deploy.ps1 staging             # Windows
+
+# 7. Verify SSL
+curl -I https://staging.contravento.com
+```
+
+#### 4.3.3 Configuration Highlights
+
+```bash
+# .env.staging
+APP_NAME=ContraVento-Staging
+APP_ENV=production               # Production mode!
+DEBUG=false
+BCRYPT_ROUNDS=12                 # Production-level security
+
+# Database (separate from production)
+DATABASE_URL=postgresql+asyncpg://contravento_staging:STRONG_PASSWORD@postgres:5432/contravento_staging
+POSTGRES_DB=contravento_staging
+POSTGRES_USER=contravento_staging
+
+# Redis (different DB index)
+REDIS_URL=redis://:STRONG_PASSWORD@redis:6379/1
+
+# CORS (staging domain only)
+CORS_ORIGINS=https://staging.contravento.com
+
+# Monitoring
+SENTRY_DSN=https://your-staging-sentry-dsn@sentry.io/staging-project
+SENTRY_ENVIRONMENT=staging
+```
+
+#### 4.3.4 Access Points
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Backend API | https://staging.contravento.com | Public API |
+| Grafana | http://server-ip:3000 | Metrics dashboards |
+| Prometheus | http://server-ip:9090 | Metrics collection |
+
+#### 4.3.5 Monitoring Setup
+
+Staging includes Prometheus and Grafana for monitoring:
+
+```bash
+# Access Grafana
+# URL: http://localhost:3000 (or server IP)
+# Default credentials: See GRAFANA_ADMIN_USER/PASSWORD in .env.staging
+
+# Import ContraVento dashboards
+# Dashboards available in: monitoring/grafana/dashboards/
+
+# Key metrics:
+# - API response times
+# - Request rate
+# - Error rate
+# - Database connections
+# - Redis hit/miss ratio
+```
+
+#### 4.3.6 Testing Checklist
+
+```bash
+# [ ] Health check responds
+curl https://staging.contravento.com/health
+# Expected: {"status": "healthy"}
+
+# [ ] API responds
+curl https://staging.contravento.com/
+# Expected: {"message": "Welcome to ContraVento API"}
+
+# [ ] HTTPS works (SSL valid)
+curl -I https://staging.contravento.com
+# Expected: HTTP/2 200, valid certificate
+
+# [ ] CORS configured correctly
+curl -H "Origin: https://staging.contravento.com" \
+     -I https://staging.contravento.com/health
+# Expected: Access-Control-Allow-Origin header present
+
+# [ ] Register user works
+curl -X POST https://staging.contravento.com/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "test_staging",
+    "email": "test@staging.com",
+    "password": "TestPass123!",
+    "full_name": "Test User"
+  }'
+
+# [ ] Email sent (check inbox or Mailtrap)
+# [ ] Login works
+# [ ] Upload files works
+# [ ] Database connections stable
+# [ ] Logs show no errors
+# [ ] Performance within targets (Auth <500ms, Profile <200ms)
+```
+
+#### 4.3.7 When to Use
+
+- ✅ Final testing before production release
+- ✅ Client demos and user acceptance testing (UAT)
+- ✅ Performance testing under production conditions
+- ✅ Validate monitoring and alerting
+- ✅ Train QA team on production environment
+
+---
+
+### 4.4 Production Environment (Docker)
+
+**Purpose**: Live production environment serving real users with high availability.
+
+#### 4.4.1 Characteristics
+
+- ✅ Maximum security (bcrypt rounds = 14)
+- ✅ High availability (3 backend replicas)
+- ✅ Auto-scaling capabilities
+- ✅ Automated SSL renewal (Certbot)
+- ✅ Full monitoring stack (Prometheus + Grafana + exporters)
+- ✅ Log aggregation
+- ✅ Automated backups to external storage
+- ✅ Rate limiting
+- ✅ Production-grade database with connection pooling
+
+#### 4.4.2 Quick Start
+
+```bash
+# 1. Copy environment file
+cp .env.prod.example .env.prod
+
+# 2. Generate VERY STRONG SECRET_KEY (min 128 chars)
+python -c "import secrets; print(secrets.token_urlsafe(128))"
+
+# 3. Generate strong passwords
+openssl rand -base64 48  # Database password (min 48 chars)
+openssl rand -base64 32  # Redis password (min 32 chars)
+
+# 4. IMPORTANT: Use external secret manager (recommended)
+#    - AWS Secrets Manager
+#    - HashiCorp Vault
+#    - Azure Key Vault
+#    - Google Secret Manager
+
+# 5. Edit .env.prod and set:
+#    - SECRET_KEY (min 128 chars)
+#    - POSTGRES_PASSWORD (min 48 chars)
+#    - REDIS_PASSWORD (min 32 chars)
+#    - SMTP_* (production SMTP credentials - SendGrid, SES, etc.)
+#    - DOMAIN (api.contravento.com)
+#    - All monitoring/alerting credentials
+#    - SENTRY_DSN (production project)
+
+# 6. Configure DNS
+# Point api.contravento.com to production server IP
+
+# 7. Start environment
+./deploy.sh prod                 # Linux/Mac
+.\deploy.ps1 prod                # Windows
+
+# 8. Verify SSL certificates
+curl -I https://api.contravento.com
+
+# 9. Run post-deployment checks (see section 4.4.6)
+```
+
+#### 4.4.3 Configuration Highlights
+
+```bash
+# .env.prod
+APP_NAME=ContraVento
+APP_ENV=production
+DEBUG=false                      # CRITICAL: Must be false!
+BCRYPT_ROUNDS=14                 # Maximum security
+
+# Database (production)
+DATABASE_URL=postgresql+asyncpg://contravento_user:VERY_STRONG_PASSWORD@postgres:5432/contravento
+POSTGRES_DB=contravento
+POSTGRES_USER=contravento_user
+
+# Redis (production, DB index 0)
+REDIS_URL=redis://:VERY_STRONG_PASSWORD@redis:6379/0
+
+# SMTP (production - example: SendGrid)
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASSWORD=YOUR_SENDGRID_API_KEY
+SMTP_FROM=noreply@contravento.com
+SMTP_TLS=true                    # CRITICAL: Must be true!
+
+# CORS (ONLY production domains)
+CORS_ORIGINS=https://contravento.com,https://www.contravento.com
+
+# Logging (minimal in production)
+LOG_LEVEL=WARNING                # Only warnings/errors
+LOG_FORMAT=json
+
+# Monitoring
+SENTRY_DSN=https://your-production-sentry-dsn@sentry.io/production-project
+SENTRY_ENVIRONMENT=production
+```
+
+#### 4.4.4 High Availability Setup
+
+Production runs **3 backend replicas** for high availability:
+
+```yaml
+# docker-compose.prod.yml
+services:
+  backend:
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1           # Update one at a time
+        delay: 10s               # Wait 10s between updates
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+```
+
+**Load balancing** handled by Nginx:
+
+```nginx
+upstream backend {
+    least_conn;  # Load balancing algorithm
+    server backend-1:8000 weight=1 max_fails=3 fail_timeout=30s;
+    server backend-2:8000 weight=1 max_fails=3 fail_timeout=30s;
+    server backend-3:8000 weight=1 max_fails=3 fail_timeout=30s;
+}
+```
+
+#### 4.4.5 SSL/TLS Configuration
+
+Production uses **Certbot** for automated SSL certificate management:
+
+```bash
+# Certbot automatically:
+# 1. Obtains certificates from Let's Encrypt
+# 2. Configures Nginx
+# 3. Renews certificates before expiry
+
+# Manual renewal (if needed)
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml \
+  --env-file .env.prod exec certbot certbot renew
+
+# Verify certificate
+openssl s_client -connect api.contravento.com:443 \
+  -servername api.contravento.com
+```
+
+#### 4.4.6 Post-Deployment Checklist (CRITICAL)
+
+```bash
+# [ ] Health check responds
+curl https://api.contravento.com/health
+# Expected: {"status": "healthy"}
+
+# [ ] API responds
+curl https://api.contravento.com/
+# Expected: {"message": "Welcome to ContraVento API"}
+
+# [ ] HTTPS works (SSL valid)
+curl -I https://api.contravento.com
+# Expected: HTTP/2 200, valid certificate
+
+# [ ] API docs NOT accessible (if DEBUG=false)
+curl https://api.contravento.com/docs
+# Expected: 404 (docs hidden in production)
+
+# [ ] CORS configured correctly
+curl -H "Origin: https://contravento.com" \
+     -I https://api.contravento.com/health
+# Expected: Access-Control-Allow-Origin header
+
+# [ ] Registration works end-to-end
+# (Use REST client or frontend)
+
+# [ ] Email verification sent and received
+# (Check real inbox)
+
+# [ ] Login works
+# [ ] File uploads work
+# [ ] Database connections stable
+# [ ] Logs show no errors
+# [ ] Performance within targets
+# [ ] Monitoring active (Sentry, Prometheus, Grafana)
+# [ ] Backups running and verified
+# [ ] SSL certificate auto-renewal working
+```
+
+#### 4.4.7 Monitoring
+
+```bash
+# Access Grafana (via Nginx proxy)
+https://monitoring.contravento.com
+
+# Or directly (if firewall allows)
+http://server-ip:3000
+
+# Prometheus
+http://server-ip:9090
+
+# Key metrics to monitor:
+# - API response times (p50, p95, p99)
+# - Request rate (requests/second)
+# - Error rate (5xx responses)
+# - Database connection pool usage
+# - Redis hit/miss ratio
+# - CPU/Memory/Disk usage
+# - SSL certificate expiry
+```
+
+#### 4.4.8 Scaling
+
+**Vertical Scaling** (increase resources):
+```bash
+# Edit .env.prod
+# Increase database connection pool
+DATABASE_POOL_SIZE=50  # Default: 20
+
+# Increase worker processes (backend)
+WEB_CONCURRENCY=8      # Default: 4
+```
+
+**Horizontal Scaling** (more replicas):
+```bash
+# Edit docker-compose.prod.yml
+services:
+  backend:
+    deploy:
+      replicas: 5  # Increase from 3 to 5
+```
+
+**Auto-scaling** (future enhancement):
+- Kubernetes Horizontal Pod Autoscaler
+- AWS ECS Auto Scaling
+- Docker Swarm mode scaling
+
+#### 4.4.9 When to Use
+
+- ✅ Serving real users in production
+- ✅ Requires 24/7 uptime
+- ✅ Needs automatic failover
+- ✅ Compliance requirements (SOC2, HIPAA, GDPR)
+- ✅ SLA commitments (99.9% uptime)
+
+---
+
+### 4.5 Configuration Management
+
+#### 4.5.1 Environment Variable Precedence
+
+Docker Compose resolves variables in this order (highest to lowest):
+
+1. **Shell environment variables** (`export VAR=value`)
+2. **--env-file parameter** (`.env.<env>`)
+3. **Default values in compose file** (`${VAR:-default}`)
+
+#### 4.5.2 Secret Management Best Practices
+
+**❌ NEVER do this:**
+```bash
+# Don't commit secrets to Git
+git add .env.prod  # ❌ BAD!
+
+# Don't hardcode in Dockerfile
+ENV SECRET_KEY=abc123  # ❌ BAD!
+```
+
+**✅ DO this:**
+```bash
+# Use .gitignore (already configured)
+.env
+.env.*
+!.env.*.example
+
+# Use external secret manager for production
+# - AWS Secrets Manager
+# - HashiCorp Vault
+# - Azure Key Vault
+# - Google Secret Manager
+
+# Example: AWS Secrets Manager
+aws secretsmanager get-secret-value \
+  --secret-id contravento/prod/secret-key \
+  --query SecretString --output text
+```
+
+#### 4.5.3 Generate Strong Secrets
+
+```bash
+# SECRET_KEY (production: min 128 chars)
+python -c "import secrets; print(secrets.token_urlsafe(128))"
+
+# Database password (min 48 chars)
+openssl rand -base64 48
+
+# Redis password (min 32 chars)
+openssl rand -base64 32
+
+# Generate multiple secrets at once
+for i in {1..3}; do
+  echo "Secret $i: $(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+done
+```
+
+#### 4.5.4 Secret Rotation Schedule
+
+| Environment | Rotation Frequency | Automation |
+|-------------|-------------------|------------|
+| **Production** | Every 90 days | Required |
+| **Staging** | Every 180 days | Recommended |
+| **Development** | Annually | Manual |
+| **After incident** | Immediately | Manual |
+
+#### 4.5.5 Deployment Scripts
+
+ContraVento provides deployment scripts for all environments:
+
+**Linux/Mac** (`deploy.sh`):
+```bash
+# Start environment
+./deploy.sh <env>
+
+# Stop environment
+./deploy.sh <env> down
+
+# View logs
+./deploy.sh <env> logs
+
+# Show running containers
+./deploy.sh <env> ps
+
+# Restart environment
+./deploy.sh <env> restart
+
+# Available environments: local-minimal, local, dev, staging, prod
+```
+
+**Windows** (`deploy.ps1`):
+```powershell
+# Same commands as Linux/Mac
+.\deploy.ps1 <env>
+.\deploy.ps1 <env> down
+.\deploy.ps1 <env> logs
+.\deploy.ps1 <env> ps
+.\deploy.ps1 <env> restart
+```
+
+**Manual deployment** (if scripts unavailable):
+```bash
+# General pattern
+docker-compose \
+  -f docker-compose.yml \
+  -f docker-compose.<env>.yml \
+  --env-file .env.<env> \
+  up -d
+
+# Example: Start staging
+docker-compose \
+  -f docker-compose.yml \
+  -f docker-compose.staging.yml \
+  --env-file .env.staging \
+  up -d
+```
+
+---
+
+## 5. Traditional & Cloud Deployments
+
+> **Note**: Docker Compose is the **recommended** deployment method. Traditional and cloud deployments are advanced alternatives for specific use cases.
+
+### 5.1 Manual PostgreSQL Setup
+
+For environments where Docker is not available or desired.
+
+#### 5.1.1 Install PostgreSQL
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+
+# Start and enable service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+**macOS:**
+```bash
+# Using Homebrew
+brew install postgresql@16
+
+# Start service
+brew services start postgresql@16
+```
+
+**Windows:**
+```bash
+# Download from: https://www.postgresql.org/download/windows/
+# Run installer and follow setup wizard
+```
+
+#### 5.1.2 Create Database and User
+
+```bash
+# Connect as superuser
+sudo -u postgres psql
+
+# Create user and database
+CREATE USER contravento_user WITH PASSWORD 'your_strong_password';
+CREATE DATABASE contravento OWNER contravento_user;
+GRANT ALL PRIVILEGES ON DATABASE contravento TO contravento_user;
+
+# Enable extensions
+\c contravento
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+
+# Exit
+\q
+```
+
+#### 5.1.3 Configure DATABASE_URL
+
+```bash
+# In .env file (staging or production)
+DATABASE_URL=postgresql+asyncpg://contravento_user:your_strong_password@localhost:5432/contravento
+
+# With SSL (recommended for production)
+DATABASE_URL=postgresql+asyncpg://contravento_user:your_strong_password@db.server.com:5432/contravento?ssl=require
+```
+
+#### 5.1.4 Test Connection
+
+```bash
+# Using psql
+psql -h localhost -p 5432 -U contravento_user -d contravento -c "SELECT version();"
+
+# Using Python
+python -c "
+import asyncio
+from sqlalchemy.ext.asyncio import create_async_engine
+
+async def test():
+    engine = create_async_engine('postgresql+asyncpg://...')
+    async with engine.connect() as conn:
+        result = await conn.execute('SELECT version()')
+        print(f'PostgreSQL version: {result.scalar()}')
+    await engine.dispose()
+
+asyncio.run(test())
+"
+```
+
+#### 5.1.5 PostgreSQL Performance Tuning
+
+For production deployments, tune PostgreSQL for optimal performance:
+
+```bash
+# Edit postgresql.conf (location varies by OS)
+# Ubuntu/Debian: /etc/postgresql/16/main/postgresql.conf
+
+# Memory settings (adjust based on available RAM)
+shared_buffers = 256MB              # 25% of RAM
+effective_cache_size = 1GB          # 50% of RAM
+work_mem = 16MB
+maintenance_work_mem = 128MB
+
+# Connection settings
+max_connections = 200               # Match backend connection pool
 
 # Logging
-LOG_LEVEL=DEBUG
-LOG_FORMAT=text
+log_min_duration_statement = 1000   # Log slow queries (>1s)
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+
+# Reload configuration
+sudo systemctl reload postgresql
 ```
 
-**3. Iniciar solo PostgreSQL con Docker**
+---
+
+### 5.2 Cloud Platform Deployments
+
+#### 5.2.1 AWS (ECS + RDS + ElastiCache)
+
+**Architecture:**
+- **ECS Fargate**: Run backend containers
+- **RDS PostgreSQL**: Managed database
+- **ElastiCache Redis**: Managed cache
+- **ALB**: Load balancer
+- **S3**: File storage (profile/trip photos)
+- **CloudWatch**: Monitoring and logging
+
+**Deployment Steps:**
 
 ```bash
-# Iniciar solo el servicio de PostgreSQL
-docker-compose up postgres -d
+# 1. Create RDS PostgreSQL instance
+aws rds create-db-instance \
+  --db-instance-identifier contravento-prod \
+  --db-instance-class db.t3.medium \
+  --engine postgres \
+  --engine-version 16.1 \
+  --master-username contravento_user \
+  --master-user-password STRONG_PASSWORD \
+  --allocated-storage 50 \
+  --backup-retention-period 7 \
+  --multi-az \
+  --storage-encrypted
 
-# Verificar que PostgreSQL está corriendo
-docker-compose ps postgres
+# 2. Create ElastiCache Redis
+aws elasticache create-cache-cluster \
+  --cache-cluster-id contravento-redis \
+  --cache-node-type cache.t3.micro \
+  --engine redis \
+  --engine-version 7.0 \
+  --num-cache-nodes 1
 
-# Output esperado:
-# NAME                IMAGE               STATUS
-# contravento-db      postgres:16-alpine  Up (healthy)
+# 3. Build and push Docker image to ECR
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin YOUR_ECR_URL
+
+docker build -t contravento-backend ./backend
+docker tag contravento-backend:latest YOUR_ECR_URL/contravento-backend:latest
+docker push YOUR_ECR_URL/contravento-backend:latest
+
+# 4. Create ECS Task Definition (JSON)
+# See: aws/ecs-task-definition.json
+
+# 5. Create ECS Service
+aws ecs create-service \
+  --cluster contravento-cluster \
+  --service-name backend \
+  --task-definition contravento-backend:1 \
+  --desired-count 3 \
+  --launch-type FARGATE \
+  --load-balancers "targetGroupArn=YOUR_TG_ARN,containerName=backend,containerPort=8000"
+
+# 6. Configure environment variables in ECS Task Definition
+# Use AWS Secrets Manager for sensitive values
 ```
 
-**4. Aplicar migraciones**
+**Estimated Monthly Cost** (us-east-1):
+- RDS db.t3.medium: ~$60
+- ElastiCache cache.t3.micro: ~$15
+- ECS Fargate (3 tasks, 0.5 vCPU, 1GB RAM): ~$30
+- ALB: ~$20
+- **Total**: ~$125/month + data transfer
+
+---
+
+#### 5.2.2 Google Cloud Platform (Cloud Run + Cloud SQL)
+
+**Architecture:**
+- **Cloud Run**: Serverless container platform
+- **Cloud SQL PostgreSQL**: Managed database
+- **Cloud Memorystore**: Managed Redis
+- **Cloud Load Balancing**: Load balancer
+- **Cloud Storage**: File storage
+
+**Deployment Steps:**
 
 ```bash
+# 1. Create Cloud SQL instance
+gcloud sql instances create contravento-prod \
+  --database-version=POSTGRES_16 \
+  --tier=db-f1-micro \
+  --region=us-central1 \
+  --backup \
+  --backup-start-time=03:00
+
+# 2. Create database and user
+gcloud sql databases create contravento \
+  --instance=contravento-prod
+
+gcloud sql users create contravento_user \
+  --instance=contravento-prod \
+  --password=STRONG_PASSWORD
+
+# 3. Build and push to Container Registry
+gcloud builds submit --tag gcr.io/PROJECT_ID/contravento-backend ./backend
+
+# 4. Deploy to Cloud Run
+gcloud run deploy contravento-backend \
+  --image gcr.io/PROJECT_ID/contravento-backend \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars DATABASE_URL="postgresql+asyncpg://..." \
+  --set-secrets SECRET_KEY=contravento-secret-key:latest \
+  --min-instances 1 \
+  --max-instances 10
+```
+
+**Estimated Monthly Cost**:
+- Cloud SQL db-f1-micro: ~$10
+- Cloud Run (1M requests/month): ~$5
+- Cloud Memorystore (1GB): ~$40
+- **Total**: ~$55/month
+
+---
+
+#### 5.2.3 Managed Platform Deployments
+
+**Railway** (Fastest deployment):
+```bash
+# 1. Install Railway CLI
+npm install -g @railway/cli
+
+# 2. Login and initialize
+railway login
+railway init
+
+# 3. Link to project
+railway link
+
+# 4. Deploy backend
 cd backend
+railway up
 
-# Opción A: Con Poetry (desarrollo local)
-poetry install
-poetry run alembic upgrade head
+# 5. Provision PostgreSQL and Redis
+railway add --plugin postgresql
+railway add --plugin redis
 
-# Opción B: Con Docker (si backend también está en Docker)
-docker-compose up backend -d
+# 6. Set environment variables in Railway dashboard
+# DATABASE_URL, REDIS_URL are auto-configured
+```
+
+**Render** (Simple deployment):
+```yaml
+# render.yaml
+services:
+  - type: web
+    name: contravento-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: contravento-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+        sync: false
+
+databases:
+  - name: contravento-db
+    databaseName: contravento
+    user: contravento_user
+```
+
+**Fly.io** (Edge deployment):
+```bash
+# 1. Install flyctl
+curl -L https://fly.io/install.sh | sh
+
+# 2. Login and launch
+fly auth login
+cd backend
+fly launch
+
+# 3. Create PostgreSQL
+fly postgres create --name contravento-db
+
+# 4. Attach to app
+fly postgres attach contravento-db
+
+# 5. Deploy
+fly deploy
+```
+
+---
+
+#### 5.2.4 Kubernetes Deployment
+
+**For advanced users** requiring maximum scalability and control.
+
+**Prerequisites:**
+- Kubernetes cluster (EKS, GKE, AKS, or self-managed)
+- `kubectl` CLI installed
+- Helm 3+ (optional but recommended)
+
+**Deployment Steps:**
+
+```yaml
+# 1. Create namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: contravento
+
+---
+# 2. Create secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: contravento-secrets
+  namespace: contravento
+type: Opaque
+stringData:
+  database-url: postgresql+asyncpg://...
+  secret-key: YOUR_SECRET_KEY
+  redis-url: redis://...
+
+---
+# 3. Backend deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contravento-backend
+  namespace: contravento
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: contravento-backend
+  template:
+    metadata:
+      labels:
+        app: contravento-backend
+    spec:
+      containers:
+      - name: backend
+        image: your-registry/contravento-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: contravento-secrets
+              key: database-url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: contravento-secrets
+              key: secret-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# 4. Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: contravento-backend
+  namespace: contravento
+spec:
+  selector:
+    app: contravento-backend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: ClusterIP
+
+---
+# 5. Ingress (with SSL)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: contravento-ingress
+  namespace: contravento
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - api.contravento.com
+    secretName: contravento-tls
+  rules:
+  - host: api.contravento.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: contravento-backend
+            port:
+              number: 80
+```
+
+**Deploy to Kubernetes:**
+```bash
+# Apply all manifests
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/ingress.yaml
+
+# Check status
+kubectl get pods -n contravento
+kubectl get svc -n contravento
+kubectl get ingress -n contravento
+
+# View logs
+kubectl logs -f deployment/contravento-backend -n contravento
+```
+
+---
+
+## 6. Database Management
+
+### 6.1 PostgreSQL Setup Options
+
+See [Section 5.1](#51-manual-postgresql-setup) for manual installation.
+
+**Managed PostgreSQL Providers:**
+
+| Provider | Pros | Cons | Pricing |
+|----------|------|------|---------|
+| **AWS RDS** | Full-featured, automated backups, multi-AZ | More expensive | ~$60/month (t3.medium) |
+| **Google Cloud SQL** | Auto-scaling, easy GCP integration | Regional only | ~$10/month (db-f1-micro) |
+| **Azure Database** | Azure integration, flexible scaling | Complex pricing | ~$50/month (B2s) |
+| **Supabase** | PostgreSQL + extras (Auth, Storage, Realtime) | Limited control | Free tier + $25/month |
+| **Railway** | Fast setup, generous free tier | Newer service | Free tier + $5/month |
+| **Neon** | Serverless PostgreSQL, instant scaling | Beta features | Free tier + $20/month |
+
+**Recommendation:**
+- **Development/Staging**: Railway or Supabase (easy, affordable)
+- **Production**: AWS RDS or Google Cloud SQL (enterprise-grade)
+
+---
+
+### 6.2 Migrations
+
+ContraVento uses **Alembic** for database migrations.
+
+#### 6.2.1 Apply Migrations
+
+```bash
+# With Docker
 docker-compose exec backend alembic upgrade head
-```
 
-**5. Iniciar backend localmente**
-
-```bash
-# Con Poetry
-cd backend
-poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-
-# O con Docker
-docker-compose up backend -d
-```
-
-**6. Verificar funcionamiento**
-
-```bash
-# Health check
-curl http://localhost:8000/health
-# Esperado: {"status":"healthy"}
-
-# Verificar conexión a PostgreSQL
-curl http://localhost:8000/
-
-# Ver logs
-docker-compose logs -f backend
-```
-
-#### Opción 2: Comando Rápido (Sin archivo .env extra)
-
-```bash
-# Iniciar solo PostgreSQL
-docker-compose up postgres -d
-
-# Esperar a que esté healthy
-sleep 5
-
-# Crear base de datos y usuario manualmente
-docker exec -it contravento-db psql -U postgres -c "
-  CREATE DATABASE contravento_test;
-  CREATE USER contravento_test WITH PASSWORD 'test_password';
-  GRANT ALL PRIVILEGES ON DATABASE contravento_test TO contravento_test;
-"
-
-# Configurar DATABASE_URL en .env temporal
-export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
-
-# Aplicar migraciones
+# Local (with Poetry)
 cd backend
 poetry run alembic upgrade head
 
-# Iniciar backend
-poetry run uvicorn src.main:app --reload --port 8000
-```
+# Specific version
+poetry run alembic upgrade <revision_id>
 
-#### Opción 3: Con docker-compose profile personalizado
-
-Puedes usar solo backend + postgres sin los servicios extras:
-
-```bash
-# Iniciar solo backend y postgres (sin Redis, MailHog, pgAdmin)
-docker-compose up backend postgres -d
-
-# Aplicar migraciones
-docker-compose exec backend alembic upgrade head
-
-# Ver logs
-docker-compose logs -f backend postgres
-```
-
-### Testing de Migraciones con PostgreSQL
-
-Una vez que tengas PostgreSQL corriendo, puedes probar las migraciones en detalle:
-
-#### Test 1: Migraciones desde cero
-
-```bash
-# 1. Conectar a PostgreSQL y limpiar base de datos
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
-  DROP SCHEMA public CASCADE;
-  CREATE SCHEMA public;
-  GRANT ALL ON SCHEMA public TO contravento_test;
-"
-
-# 2. Aplicar todas las migraciones
-cd backend
-poetry run alembic upgrade head
-
-# 3. Verificar tablas creadas
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "\dt"
-
-# Expected output:
-#  Schema |       Name        | Type  |      Owner
-# --------+-------------------+-------+-----------------
-#  public | achievements      | table | contravento_test
-#  public | alembic_version   | table | contravento_test
-#  public | follows           | table | contravento_test
-#  public | password_resets   | table | contravento_test
-#  public | tags              | table | contravento_test
-#  public | trip_locations    | table | contravento_test
-#  public | trip_photos       | table | contravento_test
-#  public | trip_tags         | table | contravento_test
-#  public | trips             | table | contravento_test
-#  public | user_achievements | table | contravento_test
-#  public | user_profiles     | table | contravento_test
-#  public | user_stats        | table | contravento_test
-#  public | users             | table | contravento_test
-```
-
-#### Test 2: Rollback y Re-aplicar
-
-```bash
-# 1. Ver estado actual
-poetry run alembic current
-
-# 2. Rollback todas las migraciones
-poetry run alembic downgrade base
-
-# 3. Verificar que solo queda alembic_version
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "\dt"
-
-# 4. Re-aplicar todas
-poetry run alembic upgrade head
-
-# 5. Verificar que todas las tablas están de vuelta
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "\dt"
-```
-
-#### Test 3: Migraciones paso a paso
-
-```bash
-# Ver todas las migraciones
-poetry run alembic history
-
-# Aplicar migración por migración
-poetry run alembic downgrade base
-
-# Aplicar primera migración (001_initial_auth_schema)
+# Upgrade one step
 poetry run alembic upgrade +1
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "\dt"
-
-# Aplicar segunda migración (002_add_privacy_settings)
-poetry run alembic upgrade +1
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "\d user_profiles"
-
-# Continue hasta llegar a head
-poetry run alembic upgrade head
 ```
 
-#### Test 4: Verificar Constraints y Indexes
+#### 6.2.2 View Migration Status
 
 ```bash
-# Ver foreign keys
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
+# Current version
+alembic current
+
+# Full history
+alembic history
+
+# Pending migrations
+alembic heads
+
+# Preview SQL (dry-run)
+alembic upgrade head --sql > migration.sql
+```
+
+#### 6.2.3 Existing Migrations
+
+**User Profiles (001-user-profiles):**
+
+| Migration | Description |
+|-----------|-------------|
+| `001_initial_auth_schema.py` | Users, profiles, password resets |
+| `002_add_privacy_settings.py` | Privacy columns (profile_privacy, stats_privacy) |
+| `003_stats_and_achievements.py` | UserStats, Achievements, UserAchievements |
+| `004_social_features.py` | Follows (follow relationships) |
+
+**Travel Diary (002-travel-diary):**
+
+| Migration | Description |
+|-----------|-------------|
+| `005_travel_diary_trips.py` | Trips, TripPhotos, TripLocations, Tags |
+| `006_trip_tags_association.py` | trip_tags (many-to-many association table) |
+
+#### 6.2.4 Create New Migration
+
+```bash
+# Auto-generate from SQLAlchemy models
+alembic revision --autogenerate -m "add new feature"
+
+# Manual migration (for complex changes)
+alembic revision -m "add custom index"
+
+# Edit generated file
+nano migrations/versions/xxx_add_new_feature.py
+
+# Review and test before applying
+alembic upgrade head --sql  # Preview SQL
+alembic upgrade head        # Apply
+```
+
+#### 6.2.5 Rollback Migrations
+
+```bash
+# Rollback last migration
+alembic downgrade -1
+
+# Rollback to specific version
+alembic downgrade <revision_id>
+
+# Rollback all (⚠️  CAUTION: Deletes all tables)
+alembic downgrade base
+```
+
+#### 6.2.6 Testing Migrations
+
+**Full migration test cycle:**
+```bash
+# 1. Rollback all migrations
+alembic downgrade base
+
+# 2. Verify only alembic_version remains
+docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
+
+# 3. Apply all migrations
+alembic upgrade head
+
+# 4. Verify all tables created
+docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
+
+# Expected tables:
+# - users, user_profiles, password_resets
+# - user_stats, achievements, user_achievements
+# - follows
+# - trips, trip_photos, trip_locations, tags, trip_tags
+# - alembic_version
+```
+
+**Step-by-step migration test:**
+```bash
+# View all migrations
+alembic history
+
+# Start from base
+alembic downgrade base
+
+# Apply one migration at a time
+alembic upgrade +1
+docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
+
+alembic upgrade +1
+docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
+
+# Continue until head
+alembic upgrade head
+```
+
+**Verify constraints and indexes:**
+```bash
+# View foreign keys
+docker exec contravento-db psql -U contravento_user -d contravento -c "
   SELECT
     tc.table_name,
     kcu.column_name,
@@ -339,8 +1705,8 @@ docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
   ORDER BY tc.table_name;
 "
 
-# Ver indexes
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
+# View indexes
+docker exec contravento-db psql -U contravento_user -d contravento -c "
   SELECT
     tablename,
     indexname,
@@ -351,900 +1717,167 @@ docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
 "
 ```
 
-#### Test 5: Testing de Datos
+---
+
+### 6.3 Backup & Recovery
+
+#### 6.3.1 Manual Database Backup
 
 ```bash
-# Crear usuario de prueba
-docker exec -it contravento-db psql -U contravento_test -d contravento_test
+# Full backup
+docker exec contravento-db pg_dump -U contravento_user contravento > backup_$(date +%Y%m%d_%H%M%S).sql
 
-# Dentro de psql:
-INSERT INTO users (id, username, email, password_hash, is_verified, created_at, updated_at)
-VALUES (
-  gen_random_uuid(),
-  'test_user',
-  'test@example.com',
-  '$2b$04$abcdefghijklmnopqrstuv',  -- fake hash
-  true,
-  NOW(),
-  NOW()
-);
+# Compressed backup
+docker exec contravento-db pg_dump -U contravento_user contravento | \
+  gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
 
--- Verificar
-SELECT username, email, is_verified FROM users;
+# Schema only (no data)
+docker exec contravento-db pg_dump -U contravento_user --schema-only contravento > schema_$(date +%Y%m%d).sql
 
--- Salir
-\q
+# Data only (no schema)
+docker exec contravento-db pg_dump -U contravento_user --data-only contravento > data_$(date +%Y%m%d).sql
 ```
 
-### Testing de Endpoints con PostgreSQL
+#### 6.3.2 Automated Backups (Cron)
 
 ```bash
-# 1. Crear usuario verificado con script
-docker-compose exec backend python scripts/create_verified_user.py \
-  --username testuser \
-  --email test@example.com \
-  --password "TestPass123!"
+# Edit crontab
+crontab -e
 
-# 2. Login
-curl -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "password": "TestPass123!"
-  }'
+# Daily backup at 2 AM (retain 30 days)
+0 2 * * * docker exec contravento-db pg_dump -U contravento_user contravento | gzip > /backups/contravento_$(date +\%Y\%m\%d).sql.gz
 
-# 3. Guardar token y probar endpoints protegidos
-TOKEN="eyJ0eXAiOiJKV1QiLCJhbGc..."  # Del response anterior
+# Clean old backups (retain last 30 days)
+0 3 * * * find /backups -name "contravento_*.sql.gz" -mtime +30 -delete
 
-curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8000/users/testuser
-
-# 4. Crear trip
-curl -X POST http://localhost:8000/trips \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Test Trip PostgreSQL",
-    "description": "Testing trip creation with PostgreSQL database instead of SQLite",
-    "start_date": "2025-01-10",
-    "distance_km": 50.5,
-    "tags": ["test", "postgresql"]
-  }'
-
-# 5. Verificar en base de datos
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
-  SELECT t.title, t.status, array_agg(tg.name) as tags
-  FROM trips t
-  LEFT JOIN trip_tags tt ON t.id = tt.trip_id
-  LEFT JOIN tags tg ON tt.tag_id = tg.id
-  GROUP BY t.id, t.title, t.status;
-"
+# Weekly full backup to external storage
+0 4 * * 0 /usr/local/bin/backup-to-s3.sh
 ```
 
-### Ejecutar Tests con PostgreSQL
+#### 6.3.3 Backup to AWS S3
 
 ```bash
-# Usar DATABASE_URL de testing
-export DATABASE_URL="postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test"
+#!/bin/bash
+# /usr/local/bin/backup-to-s3.sh
 
-# Ejecutar todos los tests
-cd backend
-poetry run pytest
+BACKUP_FILE=contravento_$(date +%Y%m%d_%H%M%S).sql.gz
+BACKUP_DIR=/tmp/backups
 
-# Tests específicos de integración
-poetry run pytest tests/integration/ -v
+# Create backup
+docker exec contravento-db pg_dump -U contravento_user contravento | \
+  gzip > $BACKUP_DIR/$BACKUP_FILE
 
-# Tests de contrato
-poetry run pytest tests/contract/ -v
+# Upload to S3
+aws s3 cp $BACKUP_DIR/$BACKUP_FILE s3://contravento-backups/database/
 
-# Con coverage
-poetry run pytest --cov=src --cov-report=term
+# Clean local backup
+rm $BACKUP_DIR/$BACKUP_FILE
+
+# Lifecycle policy: Transition to Glacier after 30 days, delete after 365 days
 ```
 
-### Cuándo usar Testing vs Staging
-
-| Aspecto | Testing (Backend + PostgreSQL) | Staging (Full Stack) |
-|---------|--------------------------------|----------------------|
-| **Propósito** | Validar migraciones y compatibilidad PostgreSQL | QA completo pre-producción |
-| **Servicios** | Backend + PostgreSQL | Backend + PostgreSQL + Redis + MailHog |
-| **Configuración** | Mínima (5 minutos) | Completa (15-30 minutos) |
-| **Uso** | Desarrollo, validación rápida de DB | Testing completo, demos, QA team |
-| **Datos** | Temporales, se pueden borrar | Persistentes, simulan producción |
-| **Performance** | Más rápido de levantar | Más pesado pero más realista |
-| **Cuándo usar** | - Testing de migraciones<br>- Desarrollo local con PostgreSQL<br>- CI/CD pipelines<br>- Debugging de issues DB | - QA manual completo<br>- Testing de integración full<br>- Performance testing<br>- Demos a stakeholders |
-
-**Recomendación de workflow:**
+#### 6.3.4 Restore Database
 
 ```bash
-# 1. Desarrollo con SQLite
-npm run dev  # Backend con SQLite
+# Restore from uncompressed backup
+docker exec -i contravento-db psql -U contravento_user contravento < backup_20250108.sql
 
-# 2. Testing rápido con PostgreSQL (antes de PR)
-docker-compose up postgres -d
-poetry run alembic upgrade head
-poetry run pytest
+# Restore from compressed backup
+gunzip < backup_20250108.sql.gz | \
+  docker exec -i contravento-db psql -U contravento_user contravento
 
-# 3. Staging para QA (después de merge a main)
-docker-compose --env-file backend/.env.staging up -d
-# QA team prueba todo el sistema
-
-# 4. Producción (después de approval)
-docker-compose --env-file backend/.env.prod up -d
+# Restore from S3
+aws s3 cp s3://contravento-backups/database/backup_20250108.sql.gz - | \
+  gunzip | \
+  docker exec -i contravento-db psql -U contravento_user contravento
 ```
 
-### Limpiar Entorno de Testing
+#### 6.3.5 File Storage Backup
+
+Backup uploaded files (profile photos, trip photos):
 
 ```bash
-# Detener backend y PostgreSQL
-docker-compose down
+# Local backup (compressed archive)
+tar -czf storage_backup_$(date +%Y%m%d).tar.gz backend/storage/
 
-# Borrar datos de PostgreSQL (reset completo)
-docker-compose down -v
+# Sync to S3 (incremental)
+aws s3 sync backend/storage/ s3://contravento-backups/storage/ --delete
 
-# O solo resetear base de datos sin borrar volumen
-docker exec -it contravento-db psql -U contravento_test -d contravento_test -c "
-  DROP SCHEMA public CASCADE;
-  CREATE SCHEMA public;
-  GRANT ALL ON SCHEMA public TO contravento_test;
+# Restore from S3
+aws s3 sync s3://contravento-backups/storage/ backend/storage/
+
+# Alternative: Use rsync for remote backups
+rsync -avz backend/storage/ backup-server:/backups/contravento/storage/
+```
+
+#### 6.3.6 Disaster Recovery Testing
+
+**Test backup restoration quarterly:**
+```bash
+# 1. Create test database
+docker exec contravento-db psql -U postgres -c "CREATE DATABASE contravento_restore_test;"
+
+# 2. Restore latest backup
+gunzip < backup_latest.sql.gz | \
+  docker exec -i contravento-db psql -U contravento_user contravento_restore_test
+
+# 3. Verify data integrity
+docker exec contravento-db psql -U contravento_user contravento_restore_test -c "
+  SELECT COUNT(*) FROM users;
+  SELECT COUNT(*) FROM trips;
+  SELECT COUNT(*) FROM trip_photos;
 "
 
-# Re-aplicar migraciones
-cd backend
-poetry run alembic upgrade head
+# 4. Clean up
+docker exec contravento-db psql -U postgres -c "DROP DATABASE contravento_restore_test;"
 ```
 
 ---
 
-## Entorno de Staging
+## 7. Reverse Proxy & SSL
 
-El entorno de **staging** es una réplica de producción utilizada para:
-- Probar nuevas features antes de producción
-- Realizar QA completo (manual y automatizado)
-- Validar migraciones de base de datos
-- Probar integraciones con servicios externos
-- Simular cargas y performance
+### 7.1 Why Use Nginx
 
-### Configuración de Staging
-
-#### 1. Crear archivo de configuración
-
-```bash
-# Copiar template de staging
-cp backend/.env.staging.example backend/.env.staging
-```
-
-#### 2. Generar secrets
-
-```bash
-# SECRET_KEY único para staging (diferente de producción)
-python -c "import secrets; print(secrets.token_urlsafe(64))"
-
-# Copiar output a SECRET_KEY en .env.staging
-# DB_PASSWORD para staging
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-
-# REDIS_PASSWORD para staging
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-#### 3. Configurar variables clave en `.env.staging`
-
-```bash
-# =============================================================================
-# STAGING CONFIGURATION
-# =============================================================================
-
-APP_NAME=ContraVento-Staging
-APP_ENV=staging
-DEBUG=false  # Production-like behavior
-
-# Database (separate from production)
-DATABASE_URL=postgresql+asyncpg://contravento_staging:YOUR_DB_PASSWORD@postgres:5432/contravento_staging
-DB_PASSWORD=YOUR_DB_PASSWORD
-
-# Redis (different password and DB index)
-REDIS_URL=redis://:YOUR_REDIS_PASSWORD@redis:6379/1
-REDIS_PASSWORD=YOUR_REDIS_PASSWORD
-
-# JWT (unique secret key)
-SECRET_KEY=YOUR_UNIQUE_STAGING_SECRET_KEY_MIN_64_CHARS
-BCRYPT_ROUNDS=12  # Same as production
-
-# Email - Option A: MailHog (easier for QA)
-SMTP_HOST=mailhog
-SMTP_PORT=1025
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM=staging@contravento.com
-SMTP_TLS=false
-
-# Email - Option B: Real SMTP (more realistic)
-# SMTP_HOST=smtp.sendgrid.net
-# SMTP_PORT=587
-# SMTP_USER=apikey
-# SMTP_PASSWORD=YOUR_SENDGRID_API_KEY
-# SMTP_FROM=staging@contravento.com
-# SMTP_TLS=true
-
-# CORS (staging domain + localhost for QA testing)
-CORS_ORIGINS=https://staging.contravento.com,http://localhost:3000
-
-# Logging (DEBUG for troubleshooting)
-LOG_LEVEL=DEBUG
-LOG_FORMAT=json
-
-# Monitoring (separate staging project)
-# SENTRY_DSN=https://your-staging-sentry-dsn@sentry.io/staging-project
-SENTRY_ENVIRONMENT=staging
-```
-
-### Deployment de Staging
-
-#### Con Docker Compose
-
-```bash
-# 1. Clonar repositorio (si no lo has hecho)
-git clone <repo-url>
-cd contravento-application-python
-
-# 2. Crear y configurar .env.staging desde template base
-cp .env.staging.example .env.staging
-# Editar .env.staging con valores reales
-# Nota: Ver ENVIRONMENTS.md para estructura completa de archivos .env
-
-# 3. Iniciar servicios (con MailHog y pgAdmin para QA)
-docker-compose --env-file backend/.env.staging --profile development up -d
-
-# 4. Verificar que todos los servicios estén corriendo
-docker-compose ps
-
-# Output esperado:
-# contravento-api        running (healthy)
-# contravento-db         running (healthy)
-# contravento-redis      running (healthy)
-# contravento-mailhog    running
-# contravento-pgadmin    running
-
-# 5. Aplicar migraciones
-docker-compose exec backend alembic upgrade head
-
-# 6. Crear usuario de prueba
-docker-compose exec backend python scripts/create_verified_user.py \
-  --username staging_user \
-  --email qa@contravento.com \
-  --password "StagingTest123!"
-
-# 7. Verificar deployment
-curl http://localhost:8000/health
-# Esperado: {"status": "healthy"}
-```
-
-#### Acceso a Servicios de Staging
-
-```bash
-# API Backend
-http://localhost:8000
-
-# API Docs (Swagger UI)
-http://localhost:8000/docs
-
-# MailHog Web UI (ver emails enviados)
-http://localhost:8025
-
-# pgAdmin (administrar base de datos)
-http://localhost:5050
-# Login: admin@contravento.com / (ver PGADMIN_PASSWORD en .env.staging)
-```
-
-#### Logs de Staging
-
-```bash
-# Ver logs en tiempo real
-docker-compose logs -f backend
-
-# Ver logs de todos los servicios
-docker-compose logs -f
-
-# Ver solo errores
-docker-compose logs backend | grep ERROR
-
-# Ver logs de últimas 100 líneas
-docker-compose logs --tail=100 backend
-```
-
-### Testing en Staging
-
-#### 1. Checklist de Testing Pre-Producción
-
-```bash
-# [ ] Health check responde
-curl http://localhost:8000/health
-
-# [ ] API docs accesible (si DEBUG=true)
-open http://localhost:8000/docs
-
-# [ ] Registro de usuario funciona
-curl -X POST http://localhost:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "test_staging",
-    "email": "test@staging.com",
-    "password": "TestPass123!",
-    "full_name": "Test User"
-  }'
-
-# [ ] Email de verificación se envía
-# Revisar en MailHog: http://localhost:8025
-
-# [ ] Login funciona
-curl -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "test_staging",
-    "password": "TestPass123!"
-  }'
-
-# [ ] Upload de foto de perfil funciona
-# [ ] Creación de trip funciona
-# [ ] Upload de fotos de trip funciona
-# [ ] Tags funcionan correctamente
-# [ ] Stats se actualizan correctamente
-```
-
-#### 2. Testing Automatizado en Staging
-
-```bash
-# Ejecutar todos los tests contra staging
-docker-compose exec backend pytest
-
-# Tests de integración
-docker-compose exec backend pytest tests/integration/ -v
-
-# Tests de contrato (OpenAPI)
-docker-compose exec backend pytest tests/contract/ -v
-
-# Coverage
-docker-compose exec backend pytest --cov=src --cov-report=term
-```
-
-#### 3. Testing de Performance en Staging
-
-```bash
-# Instalar herramienta de load testing
-pip install locust
-
-# Ejecutar load test (100 usuarios, 10/segundo)
-locust -f tests/load/locustfile.py --host=http://localhost:8000 \
-  --users 100 --spawn-rate 10 --run-time 5m --headless
-```
-
-#### 4. Testing de Migraciones en Staging
-
-```bash
-# Verificar estado actual
-docker-compose exec backend alembic current
-
-# Test downgrade/upgrade
-docker-compose exec backend alembic downgrade -1
-docker-compose exec backend alembic upgrade head
-
-# Verificar tablas creadas
-docker exec contravento-db psql -U contravento_staging -d contravento_staging -c "\dt"
-```
-
-#### 5. Detener Staging
-
-```bash
-# Detener servicios sin borrar datos
-docker-compose --env-file backend/.env.staging down
-
-# Detener y LIMPIAR TODOS LOS DATOS (usar con precaución)
-docker-compose --env-file backend/.env.staging down -v
-```
+**Benefits:**
+- **HTTPS/SSL Termination**: Handles TLS certificates, offloads encryption from backend
+- **Static File Serving**: Efficiently serves uploaded photos (profile, trip photos)
+- **Load Balancing**: Distributes traffic across multiple backend instances
+- **Caching**: Reduces backend load with smart caching
+- **Security Headers**: Adds HSTS, CSP, X-Frame-Options, etc.
+- **Rate Limiting**: Prevents abuse and DDoS attacks
+- **Compression**: Gzip compression reduces bandwidth
 
 ---
 
-## Entorno de Producción
+### 7.2 Nginx Configuration
 
-El entorno de **producción** es el sistema live accesible por usuarios reales.
-
-### Configuración de Producción
-
-#### 1. Crear archivo de configuración
-
-```bash
-# Copiar template de producción
-cp .env.prod.example .env.prod
-# Nota: Ver ENVIRONMENTS.md para estructura completa de archivos .env
-```
-
-#### 2. Generar secrets FUERTES
-
-```bash
-# SECRET_KEY de producción (64+ caracteres, ÚNICO)
-python -c "import secrets; print(secrets.token_urlsafe(64))"
-
-# DB_PASSWORD (32+ caracteres)
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-
-# REDIS_PASSWORD (32+ caracteres)
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-#### 3. Configurar variables clave en `.env.prod`
-
-```bash
-# =============================================================================
-# PRODUCTION CONFIGURATION
-# =============================================================================
-
-APP_NAME=ContraVento
-APP_ENV=production
-DEBUG=false  # CRITICAL: Must be false
-
-# Database (production PostgreSQL)
-DATABASE_URL=postgresql+asyncpg://contravento_user:YOUR_STRONG_DB_PASSWORD@postgres:5432/contravento
-DB_PASSWORD=YOUR_STRONG_DB_PASSWORD
-
-# Redis (production)
-REDIS_URL=redis://:YOUR_STRONG_REDIS_PASSWORD@redis:6379/0
-REDIS_PASSWORD=YOUR_STRONG_REDIS_PASSWORD
-
-# JWT (UNIQUE production secret)
-SECRET_KEY=YOUR_PRODUCTION_SECRET_KEY_64_CHARS_MINIMUM
-BCRYPT_ROUNDS=12  # Minimum for production
-
-# Email (REAL SMTP service - SendGrid example)
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASSWORD=YOUR_SENDGRID_API_KEY
-SMTP_FROM=noreply@contravento.com
-SMTP_TLS=true  # CRITICAL: Must be true
-
-# CORS (ONLY production domains)
-CORS_ORIGINS=https://contravento.com,https://www.contravento.com
-
-# Logging (INFO level for production)
-LOG_LEVEL=INFO
-LOG_FORMAT=json
-
-# Monitoring (production Sentry project)
-SENTRY_DSN=https://your-production-sentry-dsn@sentry.io/production-project
-SENTRY_ENVIRONMENT=production
-```
-
-### Deployment de Producción
-
-#### Opción 1: Deployment con Docker Compose (Servidor Único)
-
-```bash
-# 1. Conectar al servidor de producción
-ssh user@production-server.com
-
-# 2. Clonar repositorio
-git clone <repo-url>
-cd contravento-application-python
-
-# 3. Crear y configurar .env.prod
-cp backend/.env.prod.example backend/.env.prod
-nano backend/.env.prod
-# Configurar TODAS las variables (ver arriba)
-
-# 4. Iniciar servicios (SIN profiles development - no MailHog, no pgAdmin)
-docker-compose --env-file backend/.env.prod up -d
-
-# 5. Verificar servicios
-docker-compose ps
-
-# 6. Aplicar migraciones
-docker-compose exec backend alembic upgrade head
-
-# 7. Verificar health check
-curl http://localhost:8000/health
-```
-
-#### Opción 2: Deployment en Cloud (AWS, GCP, Azure)
-
-##### AWS (ECS + RDS + ElastiCache)
-
-```bash
-# 1. Crear RDS PostgreSQL instance
-aws rds create-db-instance \
-  --db-instance-identifier contravento-prod \
-  --db-instance-class db.t3.medium \
-  --engine postgres \
-  --master-username contravento_user \
-  --master-user-password YOUR_STRONG_PASSWORD \
-  --allocated-storage 20
-
-# 2. Crear ElastiCache Redis
-aws elasticache create-cache-cluster \
-  --cache-cluster-id contravento-redis \
-  --cache-node-type cache.t3.micro \
-  --engine redis
-
-# 3. Build and push Docker image to ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_ECR_URL
-docker build -t contravento-backend ./backend
-docker tag contravento-backend:latest YOUR_ECR_URL/contravento-backend:latest
-docker push YOUR_ECR_URL/contravento-backend:latest
-
-# 4. Deploy to ECS (usar task definition con variables de entorno)
-aws ecs update-service --cluster contravento-cluster --service backend --force-new-deployment
-```
-
-##### Railway / Render / Fly.io (Plataformas Managed)
-
-```bash
-# Railway example
-railway login
-railway link
-railway up
-
-# Variables de entorno se configuran en Railway Dashboard
-# Database y Redis se provisionan automáticamente
-```
-
-#### Opción 3: Deployment con Kubernetes
-
-```yaml
-# k8s/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: contravento-backend
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: contravento-backend
-  template:
-    metadata:
-      labels:
-        app: contravento-backend
-    spec:
-      containers:
-      - name: backend
-        image: your-registry/contravento-backend:latest
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: contravento-secrets
-              key: database-url
-        - name: SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: contravento-secrets
-              key: secret-key
-        ports:
-        - containerPort: 8000
-```
-
-```bash
-# Deploy to Kubernetes
-kubectl apply -f k8s/secrets.yaml
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/ingress.yaml
-```
-
-### Verificación Post-Deployment
-
-#### Checklist Post-Deployment (CRÍTICO)
-
-```bash
-# [ ] Health check responde
-curl https://contravento.com/health
-# Esperado: {"status": "healthy"}
-
-# [ ] API responde
-curl https://contravento.com/
-# Esperado: {"message": "Welcome to ContraVento API"}
-
-# [ ] HTTPS funciona (SSL válido)
-curl -I https://contravento.com
-# Esperado: HTTP/2 200, certificado válido
-
-# [ ] API docs NO accesible en producción (si DEBUG=false)
-curl https://contravento.com/docs
-# Esperado: 404 (docs ocultos en producción)
-
-# [ ] CORS configurado correctamente
-curl -H "Origin: https://contravento.com" -I https://contravento.com/health
-# Esperado: Access-Control-Allow-Origin header presente
-
-# [ ] Registro de usuario funciona end-to-end
-# Usar cliente REST (Postman, Insomnia) o frontend
-
-# [ ] Email de verificación se envía correctamente
-# Verificar en bandeja de entrada real
-
-# [ ] Login funciona
-# [ ] Upload de archivos funciona
-# [ ] Database connections estables
-# [ ] Logs no muestran errores
-
-# [ ] Performance dentro de targets
-# Auth endpoints: <500ms p95
-# Profile endpoints: <200ms p95
-```
-
-#### Monitoring Post-Deployment
-
-```bash
-# Ver logs en tiempo real
-docker-compose logs -f backend
-
-# Ver métricas de containers
-docker stats
-
-# Verificar conexiones a base de datos
-docker exec contravento-db psql -U contravento_user -d contravento -c \
-  "SELECT count(*) FROM pg_stat_activity WHERE datname = 'contravento';"
-
-# Verificar Redis
-docker exec contravento-redis redis-cli INFO stats
-```
-
----
-
-## PostgreSQL Setup
-
-### Opción 1: Docker Compose (Recomendado)
-
-Ya incluido en `docker-compose.yml`:
-
-```yaml
-postgres:
-  image: postgres:16-alpine
-  environment:
-    POSTGRES_DB: contravento
-    POSTGRES_USER: contravento_user
-    POSTGRES_PASSWORD: ${DB_PASSWORD}
-  volumes:
-    - postgres_data:/var/lib/postgresql/data
-  healthcheck:
-    test: ["CMD-SHELL", "pg_isready -U contravento_user -d contravento"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
-```
-
-**Conectarse a la base de datos:**
-
-```bash
-# Conectar con psql
-docker exec -it contravento-db psql -U contravento_user -d contravento
-
-# Comandos útiles de psql
-\dt          # Listar tablas
-\d users     # Describir tabla users
-\du          # Listar usuarios
-\l           # Listar databases
-\q           # Salir
-```
-
-### Opción 2: PostgreSQL Local
-
-```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install postgresql postgresql-contrib
-
-# macOS
-brew install postgresql@16
-
-# Windows
-# Descargar de: https://www.postgresql.org/download/windows/
-
-# Iniciar servicio
-# Ubuntu
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-
-# macOS
-brew services start postgresql@16
-```
-
-**Crear base de datos:**
-
-```bash
-# Conectar como superuser
-sudo -u postgres psql
-
-# Crear usuario y database
-CREATE USER contravento_user WITH PASSWORD 'your_strong_password';
-CREATE DATABASE contravento OWNER contravento_user;
-GRANT ALL PRIVILEGES ON DATABASE contravento TO contravento_user;
-
-# Habilitar extensiones
-\c contravento
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-\q
-```
-
-**Configurar DATABASE_URL:**
-
-```bash
-# En .env.staging o .env.prod
-DATABASE_URL=postgresql+asyncpg://contravento_user:your_strong_password@localhost:5432/contravento
-```
-
-### Opción 3: PostgreSQL en la Nube
-
-#### Providers Recomendados
-
-**Managed PostgreSQL:**
-- **AWS RDS** - Completo, escalable, backups automáticos
-- **Google Cloud SQL** - Integración con GCP
-- **Azure Database for PostgreSQL** - Integración con Azure
-- **Supabase** - PostgreSQL + extras (Auth, Storage, Realtime)
-- **Railway** - Deploy rápido, free tier generoso
-- **Neon** - PostgreSQL serverless, rápido setup
-
-**Ejemplo de configuración (AWS RDS):**
-
-```bash
-DATABASE_URL=postgresql+asyncpg://contravento_user:password@contravento-prod.abc123.us-east-1.rds.amazonaws.com:5432/contravento?ssl=require
-```
-
-### Verificar Conexión PostgreSQL
-
-```bash
-# Opción 1: Verificar desde Docker (si usas contenedores)
-docker exec contravento-db-production pg_isready -U contravento_user -d contravento
-
-# Opción 2: Verificar con psql
-psql -h your-db-host -p 5432 -U contravento_user -d contravento -c "SELECT version();"
-```
-
-O manualmente con Python:
-
-```python
-import asyncio
-from sqlalchemy.ext.asyncio import create_async_engine
-
-async def test_connection():
-    engine = create_async_engine('postgresql+asyncpg://...')
-    async with engine.connect() as conn:
-        result = await conn.execute('SELECT version()')
-        print(f"PostgreSQL version: {result.scalar()}")
-    await engine.dispose()
-
-asyncio.run(test_connection())
-```
-
----
-
-## Migrations
-
-### Aplicar Migraciones
-
-```bash
-# Con Docker
-docker-compose exec backend alembic upgrade head
-
-# Local
-cd backend
-poetry run alembic upgrade head
-```
-
-### Verificar Estado de Migraciones
-
-```bash
-# Ver historial completo
-alembic history
-
-# Ver estado actual
-alembic current
-
-# Ver migraciones pendientes
-alembic heads
-
-# Ver SQL que se ejecutará (dry-run)
-alembic upgrade head --sql
-```
-
-### Migraciones Existentes
-
-**User Profiles (001-user-profiles):**
-
-| Archivo | Descripción |
-|---------|-------------|
-| `001_initial_auth_schema.py` | Users, profiles, password resets |
-| `002_add_privacy_settings.py` | Privacy columns (profile_privacy, stats_privacy) |
-| `003_stats_and_achievements.py` | UserStats, Achievements, UserAchievements |
-| `004_social_features.py` | Follows (follow relationships) |
-
-**Travel Diary (002-travel-diary):**
-
-| Archivo | Descripción |
-|---------|-------------|
-| `005_travel_diary_trips.py` | Trips, TripPhotos, TripLocations, Tags |
-| `006_trip_tags_association.py` | trip_tags (many-to-many) |
-
-### Testing Migrations
-
-```bash
-# 1. Rollback completo
-alembic downgrade base
-
-# 2. Verificar que todas las tablas se eliminaron
-docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
-# Esperado: Solo alembic_version
-
-# 3. Aplicar todas las migraciones
-alembic upgrade head
-
-# 4. Verificar que todas las tablas se crearon
-docker exec contravento-db psql -U contravento_user -d contravento -c "\dt"
-
-# Expected tables:
-# - users, user_profiles, password_resets
-# - user_stats, achievements, user_achievements
-# - follows
-# - trips, trip_photos, trip_locations, tags, trip_tags
-# - alembic_version
-```
-
-### Rollback en Caso de Error
-
-```bash
-# Rollback última migración
-alembic downgrade -1
-
-# Rollback a versión específica
-alembic downgrade 003_stats_and_achievements
-
-# Rollback completo (CUIDADO: borra todas las tablas)
-alembic downgrade base
-```
-
-### Crear Nueva Migración
-
-```bash
-# Auto-generate desde modelos SQLAlchemy
-alembic revision --autogenerate -m "add new feature"
-
-# Migración manual (para cambios complejos)
-alembic revision -m "add custom index"
-
-# Editar archivo generado en migrations/versions/
-nano migrations/versions/xxx_add_new_feature.py
-```
-
----
-
-## Reverse Proxy (Nginx)
-
-### Por qué usar Nginx
-
-- **HTTPS/SSL Termination**: Maneja certificados SSL
-- **Static Files**: Sirve archivos estáticos eficientemente
-- **Load Balancing**: Distribuye carga entre múltiples instancias
-- **Caching**: Reduce carga en backend
-- **Security Headers**: Añade headers de seguridad
-
-### Configuración Nginx
+**Production-ready Nginx config:**
 
 ```nginx
 # /etc/nginx/sites-available/contravento
 
+# Upstream backend (multiple instances for load balancing)
 upstream backend {
-    # Multiple instances for load balancing
-    server localhost:8000;
-    # server localhost:8001;
-    # server localhost:8002;
+    least_conn;  # Load balancing algorithm
+    server backend-1:8000 weight=1 max_fails=3 fail_timeout=30s;
+    server backend-2:8000 weight=1 max_fails=3 fail_timeout=30s;
+    server backend-3:8000 weight=1 max_fails=3 fail_timeout=30s;
 }
 
 # HTTP -> HTTPS redirect
 server {
     listen 80;
     server_name contravento.com www.contravento.com;
-    return 301 https://$server_name$request_uri;
+
+    # Allow Let's Encrypt ACME challenge
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Redirect all other traffic to HTTPS
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
 }
 
 # HTTPS server
@@ -1258,6 +1891,8 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
 
     # Security Headers
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -1265,12 +1900,24 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
 
     # Max upload size (match UPLOAD_MAX_SIZE_MB in backend)
     client_max_body_size 10M;
 
+    # Compression
+    gzip on;
+    gzip_vary on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
+
     # Proxy to FastAPI backend
     location / {
+        limit_req zone=api_limit burst=20 nodelay;
+
         proxy_pass http://backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -1281,6 +1928,21 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Login endpoint (stricter rate limit)
+    location /auth/login {
+        limit_req zone=login_limit burst=2 nodelay;
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # Static files - Profile photos
@@ -1299,7 +1961,7 @@ server {
         access_log off;
     }
 
-    # Health check (no logs)
+    # Health check (no logs, no rate limit)
     location /health {
         proxy_pass http://backend;
         access_log off;
@@ -1311,88 +1973,220 @@ server {
 }
 ```
 
-### Instalar y Configurar Nginx
+---
 
+### 7.3 Install and Configure Nginx
+
+**Ubuntu/Debian:**
 ```bash
-# Ubuntu/Debian
+# Install Nginx
 sudo apt-get update
 sudo apt-get install nginx
 
-# Copiar configuración
+# Copy configuration
 sudo nano /etc/nginx/sites-available/contravento
 
-# Crear symlink
+# Create symlink
 sudo ln -s /etc/nginx/sites-available/contravento /etc/nginx/sites-enabled/
 
-# Verificar configuración
+# Test configuration
 sudo nginx -t
 
-# Recargar Nginx
+# Reload Nginx
 sudo systemctl reload nginx
+
+# Enable at boot
+sudo systemctl enable nginx
 ```
 
-### SSL con Let's Encrypt
-
+**macOS:**
 ```bash
-# Instalar Certbot
-sudo apt-get install certbot python3-certbot-nginx
+# Install Nginx
+brew install nginx
 
-# Obtener certificado (automático, actualiza configuración de Nginx)
-sudo certbot --nginx -d contravento.com -d www.contravento.com
+# Copy configuration
+sudo nano /opt/homebrew/etc/nginx/servers/contravento.conf
 
-# Test de renovación automática
-sudo certbot renew --dry-run
+# Test configuration
+nginx -t
 
-# Certificado se renueva automáticamente via cron/systemd timer
+# Restart Nginx
+brew services restart nginx
 ```
 
 ---
 
-## Monitoreo
+### 7.4 SSL with Let's Encrypt
 
-### Health Checks
+**Automated SSL certificate setup:**
 
+```bash
+# Install Certbot
+sudo apt-get install certbot python3-certbot-nginx
+
+# Obtain certificate (automatic Nginx configuration)
+sudo certbot --nginx -d contravento.com -d www.contravento.com
+
+# Test automatic renewal
+sudo certbot renew --dry-run
+
+# Certificate auto-renews via systemd timer (Ubuntu) or cron
+# Verify timer
+sudo systemctl list-timers | grep certbot
+```
+
+**Manual certificate renewal:**
+```bash
+# Renew all certificates
+sudo certbot renew
+
+# Renew specific certificate
+sudo certbot renew --cert-name contravento.com
+
+# Reload Nginx after renewal
+sudo systemctl reload nginx
+```
+
+**Docker Certbot** (used in production environment):
+```bash
+# Certbot runs as separate container
+# See docker-compose.prod.yml
+
+# Manual renewal
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml \
+  --env-file .env.prod exec certbot certbot renew
+
+# Certbot container automatically renews certificates
+# Nginx automatically reloads on certificate update
+```
+
+---
+
+### 7.5 Nginx Monitoring
+
+```bash
+# Check Nginx status
+sudo systemctl status nginx
+
+# View access logs (real-time)
+sudo tail -f /var/log/nginx/contravento_access.log
+
+# View error logs
+sudo tail -f /var/log/nginx/contravento_error.log
+
+# Monitor connections
+sudo watch -n 1 'ss -tln | grep :443'
+
+# Nginx stats (requires stub_status module)
+curl http://localhost/nginx_status
+```
+
+---
+
+## 8. Monitoring & Logging
+
+### 8.1 Health Checks
+
+**Backend health endpoint:**
 ```bash
 # Backend health
 curl https://contravento.com/health
-# Esperado: {"status": "healthy"}
+# Expected: {"status": "healthy"}
 
 # Database health
 docker exec contravento-db pg_isready -U contravento_user
-# Esperado: accepting connections
+# Expected: contravento-db:5432 - accepting connections
 
 # Redis health
 docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD ping
-# Esperado: PONG
+# Expected: PONG
 ```
 
-### Logs
-
+**Automated health monitoring:**
 ```bash
-# Docker logs en tiempo real
+# Create health check script
+#!/bin/bash
+# /usr/local/bin/health-check.sh
+
+BACKEND_URL="https://contravento.com/health"
+ALERT_EMAIL="alerts@contravento.com"
+
+# Check backend
+if ! curl -f -s $BACKEND_URL > /dev/null; then
+  echo "Backend health check failed" | mail -s "ALERT: Backend Down" $ALERT_EMAIL
+  exit 1
+fi
+
+# Check database
+if ! docker exec contravento-db pg_isready -U contravento_user > /dev/null; then
+  echo "Database health check failed" | mail -s "ALERT: Database Down" $ALERT_EMAIL
+  exit 1
+fi
+
+exit 0
+
+# Add to cron (check every 5 minutes)
+*/5 * * * * /usr/local/bin/health-check.sh
+```
+
+---
+
+### 8.2 Application Logs
+
+**View logs:**
+```bash
+# Docker logs (real-time)
 docker-compose logs -f backend
 docker-compose logs -f postgres
 docker-compose logs -f redis
 
-# Logs de último período
-docker-compose logs --since 1h backend
-docker-compose logs --since "2025-01-05T10:00:00" backend
+# Last 100 lines
+docker-compose logs --tail=100 backend
 
-# Solo errores
+# Since timestamp
+docker-compose logs --since 2025-01-08T10:00:00 backend
+
+# Only errors
 docker-compose logs backend | grep ERROR
 docker-compose logs backend | grep -E "ERROR|CRITICAL"
 
-# Guardar logs a archivo
+# Save logs to file
 docker-compose logs --since 24h backend > backend_logs_$(date +%Y%m%d).log
 ```
 
-### Métricas de Sistema
-
+**Log aggregation** (production):
 ```bash
-# Container stats (CPU, memoria, red)
+# Configure log driver in docker-compose.prod.yml
+services:
+  backend:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Or use centralized logging (Logstash, Fluentd, CloudWatch)
+```
+
+---
+
+### 8.3 System Metrics
+
+**Container stats:**
+```bash
+# Real-time stats (CPU, memory, network, disk I/O)
 docker stats
 
-# Database connections activas
+# Specific container
+docker stats contravento-backend
+
+# Non-interactive (one-shot)
+docker stats --no-stream
+```
+
+**Database metrics:**
+```bash
+# Active connections
 docker exec contravento-db psql -U contravento_user -d contravento -c "
 SELECT
   count(*) as total_connections,
@@ -1407,223 +2201,7 @@ docker exec contravento-db psql -U contravento_user -d contravento -c "
 SELECT pg_size_pretty(pg_database_size('contravento')) as db_size;
 "
 
-# Redis info
-docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO stats
-docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO memory
-```
-
-### Sentry (Error Tracking)
-
-```bash
-# 1. Crear cuenta en sentry.io
-# 2. Crear proyecto Python/FastAPI
-# 3. Copiar DSN
-
-# 4. Configurar en .env.prod
-SENTRY_DSN=https://your-dsn@sentry.io/project-id
-SENTRY_ENVIRONMENT=production
-
-# 5. Sentry capturará automáticamente errores no manejados
-# 6. Revisar en https://sentry.io/organizations/your-org/issues/
-```
-
-### Uptime Monitoring
-
-**Opciones:**
-- **UptimeRobot** (free tier generoso)
-- **Pingdom**
-- **StatusCake**
-- **AWS CloudWatch Synthetics**
-
-```bash
-# Configurar check HTTP cada 5 minutos
-# URL: https://contravento.com/health
-# Alerta si down > 2 intentos consecutivos
-```
-
----
-
-## Backup & Recovery
-
-### Database Backup
-
-#### Backup Manual
-
-```bash
-# Backup completo
-docker exec contravento-db pg_dump -U contravento_user contravento > backup_$(date +%Y%m%d_%H%M%S).sql
-
-# Backup comprimido
-docker exec contravento-db pg_dump -U contravento_user contravento | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
-
-# Backup de schema only (sin datos)
-docker exec contravento-db pg_dump -U contravento_user --schema-only contravento > schema_$(date +%Y%m%d).sql
-
-# Backup de datos only (sin schema)
-docker exec contravento-db pg_dump -U contravento_user --data-only contravento > data_$(date +%Y%m%d).sql
-```
-
-#### Backup Automatizado (Cron)
-
-```bash
-# Editar crontab
-crontab -e
-
-# Backup diario a las 2 AM
-0 2 * * * docker exec contravento-db pg_dump -U contravento_user contravento | gzip > /backups/contravento_$(date +\%Y\%m\%d).sql.gz
-
-# Limpiar backups antiguos (mantener últimos 30 días)
-0 3 * * * find /backups -name "contravento_*.sql.gz" -mtime +30 -delete
-```
-
-#### Backup a S3 (AWS)
-
-```bash
-# Script de backup a S3
-#!/bin/bash
-
-BACKUP_FILE=backup_$(date +%Y%m%d_%H%M%S).sql.gz
-docker exec contravento-db pg_dump -U contravento_user contravento | gzip > /tmp/$BACKUP_FILE
-aws s3 cp /tmp/$BACKUP_FILE s3://contravento-backups/database/
-rm /tmp/$BACKUP_FILE
-
-# Agregar a cron
-0 2 * * * /path/to/backup-to-s3.sh
-```
-
-### Restore Database
-
-```bash
-# Restaurar desde backup
-docker exec -i contravento-db psql -U contravento_user contravento < backup_20250105.sql
-
-# Restaurar desde backup comprimido
-gunzip < backup_20250105.sql.gz | docker exec -i contravento-db psql -U contravento_user contravento
-
-# Restaurar desde S3
-aws s3 cp s3://contravento-backups/database/backup_20250105.sql.gz - | \
-  gunzip | \
-  docker exec -i contravento-db psql -U contravento_user contravento
-```
-
-### Backup de Archivos (Storage)
-
-```bash
-# Backup de profile photos y trip photos
-tar -czf storage_backup_$(date +%Y%m%d).tar.gz backend/storage/
-
-# Backup a S3
-aws s3 sync backend/storage/ s3://contravento-backups/storage/ --delete
-
-# Restore desde S3
-aws s3 sync s3://contravento-backups/storage/ backend/storage/
-```
-
----
-
-## Troubleshooting
-
-### Backend no inicia
-
-```bash
-# Ver logs completos
-docker-compose logs backend
-
-# Causas comunes:
-# 1. DATABASE_URL incorrecta
-#    Verificar: docker-compose exec backend env | grep DATABASE_URL
-
-# 2. SECRET_KEY faltante o muy corta
-#    Verificar: docker-compose exec backend env | grep SECRET_KEY
-
-# 3. Migraciones no aplicadas
-#    Solución: docker-compose exec backend alembic upgrade head
-
-# 4. Puerto 8000 ocupado
-#    Verificar: lsof -i :8000
-#    Solución: docker-compose down && docker-compose up -d
-
-# 5. Falta de permisos en storage/
-#    Solución: chmod -R 755 backend/storage
-```
-
-### Database connection failed
-
-```bash
-# Verificar que PostgreSQL está corriendo
-docker-compose ps postgres
-
-# Verificar health
-docker exec contravento-db pg_isready -U contravento_user
-
-# Ver logs de PostgreSQL
-docker-compose logs postgres
-
-# Resetear database (CUIDADO: borra datos)
-docker-compose down
-docker volume rm contravento_postgres_data
-docker-compose up -d postgres
-docker-compose exec backend alembic upgrade head
-```
-
-### Migrations failed
-
-```bash
-# Ver estado actual
-docker-compose exec backend alembic current
-
-# Ver historial
-docker-compose exec backend alembic history
-
-# Verificar versión en base de datos
-docker exec contravento-db psql -U contravento_user -d contravento -c \
-  "SELECT * FROM alembic_version;"
-
-# Solución 1: Rollback y re-aplicar
-docker-compose exec backend alembic downgrade -1
-docker-compose exec backend alembic upgrade head
-
-# Solución 2: Stamp (marcar versión sin ejecutar)
-docker-compose exec backend alembic stamp head
-```
-
-### 502 Bad Gateway (Nginx)
-
-```bash
-# Verificar que backend está corriendo
-docker-compose ps backend
-
-# Verificar health check
-curl http://localhost:8000/health
-
-# Ver logs de Nginx
-sudo tail -f /var/log/nginx/error.log
-
-# Verificar configuración de Nginx
-sudo nginx -t
-
-# Reiniciar Nginx
-sudo systemctl restart nginx
-```
-
-### Performance Issues
-
-```bash
-# 1. Verificar conexiones a database
-docker exec contravento-db psql -U contravento_user -d contravento -c "
-SELECT count(*) FROM pg_stat_activity WHERE datname = 'contravento';
-"
-
-# 2. Ver queries lentas (>1s)
-docker exec contravento-db psql -U contravento_user -d contravento -c "
-SELECT query, calls, total_time, mean_time
-FROM pg_stat_statements
-WHERE mean_time > 1000
-ORDER BY mean_time DESC
-LIMIT 10;
-"
-
-# 3. Ver tamaño de tablas
+# Table sizes
 docker exec contravento-db psql -U contravento_user -d contravento -c "
 SELECT
   schemaname,
@@ -1634,92 +2212,301 @@ WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 "
 
-# 4. Verificar uso de CPU/memoria
-docker stats
+# Slow queries (requires pg_stat_statements extension)
+docker exec contravento-db psql -U contravento_user -d contravento -c "
+SELECT
+  query,
+  calls,
+  total_time,
+  mean_time,
+  max_time
+FROM pg_stat_statements
+WHERE mean_time > 1000
+ORDER BY mean_time DESC
+LIMIT 10;
+"
 ```
 
-### Redis connection failed
-
+**Redis metrics:**
 ```bash
-# Verificar Redis corriendo
-docker-compose ps redis
+# Redis info
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO stats
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO memory
 
-# Test de conexión
-docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD ping
+# Key count
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD DBSIZE
 
-# Ver logs
-docker-compose logs redis
-
-# Flush cache (resetear)
-docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD FLUSHALL
+# Memory usage
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO memory | grep used_memory_human
 ```
 
 ---
 
-## Security Checklist
+### 8.4 Error Tracking (Sentry)
 
-### Pre-Deployment Security
+**Setup Sentry:**
+```bash
+# 1. Create account at sentry.io
+# 2. Create project (Python/FastAPI)
+# 3. Copy DSN
 
-- [ ] **Environment Variables**
-  - [ ] `SECRET_KEY` es único, 64+ caracteres, generado aleatoriamente
-  - [ ] `DB_PASSWORD` es fuerte (16+ caracteres, random)
-  - [ ] `REDIS_PASSWORD` es fuerte (16+ caracteres, random)
-  - [ ] No hay passwords por defecto ("changeme", "admin", etc.)
-  - [ ] `.env.prod` está en `.gitignore`
+# 4. Configure in .env
+SENTRY_DSN=https://your-dsn@sentry.io/project-id
+SENTRY_ENVIRONMENT=production
 
-- [ ] **HTTPS/SSL**
-  - [ ] HTTPS enforced (HTTP redirige a HTTPS)
-  - [ ] Certificado SSL válido (no expirado)
-  - [ ] TLS 1.2+ solamente (no TLS 1.0/1.1)
-  - [ ] Security headers configurados (HSTS, X-Frame-Options, etc.)
+# 5. Sentry automatically captures:
+# - Unhandled exceptions
+# - HTTP errors (500+)
+# - Performance issues
+# - Custom events
 
-- [ ] **CORS**
-  - [ ] `CORS_ORIGINS` restringido a dominios de producción únicamente
-  - [ ] No usar `*` (allow all origins)
-  - [ ] No incluir `localhost` en producción
+# 6. View errors at https://sentry.io/organizations/your-org/issues/
+```
 
-- [ ] **Database**
-  - [ ] PostgreSQL en producción (no SQLite)
-  - [ ] Database user con permisos mínimos necesarios
-  - [ ] Conexiones SSL/TLS habilitadas
-  - [ ] Backups automáticos configurados
+**Custom Sentry events:**
+```python
+# backend/src/main.py
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
-- [ ] **Authentication**
-  - [ ] `BCRYPT_ROUNDS=12` o mayor
-  - [ ] Rate limiting habilitado (LOGIN_MAX_ATTEMPTS=5)
-  - [ ] Account lockout configurado (LOGIN_LOCKOUT_MINUTES=15)
+sentry_sdk.init(
+    dsn=settings.sentry_dsn,
+    environment=settings.sentry_environment,
+    traces_sample_rate=0.1,  # 10% of transactions
+    integrations=[FastApiIntegration()],
+)
 
-- [ ] **Application**
-  - [ ] `DEBUG=false` en producción
-  - [ ] API docs ocultos en producción (`/docs`, `/redoc`)
-  - [ ] Error messages no exponen stack traces a usuarios
-  - [ ] File uploads validados (tipo, tamaño, contenido)
-
-- [ ] **Infrastructure**
-  - [ ] Firewall configurado (solo puertos necesarios abiertos)
-  - [ ] SSH con key-based auth (no passwords)
-  - [ ] Containers corriendo como non-root user
-  - [ ] Secrets no hardcoded en Dockerfile o docker-compose.yml
-
-### Post-Deployment Security
-
-- [ ] Vulnerability scanning (Snyk, Trivy, etc.)
-- [ ] Dependency updates regulares
-- [ ] Log monitoring para actividades sospechosas
-- [ ] Penetration testing (manual o automatizado)
+# Custom error tracking
+try:
+    risky_operation()
+except Exception as e:
+    sentry_sdk.capture_exception(e)
+    raise
+```
 
 ---
 
-## Escalado
+### 8.5 Uptime Monitoring
 
-### Horizontal Scaling (Multiple Instances)
+**External monitoring services:**
 
+| Service | Free Tier | Interval | Alerts |
+|---------|-----------|----------|--------|
+| **UptimeRobot** | 50 monitors | 5 min | Email, SMS, Webhook |
+| **Pingdom** | 1 monitor | 1 min | Email |
+| **StatusCake** | 10 monitors | 5 min | Email, SMS |
+| **Better Uptime** | 10 monitors | 3 min | Email, Slack, PagerDuty |
+
+**Setup UptimeRobot:**
+1. Create account at uptimerobot.com
+2. Add HTTP(S) monitor
+   - URL: `https://contravento.com/health`
+   - Interval: 5 minutes
+   - Alert contacts: Email, Slack
+3. Configure alert threshold: Down after 2 failed checks
+4. Create status page (public or private)
+
+---
+
+### 8.6 Monitoring Stack (Prometheus + Grafana)
+
+**Included in staging and production environments.**
+
+**Prometheus** (metrics collection):
+- URL: http://localhost:9090 (or https://monitoring.contravento.com/prometheus)
+- Scrapes metrics from:
+  - FastAPI backend (`/metrics` endpoint)
+  - PostgreSQL exporter
+  - Redis exporter
+  - Node exporter (system metrics)
+- Retention: 30 days
+
+**Grafana** (visualization):
+- URL: http://localhost:3000 (or https://monitoring.contravento.com)
+- Default credentials: See `.env.<env>` (`GRAFANA_ADMIN_USER/PASSWORD`)
+- Pre-configured dashboards:
+  - FastAPI Application Metrics
+  - PostgreSQL Performance
+  - Redis Performance
+  - System Metrics (CPU, RAM, Disk, Network)
+
+**Key Metrics:**
+- **API Performance**: Response times (p50, p95, p99), request rate, error rate
+- **Database**: Connection pool usage, query latency, slow queries
+- **Redis**: Hit/miss ratio, memory usage, evicted keys
+- **System**: CPU usage, memory usage, disk I/O, network I/O
+
+**Alerting:**
+Configure alerts in Prometheus or Grafana for:
+- API error rate > 1%
+- API p95 latency > 500ms
+- Database connection pool > 80% full
+- Disk usage > 85%
+- Memory usage > 90%
+
+---
+
+## 9. Security
+
+### 9.1 Pre-Deployment Security Checklist
+
+**Environment Variables:**
+- [ ] `SECRET_KEY` is unique per environment (min 64 chars for staging, 128 chars for production)
+- [ ] `DB_PASSWORD` is strong (min 32 chars, randomly generated)
+- [ ] `REDIS_PASSWORD` is strong (min 32 chars, randomly generated)
+- [ ] No default passwords ("changeme", "admin", "password123")
+- [ ] `.env.prod` is in `.gitignore` (never committed)
+- [ ] Secrets stored in external secret manager (AWS Secrets Manager, Vault, etc.) for production
+
+**HTTPS/SSL:**
+- [ ] HTTPS enforced (HTTP redirects to HTTPS)
+- [ ] SSL certificate valid and not expired
+- [ ] TLS 1.2+ only (no TLS 1.0/1.1)
+- [ ] Security headers configured (HSTS, X-Frame-Options, CSP, etc.)
+- [ ] SSL certificate auto-renewal working
+
+**CORS:**
+- [ ] `CORS_ORIGINS` restricted to specific production domains only
+- [ ] No wildcard `*` (allow all origins)
+- [ ] No `localhost` in production CORS_ORIGINS
+
+**Database:**
+- [ ] PostgreSQL in production (not SQLite)
+- [ ] Database user with minimal necessary permissions (not superuser)
+- [ ] Database connections use SSL/TLS
+- [ ] Automated backups configured and tested
+- [ ] Backup restoration tested successfully
+
+**Authentication:**
+- [ ] `BCRYPT_ROUNDS=12` or higher (14 recommended for production)
+- [ ] Rate limiting enabled (LOGIN_MAX_ATTEMPTS=5)
+- [ ] Account lockout configured (LOGIN_LOCKOUT_MINUTES=15)
+- [ ] JWT tokens expire appropriately (15min access, 30 days refresh)
+- [ ] Refresh token rotation enabled
+
+**Application:**
+- [ ] `DEBUG=false` in production (CRITICAL)
+- [ ] API docs hidden in production (`/docs`, `/redoc` return 404)
+- [ ] Error messages don't expose stack traces to users
+- [ ] File uploads validated (type, size, content)
+- [ ] HTML sanitization enabled (XSS prevention)
+- [ ] SQL injection prevention (ORM only, no raw SQL)
+
+**Infrastructure:**
+- [ ] Firewall configured (only ports 80, 443 exposed publicly)
+- [ ] SSH with key-based auth only (no password auth)
+- [ ] Containers run as non-root user
+- [ ] Secrets not hardcoded in Dockerfile or docker-compose.yml
+- [ ] Docker images from trusted sources only
+
+---
+
+### 9.2 Post-Deployment Security
+
+**Regular Tasks:**
+- [ ] Vulnerability scanning (Snyk, Trivy, Dependabot)
+- [ ] Dependency updates (weekly security patches, monthly major updates)
+- [ ] Log monitoring for suspicious activities (failed logins, SQL injection attempts)
+- [ ] Penetration testing (quarterly for production)
+- [ ] Security audit (annually)
+- [ ] Incident response plan documented and tested
+
+**Security Monitoring:**
+```bash
+# Monitor failed login attempts
+docker-compose logs backend | grep "LOGIN_FAILED"
+
+# Monitor 401/403 responses (unauthorized access attempts)
+docker-compose logs backend | grep -E "401|403"
+
+# Monitor unusual activity
+docker-compose logs backend | grep -E "SUSPICIOUS|BLOCKED"
+```
+
+---
+
+### 9.3 Security Hardening
+
+**Nginx security headers** (already included in [Section 7.2](#72-nginx-configuration)):
+```nginx
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Content-Security-Policy "default-src 'self';" always;
+```
+
+**Rate limiting** (Nginx):
+```nginx
+# Limit login attempts
+limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+
+location /auth/login {
+    limit_req zone=login_limit burst=2 nodelay;
+    # ... proxy settings
+}
+```
+
+**Database security:**
+```bash
+# Use least-privilege database user
+CREATE USER contravento_app WITH PASSWORD 'strong_password';
+GRANT CONNECT ON DATABASE contravento TO contravento_app;
+GRANT USAGE ON SCHEMA public TO contravento_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO contravento_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO contravento_app;
+
+# Revoke superuser privileges
+REVOKE ALL PRIVILEGES ON DATABASE postgres FROM contravento_app;
+```
+
+---
+
+### 9.4 Vulnerability Scanning
+
+**Scan Docker images:**
+```bash
+# Install Trivy
+brew install trivy  # macOS
+sudo apt-get install trivy  # Ubuntu
+
+# Scan backend image
+trivy image your-registry/contravento-backend:latest
+
+# Scan with severity filter (only HIGH and CRITICAL)
+trivy image --severity HIGH,CRITICAL your-registry/contravento-backend:latest
+
+# Generate report
+trivy image -f json -o trivy-report.json your-registry/contravento-backend:latest
+```
+
+**Scan Python dependencies:**
+```bash
+# Install Safety
+pip install safety
+
+# Scan for known vulnerabilities
+cd backend
+safety check
+
+# Or use Snyk
+npm install -g snyk
+snyk test
+```
+
+---
+
+## 10. Scaling & Performance
+
+### 10.1 Horizontal Scaling (Multiple Instances)
+
+**Docker Compose** (replicas):
 ```yaml
-# docker-compose.yml
+# docker-compose.prod.yml
 services:
   backend:
     deploy:
-      replicas: 3
+      replicas: 3  # Increase to 5, 10, etc.
       update_config:
         parallelism: 1
         delay: 10s
@@ -1727,33 +2514,214 @@ services:
         condition: on-failure
 ```
 
-### Load Balancer (Nginx)
+**Kubernetes** (auto-scaling):
+```yaml
+# k8s/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: contravento-backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: contravento-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
 
+---
+
+### 10.2 Load Balancing
+
+**Nginx** (already configured in [Section 7.2](#72-nginx-configuration)):
 ```nginx
 upstream backend {
-    least_conn;  # Load balancing algorithm
+    least_conn;  # Load balancing algorithms:
+                 # - least_conn: Route to server with fewest connections
+                 # - ip_hash: Sticky sessions based on client IP
+                 # - round_robin: Default, equal distribution
+
     server backend-1:8000 weight=1 max_fails=3 fail_timeout=30s;
     server backend-2:8000 weight=1 max_fails=3 fail_timeout=30s;
     server backend-3:8000 weight=1 max_fails=3 fail_timeout=30s;
 }
 ```
 
-### Database Read Replicas
+---
 
+### 10.3 Database Scaling
+
+**Connection Pooling:**
+```python
+# backend/src/config.py
+class Settings(BaseSettings):
+    database_pool_size: int = 20  # Default connections
+    database_max_overflow: int = 10  # Additional connections when needed
+    database_pool_timeout: int = 30  # Seconds to wait for connection
+    database_pool_recycle: int = 3600  # Recycle connections after 1 hour
+```
+
+**Read Replicas:**
 ```python
 # config.py
-from pydantic_settings import BaseSettings
-
 class Settings(BaseSettings):
-    database_write_url: str
-    database_read_url: str  # Read replica
+    database_write_url: str  # Primary database (writes)
+    database_read_url: str  # Read replica (reads)
+
+# Use read replica for GET requests
+async def get_user(db: AsyncSession):
+    # db session connected to read replica
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one()
+```
+
+**PostgreSQL Performance Tuning:**
+```sql
+-- postgresql.conf
+
+-- Memory (adjust based on available RAM)
+shared_buffers = 4GB                # 25% of RAM
+effective_cache_size = 12GB         # 75% of RAM
+work_mem = 32MB
+maintenance_work_mem = 512MB
+
+-- Connections
+max_connections = 200
+
+-- Query optimization
+random_page_cost = 1.1              # For SSD
+effective_io_concurrency = 200      # For SSD
+
+-- Logging
+log_min_duration_statement = 1000   # Log slow queries (>1s)
 ```
 
 ---
 
-## CI/CD Pipeline
+### 10.4 Caching Strategy
 
-### GitHub Actions Example
+**Redis caching:**
+```python
+# backend/src/services/cache_service.py
+import redis.asyncio as redis
+
+class CacheService:
+    def __init__(self):
+        self.redis = redis.from_url(settings.redis_url)
+
+    async def get_user_profile(self, username: str):
+        # Try cache first
+        cached = await self.redis.get(f"profile:{username}")
+        if cached:
+            return json.loads(cached)
+
+        # Cache miss - fetch from database
+        profile = await ProfileService.get_by_username(db, username)
+
+        # Store in cache (TTL: 1 hour)
+        await self.redis.setex(
+            f"profile:{username}",
+            3600,
+            json.dumps(profile.dict())
+        )
+
+        return profile
+```
+
+**Nginx caching:**
+```nginx
+# Cache static files
+location /storage/ {
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+
+# Cache API responses (careful with authenticated content)
+proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=api_cache:10m max_size=1g inactive=60m;
+
+location /api/public/ {
+    proxy_cache api_cache;
+    proxy_cache_valid 200 10m;
+    add_header X-Cache-Status $upstream_cache_status;
+    proxy_pass http://backend;
+}
+```
+
+---
+
+### 10.5 CDN for Static Assets
+
+**Use CDN for uploaded files:**
+
+```python
+# config.py
+class Settings(BaseSettings):
+    cdn_url: str = "https://cdn.contravento.com"
+    storage_backend: str = "s3"  # or "local"
+
+# Return CDN URLs for photos
+def get_photo_url(photo_path: str) -> str:
+    if settings.storage_backend == "s3":
+        return f"{settings.cdn_url}/{photo_path}"
+    return f"/storage/{photo_path}"
+```
+
+**Popular CDN providers:**
+- **Cloudflare** (free tier available)
+- **AWS CloudFront**
+- **Fastly**
+- **BunnyCDN** (affordable)
+
+---
+
+### 10.6 Performance Monitoring
+
+**Target performance metrics:**
+- **Auth endpoints**: < 500ms (p95)
+- **Profile endpoints**: < 200ms (p95)
+- **Trip list**: < 300ms (p95)
+- **File uploads**: < 2s (5MB photo)
+
+**Monitor with Prometheus:**
+```python
+# backend/src/middleware/metrics.py
+from prometheus_client import Histogram
+
+REQUEST_DURATION = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request duration',
+    ['method', 'endpoint']
+)
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+
+    REQUEST_DURATION.labels(
+        method=request.method,
+        endpoint=request.url.path
+    ).observe(duration)
+
+    return response
+```
+
+---
+
+## 11. CI/CD Integration
+
+### 11.1 GitHub Actions Example
+
+**Full CI/CD pipeline:**
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -1762,30 +2730,70 @@ name: Deploy to Production
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: |
           cd backend
           pip install poetry
           poetry install
+
+      - name: Run linters
+        run: |
+          cd backend
+          poetry run black --check src/ tests/
+          poetry run ruff check src/ tests/
+          poetry run mypy src/
+
       - name: Run tests
         run: |
           cd backend
           poetry run pytest --cov=src --cov-fail-under=90
 
-  deploy:
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+
+  build:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to server
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: yourorg/contravento-backend:latest,yourorg/contravento-backend:${{ github.sha }}
+          cache-from: type=registry,ref=yourorg/contravento-backend:buildcache
+          cache-to: type=registry,ref=yourorg/contravento-backend:buildcache,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -1794,21 +2802,743 @@ jobs:
           script: |
             cd /app/contravento
             git pull origin main
-            docker-compose --env-file backend/.env.prod up -d --build
-            docker-compose exec backend alembic upgrade head
+            docker-compose --env-file .env.prod pull
+            docker-compose --env-file .env.prod up -d --no-build
+            docker-compose --env-file .env.prod exec -T backend alembic upgrade head
+
+      - name: Verify deployment
+        run: |
+          sleep 30
+          curl -f https://api.contravento.com/health || exit 1
+
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production deployment failed!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
 ```
 
 ---
 
-## Recursos Adicionales
+### 11.2 GitLab CI/CD Example
 
-- **Docker Compose Docs**: https://docs.docker.com/compose/
-- **PostgreSQL Performance Tuning**: https://wiki.postgresql.org/wiki/Performance_Optimization
-- **Nginx Best Practices**: https://www.nginx.com/blog/nginx-configuration-best-practices/
-- **FastAPI Deployment**: https://fastapi.tiangolo.com/deployment/
-- **Let's Encrypt**: https://letsencrypt.org/getting-started/
-- **Sentry**: https://docs.sentry.io/platforms/python/guides/fastapi/
+```yaml
+# .gitlab-ci.yml
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+test:
+  stage: test
+  image: python:3.11
+  script:
+    - cd backend
+    - pip install poetry
+    - poetry install
+    - poetry run black --check src/ tests/
+    - poetry run ruff check src/ tests/
+    - poetry run mypy src/
+    - poetry run pytest --cov=src --cov-fail-under=90
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:latest ./backend
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - main
+
+deploy_production:
+  stage: deploy
+  script:
+    - apt-get update -qq && apt-get install -y openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "
+        cd /app/contravento &&
+        git pull origin main &&
+        docker-compose --env-file .env.prod pull &&
+        docker-compose --env-file .env.prod up -d --no-build &&
+        docker-compose --env-file .env.prod exec -T backend alembic upgrade head
+      "
+  only:
+    - main
+  when: manual
+```
 
 ---
 
-**Última actualización**: 2025-01-05
+### 11.3 Pre-Deployment Checks
+
+**Automated checks before deployment:**
+
+```bash
+#!/bin/bash
+# scripts/pre-deploy-check.sh
+
+set -e
+
+echo "Running pre-deployment checks..."
+
+# 1. Test coverage >= 90%
+echo "Checking test coverage..."
+cd backend
+poetry run pytest --cov=src --cov-fail-under=90 --quiet
+
+# 2. All tests pass
+echo "Running all tests..."
+poetry run pytest
+
+# 3. Linters pass
+echo "Running linters..."
+poetry run black --check src/ tests/
+poetry run ruff check src/ tests/
+poetry run mypy src/
+
+# 4. Migrations are up to date
+echo "Checking migrations..."
+poetry run alembic check
+
+# 5. Security scan
+echo "Scanning for vulnerabilities..."
+poetry run safety check
+
+# 6. Build Docker image
+echo "Building Docker image..."
+cd ..
+docker build -t contravento-backend:test ./backend
+
+# 7. Test container starts
+echo "Testing container..."
+docker run --rm -d --name contravento-test -p 8001:8000 contravento-backend:test
+sleep 5
+curl -f http://localhost:8001/health || (docker stop contravento-test && exit 1)
+docker stop contravento-test
+
+echo "✅ All pre-deployment checks passed!"
+```
+
+---
+
+## 12. Troubleshooting
+
+### 12.1 Backend Won't Start
+
+**Symptoms:** Backend container exits immediately or crashes in loop.
+
+**Diagnosis:**
+```bash
+# View logs
+docker-compose logs backend
+
+# Check container status
+docker-compose ps backend
+
+# Inspect container
+docker inspect contravento-backend
+```
+
+**Common Causes & Solutions:**
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| **DATABASE_URL incorrect** | `asyncpg.exceptions.InvalidPasswordError` | Verify `DATABASE_URL` matches PostgreSQL credentials |
+| **SECRET_KEY missing** | `ValidationError: SECRET_KEY` | Generate and set `SECRET_KEY` (min 64 chars) |
+| **Migrations not applied** | `ProgrammingError: relation "users" does not exist` | Run `alembic upgrade head` |
+| **Port 8000 occupied** | `OSError: [Errno 48] Address already in use` | Stop conflicting service or change `BACKEND_PORT` |
+| **Storage permissions** | `PermissionError: /app/storage` | Run `chmod -R 755 backend/storage` |
+
+**Detailed troubleshooting:**
+```bash
+# 1. Check environment variables
+docker-compose exec backend env | grep -E "DATABASE_URL|SECRET_KEY|REDIS_URL"
+
+# 2. Test database connection
+docker-compose exec backend python -c "
+import asyncio
+from sqlalchemy.ext.asyncio import create_async_engine
+from src.config import settings
+
+async def test():
+    try:
+        engine = create_async_engine(settings.database_url)
+        async with engine.connect():
+            print('✅ Database connection successful')
+        await engine.dispose()
+    except Exception as e:
+        print(f'❌ Database connection failed: {e}')
+
+asyncio.run(test())
+"
+
+# 3. Check migrations
+docker-compose exec backend alembic current
+
+# 4. Restart backend
+docker-compose restart backend
+```
+
+---
+
+### 12.2 Database Connection Failed
+
+**Symptoms:** Backend can't connect to PostgreSQL.
+
+**Diagnosis:**
+```bash
+# Check if PostgreSQL is running
+docker-compose ps postgres
+
+# Check PostgreSQL health
+docker exec contravento-db pg_isready -U contravento_user
+
+# View PostgreSQL logs
+docker-compose logs postgres
+
+# Test connection manually
+docker exec contravento-db psql -U contravento_user -d contravento -c "SELECT 1"
+```
+
+**Common Causes & Solutions:**
+
+| Issue | Solution |
+|-------|----------|
+| PostgreSQL not started | `docker-compose up postgres -d` |
+| Wrong credentials | Verify `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` match `DATABASE_URL` |
+| Database doesn't exist | Create database: `docker exec contravento-db psql -U postgres -c "CREATE DATABASE contravento;"` |
+| Network issue | Check Docker network: `docker network inspect contravento_default` |
+
+**Reset database** (⚠️  DELETES ALL DATA):
+```bash
+# Stop all services
+docker-compose down
+
+# Delete PostgreSQL volume
+docker volume rm contravento_postgres_data
+
+# Restart services
+docker-compose up -d
+
+# Apply migrations
+docker-compose exec backend alembic upgrade head
+```
+
+---
+
+### 12.3 Migrations Failed
+
+**Symptoms:** `alembic upgrade head` fails with errors.
+
+**Diagnosis:**
+```bash
+# Check current migration version
+docker-compose exec backend alembic current
+
+# View migration history
+docker-compose exec backend alembic history
+
+# Check database version
+docker exec contravento-db psql -U contravento_user -d contravento -c \
+  "SELECT * FROM alembic_version;"
+```
+
+**Common Issues:**
+
+**Issue 1: Conflicting migration heads**
+```bash
+# Symptom: "Multiple heads found"
+# Solution: Merge migration heads
+docker-compose exec backend alembic merge heads -m "merge conflicts"
+docker-compose exec backend alembic upgrade head
+```
+
+**Issue 2: Migration already applied but alembic doesn't know**
+```bash
+# Symptom: "Table already exists"
+# Solution: Stamp database without running migrations
+docker-compose exec backend alembic stamp head
+```
+
+**Issue 3: Migration partially applied**
+```bash
+# Solution 1: Rollback and re-apply
+docker-compose exec backend alembic downgrade -1
+docker-compose exec backend alembic upgrade head
+
+# Solution 2: Manual fix in database then stamp
+docker exec contravento-db psql -U contravento_user -d contravento
+# ... manually fix schema ...
+docker-compose exec backend alembic stamp head
+```
+
+---
+
+### 12.4 502 Bad Gateway (Nginx)
+
+**Symptoms:** Nginx returns 502 error.
+
+**Diagnosis:**
+```bash
+# Check if backend is running
+docker-compose ps backend
+
+# Check backend health
+curl http://localhost:8000/health
+
+# View Nginx error logs
+sudo tail -f /var/log/nginx/error.log
+
+# View Nginx access logs
+sudo tail -f /var/log/nginx/access.log
+
+# Test Nginx configuration
+sudo nginx -t
+```
+
+**Common Causes:**
+
+| Issue | Solution |
+|-------|----------|
+| Backend not running | `docker-compose up backend -d` |
+| Backend crashed | Check logs: `docker-compose logs backend` |
+| Wrong upstream config | Verify `upstream backend` in Nginx config points to correct host:port |
+| Backend timeout | Increase `proxy_read_timeout` in Nginx config |
+| Firewall blocking | Check firewall rules: `sudo ufw status` |
+
+**Restart Nginx:**
+```bash
+# Test configuration first
+sudo nginx -t
+
+# Reload (no downtime)
+sudo systemctl reload nginx
+
+# Restart (brief downtime)
+sudo systemctl restart nginx
+```
+
+---
+
+### 12.5 Performance Issues
+
+**Symptoms:** Slow API responses, high latency.
+
+**Diagnosis:**
+```bash
+# 1. Check container resource usage
+docker stats
+
+# 2. Check database connections
+docker exec contravento-db psql -U contravento_user -d contravento -c "
+SELECT count(*) FROM pg_stat_activity WHERE datname = 'contravento';
+"
+
+# 3. Find slow queries (>1s)
+docker exec contravento-db psql -U contravento_user -d contravento -c "
+SELECT
+  query,
+  calls,
+  total_time,
+  mean_time,
+  max_time
+FROM pg_stat_statements
+WHERE mean_time > 1000
+ORDER BY mean_time DESC
+LIMIT 10;
+"
+
+# 4. Check table sizes
+docker exec contravento-db psql -U contravento_user -d contravento -c "
+SELECT
+  schemaname,
+  tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+"
+
+# 5. Monitor Redis
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO stats
+```
+
+**Solutions:**
+
+**Add database indexes:**
+```sql
+-- Example: Index on frequently queried columns
+CREATE INDEX idx_trips_user_id ON trips(user_id);
+CREATE INDEX idx_trips_status ON trips(status);
+CREATE INDEX idx_trips_created_at ON trips(created_at DESC);
+```
+
+**Optimize queries:**
+```python
+# Bad: N+1 query problem
+trips = await db.execute(select(Trip))
+for trip in trips:
+    photos = await db.execute(select(TripPhoto).where(TripPhoto.trip_id == trip.id))
+
+# Good: Eager loading
+trips = await db.execute(
+    select(Trip).options(selectinload(Trip.photos))
+)
+```
+
+**Scale vertically:**
+```bash
+# Increase resources in docker-compose.yml
+services:
+  backend:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+```
+
+**Scale horizontally:**
+```bash
+# Increase replicas
+services:
+  backend:
+    deploy:
+      replicas: 5  # Increase from 3
+```
+
+---
+
+### 12.6 Redis Connection Failed
+
+**Symptoms:** Backend can't connect to Redis.
+
+**Diagnosis:**
+```bash
+# Check if Redis is running
+docker-compose ps redis
+
+# Test Redis connection
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD ping
+# Expected: PONG
+
+# View Redis logs
+docker-compose logs redis
+
+# Check Redis info
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD INFO server
+```
+
+**Common Causes:**
+
+| Issue | Solution |
+|-------|----------|
+| Redis not started | `docker-compose up redis -d` |
+| Wrong password | Verify `REDIS_PASSWORD` matches Redis config |
+| Network issue | Check Docker network connectivity |
+| Redis out of memory | Check memory: `docker exec contravento-redis redis-cli INFO memory` |
+
+**Reset Redis cache:**
+```bash
+# Flush all keys (⚠️  DELETES ALL CACHED DATA)
+docker exec contravento-redis redis-cli --no-auth-warning -a YOUR_PASSWORD FLUSHALL
+
+# Restart Redis
+docker-compose restart redis
+```
+
+---
+
+### 12.7 SSL Certificate Issues
+
+**Symptoms:** HTTPS not working, certificate errors.
+
+**Diagnosis:**
+```bash
+# Check certificate expiry
+openssl s_client -connect api.contravento.com:443 -servername api.contravento.com 2>/dev/null | \
+  openssl x509 -noout -dates
+
+# View Certbot logs
+docker logs contravento-certbot
+
+# Check Nginx SSL config
+sudo nginx -t
+
+# Test SSL configuration
+curl -vI https://api.contravento.com
+```
+
+**Solutions:**
+
+**Renew certificate manually:**
+```bash
+# With Certbot installed locally
+sudo certbot renew --force-renewal
+
+# With Docker
+docker-compose exec certbot certbot renew --force-renewal
+
+# Reload Nginx
+sudo systemctl reload nginx
+```
+
+**Obtain new certificate:**
+```bash
+# Local Certbot
+sudo certbot --nginx -d api.contravento.com
+
+# Docker Certbot
+docker-compose exec certbot certbot certonly \
+  --webroot -w /var/www/certbot \
+  -d api.contravento.com \
+  --email admin@contravento.com \
+  --agree-tos
+```
+
+**Check auto-renewal:**
+```bash
+# Verify systemd timer (Ubuntu)
+sudo systemctl list-timers | grep certbot
+
+# Test renewal
+sudo certbot renew --dry-run
+```
+
+---
+
+## 13. Reference
+
+### 13.1 Environment Comparison Matrix
+
+| Feature | SQLite Local | Docker Minimal | Docker Full | Dev | Staging | Production |
+|---------|:------------:|:--------------:|:-----------:|:---:|:-------:|:----------:|
+| **Deployment Method** | Script | Docker | Docker | Docker | Docker | Docker |
+| **Startup Time** | Instant | ~10s | ~30s | ~20s | ~40s | ~60s |
+| **RAM Usage** | ~100 MB | ~500 MB | ~1 GB | ~800 MB | ~2 GB | ~3 GB+ |
+| **Docker Required** | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Database** | SQLite | PostgreSQL | PostgreSQL | PostgreSQL | PostgreSQL | PostgreSQL |
+| **Redis** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Nginx** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **SSL/TLS** | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Email Testing** | Console | Console | MailHog | Real SMTP | Real SMTP | Real SMTP |
+| **Database UI** | ❌ | ❌ | pgAdmin | ❌ | ❌ | ❌ |
+| **Monitoring** | ❌ | ❌ | ❌ | ❌ | Prometheus+Grafana | Prometheus+Grafana |
+| **Hot Reload** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Debug Mode** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Bcrypt Rounds** | 4 | 4 | 4 | 10 | 12 | 14 |
+| **Backend Replicas** | 1 | 1 | 1 | 1 | 1 | 3 |
+| **Auto-scaling** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Backups** | Manual | Manual | Manual | Manual | Automated | Automated |
+| **Best For** | Daily dev | PostgreSQL testing | Email/cache features | Integration testing | Pre-production QA | Live users |
+
+---
+
+### 13.2 Port Reference
+
+| Service | Port | Protocol | Access |
+|---------|------|----------|--------|
+| **Backend API** | 8000 | HTTP | Public (via Nginx) or localhost |
+| **PostgreSQL** | 5432 | TCP | Internal (Docker network) |
+| **Redis** | 6379 | TCP | Internal (Docker network) |
+| **MailHog Web** | 8025 | HTTP | Localhost (development) |
+| **MailHog SMTP** | 1025 | SMTP | Internal (Docker network) |
+| **pgAdmin** | 5050 | HTTP | Localhost (development) |
+| **Nginx HTTP** | 80 | HTTP | Public (redirects to HTTPS) |
+| **Nginx HTTPS** | 443 | HTTPS | Public |
+| **Prometheus** | 9090 | HTTP | Localhost (staging/production) |
+| **Grafana** | 3000 | HTTP | Localhost (staging/production) |
+
+---
+
+### 13.3 Command Quick Reference
+
+**Deployment:**
+```bash
+# Start environment
+./deploy.sh <env>                    # Linux/Mac
+.\deploy.ps1 <env>                   # Windows
+
+# Stop environment
+./deploy.sh <env> down
+
+# View logs
+./deploy.sh <env> logs
+
+# Restart
+./deploy.sh <env> restart
+```
+
+**Database:**
+```bash
+# Apply migrations
+docker-compose exec backend alembic upgrade head
+
+# Rollback migration
+docker-compose exec backend alembic downgrade -1
+
+# Connect to database
+docker exec -it contravento-db psql -U contravento_user -d contravento
+
+# Backup database
+docker exec contravento-db pg_dump -U contravento_user contravento > backup.sql
+
+# Restore database
+docker exec -i contravento-db psql -U contravento_user contravento < backup.sql
+```
+
+**Testing:**
+```bash
+# Run all tests
+docker-compose exec backend pytest
+
+# Run with coverage
+docker-compose exec backend pytest --cov=src --cov-report=term
+
+# Run specific test
+docker-compose exec backend pytest tests/unit/test_auth_service.py -v
+```
+
+**Monitoring:**
+```bash
+# View logs
+docker-compose logs -f backend
+
+# Container stats
+docker stats
+
+# Health checks
+curl http://localhost:8000/health
+docker exec contravento-db pg_isready -U contravento_user
+docker exec contravento-redis redis-cli --no-auth-warning -a PASSWORD ping
+```
+
+**Secrets:**
+```bash
+# Generate SECRET_KEY (64 chars)
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# Generate password (32 chars)
+openssl rand -base64 32
+
+# Generate strong password (48 chars)
+openssl rand -base64 48
+```
+
+---
+
+### 13.4 Environment Files
+
+| File | Purpose | Tracked in Git |
+|------|---------|----------------|
+| `.env.dev.example` | Development template | ✅ Yes |
+| `.env.local-minimal.example` | Local minimal template | ✅ Yes |
+| `.env.local.example` | Local full template | ✅ Yes |
+| `.env.dev.example` | Dev environment template | ✅ Yes |
+| `.env.staging.example` | Staging template | ✅ Yes |
+| `.env.prod.example` | Production template | ✅ Yes |
+| `.env` | Active local config | ❌ No (.gitignored) |
+| `.env.local-minimal` | Active local minimal config | ❌ No (.gitignored) |
+| `.env.local` | Active local full config | ❌ No (.gitignored) |
+| `.env.dev` | Active dev config | ❌ No (.gitignored) |
+| `.env.staging` | Active staging config | ❌ No (.gitignored) |
+| `.env.prod` | Active production config | ❌ No (.gitignored) |
+
+---
+
+### 13.5 Docker Compose Files
+
+| File | Purpose |
+|------|---------|
+| `docker-compose.yml` | Base configuration (all environments) |
+| `docker-compose.local-minimal.yml` | Local minimal overlay (PostgreSQL + Backend) |
+| `docker-compose.local.yml` | Local full overlay (+ Redis, MailHog, pgAdmin) |
+| `docker-compose.dev.yml` | Dev overlay (+ Nginx, real SMTP) |
+| `docker-compose.staging.yml` | Staging overlay (+ SSL, monitoring) |
+| `docker-compose.prod.yml` | Production overlay (+ Certbot, HA, auto-scaling) |
+
+---
+
+### 13.6 Migration Files
+
+Located in `backend/migrations/versions/`:
+
+| File | Feature | Description |
+|------|---------|-------------|
+| `001_initial_auth_schema.py` | User Profiles | Users, profiles, password resets |
+| `002_add_privacy_settings.py` | User Profiles | Privacy settings columns |
+| `003_stats_and_achievements.py` | User Profiles | Stats and achievements |
+| `004_social_features.py` | User Profiles | Follow relationships |
+| `005_travel_diary_trips.py` | Travel Diary | Trips, photos, locations, tags |
+| `006_trip_tags_association.py` | Travel Diary | Many-to-many trip-tags |
+
+---
+
+### 13.7 Key Documentation
+
+- **Quick Start Guide**: [QUICK_START.md](../../QUICK_START.md)
+- **MailHog Setup**: [MAILHOG_SETUP.md](MAILHOG_SETUP.md)
+- **Stats Integration**: [STATS_INTEGRATION.md](STATS_INTEGRATION.md)
+- **Tags Testing**: [api/TAGS_TESTING.md](api/TAGS_TESTING.md)
+- **Docker Deployment Scripts**: [deploy.sh](../../deploy.sh), [deploy.ps1](../../deploy.ps1)
+- **Local Development Scripts**: [run-local-dev.sh](../../run-local-dev.sh), [run-local-dev.ps1](../../run-local-dev.ps1)
+
+---
+
+### 13.8 External Resources
+
+**Docker & Infrastructure:**
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+- [Nginx Documentation](https://nginx.org/en/docs/)
+- [Let's Encrypt](https://letsencrypt.org/getting-started/)
+
+**PostgreSQL:**
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/16/)
+- [PostgreSQL Performance Tuning](https://wiki.postgresql.org/wiki/Performance_Optimization)
+- [PostgreSQL Backup & Recovery](https://www.postgresql.org/docs/16/backup.html)
+
+**FastAPI:**
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/)
+- [Uvicorn Production](https://www.uvicorn.org/deployment/)
+
+**Monitoring:**
+- [Prometheus Documentation](https://prometheus.io/docs/)
+- [Grafana Documentation](https://grafana.com/docs/)
+- [Sentry for FastAPI](https://docs.sentry.io/platforms/python/guides/fastapi/)
+
+**Security:**
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker)
+- [Mozilla SSL Configuration Generator](https://ssl-config.mozilla.org/)
+
+---
+
+### 13.9 Support
+
+For issues, questions, or contributions:
+
+- **GitHub Issues**: Report bugs and request features
+- **Documentation**: Browse `backend/docs/` directory
+- **API Documentation**: Available at `/docs` endpoint (development environments)
+- **CLAUDE.md**: Project-specific guidance for Claude Code
+
+---
+
+**Document Version**: 1.0.0
+**Last Updated**: 2026-01-08
+**Archived Sources**:
+- `backend/docs/archive/v0.1.0-DEPLOYMENT.md` (1814 lines)
+- `backend/docs/archive/v0.1.0-DOCKER_DEPLOYMENT.md` (861 lines)

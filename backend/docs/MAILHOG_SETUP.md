@@ -322,7 +322,7 @@ SMTP_TLS=true
 
 - **MailHog GitHub**: <https://github.com/mailhog/MailHog>
 - **Docker Compose Config**: [docker-compose.local.yml](../../docker-compose.local.yml)
-- **Deployment Guide**: [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)
+- **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
 - **Quick Start**: [../../QUICK_START.md](../../QUICK_START.md)
 
 ---
