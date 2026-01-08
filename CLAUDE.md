@@ -150,20 +150,31 @@ poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```bash
 cd backend
 
+# Create first admin user (IMPORTANT: Do this first!)
+poetry run python scripts/create_admin.py
+# Default: admin / admin@contravento.com / AdminPass123!
+
 # Create default test users (testuser and maria_garcia)
 poetry run python scripts/create_verified_user.py
 
 # Create custom verified user
 poetry run python scripts/create_verified_user.py --username john --email john@example.com --password "SecurePass123!"
 
+# Create custom admin user
+poetry run python scripts/create_verified_user.py --username myadmin --email admin@mycompany.com --password "AdminPass123!" --role admin
+
 # Verify existing user by email
 poetry run python scripts/create_verified_user.py --verify-email test@example.com
+
+# Promote existing user to admin
+poetry run python scripts/promote_to_admin.py --username testuser
 ```
 
 Default users credentials:
 
-- `testuser` / `test@example.com` / `TestPass123!`
-- `maria_garcia` / `maria@example.com` / `SecurePass456!`
+- **Admin**: `admin` / `admin@contravento.com` / `AdminPass123!` (role: ADMIN)
+- `testuser` / `test@example.com` / `TestPass123!` (role: USER)
+- `maria_garcia` / `maria@example.com` / `SecurePass456!` (role: USER)
 
 ### Testing
 

@@ -35,11 +35,32 @@ ContraVento implementa un sistema simple de roles (Role-Based Access Control - R
 
 ### Crear Usuario Admin
 
-**Opción 1: Al crear usuario nuevo**
+**Opción 1: Script dedicado para primer admin (Recomendado)**
+
+```bash
+# Crear admin con credenciales por defecto
+cd backend
+poetry run python scripts/create_admin.py
+
+# Credenciales por defecto:
+# Username: admin
+# Email: admin@contravento.com
+# Password: AdminPass123!
+
+# Crear admin con credenciales personalizadas
+poetry run python scripts/create_admin.py \
+  --username myadmin \
+  --email admin@mycompany.com \
+  --password "MySecurePass123!"
+
+# Crear admin adicional (si ya existe uno)
+poetry run python scripts/create_admin.py --force
+```
+
+**Opción 2: Al crear usuario nuevo**
 
 ```bash
 # Crear usuario con rol admin directamente
-cd backend
 poetry run python scripts/create_verified_user.py \
   --username admin \
   --email admin@contravento.com \
@@ -47,7 +68,7 @@ poetry run python scripts/create_verified_user.py \
   --role admin
 ```
 
-**Opción 2: Promover usuario existente**
+**Opción 3: Promover usuario existente**
 
 ```bash
 # Promover usuario existente a admin
