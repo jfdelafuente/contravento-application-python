@@ -109,6 +109,10 @@ setup() {
     print_info "Creating test user..."
     poetry run python scripts/create_verified_user.py || true
 
+    # Create admin user
+    print_info "Creating admin user..."
+    poetry run python scripts/create_admin.py --force || true
+
     # Load achievements
     print_info "Loading achievements..."
     poetry run python scripts/seed_achievements.py || true
@@ -120,6 +124,10 @@ setup() {
     cd ..
 
     print_success "Setup complete!"
+    echo ""
+    print_info "Default credentials:"
+    print_info "  Admin:  admin / AdminPass123!"
+    print_info "  User:   testuser / TestPass123!"
     echo ""
     print_info "Start development server with: ./run-local-dev.sh"
 }
@@ -154,6 +162,10 @@ reset_db() {
     print_info "Creating test user..."
     poetry run python scripts/create_verified_user.py || true
 
+    # Create admin user
+    print_info "Creating admin user..."
+    poetry run python scripts/create_admin.py --force || true
+
     # Load achievements
     print_info "Loading achievements..."
     poetry run python scripts/seed_achievements.py || true
@@ -165,6 +177,10 @@ reset_db() {
     cd ..
 
     print_success "Database reset complete!"
+    echo ""
+    print_info "Default credentials:"
+    print_info "  Admin:  admin / AdminPass123!"
+    print_info "  User:   testuser / TestPass123!"
 }
 
 # Start server

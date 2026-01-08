@@ -35,6 +35,8 @@ ContraVento implementa un sistema simple de roles (Role-Based Access Control - R
 
 ### Crear Usuario Admin
 
+**Nota**: El usuario admin se crea automáticamente al ejecutar `./run-local-dev.sh --setup` o `.\run-local-dev.ps1 -Setup` con las credenciales por defecto.
+
 **Opción 1: Script dedicado para primer admin (Recomendado)**
 
 ```bash

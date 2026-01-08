@@ -50,7 +50,7 @@ ContraVento offers multiple ways to develop locally, from instant SQLite setup t
 **Zero configuration, instant startup with SQLite database**
 
 ```bash
-# First-time setup (one-time)
+# First-time setup (one-time) - Creates DB, admin user, test users, and seeds data
 ./run-local-dev.sh --setup      # Linux/Mac
 .\run-local-dev.ps1 -Setup      # Windows PowerShell
 
@@ -62,6 +62,10 @@ ContraVento offers multiple ways to develop locally, from instant SQLite setup t
 # - Backend API: http://localhost:8000
 # - API Docs: http://localhost:8000/docs
 # - Database: backend/contravento_dev.db (SQLite file)
+
+# Default credentials (auto-created during setup):
+# - Admin:  admin / AdminPass123!
+# - User:   testuser / TestPass123!
 ```
 
 **Perfect for:**
@@ -145,14 +149,19 @@ poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 # API docs at: http://localhost:8000/docs
 ```
 
-### Create Test Users
+### User Management
+
+**Note**: Admin and test users are automatically created during `./run-local-dev.sh --setup`. Use the scripts below for additional users or manual management.
 
 ```bash
 cd backend
 
-# Create first admin user (IMPORTANT: Do this first!)
+# Create admin user (auto-created during setup, or manually)
 poetry run python scripts/create_admin.py
 # Default: admin / admin@contravento.com / AdminPass123!
+
+# Create additional admin with custom credentials
+poetry run python scripts/create_admin.py --username myadmin --email admin@mycompany.com --password "MySecurePass123!"
 
 # Create default test users (testuser and maria_garcia)
 poetry run python scripts/create_verified_user.py
@@ -168,12 +177,18 @@ poetry run python scripts/create_verified_user.py --verify-email test@example.co
 
 # Promote existing user to admin
 poetry run python scripts/promote_to_admin.py --username testuser
+
+# Demote admin to regular user
+poetry run python scripts/promote_to_admin.py --username admin --demote
 ```
 
-Default users credentials:
+**Default credentials (auto-created during setup):**
 
 - **Admin**: `admin` / `admin@contravento.com` / `AdminPass123!` (role: ADMIN)
-- `testuser` / `test@example.com` / `TestPass123!` (role: USER)
+- **User**: `testuser` / `test@example.com` / `TestPass123!` (role: USER)
+
+**Additional users (created manually with scripts):**
+
 - `maria_garcia` / `maria@example.com` / `SecurePass456!` (role: USER)
 
 ### Testing
