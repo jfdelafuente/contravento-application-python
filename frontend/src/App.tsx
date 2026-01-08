@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/routing/ProtectedRoute';
 import { RegisterPage } from './pages/RegisterPage';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
 
-// Placeholder components (will be implemented in Phase 4+)
+// Placeholder components (will be implemented in Phase 5-6)
 const HomePage: React.FC = () => (
   <div className="app">
     <h1>ContraVento</h1>
@@ -12,13 +14,6 @@ const HomePage: React.FC = () => (
     <p>
       <a href="/login">Iniciar sesión</a> | <a href="/register">Registrarse</a>
     </p>
-  </div>
-);
-
-const LoginPage: React.FC = () => (
-  <div className="app">
-    <h2>Iniciar Sesión</h2>
-    <p>Formulario de login (Fase 4)</p>
   </div>
 );
 
@@ -40,13 +35,6 @@ const ResetPasswordPage: React.FC = () => (
   <div className="app">
     <h2>Restablecer Contraseña</h2>
     <p>Formulario de restablecimiento de contraseña (Fase 5)</p>
-  </div>
-);
-
-const DashboardPage: React.FC = () => (
-  <div className="app">
-    <h2>Dashboard</h2>
-    <p>Dashboard protegido (Fase 4)</p>
   </div>
 );
 

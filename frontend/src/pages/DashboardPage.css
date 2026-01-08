@@ -1,0 +1,162 @@
+/* src/pages/DashboardPage.css */
+
+.dashboard-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header .header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.dashboard-header .user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.dashboard-header .welcome-text {
+  font-size: 1rem;
+}
+
+.dashboard-header .logout-button {
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dashboard-header .logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-main {
+  padding: 2rem;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.welcome-card h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.welcome-card p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.welcome-card .verified-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  font-weight: 500;
+}
+
+.welcome-card .verified-badge .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.placeholder-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-content h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.placeholder-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.placeholder-content li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+  color: #666;
+}
+
+.placeholder-content li:last-child {
+  border-bottom: none;
+}
+
+.placeholder-content li::before {
+  content: '🚴';
+  margin-right: 0.75rem;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 1.25rem;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-header .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .dashboard-header .user-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .dashboard-main {
+    padding: 1rem;
+  }
+
+  .welcome-card,
+  .placeholder-content {
+    padding: 1.5rem;
+  }
+}

@@ -1,0 +1,206 @@
+/* src/components/auth/LoginForm.css */
+
+.login-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.login-form .form-error {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c00;
+  font-size: 0.9rem;
+}
+
+.login-form .form-field {
+  margin-bottom: 1.5rem;
+}
+
+.login-form .form-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.login-form .form-field input[type='email'],
+.login-form .form-field input[type='password'] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.login-form .form-field input[type='email']:focus,
+.login-form .form-field input[type='password']:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.login-form .form-field input[aria-invalid='true'] {
+  border-color: #dc3545;
+}
+
+.login-form .field-error {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+.login-form .checkbox-field {
+  display: flex;
+  align-items: center;
+}
+
+.login-form .checkbox-field label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.login-form .checkbox-field input[type='checkbox'] {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.login-form .form-links {
+  margin-bottom: 1.5rem;
+  text-align: right;
+}
+
+.login-form .forgot-password-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.login-form .forgot-password-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.login-form .submit-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-form .submit-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.login-form .submit-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.login-form .form-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.login-form .form-footer p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.login-form .form-footer a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-form .form-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Account blocked message styles */
+.account-blocked-alert {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: white;
+  display: flex;
+  gap: 1rem;
+}
+
+.account-blocked-alert .alert-icon {
+  flex-shrink: 0;
+}
+
+.account-blocked-alert .alert-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.account-blocked-alert .alert-content {
+  flex: 1;
+}
+
+.account-blocked-alert h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.account-blocked-alert p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.account-blocked-alert .countdown {
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.account-blocked-alert .countdown-timer {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-blocked-alert .help-text {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.9rem;
+}
+
+.account-blocked-alert a {
+  color: #fff;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.account-blocked-alert a:hover {
+  opacity: 0.8;
+}

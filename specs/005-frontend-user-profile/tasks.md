@@ -115,19 +115,19 @@
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Create AccountBlockedMessage component with countdown timer in frontend/src/components/auth/AccountBlockedMessage.tsx
-- [ ] T042 [US2] Create LoginForm component with email/password fields and Remember Me checkbox in frontend/src/components/auth/LoginForm.tsx
-- [ ] T043 [US2] Implement form validation with React Hook Form + Zod in LoginForm
-- [ ] T044 [US2] Integrate useCountdown hook for account blocking countdown in AccountBlockedMessage
-- [ ] T045 [US2] Handle 403 ACCOUNT_BLOCKED error response and display AccountBlockedMessage
-- [ ] T046 [US2] Handle 403 EMAIL_NOT_VERIFIED error and redirect to verification page
-- [ ] T047 [US2] Create LoginPage component that renders LoginForm in frontend/src/pages/LoginPage.tsx
-- [ ] T048 [US2] Implement post-login redirect to intended destination or /dashboard
-- [ ] T049 [US2] Add /login route to App.tsx router configuration
-- [ ] T050 [US2] Create basic DashboardPage placeholder in frontend/src/pages/DashboardPage.tsx
-- [ ] T051 [US2] Add /dashboard as protected route in App.tsx
-- [ ] T052 [US2] Add error handling for invalid credentials
-- [ ] T053 [US2] Add loading states during login
+- [x] T041 [P] [US2] Create AccountBlockedMessage component with countdown timer in frontend/src/components/auth/AccountBlockedMessage.tsx
+- [x] T042 [US2] Create LoginForm component with email/password fields and Remember Me checkbox in frontend/src/components/auth/LoginForm.tsx
+- [x] T043 [US2] Implement form validation with React Hook Form + Zod in LoginForm
+- [x] T044 [US2] Integrate useCountdown hook for account blocking countdown in AccountBlockedMessage
+- [x] T045 [US2] Handle 403 ACCOUNT_BLOCKED error response and display AccountBlockedMessage
+- [x] T046 [US2] Handle 403 EMAIL_NOT_VERIFIED error and redirect to verification page
+- [x] T047 [US2] Create LoginPage component that renders LoginForm in frontend/src/pages/LoginPage.tsx
+- [x] T048 [US2] Implement post-login redirect to intended destination or /dashboard
+- [x] T049 [US2] Add /login route to App.tsx router configuration
+- [x] T050 [US2] Create basic DashboardPage placeholder in frontend/src/pages/DashboardPage.tsx
+- [x] T051 [US2] Add /dashboard as protected route in App.tsx
+- [x] T052 [US2] Add error handling for invalid credentials
+- [x] T053 [US2] Add loading states during login
 
 **Checkpoint**: User Story 2 complete - users can login with Remember Me, account blocking works with countdown, and protected routes enforce authentication
 
