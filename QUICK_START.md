@@ -6,11 +6,137 @@ Guía simplificada de las diferentes formas de arrancar el proyecto para desarro
 
 ## 📋 Tabla de Contenidos
 
-1. [SQLite Local (Sin Docker)](#1-sqlite-local-sin-docker---la-más-rápida)
-2. [Docker Minimal](#2-docker-minimal-postgresql--backend)
-3. [Docker Full](#3-docker-full-todos-los-servicios)
-4. [Comparación](#comparación-de-opciones)
-5. [Comandos Útiles](#comandos-útiles)
+1. [¿Qué opción elegir?](#-qué-opción-elegir-árbol-de-decisión)
+2. [SQLite Local (Sin Docker)](#1-sqlite-local-sin-docker---la-más-rápida)
+3. [Docker Minimal](#2-docker-minimal-postgresql--backend)
+4. [Docker Full](#3-docker-full-todos-los-servicios)
+5. [Comparación](#comparación-de-opciones)
+6. [Comandos Útiles](#comandos-útiles)
+
+---
+
+## 🤔 ¿Qué opción elegir? (Árbol de decisión)
+
+### Pregunta 1: ¿Tienes Docker instalado?
+
+<details>
+<summary><strong>❌ No tengo Docker (o no quiero usarlo)</strong></summary>
+
+✅ **Usa: [SQLite Local](#1-sqlite-local-sin-docker---la-más-rápida)**
+
+**Por qué:**
+
+- ⚡ Arranque instantáneo (sin esperas)
+- 🎯 Cero configuración (setup automático)
+- 💻 Funciona en cualquier SO con Python
+- 🔧 Perfecto para desarrollo diario
+
+**Limitaciones:**
+
+- Solo SQLite (no PostgreSQL)
+- No puedes probar emails con MailHog
+- Sin pgAdmin (usa extensiones de VS Code)
+
+</details>
+
+<details>
+<summary><strong>✅ Sí, tengo Docker</strong></summary>
+
+Continúa a la **Pregunta 2** 👇
+
+</details>
+
+### Pregunta 2: ¿Qué necesitas probar/desarrollar?
+
+<details>
+<summary><strong>🚴 Features básicas (trips, stats, profiles)</strong></summary>
+
+✅ **Usa: [Docker Minimal](#2-docker-minimal-postgresql--backend)**
+
+**Por qué:**
+
+- 🐘 PostgreSQL real (igual que producción)
+- ⚡ Ligero (~500 MB RAM)
+- 🔄 Arranque rápido (~10s)
+- ✅ Datos de prueba automáticos
+
+**Incluye:**
+
+- PostgreSQL 16
+- Backend con hot reload
+- 2 usuarios de prueba
+- 9 achievements
+
+**NO incluye:**
+
+- Redis (no lo necesitas aún)
+- MailHog (emails se logean en consola)
+- pgAdmin (usa DBeaver o psql)
+
+</details>
+
+<details>
+<summary><strong>📧 Autenticación / Emails / Cache</strong></summary>
+
+✅ **Usa: [Docker Full](#3-docker-full-todos-los-servicios)**
+
+**Por qué:**
+
+- 📬 MailHog para ver emails de prueba
+- 💾 Redis para cache/sesiones
+- 🖥️ pgAdmin con interfaz web
+- 🔍 Testing completo de integración
+
+**Incluye TODO:**
+
+- PostgreSQL 16
+- Redis 7
+- Backend con hot reload
+- MailHog (ver emails en <http://localhost:8025>)
+- pgAdmin (UI en <http://localhost:5050>)
+- Datos de prueba automáticos
+
+**Usa cuando:**
+
+- Desarrollas registro/login
+- Implementas reset de contraseña
+- Pruebas notificaciones por email
+- Necesitas cache con Redis
+
+</details>
+
+<details>
+<summary><strong>🚀 Preparar para staging/producción</strong></summary>
+
+✅ **Usa: Entornos específicos**
+
+**Para staging:**
+
+```bash
+./deploy.sh dev       # Entorno de integración
+./deploy.sh staging   # Pre-producción
+```
+
+**Para producción:**
+
+```bash
+./deploy.sh prod      # Producción con HA
+```
+
+Ver [DOCKER_DEPLOYMENT.md](backend/docs/DOCKER_DEPLOYMENT.md) para detalles.
+
+</details>
+
+### Resumen Rápido
+
+| Tu situación                | Usa esto       | Comando                     |
+|-----------------------------|----------------|-----------------------------|
+| 💡 "Quiero empezar YA"      | SQLite Local   | `./run-local-dev.sh`        |
+| 🐘 "Necesito PostgreSQL"    | Docker Minimal | `./deploy.sh local-minimal` |
+| 📧 "Voy a probar emails"    | Docker Full    | `./deploy.sh local`         |
+| 🎯 "Quiero ver pgAdmin"     | Docker Full    | `./deploy.sh local`         |
+| 💾 "Necesito Redis"         | Docker Full    | `./deploy.sh local`         |
+| 🔍 "Testing completo"       | Docker Full    | `./deploy.sh local`         |
 
 ---
 
