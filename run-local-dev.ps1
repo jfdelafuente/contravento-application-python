@@ -103,11 +103,23 @@ if ($Setup) {
         Write-Host "[INFO] Creating test user..." -ForegroundColor Blue
         poetry run python scripts/create_verified_user.py
 
+        # Create admin user
+        Write-Host "[INFO] Creating admin user..." -ForegroundColor Blue
+        poetry run python scripts/create_admin.py --force
+
         # Load achievements
         Write-Host "[INFO] Loading achievements..." -ForegroundColor Blue
         poetry run python scripts/seed_achievements.py
 
+        # Load cycling types
+        Write-Host "[INFO] Loading cycling types..." -ForegroundColor Blue
+        poetry run python scripts/seed_cycling_types.py
+
         Write-Host "[SUCCESS] Setup complete!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "[INFO] Default credentials:" -ForegroundColor Blue
+        Write-Host "  Admin:  admin / AdminPass123!" -ForegroundColor Blue
+        Write-Host "  User:   testuser / TestPass123!" -ForegroundColor Blue
         Write-Host ""
         Write-Host "[INFO] Start development server with: .\run-local-dev.ps1" -ForegroundColor Blue
     }
@@ -154,11 +166,23 @@ if ($Reset) {
         Write-Host "[INFO] Creating test user..." -ForegroundColor Blue
         poetry run python scripts/create_verified_user.py
 
+        # Create admin user
+        Write-Host "[INFO] Creating admin user..." -ForegroundColor Blue
+        poetry run python scripts/create_admin.py --force
+
         # Load achievements
         Write-Host "[INFO] Loading achievements..." -ForegroundColor Blue
         poetry run python scripts/seed_achievements.py
 
+        # Load cycling types
+        Write-Host "[INFO] Loading cycling types..." -ForegroundColor Blue
+        poetry run python scripts/seed_cycling_types.py
+
         Write-Host "[SUCCESS] Database reset complete!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "[INFO] Default credentials:" -ForegroundColor Blue
+        Write-Host "  Admin:  admin / AdminPass123!" -ForegroundColor Blue
+        Write-Host "  User:   testuser / TestPass123!" -ForegroundColor Blue
     }
     finally {
         Set-Location ..

@@ -28,12 +28,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy import select
 
 from src.database import AsyncSessionLocal
-from src.models.user import User
+from src.models.user import User, UserRole
 from src.schemas.auth import RegisterRequest
 from src.services.auth_service import AuthService
 
 
-async def create_verified_user(username: str, email: str, password: str):
+async def create_verified_user(
+    username: str, email: str, password: str, role: str = "user"
+):
     """
     Create a user and automatically verify their email.
 
@@ -41,6 +43,7 @@ async def create_verified_user(username: str, email: str, password: str):
         username: Username for the new user
         email: Email address
         password: Password (must meet strength requirements)
+        role: User role ('user' or 'admin'), default: 'user'
 
     Returns:
         User object if successful, None otherwise
@@ -86,6 +89,15 @@ async def create_verified_user(username: str, email: str, password: str):
 
             # Verify the user automatically (bypass email verification)
             user.is_verified = True
+
+            # Set user role
+            if role.lower() == "admin":
+                user.role = UserRole.ADMIN
+                print("[OK] Rol asignado: ADMIN")
+            else:
+                user.role = UserRole.USER
+                print("[OK] Rol asignado: USER")
+
             await db.commit()
             await db.refresh(user)
 
@@ -99,6 +111,7 @@ async def create_verified_user(username: str, email: str, password: str):
             print(f"Email: {user.email}")
             print(f"Password: {password}")
             print(f"User ID: {user.id}")
+            print(f"Rol: {user.role.value}")
             print("Verificado: Si")
             print(f"Activo: {'Si' if user.is_active else 'No'}")
             print("=" * 60)
@@ -183,6 +196,13 @@ async def main():
         type=str,
         help="Password for the new user (min 8 chars, uppercase, lowercase, number)",
     )
+    parser.add_argument(
+        "--role",
+        type=str,
+        choices=["user", "admin"],
+        default="user",
+        help="User role (user or admin), default: user",
+    )
     parser.add_argument("--verify-email", type=str, help="Email of existing user to verify")
 
     args = parser.parse_args()
@@ -201,7 +221,7 @@ async def main():
     if args.username and args.email and args.password:
         print(f"[INFO] Creando usuario personalizado '{args.username}'...")
         user = await create_verified_user(
-            username=args.username, email=args.email, password=args.password
+            username=args.username, email=args.email, password=args.password, role=args.role
         )
 
         if user:

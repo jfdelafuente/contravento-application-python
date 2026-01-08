@@ -173,6 +173,9 @@ def validate_cycling_type(value: str) -> str:
     Rules (FR-015):
     - Must be one of: road, mountain, gravel, touring, commuting, bikepacking
 
+    NOTE: This is a legacy validator that uses hardcoded values.
+    For dynamic validation against database, use validate_cycling_type_async() instead.
+
     Args:
         value: Cycling type to validate
 
@@ -191,10 +194,57 @@ def validate_cycling_type(value: str) -> str:
     if not value:
         return None
 
+    # Legacy hardcoded values for backward compatibility
+    # TODO: Migrate to dynamic validation via validate_cycling_type_async()
     allowed_types = {"road", "mountain", "gravel", "touring", "commuting", "bikepacking"}
     value_lower = value.lower()
 
     if value_lower not in allowed_types:
         raise ValueError(f"El tipo de ciclismo debe ser uno de: {', '.join(sorted(allowed_types))}")
+
+    return value_lower
+
+
+async def validate_cycling_type_async(value: str, db) -> str:
+    """
+    Validate cycling type against database (async version).
+
+    Queries the cycling_types table to check if the type is valid and active.
+
+    Args:
+        value: Cycling type to validate
+        db: Database session (AsyncSession)
+
+    Returns:
+        Validated cycling type (lowercase)
+
+    Raises:
+        ValueError: If cycling type is invalid or inactive
+
+    Example:
+        >>> await validate_cycling_type_async("mountain", db)
+        'mountain'
+    """
+    if not value:
+        return None
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from src.services.cycling_type_service import CyclingTypeService
+
+    if not isinstance(db, AsyncSession):
+        # Fallback to legacy validation if db is not provided
+        return validate_cycling_type(value)
+
+    value_lower = value.lower()
+
+    # Get active cycling types from database
+    service = CyclingTypeService(db)
+    active_codes = await service.get_active_codes()
+
+    if value_lower not in active_codes:
+        # Provide helpful error message with current valid types
+        valid_types = ", ".join(sorted(active_codes))
+        raise ValueError(f"El tipo de ciclismo debe ser uno de: {valid_types}")
 
     return value_lower

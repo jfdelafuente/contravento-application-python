@@ -50,7 +50,7 @@ ContraVento offers multiple ways to develop locally, from instant SQLite setup t
 **Zero configuration, instant startup with SQLite database**
 
 ```bash
-# First-time setup (one-time)
+# First-time setup (one-time) - Creates DB, admin user, test users, and seeds data
 ./run-local-dev.sh --setup      # Linux/Mac
 .\run-local-dev.ps1 -Setup      # Windows PowerShell
 
@@ -62,6 +62,10 @@ ContraVento offers multiple ways to develop locally, from instant SQLite setup t
 # - Backend API: http://localhost:8000
 # - API Docs: http://localhost:8000/docs
 # - Database: backend/contravento_dev.db (SQLite file)
+
+# Default credentials (auto-created during setup):
+# - Admin:  admin / AdminPass123!
+# - User:   testuser / TestPass123!
 ```
 
 **Perfect for:**
@@ -145,10 +149,19 @@ poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 # API docs at: http://localhost:8000/docs
 ```
 
-### Create Test Users
+### User Management
+
+**Note**: Admin and test users are automatically created during `./run-local-dev.sh --setup`. Use the scripts below for additional users or manual management.
 
 ```bash
 cd backend
+
+# Create admin user (auto-created during setup, or manually)
+poetry run python scripts/create_admin.py
+# Default: admin / admin@contravento.com / AdminPass123!
+
+# Create additional admin with custom credentials
+poetry run python scripts/create_admin.py --username myadmin --email admin@mycompany.com --password "MySecurePass123!"
 
 # Create default test users (testuser and maria_garcia)
 poetry run python scripts/create_verified_user.py
@@ -156,14 +169,27 @@ poetry run python scripts/create_verified_user.py
 # Create custom verified user
 poetry run python scripts/create_verified_user.py --username john --email john@example.com --password "SecurePass123!"
 
+# Create custom admin user
+poetry run python scripts/create_verified_user.py --username myadmin --email admin@mycompany.com --password "AdminPass123!" --role admin
+
 # Verify existing user by email
 poetry run python scripts/create_verified_user.py --verify-email test@example.com
+
+# Promote existing user to admin
+poetry run python scripts/promote_to_admin.py --username testuser
+
+# Demote admin to regular user
+poetry run python scripts/promote_to_admin.py --username admin --demote
 ```
 
-Default users credentials:
+**Default credentials (auto-created during setup):**
 
-- `testuser` / `test@example.com` / `TestPass123!`
-- `maria_garcia` / `maria@example.com` / `SecurePass456!`
+- **Admin**: `admin` / `admin@contravento.com` / `AdminPass123!` (role: ADMIN)
+- **User**: `testuser` / `test@example.com` / `TestPass123!` (role: USER)
+
+**Additional users (created manually with scripts):**
+
+- `maria_garcia` / `maria@example.com` / `SecurePass456!` (role: USER)
 
 ### Testing
 
@@ -537,6 +563,86 @@ Critical variables (see `.env.example` for complete list):
 - `REFRESH_TOKEN_EXPIRE_DAYS`: 30
 - `UPLOAD_MAX_SIZE_MB`: 5
 - `CORS_ORIGINS`: Comma-separated list of allowed origins
+
+## Cycling Types - Dynamic Management
+
+ContraVento allows dynamic management of cycling types through database instead of hardcoded values.
+
+### Setup
+
+```bash
+cd backend
+
+# Apply migration to create cycling_types table
+poetry run alembic upgrade head
+
+# Load initial types from YAML config
+poetry run python scripts/seed_cycling_types.py
+
+# List current types
+poetry run python scripts/seed_cycling_types.py --list
+```
+
+### Configuration File
+
+Initial types are defined in `config/cycling_types.yaml`:
+
+```yaml
+cycling_types:
+  - code: bikepacking
+    display_name: Bikepacking
+    description: Viajes de varios días en bicicleta con equipaje completo
+    is_active: true
+```
+
+### API Endpoints
+
+**Public** (no authentication):
+
+- `GET /cycling-types`: List active types
+
+**Admin** (requires authentication):
+
+- `GET /admin/cycling-types`: List all types
+- `POST /admin/cycling-types`: Create new type
+- `PUT /admin/cycling-types/{code}`: Update type
+- `DELETE /admin/cycling-types/{code}`: Deactivate type (soft delete)
+
+### Adding New Types
+
+**Option 1**: Via YAML + seed script (for initial setup)
+
+```bash
+# Edit config/cycling_types.yaml
+# Add new type entry
+
+# Load with force to update existing
+poetry run python scripts/seed_cycling_types.py --force
+```
+
+**Option 2**: Via API (for operational changes)
+
+```bash
+curl -X POST http://localhost:8000/admin/cycling-types \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "cyclocross",
+    "display_name": "Ciclocross",
+    "description": "Carreras en circuitos mixtos",
+    "is_active": true
+  }'
+```
+
+### Validation
+
+Cycling types are validated dynamically against the database:
+
+- Legacy validator `validate_cycling_type()`: Uses hardcoded values (backward compatibility)
+- New validator `validate_cycling_type_async()`: Queries database for active types
+- ProfileService uses dynamic validation when users update their cycling_type
+
+See [backend/docs/CYCLING_TYPES.md](backend/docs/CYCLING_TYPES.md) for complete documentation.
 
 ## Common Pitfalls to Avoid
 

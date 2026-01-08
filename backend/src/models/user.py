@@ -5,14 +5,28 @@ User: Core authentication and account data
 UserProfile: Extended profile information (1-to-1 with User)
 """
 
+import enum
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
+
+
+class UserRole(str, enum.Enum):
+    """
+    User role enumeration.
+
+    Roles:
+        USER: Regular user (default) - can manage own content
+        ADMIN: Administrator - can manage platform configuration and data
+    """
+
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -26,6 +40,7 @@ class User(Base):
         username: Unique username (3-30 alphanumeric + underscores)
         email: Unique email address (normalized to lowercase)
         hashed_password: Bcrypt hashed password
+        role: User role (user/admin) - default: user
         is_active: Account active flag (for soft delete/ban)
         is_verified: Email verification status
         created_at: Account creation timestamp
@@ -66,6 +81,15 @@ class User(Base):
         String(255),
         nullable=False,
         doc="Bcrypt hashed password",
+    )
+
+    # Role
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole),
+        default=UserRole.USER,
+        nullable=False,
+        index=True,
+        doc="User role (user/admin) - default: user",
     )
 
     # Account status
@@ -177,7 +201,7 @@ class User(Base):
 
     def __repr__(self) -> str:
         """String representation for debugging."""
-        return f"<User(id={self.id}, username={self.username}, email={self.email})>"
+        return f"<User(id={self.id}, username={self.username}, email={self.email}, role={self.role.value})>"
 
 
 class UserProfile(Base):

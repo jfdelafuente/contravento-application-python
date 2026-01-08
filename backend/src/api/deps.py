@@ -167,3 +167,48 @@ async def get_optional_current_user(
         return await get_current_user(credentials, db)
     except HTTPException:
         return None
+
+
+async def get_current_admin(
+    current_user = Depends(get_current_user),
+):
+    """
+    Dependency to verify current user has admin role.
+
+    Validates that the authenticated user has the ADMIN role.
+    Use this to protect administrative endpoints.
+
+    Args:
+        current_user: Current authenticated user from get_current_user
+
+    Returns:
+        User model instance with admin role
+
+    Raises:
+        HTTPException 403: If user doesn't have admin role
+
+    Example:
+        @router.post("/admin/cycling-types")
+        async def create_cycling_type(
+            admin: User = Depends(get_current_admin),
+            data: CyclingTypeCreateRequest,
+        ):
+            # Only admins can access this endpoint
+            pass
+    """
+    from src.models.user import UserRole
+
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "FORBIDDEN",
+                    "message": "Acceso denegado. Se requiere rol de administrador.",
+                },
+            },
+        )
+
+    return current_user
