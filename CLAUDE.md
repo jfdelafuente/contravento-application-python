@@ -538,6 +538,86 @@ Critical variables (see `.env.example` for complete list):
 - `UPLOAD_MAX_SIZE_MB`: 5
 - `CORS_ORIGINS`: Comma-separated list of allowed origins
 
+## Cycling Types - Dynamic Management
+
+ContraVento allows dynamic management of cycling types through database instead of hardcoded values.
+
+### Setup
+
+```bash
+cd backend
+
+# Apply migration to create cycling_types table
+poetry run alembic upgrade head
+
+# Load initial types from YAML config
+poetry run python scripts/seed_cycling_types.py
+
+# List current types
+poetry run python scripts/seed_cycling_types.py --list
+```
+
+### Configuration File
+
+Initial types are defined in `config/cycling_types.yaml`:
+
+```yaml
+cycling_types:
+  - code: bikepacking
+    display_name: Bikepacking
+    description: Viajes de varios días en bicicleta con equipaje completo
+    is_active: true
+```
+
+### API Endpoints
+
+**Public** (no authentication):
+
+- `GET /cycling-types`: List active types
+
+**Admin** (requires authentication):
+
+- `GET /admin/cycling-types`: List all types
+- `POST /admin/cycling-types`: Create new type
+- `PUT /admin/cycling-types/{code}`: Update type
+- `DELETE /admin/cycling-types/{code}`: Deactivate type (soft delete)
+
+### Adding New Types
+
+**Option 1**: Via YAML + seed script (for initial setup)
+
+```bash
+# Edit config/cycling_types.yaml
+# Add new type entry
+
+# Load with force to update existing
+poetry run python scripts/seed_cycling_types.py --force
+```
+
+**Option 2**: Via API (for operational changes)
+
+```bash
+curl -X POST http://localhost:8000/admin/cycling-types \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "cyclocross",
+    "display_name": "Ciclocross",
+    "description": "Carreras en circuitos mixtos",
+    "is_active": true
+  }'
+```
+
+### Validation
+
+Cycling types are validated dynamically against the database:
+
+- Legacy validator `validate_cycling_type()`: Uses hardcoded values (backward compatibility)
+- New validator `validate_cycling_type_async()`: Queries database for active types
+- ProfileService uses dynamic validation when users update their cycling_type
+
+See [backend/docs/CYCLING_TYPES.md](backend/docs/CYCLING_TYPES.md) for complete documentation.
+
 ## Common Pitfalls to Avoid
 
 1. **Don't skip TDD**: Tests must be written before implementation

@@ -158,8 +158,11 @@ class ProfileService:
             profile.location = update_data.location.strip() if update_data.location else None
 
         if update_data.cycling_type is not None:
-            # Cycling type is already validated in schema
-            profile.cycling_type = update_data.cycling_type
+            # Validate cycling type against database (dynamic validation)
+            from src.utils.validators import validate_cycling_type_async
+
+            validated_type = await validate_cycling_type_async(update_data.cycling_type, self.db)
+            profile.cycling_type = validated_type
 
         if update_data.show_email is not None:
             profile.show_email = update_data.show_email

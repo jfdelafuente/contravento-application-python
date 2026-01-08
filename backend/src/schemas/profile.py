@@ -9,7 +9,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.utils.validators import validate_bio, validate_cycling_type
+from src.utils.validators import validate_bio
 
 
 class ProfileStatsPreview(BaseModel):
@@ -136,13 +136,8 @@ class ProfileUpdateRequest(BaseModel):
             return validate_bio(v)
         return v
 
-    @field_validator("cycling_type")
-    @classmethod
-    def validate_cycling_type_field(cls, v: Optional[str]) -> Optional[str]:
-        """Validate cycling_type enum."""
-        if v is not None:
-            return validate_cycling_type(v)
-        return v
+    # NOTE: cycling_type validation is done in ProfileService.update_profile()
+    # using validate_cycling_type_async() to check against active types in database
 
     class Config:
         """Pydantic config."""

@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import settings
+from src.models.cycling_type import CyclingType  # noqa: F401
 from src.models.social import Follow  # noqa: F401
 from src.models.stats import Achievement, UserAchievement, UserStats  # noqa: F401
 from src.models.trip import Tag, Trip, TripLocation, TripPhoto, TripTag  # noqa: F401
@@ -241,7 +242,7 @@ async def root() -> dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth, profile, social, stats, trips
+from src.api import auth, cycling_types, profile, social, stats, trips
 
 app.include_router(auth.router)
 app.include_router(profile.router)
@@ -250,3 +251,5 @@ app.include_router(stats.achievements_router)
 app.include_router(social.router)
 app.include_router(trips.router)
 app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
+app.include_router(cycling_types.router)  # Public cycling types endpoint
+app.include_router(cycling_types.admin_router)  # Admin cycling types endpoints

@@ -1,0 +1,41 @@
+# Cycling Types Configuration
+#
+# Este archivo define los tipos de ciclismo iniciales que se cargarán en la base de datos.
+# Los tipos se pueden gestionar posteriormente mediante la API administrativa.
+#
+# Campos:
+#   - code: Identificador único (lowercase, sin espacios)
+#   - display_name: Nombre para mostrar al usuario
+#   - description: Descripción del tipo de ciclismo
+#   - is_active: Si está activo o no (true por defecto)
+
+cycling_types:
+  - code: bikepacking
+    display_name: Bikepacking
+    description: Viajes de varios días en bicicleta con equipaje completo
+    is_active: true
+
+  - code: commuting
+    display_name: Desplazamiento Urbano
+    description: Uso diario de la bicicleta para ir al trabajo o moverse por la ciudad
+    is_active: true
+
+  - code: gravel
+    display_name: Gravel
+    description: Ciclismo en caminos de grava y superficies mixtas
+    is_active: true
+
+  - code: mountain
+    display_name: Montaña (MTB)
+    description: Ciclismo de montaña en senderos y trails
+    is_active: true
+
+  - code: road
+    display_name: Carretera
+    description: Ciclismo en carretera y asfalto
+    is_active: true
+
+  - code: touring
+    display_name: Cicloturismo
+    description: Viajes de larga distancia por carretera con equipaje
+    is_active: true
