@@ -31,9 +31,11 @@ FROM python:3.11-slim AS development
 # Set working directory
 WORKDIR /app
 
-# Install runtime dependencies
+# Install runtime dependencies and debugging tools
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    netcat-openbsd \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry for development
@@ -74,9 +76,11 @@ FROM python:3.11-slim AS production
 # Set working directory
 WORKDIR /app
 
-# Install runtime dependencies
+# Install runtime dependencies and debugging tools
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    netcat-openbsd \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder

@@ -161,10 +161,12 @@ docker logs contravento-mailhog
 
 ```bash
 # Desde dentro del contenedor backend
-docker exec -it contravento-api-development sh -c "nc -zv mailhog 1025"
+docker exec -it contravento-api-development nc -zv mailhog 1025
 
 # Salida esperada: "mailhog (172.x.x.x:1025) open"
 ```
+
+**Nota**: `nc` (netcat) está preinstalado en los contenedores para facilitar debugging de red.
 
 ## Troubleshooting
 
@@ -231,10 +233,15 @@ docker inspect contravento-api-development | grep -A 5 Networks
 **Solución 2**: Verifica que SMTP_HOST sea correcto
 
 ```bash
-# Dentro del contenedor backend, probar conexión
-docker exec -it contravento-api-development sh -c "ping -c 1 mailhog"
+# Dentro del contenedor backend, probar conexión DNS
+docker exec -it contravento-api-development ping -c 1 mailhog
 
 # Debe responder con IP del contenedor MailHog
+
+# Probar conectividad al puerto SMTP
+docker exec -it contravento-api-development nc -zv mailhog 1025
+
+# Debe mostrar: "mailhog (172.x.x.x:1025) open"
 ```
 
 ### Problema: Puerto 8025 ya en uso
