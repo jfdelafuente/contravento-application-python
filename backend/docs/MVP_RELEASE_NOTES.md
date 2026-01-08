@@ -129,7 +129,10 @@ poetry run uvicorn src.main:app --reload
 
 **5. Verify Setup:**
 ```bash
-bash scripts/verify-postgres.sh
+# Check API health
+curl http://localhost:8000/health
+
+# Expected response: {"status":"healthy"}
 ```
 
 ---

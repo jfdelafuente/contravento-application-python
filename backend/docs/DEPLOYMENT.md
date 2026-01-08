@@ -105,11 +105,11 @@ El entorno de **Testing** es un setup minimalista para validar el backend con Po
 **1. Crear archivo de configuración**
 
 ```bash
-# Crear .env.testing desde .env.example
-cp backend/.env.example backend/.env.testing
+# Crear .env.test desde .env.example
+cp backend/.env.example backend/.env.test
 ```
 
-**2. Editar `.env.testing` con valores mínimos**
+**2. Editar `.env.test` con valores mínimos**
 
 ```bash
 # =============================================================================
@@ -587,9 +587,10 @@ SENTRY_ENVIRONMENT=staging
 git clone <repo-url>
 cd contravento-application-python
 
-# 2. Crear y configurar .env.staging (ver arriba)
-cp backend/.env.staging.example backend/.env.staging
+# 2. Crear y configurar .env.staging desde template base
+cp .env.staging.example .env.staging
 # Editar .env.staging con valores reales
+# Nota: Ver ENVIRONMENTS.md para estructura completa de archivos .env
 
 # 3. Iniciar servicios (con MailHog y pgAdmin para QA)
 docker-compose --env-file backend/.env.staging --profile development up -d
@@ -753,7 +754,8 @@ El entorno de **producción** es el sistema live accesible por usuarios reales.
 
 ```bash
 # Copiar template de producción
-cp backend/.env.prod.example backend/.env.prod
+cp .env.prod.example .env.prod
+# Nota: Ver ENVIRONMENTS.md para estructura completa de archivos .env
 ```
 
 #### 2. Generar secrets FUERTES
@@ -1092,12 +1094,14 @@ DATABASE_URL=postgresql+asyncpg://contravento_user:password@contravento-prod.abc
 ### Verificar Conexión PostgreSQL
 
 ```bash
-# Usando script de Python
-cd backend
-python scripts/test-postgres-connection.py
+# Opción 1: Verificar desde Docker (si usas contenedores)
+docker exec contravento-db-production pg_isready -U contravento_user -d contravento
+
+# Opción 2: Verificar con psql
+psql -h your-db-host -p 5432 -U contravento_user -d contravento -c "SELECT version();"
 ```
 
-O manualmente:
+O manualmente con Python:
 
 ```python
 import asyncio

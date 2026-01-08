@@ -108,16 +108,25 @@ Default credentials:
 ## 5. Verify Setup
 
 ```bash
-# Run verification script
-bash scripts/verify-postgres.sh
+# Verify PostgreSQL container is healthy
+docker exec contravento-db-local pg_isready -U contravento_user -d contravento
+
+# Check PostgreSQL version
+docker exec contravento-db-local psql -U contravento_user -d contravento -c "SELECT version();"
+
+# List current tables (should show alembic_version + your models)
+docker exec contravento-db-local psql -U contravento_user -d contravento -c "\dt"
+
+# Verify extensions
+docker exec contravento-db-local psql -U contravento_user -d contravento -c "\dx"
 ```
 
-This checks:
-- Docker is running
-- PostgreSQL container is healthy
-- Extensions are enabled
-- Migrations are applied
-- Lists current tables
+This verifies:
+
+- PostgreSQL container is healthy and accepting connections
+- Database is accessible
+- Migrations have been applied (alembic_version table exists)
+- Required extensions are enabled (uuid-ossp)
 
 ---
 
