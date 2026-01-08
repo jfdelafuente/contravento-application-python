@@ -15,9 +15,8 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.main import app
+from src.models.stats import Achievement, UserAchievement, UserStats
 from src.models.user import User, UserProfile
-from src.models.stats import UserStats, Achievement, UserAchievement
 from src.utils.security import hash_password
 
 
@@ -247,7 +246,11 @@ class TestGetUserAchievementsContract:
 
             # Verify requirement_type is valid enum
             assert achievement_item["requirement_type"] in [
-                "distance", "trips", "countries", "photos", "followers"
+                "distance",
+                "trips",
+                "countries",
+                "photos",
+                "followers",
             ]
 
     async def test_get_achievements_empty_list_schema(
@@ -378,7 +381,11 @@ class TestListAchievementsContract:
 
         # Verify requirement_type is valid enum
         assert achievement_def["requirement_type"] in [
-            "distance", "trips", "countries", "photos", "followers"
+            "distance",
+            "trips",
+            "countries",
+            "photos",
+            "followers",
         ]
 
     async def test_list_achievements_all_9_achievements(
@@ -424,8 +431,15 @@ class TestListAchievementsContract:
         # Verify specific achievement codes are present
         codes = [ach["code"] for ach in data["data"]["achievements"]]
         expected_codes = [
-            "FIRST_TRIP", "CENTURY", "VOYAGER", "EXPLORER", "PHOTOGRAPHER",
-            "GLOBETROTTER", "MARATHONER", "INFLUENCER", "PROLIFIC"
+            "FIRST_TRIP",
+            "CENTURY",
+            "VOYAGER",
+            "EXPLORER",
+            "PHOTOGRAPHER",
+            "GLOBETROTTER",
+            "MARATHONER",
+            "INFLUENCER",
+            "PROLIFIC",
         ]
         for expected_code in expected_codes:
             assert expected_code in codes

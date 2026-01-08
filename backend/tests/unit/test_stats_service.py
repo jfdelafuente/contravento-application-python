@@ -4,14 +4,14 @@ Unit tests for StatsService.
 Tests individual methods of StatsService in isolation, using mocks where necessary.
 """
 
+from datetime import date
+
 import pytest
-from datetime import date, datetime
-from unittest.mock import Mock, AsyncMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services.stats_service import StatsService
+from src.models.stats import Achievement, UserAchievement, UserStats
 from src.models.user import User
-from src.models.stats import UserStats, Achievement, UserAchievement
+from src.services.stats_service import StatsService
 
 
 @pytest.mark.asyncio
@@ -187,9 +187,8 @@ class TestStatsServiceUpdateStatsOnTripPublish:
 
         # Verify stats were created
         from sqlalchemy import select
-        result = await db_session.execute(
-            select(UserStats).where(UserStats.user_id == user.id)
-        )
+
+        result = await db_session.execute(select(UserStats).where(UserStats.user_id == user.id))
         stats = result.scalar_one()
 
         assert stats is not None
@@ -421,10 +420,10 @@ class TestStatsServiceAwardAchievement:
 
         # Verify UserAchievement was created
         from sqlalchemy import select
+
         result = await db_session.execute(
             select(UserAchievement).where(
-                UserAchievement.user_id == user.id,
-                UserAchievement.achievement_id == achievement.id
+                UserAchievement.user_id == user.id, UserAchievement.achievement_id == achievement.id
             )
         )
         user_achievement = result.scalar_one()
@@ -474,10 +473,9 @@ class TestStatsServiceAwardAchievement:
 
         # Verify only one record exists
         from sqlalchemy import select
+
         result = await db_session.execute(
-            select(UserAchievement).where(
-                UserAchievement.user_id == user.id
-            )
+            select(UserAchievement).where(UserAchievement.user_id == user.id)
         )
         user_achievements = result.scalars().all()
 

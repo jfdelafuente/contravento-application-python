@@ -4,9 +4,10 @@ Contract tests for profile API endpoints.
 Tests validate that responses conform to the OpenAPI schema in profile.yaml.
 """
 
+from io import BytesIO
+
 import pytest
 from httpx import AsyncClient
-from io import BytesIO
 
 
 @pytest.mark.contract
@@ -105,9 +106,7 @@ class TestUpdateUserProfileContract:
 
         # Act
         response = await client.put(
-            f"/users/{username}/profile",
-            json=update_data,
-            headers=auth_headers
+            f"/users/{username}/profile", json=update_data, headers=auth_headers
         )
 
         # Assert
@@ -137,15 +136,11 @@ class TestUpdateUserProfileContract:
         await client.post("/auth/register", json=sample_user_data)
 
         # Bio too long (>500 chars)
-        update_data = {
-            "bio": "a" * 501
-        }
+        update_data = {"bio": "a" * 501}
 
         # Act
         response = await client.put(
-            f"/users/{username}/profile",
-            json=update_data,
-            headers=auth_headers
+            f"/users/{username}/profile", json=update_data, headers=auth_headers
         )
 
         # Assert
@@ -157,9 +152,7 @@ class TestUpdateUserProfileContract:
         assert data["error"]["code"] == "VALIDATION_ERROR"
         assert "bio" in data["error"].get("field", "")
 
-    async def test_update_profile_unauthorized_schema(
-        self, client: AsyncClient, sample_user_data
-    ):
+    async def test_update_profile_unauthorized_schema(self, client: AsyncClient, sample_user_data):
         """Verify that unauthorized error response matches OpenAPI schema."""
         # Arrange
         username = sample_user_data["username"]
@@ -168,10 +161,7 @@ class TestUpdateUserProfileContract:
         update_data = {"bio": "New bio"}
 
         # Act - No auth headers
-        response = await client.put(
-            f"/users/{username}/profile",
-            json=update_data
-        )
+        response = await client.put(f"/users/{username}/profile", json=update_data)
 
         # Assert
         assert response.status_code == 401
@@ -190,11 +180,14 @@ class TestUpdateUserProfileContract:
         user2_username = faker_instance.user_name().lower().replace(".", "_")
 
         await client.post("/auth/register", json=user1_data)
-        await client.post("/auth/register", json={
-            "username": user2_username,
-            "email": faker_instance.email(),
-            "password": "SecurePass123!"
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": user2_username,
+                "email": faker_instance.email(),
+                "password": "SecurePass123!",
+            },
+        )
 
         update_data = {"bio": "Trying to update someone else's profile"}
 
@@ -202,7 +195,7 @@ class TestUpdateUserProfileContract:
         response = await client.put(
             f"/users/{user2_username}/profile",
             json=update_data,
-            headers=auth_headers  # This is user1's token (from test_user in auth_headers fixture)
+            headers=auth_headers,  # This is user1's token (from test_user in auth_headers fixture)
         )
 
         # Assert
@@ -229,19 +222,17 @@ class TestUploadProfilePhotoContract:
 
         # Create a simple 1x1 PNG image
         photo_data = BytesIO(
-            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
-            b'\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00'
-            b'\x00\x0cIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4'
-            b'\x00\x00\x00\x00IEND\xaeB`\x82'
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+            b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00"
+            b"\x00\x0cIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
+            b"\x00\x00\x00\x00IEND\xaeB`\x82"
         )
 
         files = {"photo": ("profile.png", photo_data, "image/png")}
 
         # Act
         response = await client.post(
-            f"/users/{username}/profile/photo",
-            files=files,
-            headers=auth_headers
+            f"/users/{username}/profile/photo", files=files, headers=auth_headers
         )
 
         # Assert
@@ -275,9 +266,7 @@ class TestUploadProfilePhotoContract:
 
         # Act
         response = await client.post(
-            f"/users/{username}/profile/photo",
-            files=files,
-            headers=auth_headers
+            f"/users/{username}/profile/photo", files=files, headers=auth_headers
         )
 
         # Assert
@@ -302,9 +291,7 @@ class TestUploadProfilePhotoContract:
 
         # Act
         response = await client.post(
-            f"/users/{username}/profile/photo",
-            files=files,
-            headers=auth_headers
+            f"/users/{username}/profile/photo", files=files, headers=auth_headers
         )
 
         # Assert
@@ -330,10 +317,7 @@ class TestDeleteProfilePhotoContract:
         await client.post("/auth/register", json=sample_user_data)
 
         # Act
-        response = await client.delete(
-            f"/users/{username}/profile/photo",
-            headers=auth_headers
-        )
+        response = await client.delete(f"/users/{username}/profile/photo", headers=auth_headers)
 
         # Assert
         assert response.status_code == 200
@@ -343,9 +327,7 @@ class TestDeleteProfilePhotoContract:
         assert data["success"] is True
         assert "message" in data
 
-    async def test_delete_photo_unauthorized_schema(
-        self, client: AsyncClient, sample_user_data
-    ):
+    async def test_delete_photo_unauthorized_schema(self, client: AsyncClient, sample_user_data):
         """Verify that unauthorized error response matches OpenAPI schema."""
         # Arrange
         username = sample_user_data["username"]
@@ -376,16 +358,11 @@ class TestUpdatePrivacySettingsContract:
         username = sample_user_data["username"]
         await client.post("/auth/register", json=sample_user_data)
 
-        privacy_data = {
-            "show_email": True,
-            "show_location": False
-        }
+        privacy_data = {"show_email": True, "show_location": False}
 
         # Act
         response = await client.put(
-            f"/users/{username}/profile/privacy",
-            json=privacy_data,
-            headers=auth_headers
+            f"/users/{username}/profile/privacy", json=privacy_data, headers=auth_headers
         )
 
         # Assert
@@ -402,9 +379,7 @@ class TestUpdatePrivacySettingsContract:
         assert privacy["show_email"] == privacy_data["show_email"]
         assert privacy["show_location"] == privacy_data["show_location"]
 
-    async def test_update_privacy_unauthorized_schema(
-        self, client: AsyncClient, sample_user_data
-    ):
+    async def test_update_privacy_unauthorized_schema(self, client: AsyncClient, sample_user_data):
         """Verify that unauthorized error response matches OpenAPI schema."""
         # Arrange
         username = sample_user_data["username"]
@@ -413,10 +388,7 @@ class TestUpdatePrivacySettingsContract:
         privacy_data = {"show_email": True}
 
         # Act - No auth headers
-        response = await client.put(
-            f"/users/{username}/profile/privacy",
-            json=privacy_data
-        )
+        response = await client.put(f"/users/{username}/profile/privacy", json=privacy_data)
 
         # Assert
         assert response.status_code == 401

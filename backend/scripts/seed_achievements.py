@@ -24,9 +24,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy import select
+
 from src.database import AsyncSessionLocal
 from src.models.stats import Achievement
-
 
 # All 9 predefined achievements
 ACHIEVEMENTS = [
@@ -137,6 +137,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Error seeding achievements: {str(e)}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

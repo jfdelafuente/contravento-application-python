@@ -4,13 +4,14 @@ Unit tests for AuthService business logic.
 Tests the authentication service layer methods.
 """
 
+from datetime import datetime
+from unittest.mock import patch
+
 import pytest
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.schemas.auth import LoginRequest, RegisterRequest
 from src.services.auth_service import AuthService
-from src.schemas.auth import RegisterRequest, LoginRequest
 
 
 @pytest.mark.unit
@@ -23,9 +24,7 @@ class TestAuthServiceRegister:
         # Arrange
         auth_service = AuthService(db_session)
         register_data = RegisterRequest(
-            username="new_user",
-            email="new@example.com",
-            password="SecurePass123!"
+            username="new_user", email="new@example.com", password="SecurePass123!"
         )
 
         # Act
@@ -60,7 +59,7 @@ class TestAuthServiceRegister:
         duplicate_user = RegisterRequest(
             username=sample_user_data["username"],
             email="different@example.com",
-            password="SecurePass123!"
+            password="SecurePass123!",
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -83,9 +82,7 @@ class TestAuthServiceRegister:
 
         # Act & Assert - Try to create second user with same email
         duplicate_user = RegisterRequest(
-            username="different_user",
-            email=sample_user_data["email"],
-            password="SecurePass123!"
+            username="different_user", email=sample_user_data["email"], password="SecurePass123!"
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -100,9 +97,7 @@ class TestAuthServiceRegister:
         auth_service = AuthService(db_session)
         plain_password = "SecurePass123!"
         register_data = RegisterRequest(
-            username="test_user",
-            email="test@example.com",
-            password=plain_password
+            username="test_user", email="test@example.com", password=plain_password
         )
 
         # Act
@@ -110,12 +105,11 @@ class TestAuthServiceRegister:
             result = await auth_service.register(register_data)
 
         # Assert
-        from src.models.user import User
         from sqlalchemy import select
 
-        user_result = await db_session.execute(
-            select(User).where(User.id == result.id)
-        )
+        from src.models.user import User
+
+        user_result = await db_session.execute(select(User).where(User.id == result.id))
         user = user_result.scalar_one()
 
         # Password should be hashed, not stored in plain text
@@ -127,9 +121,7 @@ class TestAuthServiceRegister:
         # Arrange
         auth_service = AuthService(db_session)
         register_data = RegisterRequest(
-            username="test_user",
-            email="test@example.com",
-            password="SecurePass123!"
+            username="test_user", email="test@example.com", password="SecurePass123!"
         )
 
         # Act
@@ -137,13 +129,13 @@ class TestAuthServiceRegister:
             result = await auth_service.register(register_data)
 
         # Assert
-        from src.models.auth import PasswordReset
         from sqlalchemy import select
+
+        from src.models.auth import PasswordReset
 
         token_result = await db_session.execute(
             select(PasswordReset).where(
-                PasswordReset.user_id == result.id,
-                PasswordReset.token_type == "email_verification"
+                PasswordReset.user_id == result.id, PasswordReset.token_type == "email_verification"
             )
         )
         token = token_result.scalar_one_or_none()
@@ -225,10 +217,7 @@ class TestAuthServiceLogin:
         """Verify that invalid credentials raise ValueError."""
         # Arrange
         auth_service = AuthService(db_session)
-        login_data = LoginRequest(
-            login="nonexistent@example.com",
-            password="WrongPass123!"
-        )
+        login_data = LoginRequest(login="nonexistent@example.com", password="WrongPass123!")
 
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
@@ -268,7 +257,9 @@ class TestAuthServiceRefreshToken:
         with pytest.raises(ValueError) as exc_info:
             await auth_service.refresh_token(invalid_token)
 
-        assert "inválido" in str(exc_info.value).lower() or "expirado" in str(exc_info.value).lower()
+        assert (
+            "inválido" in str(exc_info.value).lower() or "expirado" in str(exc_info.value).lower()
+        )
 
     async def test_refresh_token_invalidates_old_token(self, db_session: AsyncSession):
         """Verify that using refresh token invalidates the old one."""
@@ -343,7 +334,9 @@ class TestAuthServiceConfirmPasswordReset:
         with pytest.raises(ValueError) as exc_info:
             await auth_service.confirm_password_reset(invalid_token, new_password)
 
-        assert "inválido" in str(exc_info.value).lower() or "expirado" in str(exc_info.value).lower()
+        assert (
+            "inválido" in str(exc_info.value).lower() or "expirado" in str(exc_info.value).lower()
+        )
 
     async def test_confirm_password_reset_with_expired_token(self, db_session: AsyncSession):
         """Verify that expired token raises ValueError."""

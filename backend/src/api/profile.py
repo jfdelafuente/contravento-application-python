@@ -11,27 +11,29 @@ Endpoints:
 - PUT /users/{username}/profile/privacy: Update privacy settings (authenticated, owner-only)
 """
 
-from typing import Dict, Any, Optional
 import logging
+from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_db, get_current_user, get_optional_current_user
-from src.services.profile_service import ProfileService
+from src.api.deps import get_current_user, get_db, get_optional_current_user
+from src.models.user import User
 from src.schemas.profile import (
+    PrivacySettings,
     ProfileResponse,
     ProfileUpdateRequest,
-    PrivacySettings,
-    PhotoUploadResponse,
 )
+from src.services.profile_service import ProfileService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["profile"])
 
 
-def create_response(success: bool, data: Any = None, error: Dict = None, message: str = None) -> Dict:
+def create_response(
+    success: bool, data: Any = None, error: dict = None, message: str = None
+) -> dict:
     """
     Create standardized JSON response.
 
@@ -50,18 +52,18 @@ def create_response(success: bool, data: Any = None, error: Dict = None, message
     return response
 
 
-def check_owner_authorization(current_user: dict, username: str) -> None:
+def check_owner_authorization(current_user: User, username: str) -> None:
     """
     Check if current user is the owner of the profile.
 
     Args:
-        current_user: Current authenticated user
+        current_user: Current authenticated user (User model)
         username: Profile username being accessed
 
     Raises:
         HTTPException 403: If user is not the owner
     """
-    if current_user["username"] != username:
+    if current_user.username != username:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -75,7 +77,7 @@ def check_owner_authorization(current_user: dict, username: str) -> None:
 async def get_user_profile(
     username: str,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[dict] = Depends(get_optional_current_user),
+    current_user: Optional["User"] = Depends(get_optional_current_user),
 ) -> ProfileResponse:
     """
     T123: Get user profile (public endpoint with optional authentication).
@@ -98,11 +100,10 @@ async def get_user_profile(
     """
     try:
         profile_service = ProfileService(db)
-        viewer_username = current_user["username"] if current_user else None
+        viewer_username = current_user.username if current_user else None
 
         profile = await profile_service.get_profile(
-            username=username,
-            viewer_username=viewer_username
+            username=username, viewer_username=viewer_username
         )
 
         return profile
@@ -132,8 +133,8 @@ async def update_user_profile(
     username: str,
     update_data: ProfileUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-) -> Dict:
+    current_user: "User" = Depends(get_current_user),
+) -> dict:
     """
     T124: Update user profile (authenticated, owner-only).
 
@@ -161,15 +162,10 @@ async def update_user_profile(
 
     try:
         profile_service = ProfileService(db)
-        profile = await profile_service.update_profile(
-            username=username,
-            update_data=update_data
-        )
+        profile = await profile_service.update_profile(username=username, update_data=update_data)
 
         return create_response(
-            success=True,
-            data=profile.model_dump(),
-            message="Perfil actualizado correctamente"
+            success=True, data=profile.model_dump(), message="Perfil actualizado correctamente"
         )
 
     except ValueError as e:
@@ -209,8 +205,8 @@ async def upload_profile_photo(
     username: str,
     photo: UploadFile = File(..., description="Profile photo (JPEG, PNG, or WebP, max 5MB)"),
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-) -> Dict:
+    current_user: "User" = Depends(get_current_user),
+) -> dict:
     """
     T125: Upload profile photo (authenticated, owner-only).
 
@@ -239,15 +235,10 @@ async def upload_profile_photo(
 
     try:
         profile_service = ProfileService(db)
-        result = await profile_service.upload_photo(
-            username=username,
-            photo_file=photo
-        )
+        result = await profile_service.upload_photo(username=username, photo_file=photo)
 
         return create_response(
-            success=True,
-            data=result,
-            message="Foto de perfil actualizada correctamente"
+            success=True, data=result, message="Foto de perfil actualizada correctamente"
         )
 
     except ValueError as e:
@@ -271,7 +262,7 @@ async def upload_profile_photo(
                 },
             )
 
-    except IOError as e:
+    except OSError as e:
         logger.error(f"IO error uploading photo for {username}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -296,8 +287,8 @@ async def upload_profile_photo(
 async def delete_profile_photo(
     username: str,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-) -> Dict:
+    current_user: "User" = Depends(get_current_user),
+) -> dict:
     """
     T126: Delete profile photo (authenticated, owner-only).
 
@@ -326,9 +317,7 @@ async def delete_profile_photo(
         await profile_service.delete_photo(username=username)
 
         return create_response(
-            success=True,
-            data=None,
-            message="Foto de perfil eliminada correctamente"
+            success=True, data=None, message="Foto de perfil eliminada correctamente"
         )
 
     except ValueError as e:
@@ -357,8 +346,8 @@ async def update_privacy_settings(
     username: str,
     privacy_settings: PrivacySettings,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-) -> Dict:
+    current_user: "User" = Depends(get_current_user),
+) -> dict:
     """
     T127: Update privacy settings (authenticated, owner-only).
 
@@ -386,14 +375,11 @@ async def update_privacy_settings(
     try:
         profile_service = ProfileService(db)
         result = await profile_service.update_privacy(
-            username=username,
-            privacy_settings=privacy_settings
+            username=username, privacy_settings=privacy_settings
         )
 
         return create_response(
-            success=True,
-            data=result,
-            message="Configuración de privacidad actualizada"
+            success=True, data=result, message="Configuración de privacidad actualizada"
         )
 
     except ValueError as e:

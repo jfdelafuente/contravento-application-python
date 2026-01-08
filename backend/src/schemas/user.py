@@ -6,7 +6,8 @@ Pydantic models for user data in API responses.
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+
+from pydantic import BaseModel, Field
 
 
 class UserResponse(BaseModel):
@@ -31,6 +32,7 @@ class UserResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -38,7 +40,7 @@ class UserResponse(BaseModel):
                 "username": "maria_garcia",
                 "email": "maria@example.com",
                 "is_verified": True,
-                "created_at": "2025-12-23T10:30:00Z"
+                "created_at": "2025-12-23T10:30:00Z",
             }
         }
 
@@ -86,6 +88,7 @@ class UserProfileResponse(BaseModel):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True
         json_schema_extra = {
             "example": {
@@ -94,7 +97,7 @@ class UserProfileResponse(BaseModel):
                 "location": "Madrid, España",
                 "cycling_type": "mountain",
                 "profile_photo_url": "https://storage.example.com/photos/user123.jpg",
-                "updated_at": "2025-12-23T10:30:00Z"
+                "updated_at": "2025-12-23T10:30:00Z",
             }
         }
 
@@ -113,4 +116,5 @@ class UserWithProfileResponse(UserResponse):
 
     class Config:
         """Pydantic config."""
+
         from_attributes = True

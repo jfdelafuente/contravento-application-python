@@ -2,8 +2,125 @@
 
 **Feature Branch**: `002-travel-diary`
 **Created**: 2025-12-23
-**Status**: Draft
+**Updated**: 2025-12-30
+**Status**: In Progress - Phase 3-4 (MVP + Stats Integration)
 **Input**: User description: "Diario de viajes digital para documentar aventuras de cicloturismo"
+
+## Development Progress
+
+### ✅ Phase 0: Planning & Design (COMPLETE)
+
+- Specification document (spec.md)
+- Implementation plan (plan.md)
+- Database schema (data-model.md)
+- API contracts (contracts/trips-api.yaml)
+- Task breakdown (tasks.md) - 117 tasks total
+
+### ✅ Phase 1: Environment Setup (COMPLETE)
+
+- Dependencies installed: bleach 6.1.0, googlemaps 4.10.0, pillow 10.1.0
+- Storage structure created: `backend/storage/trip_photos/`
+- Environment variables configured (photo settings, geocoding, moderation)
+- Travel Diary settings added to `backend/src/config.py`
+- Blocked words list created: 100+ Spanish/English keywords
+
+### ✅ Phase 2: Foundational Utilities (COMPLETE)
+
+- ✅ HTML Sanitizer (`backend/src/utils/html_sanitizer.py`) - 19/19 tests passing
+  - XSS prevention with Bleach whitelist
+  - Removes dangerous tags (script, style, iframe, etc.)
+  - 50,000 character limit enforcement
+
+- ✅ Content Validator (`backend/src/utils/content_validator.py`) - 20/20 tests passing
+  - Blocked words detection (case-insensitive, word boundaries)
+  - Excessive repetition detection (>10 occurrences)
+  - Excessive URL detection (>5 URLs)
+  - Configurable blocklist with graceful degradation
+
+- ✅ TripPhotoService (`backend/src/utils/trip_photo_service.py`) - 18/18 tests passing
+  - Photo validation (JPEG/PNG/WebP, max 10MB)
+  - Resize & optimize (max 1200px, maintains aspect ratio)
+  - Thumbnail generation (200x200 square, center crop)
+  - EXIF orientation handling, PNG to JPEG conversion
+  - Directory structure: YYYY/MM/{trip_id}/
+
+- ✅ LocationService (`backend/src/utils/location_service.py`) - 11/11 tests passing
+  - Google Places API integration for geocoding
+  - Converts location names to lat/lng coordinates
+  - Graceful degradation (disabled if no API key)
+  - Client caching, error handling, Unicode support
+
+### ✅ Phase 3: Trip Models & Migration (COMPLETE)
+
+- ✅ Trip Models (`backend/src/models/trip.py`)
+  - Trip (main entity with status, difficulty enums)
+  - TripPhoto (photo gallery with display ordering)
+  - Tag (reusable tags with normalization)
+  - TripTag (many-to-many junction table)
+  - TripLocation (route waypoints with geocoding support)
+- ✅ User Model Update (added trips relationship)
+- ✅ Alembic Migration (created and applied successfully)
+  - 5 new tables with proper indexes and foreign keys
+  - Fixed timezone compatibility issue (installed tzdata)
+
+### ✅ Phase 3: User Story 1 - MVP (Create & Publish Trip) (COMPLETE)
+
+- ✅ Trip Schemas (`backend/src/schemas/trip.py`)
+  - TripCreateRequest, TripUpdateRequest, TripResponse
+  - TagResponse, TripLocationResponse, TripPhotoResponse
+  - Pydantic validation with from_attributes support
+
+- ✅ TripService (`backend/src/services/trip_service.py`)
+  - create_trip(): Draft creation with HTML sanitization, tag processing
+  - get_trip(): Retrieval with authorization (drafts owner-only)
+  - publish_trip(): Validation + **stats integration** (T036)
+  - update_trip(): Partial updates + **stats sync** (T073, T162)
+  - delete_trip(): Cascade delete + **stats rollback** (T074-T075, T163)
+  - upload_photo() / delete_photo(): Photo management + **stats updates**
+  - reorder_photos(): Gallery ordering
+
+- ✅ Statistics Integration (CRITICAL FEATURE)
+  - **publish_trip()**: Calls StatsService.update_stats_on_trip_publish()
+    - Updates: total_trips (+1), total_kilometers (+X), total_photos (+N)
+    - Adds country to countries_visited (unique)
+    - Updates last_trip_date
+    - **Checks and awards achievements** automatically
+  - **upload_photo()**: Increments total_photos for published trips
+  - **delete_photo()**: Decrements total_photos for published trips
+  - **update_trip()**: Recalculates stats delta (km, photos, countries)
+  - **delete_trip()**: Decrements all stats (preserves countries)
+
+- ✅ Trip API Endpoints (`backend/src/api/trips.py`)
+  - POST /trips: Create draft trip
+  - GET /trips/{id}: Retrieve trip (public if published)
+  - POST /trips/{id}/publish: Publish trip + update stats
+  - POST /trips/{id}/photos: Upload photo to trip
+  - DELETE /trips/{id}/photos/{photo_id}: Remove photo from trip
+  - PUT /trips/{id}/photos/reorder: Reorder gallery
+
+- ✅ Tests: 14/14 unit tests passing (100% TripService coverage for implemented features)
+
+### 🚧 Phase 4: User Story 2 - Photo Gallery (COMPLETE - Pending API endpoint tests)
+
+- ✅ Photo upload/delete/reorder functionality implemented in TripService
+- ✅ Photo validation, resizing, thumbnail generation
+- ⏳ Integration/contract tests for photo endpoints
+
+### 📋 Upcoming Work
+
+- Phase 5: User Story 3 - Edit & Delete (API endpoints for update/delete)
+- Phase 6: User Story 4 - Tags & Categorization (filtering, tag cloud)
+- Phase 7: User Story 5 - Draft Trips (already supported via status field)
+- Phase 8: Polish (integration tests, documentation, geocoding)
+
+### 📊 Statistics
+
+- **Total Tasks**: 117
+- **Completed**: ~50+ (Phases 1-3 complete, stats integration done)
+- **Tests Written**: 82+ unit tests, all passing
+- **Code Coverage**: 40.45% overall, 97.53% on trip models, 39.86% on stats service
+- **Commits**: 10+ (planning, setup, utilities, models, MVP, photo gallery, stats integration)
+- **Critical Features**: ✅ Trip CRUD, ✅ Photo Gallery, ✅ Stats Auto-Update, ✅ Achievements
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -249,10 +366,37 @@ Un ciclista está documentando un viaje largo pero no ha terminado de escribir t
 11. **Interacción social**: No hay likes, comentarios, o compartidos en esta feature (va en 004-social-network)
 12. **Búsqueda global**: Búsqueda de viajes entre todos los usuarios es parte de otra feature; aquí solo filtrado personal por etiquetas
 
+## Clarifications
+
+*Aclaraciones obtenidas el 2025-12-24 mediante /speckit.clarify*
+
+**Frontend Implementation:**
+- El frontend será implementado en una feature separada (002b-travel-diary-frontend) después de completar el backend
+- Esta feature (002-travel-diary) solo entrega la API backend completamente documentada en OpenAPI
+- El backend debe estar listo para consumo por frontend React independiente
+
+**Editor de Texto Enriquecido:**
+- Editor WYSIWYG básico con formato: negritas, cursivas, listas (ul/ol), enlaces
+- Tags HTML permitidos: `<p>, <br>, <b>, <strong>, <i>, <em>, <ul>, <ol>, <li>, <a>`
+- Frontend usará Tiptap o similar; backend sanitiza con Bleach
+
+**Ubicaciones Visitadas:**
+- Implementar autocompletado con geocoding para validar nombres de lugares
+- Integración con Google Places API o servicio similar
+- Almacenar: nombre del lugar, país, coordenadas opcionales (lat/lng)
+- Esto requiere añadir campos `latitude` y `longitude` a TripLocation (DECIMAL nullable)
+
+**Validación de Contenido:**
+- Mantener límite de 50,000 caracteres en descripción (FR-002)
+- Implementar detección básica de spam/contenido inapropiado antes de publicación
+- Usar lista de palabras prohibidas configurable
+- Aplicar sanitización XSS con Bleach en todo contenido HTML
+
 ## Out of Scope
 
 Las siguientes funcionalidades NO están incluidas en esta especificación:
 
+- **Frontend completo** (se manejará en feature 002b-travel-diary-frontend)
 - Integración con archivos GPX o rutas GPS (feature 003-gps-routes)
 - Comentarios, likes, o compartir viajes (feature 004-social-network)
 - Estadísticas automáticas calculadas desde GPX (elevación, velocidad) (feature 003-gps-routes)
@@ -266,8 +410,8 @@ Las siguientes funcionalidades NO están incluidas en esta especificación:
 - Sistema de plantillas para viajes recurrentes
 - Integración con redes sociales externas (compartir en Facebook, Twitter)
 - Monetización o viajes premium/patrocinados
-- Moderación automática de contenido inapropiado
+- Moderación automática de contenido inapropiado con IA (solo lista de palabras prohibidas)
 - Versionado o historial de cambios en viajes
 - Soporte para videos o audio en viajes
-- Reconocimiento automático de lugares en fotos (geotagging)
+- Reconocimiento automático de lugares en fotos (geotagging automático)
 - Watermarks o protección de copyright en fotos

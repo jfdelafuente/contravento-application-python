@@ -5,20 +5,45 @@ Provides test fixtures for database, async client, authentication, and test data
 """
 
 import asyncio
-from typing import AsyncGenerator, Generator
+import os
+from collections.abc import AsyncGenerator, Generator
+from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
 from faker import Faker
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from src.database import Base
 from src.main import app
 
-
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_test_env():
+    """
+    Load test environment variables from .env.test.
+
+    This runs once per test session before any tests execute.
+    Sets APP_ENV=testing to ensure test configuration is used.
+    """
+    # Get path to .env.test (backend/.env.test)
+    env_file = Path(__file__).parent.parent / ".env.test"
+
+    if env_file.exists():
+        load_dotenv(env_file, override=True)
+        # Ensure APP_ENV is set to testing
+        os.environ["APP_ENV"] = "testing"
+    else:
+        # Fallback: set minimal test environment variables
+        os.environ.setdefault("APP_ENV", "testing")
+        os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+        os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
+        os.environ.setdefault("BCRYPT_ROUNDS", "4")
 
 
 @pytest.fixture(scope="session")
@@ -141,15 +166,15 @@ def faker_instance() -> Faker:
 
 
 @pytest.fixture(scope="function")
-async def auth_headers(client: AsyncClient) -> dict:
+async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
     """
     Provide authentication headers with a valid JWT token.
 
-    Creates a test user, logs in, and returns headers for authenticated requests.
-    Placeholder until authentication is fully implemented.
+    Creates a test user, generates token, and returns headers for authenticated requests.
 
     Args:
         client: Async HTTP client
+        db_session: Database session
 
     Returns:
         Dictionary with Authorization header
@@ -159,13 +184,82 @@ async def auth_headers(client: AsyncClient) -> dict:
             response = await client.get("/protected", headers=auth_headers)
             assert response.status_code == 200
     """
-    # TODO: Implement when authentication endpoints are ready
-    # For now, return a placeholder token
-    from src.utils.security import create_access_token
+    from src.models.user import User, UserProfile
+    from src.utils.security import create_access_token, hash_password
 
-    token = create_access_token({"sub": "test_user_id", "username": "test_user"})
+    # Create a test user in the database
+    user = User(
+        username="test_user",
+        email="test@example.com",
+        hashed_password=hash_password("TestPass123!"),
+        is_active=True,
+        is_verified=True,
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    # Create profile for user
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    # Generate token with actual user ID
+    token = create_access_token({"sub": user.id, "username": user.username})
 
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(scope="function")
+async def test_user(db_session: AsyncSession) -> "User":
+    """
+    Provide a test user instance for integration tests.
+
+    Returns the same test user as auth_headers fixture but as a User object.
+    Use this when tests need to access user properties (username, user_id, etc.).
+
+    Args:
+        db_session: Database session
+
+    Returns:
+        User instance
+
+    Example:
+        async def test_user_trips(client, auth_headers, test_user):
+            response = await client.get(f"/users/{test_user.username}/trips", headers=auth_headers)
+            assert response.status_code == 200
+    """
+    from sqlalchemy import select
+
+    from src.models.user import User
+
+    # Query the existing test user created by auth_headers fixture
+    # If auth_headers fixture hasn't run yet, this will return None and we create the user
+    result = await db_session.execute(select(User).where(User.username == "test_user"))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Create user if it doesn't exist (when test_user is used without auth_headers)
+        from src.models.user import UserProfile
+        from src.utils.security import hash_password
+
+        user = User(
+            username="test_user",
+            email="test@example.com",
+            hashed_password=hash_password("TestPass123!"),
+            is_active=True,
+            is_verified=True,
+        )
+        db_session.add(user)
+        await db_session.flush()
+
+        # Create profile for user
+        profile = UserProfile(user_id=user.id)
+        db_session.add(profile)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+    return user
 
 
 @pytest.fixture(scope="function")

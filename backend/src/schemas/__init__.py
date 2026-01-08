@@ -5,13 +5,24 @@ Exports all schemas for API endpoints.
 """
 
 from src.schemas.auth import (
-    RegisterRequest,
-    RegisterResponse,
     LoginRequest,
     LoginResponse,
-    TokenResponse,
-    PasswordResetRequest,
     PasswordResetConfirm,
+    PasswordResetRequest,
+    RegisterRequest,
+    RegisterResponse,
+    TokenResponse,
+)
+from src.schemas.trip import (
+    LocationInput,
+    TagResponse,
+    TripCreateRequest,
+    TripListItemResponse,
+    TripListResponse,
+    TripLocationResponse,
+    TripPhotoResponse,
+    TripResponse,
+    TripUpdateRequest,
 )
 from src.schemas.user import UserResponse
 
@@ -24,4 +35,13 @@ __all__ = [
     "PasswordResetRequest",
     "PasswordResetConfirm",
     "UserResponse",
+    "LocationInput",
+    "TripCreateRequest",
+    "TripUpdateRequest",
+    "TagResponse",
+    "TripLocationResponse",
+    "TripPhotoResponse",
+    "TripResponse",
+    "TripListItemResponse",
+    "TripListResponse",
 ]

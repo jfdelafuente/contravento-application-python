@@ -8,24 +8,22 @@ Business logic for social features including:
 - Counter management
 """
 
-from datetime import datetime
-from typing import Optional
-from uuid import uuid4
 import logging
+from datetime import datetime
+from uuid import uuid4
 
-from sqlalchemy import select, func, delete
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User, UserProfile
 from src.models.social import Follow
+from src.models.user import User, UserProfile
 from src.schemas.social import (
-    FollowResponse,
     FollowersListResponse,
     FollowingListResponse,
+    FollowResponse,
     FollowStatusResponse,
     UserSummary,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +45,7 @@ class SocialService:
         """
         self.db = db
 
-    async def follow_user(
-        self,
-        follower_username: str,
-        following_username: str
-    ) -> FollowResponse:
+    async def follow_user(self, follower_username: str, following_username: str) -> FollowResponse:
         """
         T206: Follow a user.
 
@@ -72,16 +66,12 @@ class SocialService:
             raise ValueError("No puedes seguirte a ti mismo")
 
         # Get both users
-        result = await self.db.execute(
-            select(User).where(User.username == follower_username)
-        )
+        result = await self.db.execute(select(User).where(User.username == follower_username))
         follower_user = result.scalar_one_or_none()
         if not follower_user:
             raise ValueError(f"El usuario '{follower_username}' no existe")
 
-        result = await self.db.execute(
-            select(User).where(User.username == following_username)
-        )
+        result = await self.db.execute(select(User).where(User.username == following_username))
         following_user = result.scalar_one_or_none()
         if not following_user:
             raise ValueError(f"El usuario '{following_username}' no existe")
@@ -89,8 +79,7 @@ class SocialService:
         # Check if already following
         result = await self.db.execute(
             select(Follow).where(
-                Follow.follower_id == follower_user.id,
-                Follow.following_id == following_user.id
+                Follow.follower_id == follower_user.id, Follow.following_id == following_user.id
             )
         )
         existing_follow = result.scalar_one_or_none()
@@ -128,9 +117,7 @@ class SocialService:
         )
 
     async def unfollow_user(
-        self,
-        follower_username: str,
-        following_username: str
+        self, follower_username: str, following_username: str
     ) -> FollowResponse:
         """
         T207: Unfollow a user.
@@ -148,16 +135,12 @@ class SocialService:
             ValueError: If users not found or not following
         """
         # Get both users
-        result = await self.db.execute(
-            select(User).where(User.username == follower_username)
-        )
+        result = await self.db.execute(select(User).where(User.username == follower_username))
         follower_user = result.scalar_one_or_none()
         if not follower_user:
             raise ValueError(f"El usuario '{follower_username}' no existe")
 
-        result = await self.db.execute(
-            select(User).where(User.username == following_username)
-        )
+        result = await self.db.execute(select(User).where(User.username == following_username))
         following_user = result.scalar_one_or_none()
         if not following_user:
             raise ValueError(f"El usuario '{following_username}' no existe")
@@ -165,8 +148,7 @@ class SocialService:
         # Check if following
         result = await self.db.execute(
             select(Follow).where(
-                Follow.follower_id == follower_user.id,
-                Follow.following_id == following_user.id
+                Follow.follower_id == follower_user.id, Follow.following_id == following_user.id
             )
         )
         follow = result.scalar_one_or_none()
@@ -198,10 +180,7 @@ class SocialService:
         )
 
     async def get_followers(
-        self,
-        username: str,
-        page: int = 1,
-        limit: int = 50
+        self, username: str, page: int = 1, limit: int = 50
     ) -> FollowersListResponse:
         """
         T208: Get paginated list of followers.
@@ -224,9 +203,7 @@ class SocialService:
             limit = 50
 
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
@@ -253,14 +230,16 @@ class SocialService:
         # Build UserSummary list
         followers = []
         for user_row, profile_row in rows:
-            followers.append(UserSummary(
-                username=user_row.username,
-                full_name=profile_row.full_name if profile_row else None,
-                profile_photo_url=profile_row.profile_photo_url if profile_row else None,
-                bio=profile_row.bio if profile_row else None,
-                followers_count=profile_row.followers_count if profile_row else 0,
-                following_count=profile_row.following_count if profile_row else 0,
-            ))
+            followers.append(
+                UserSummary(
+                    username=user_row.username,
+                    full_name=profile_row.full_name if profile_row else None,
+                    profile_photo_url=profile_row.profile_photo_url if profile_row else None,
+                    bio=profile_row.bio if profile_row else None,
+                    followers_count=profile_row.followers_count if profile_row else 0,
+                    following_count=profile_row.following_count if profile_row else 0,
+                )
+            )
 
         has_more = (offset + len(followers)) < total_count
 
@@ -273,10 +252,7 @@ class SocialService:
         )
 
     async def get_following(
-        self,
-        username: str,
-        page: int = 1,
-        limit: int = 50
+        self, username: str, page: int = 1, limit: int = 50
     ) -> FollowingListResponse:
         """
         T209: Get paginated list of users being followed.
@@ -299,9 +275,7 @@ class SocialService:
             limit = 50
 
         # Get user
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
@@ -328,14 +302,16 @@ class SocialService:
         # Build UserSummary list
         following = []
         for user_row, profile_row in rows:
-            following.append(UserSummary(
-                username=user_row.username,
-                full_name=profile_row.full_name if profile_row else None,
-                profile_photo_url=profile_row.profile_photo_url if profile_row else None,
-                bio=profile_row.bio if profile_row else None,
-                followers_count=profile_row.followers_count if profile_row else 0,
-                following_count=profile_row.following_count if profile_row else 0,
-            ))
+            following.append(
+                UserSummary(
+                    username=user_row.username,
+                    full_name=profile_row.full_name if profile_row else None,
+                    profile_photo_url=profile_row.profile_photo_url if profile_row else None,
+                    bio=profile_row.bio if profile_row else None,
+                    followers_count=profile_row.followers_count if profile_row else 0,
+                    following_count=profile_row.following_count if profile_row else 0,
+                )
+            )
 
         has_more = (offset + len(following)) < total_count
 
@@ -348,9 +324,7 @@ class SocialService:
         )
 
     async def get_follow_status(
-        self,
-        follower_username: str,
-        following_username: str
+        self, follower_username: str, following_username: str
     ) -> FollowStatusResponse:
         """
         T210: Check if follower follows following.
@@ -366,16 +340,12 @@ class SocialService:
             ValueError: If either user not found
         """
         # Get both users
-        result = await self.db.execute(
-            select(User).where(User.username == follower_username)
-        )
+        result = await self.db.execute(select(User).where(User.username == follower_username))
         follower_user = result.scalar_one_or_none()
         if not follower_user:
             raise ValueError(f"El usuario '{follower_username}' no existe")
 
-        result = await self.db.execute(
-            select(User).where(User.username == following_username)
-        )
+        result = await self.db.execute(select(User).where(User.username == following_username))
         following_user = result.scalar_one_or_none()
         if not following_user:
             raise ValueError(f"El usuario '{following_username}' no existe")
@@ -383,8 +353,7 @@ class SocialService:
         # Check follow status
         result = await self.db.execute(
             select(Follow).where(
-                Follow.follower_id == follower_user.id,
-                Follow.following_id == following_user.id
+                Follow.follower_id == follower_user.id, Follow.following_id == following_user.id
             )
         )
         follow = result.scalar_one_or_none()
@@ -410,9 +379,7 @@ class SocialService:
         Returns:
             UserProfile instance
         """
-        result = await self.db.execute(
-            select(UserProfile).where(UserProfile.user_id == user_id)
-        )
+        result = await self.db.execute(select(UserProfile).where(UserProfile.user_id == user_id))
         profile = result.scalar_one_or_none()
 
         if not profile:

@@ -35,7 +35,8 @@ backend/
 │   ├── integration/       # Tests de integración
 │   └── unit/              # Tests unitarios
 ├── storage/               # Almacenamiento de archivos
-│   └── profile_photos/    # Fotos de perfil
+│   ├── profile_photos/    # Fotos de perfil
+│   └── trip_photos/       # Fotos de viajes (organizadas por año/mes/trip_id)
 ├── pyproject.toml         # Dependencias Poetry
 ├── .env.example           # Variables de entorno (ejemplo)
 └── .env.test              # Variables de entorno (testing)
@@ -89,10 +90,16 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 Las migraciones de Alembic se ejecutan desde el directorio `backend/`:
 
 ```bash
+# Aplicar migraciones (crear tablas)
 poetry run alembic upgrade head
+
+# Seedear achievements (logros predefinidos)
+poetry run python scripts/seed_achievements.py
 ```
 
 > **Nota**: El archivo `alembic.ini` en la raíz de `backend/` apunta automáticamente a `src/migrations/`. No es necesario cambiar de directorio.
+>
+> **Importante**: El script `seed_achievements.py` debe ejecutarse **una sola vez** después de crear las tablas. Es idempotente (puede ejecutarse múltiples veces sin duplicar datos).
 
 ### 5. Ejecutar Servidor de Desarrollo
 
@@ -255,6 +262,57 @@ Ver `.env.example` para todas las variables disponibles.
 - `DATABASE_URL`: URL de conexión a la base de datos
 - `BCRYPT_ROUNDS`: Rondas de bcrypt (12 en producción)
 - `SMTP_*`: Configuración de email
+
+## Funcionalidades Implementadas
+
+### Travel Diary (Diario de Viajes Digital) ✅
+
+Sistema completo para documentar viajes en bicicleta con integración de estadísticas:
+
+- **User Story 1 - MVP**: Crear, publicar y gestionar trips
+  - Crear trips en modo draft con título, descripción, fechas, dificultad, ubicaciones y tags
+  - Publicar trips con validación automática de requisitos (título, descripción ≥50 chars, fecha inicio)
+  - Editar trips publicados con actualización automática de estadísticas
+  - Eliminar trips con rollback de estadísticas
+  - Sanitización automática de HTML (XSS prevention)
+  - Detección de spam y palabras bloqueadas
+
+- **User Story 2 - Photo Gallery**: Gestión completa de fotos
+  - Upload múltiple (max 20 fotos por trip, max 10MB por foto)
+  - Procesamiento automático: resize a 1200px, thumbnail 400x400px
+  - Almacenamiento organizado: `storage/trip_photos/{year}/{month}/{trip_id}/`
+  - Formatos soportados: JPG, PNG, WebP
+  - Reordenar fotos en la galería
+  - Eliminar fotos con cleanup de archivos físicos
+
+- **🎯 Integración de Estadísticas** (NUEVA FUNCIONALIDAD):
+  - **Actualización automática** cuando se publican, editan o eliminan viajes
+  - **Métricas rastreadas**:
+    - `total_trips`: Contador de viajes publicados
+    - `total_kilometers`: Kilómetros acumulados
+    - `total_photos`: Fotos totales en viajes publicados
+    - `countries_visited`: Lista de países únicos visitados
+    - `last_trip_date`: Fecha del viaje más reciente
+  - **Sistema de Logros**: Verificación y otorgamiento automático de achievements
+    - Logros de distancia (100km, 1000km, 5000km)
+    - Logros de viajes (1, 10, 25 trips)
+    - Logros de países (5, 10 países)
+    - Logros de fotos (50 fotos)
+  - **Operaciones soportadas**:
+    - Trip publicado → +1 trip, +X km, +N fotos, +país
+    - Foto agregada (trip publicado) → +1 foto
+    - Foto eliminada (trip publicado) → -1 foto
+    - Trip editado → recalcular delta (km, fotos, países)
+    - Trip eliminado → revertir estadísticas
+
+**Manual de Testing**: Ver [docs/api/MANUAL_TESTING.md](docs/api/MANUAL_TESTING.md) para comandos curl y [docs/api/POSTMAN_COLLECTION.md](docs/api/POSTMAN_COLLECTION.md) para colección Postman/Insomnia.
+
+**Documentación**:
+
+- **OpenAPI Spec**: `specs/002-travel-diary/contracts/trips-api.yaml`
+- **Especificación**: `specs/002-travel-diary/spec.md`
+- **Plan de Implementación**: `specs/002-travel-diary/plan.md`
+- **Tareas**: `specs/002-travel-diary/tasks.md`
 
 ## Desarrollo
 

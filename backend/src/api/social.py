@@ -9,18 +9,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database import get_db
-from src.services.social_service import SocialService
-from src.schemas.social import (
-    FollowResponse,
-    FollowersListResponse,
-    FollowingListResponse,
-    FollowStatusResponse,
-)
-from src.schemas.api_response import ApiResponse, ErrorResponse, ErrorDetail
 from src.api.deps import get_current_user
+from src.database import get_db
 from src.models.user import User
-
+from src.schemas.api_response import ApiResponse, ErrorDetail, ErrorResponse
+from src.services.social_service import SocialService
 
 router = APIRouter(prefix="/users", tags=["social"])
 
@@ -56,7 +49,7 @@ async def follow_user(
 
     try:
         result = await social_service.follow_user(
-            follower_username=current_user["username"],
+            follower_username=current_user.username,
             following_username=username,
         )
 
@@ -126,7 +119,7 @@ async def unfollow_user(
 
     try:
         result = await social_service.unfollow_user(
-            follower_username=current_user["username"],
+            follower_username=current_user.username,
             following_username=username,
         )
 
@@ -302,7 +295,7 @@ async def get_follow_status(
 
     try:
         result = await social_service.get_follow_status(
-            follower_username=current_user["username"],
+            follower_username=current_user.username,
             following_username=target_username,
         )
 

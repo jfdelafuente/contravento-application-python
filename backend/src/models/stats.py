@@ -6,11 +6,11 @@ Achievement: Achievement/badge definitions
 UserAchievement: User-earned achievements (join table)
 """
 
-from datetime import datetime, date
-from typing import Optional, List
+from datetime import date, datetime
+from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import Boolean, String, Text, DateTime, Integer, Float, ForeignKey, Date, JSON
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
@@ -71,7 +71,7 @@ class UserStats(Base):
         doc="Total kilometers accumulated across all trips",
     )
 
-    countries_visited: Mapped[List[str]] = mapped_column(
+    countries_visited: Mapped[list[str]] = mapped_column(
         JSON,
         default=lambda: [],
         nullable=False,
@@ -205,7 +205,7 @@ class Achievement(Base):
     )
 
     # Relationships
-    user_achievements: Mapped[List["UserAchievement"]] = relationship(
+    user_achievements: Mapped[list["UserAchievement"]] = relationship(
         "UserAchievement",
         back_populates="achievement",
         cascade="all, delete-orphan",

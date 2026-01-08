@@ -11,14 +11,15 @@ These tests simulate real-world scenarios:
 - Multiple trips trigger multiple achievements
 """
 
-import pytest
-from datetime import datetime, date
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from datetime import date
 
+import pytest
+from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.stats import Achievement, UserAchievement, UserStats
 from src.models.user import User, UserProfile
-from src.models.stats import UserStats, Achievement, UserAchievement
 from src.utils.security import hash_password
 
 
@@ -76,6 +77,7 @@ class TestStatsCalculationOnTripPublish:
         # 2. Simulate trip publish (this would come from trips service)
         # In real implementation, this would be triggered by an event
         from src.services.stats_service import StatsService
+
         stats_service = StatsService(db_session)
 
         trip_data = {
@@ -85,10 +87,7 @@ class TestStatsCalculationOnTripPublish:
             "trip_date": date(2025, 12, 15),
         }
 
-        await stats_service.update_stats_on_trip_publish(
-            user_id=user.id,
-            **trip_data
-        )
+        await stats_service.update_stats_on_trip_publish(user_id=user.id, **trip_data)
 
         # 3. Verify stats were updated
         await db_session.refresh(stats)
@@ -102,7 +101,7 @@ class TestStatsCalculationOnTripPublish:
         result = await db_session.execute(
             select(UserAchievement).where(
                 UserAchievement.user_id == user.id,
-                UserAchievement.achievement_id == first_trip_achievement.id
+                UserAchievement.achievement_id == first_trip_achievement.id,
             )
         )
         user_achievement = result.scalar_one_or_none()
@@ -138,6 +137,7 @@ class TestStatsCalculationOnTripPublish:
         await db_session.commit()
 
         from src.services.stats_service import StatsService
+
         stats_service = StatsService(db_session)
 
         # Publish trip 1: Spain, 50km, 3 photos
@@ -209,6 +209,7 @@ class TestStatsUpdateOnTripEdit:
         await db_session.commit()
 
         from src.services.stats_service import StatsService
+
         stats_service = StatsService(db_session)
 
         # Initial trip
@@ -274,6 +275,7 @@ class TestStatsUpdateOnTripDelete:
         await db_session.commit()
 
         from src.services.stats_service import StatsService
+
         stats_service = StatsService(db_session)
 
         # Publish 2 trips
@@ -353,6 +355,7 @@ class TestAchievementAwardOnMilestone:
         await db_session.commit()
 
         from src.services.stats_service import StatsService
+
         stats_service = StatsService(db_session)
 
         # Publish trip that reaches 100km
@@ -367,8 +370,7 @@ class TestAchievementAwardOnMilestone:
         # Verify CENTURY was awarded
         result = await db_session.execute(
             select(UserAchievement).where(
-                UserAchievement.user_id == user.id,
-                UserAchievement.achievement_id == century.id
+                UserAchievement.user_id == user.id, UserAchievement.achievement_id == century.id
             )
         )
         user_achievement = result.scalar_one_or_none()
@@ -430,6 +432,7 @@ class TestMultipleAchievementsInSingleEvent:
         await db_session.commit()
 
         from src.services.stats_service import StatsService
+
         stats_service = StatsService(db_session)
 
         # Publish a 100km trip (first trip)

@@ -33,11 +33,14 @@ class TestRegistrationToLoginFlow:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        register_response = await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        register_response = await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         assert register_response.status_code == 201
         register_data = register_response.json()
@@ -56,7 +59,7 @@ class TestRegistrationToLoginFlow:
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "email_verification",
-                PasswordReset.used_at.is_(None)
+                PasswordReset.used_at.is_(None),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -67,26 +70,27 @@ class TestRegistrationToLoginFlow:
         verification_token = "extracted_verification_token"
 
         # Step 3: Verify email
-        verify_response = await client.post("/auth/verify-email", json={
-            "token": verification_token
-        })
+        verify_response = await client.post(
+            "/auth/verify-email", json={"token": verification_token}
+        )
 
         assert verify_response.status_code == 200
         verify_data = verify_response.json()
         assert verify_data["success"] is True
 
         # Verify user is now verified in database
-        result = await db_session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await db_session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one()
         assert user.is_verified is True
 
         # Step 4: Login with credentials
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        login_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         assert login_response.status_code == 200
         login_data = login_response.json()
@@ -101,8 +105,7 @@ class TestRegistrationToLoginFlow:
 
         # Step 5: Access protected endpoint
         me_response = await client.get(
-            "/auth/me",
-            headers={"Authorization": f"Bearer {access_token}"}
+            "/auth/me", headers={"Authorization": f"Bearer {access_token}"}
         )
 
         assert me_response.status_code == 200
@@ -111,9 +114,7 @@ class TestRegistrationToLoginFlow:
         assert me_data["data"]["username"] == username
         assert me_data["data"]["is_verified"] is True
 
-    async def test_login_before_verification_fails(
-        self, client: AsyncClient, faker_instance
-    ):
+    async def test_login_before_verification_fails(self, client: AsyncClient, faker_instance):
         """
         Test that login fails for unverified users.
 
@@ -127,17 +128,23 @@ class TestRegistrationToLoginFlow:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # Step 2: Try to login without verification
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        login_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         # Step 3: Verify error
         assert login_response.status_code == 400
@@ -145,9 +152,7 @@ class TestRegistrationToLoginFlow:
         assert login_data["success"] is False
         assert login_data["error"]["code"] == "EMAIL_NOT_VERIFIED"
 
-    async def test_resend_verification_email(
-        self, client: AsyncClient, faker_instance
-    ):
+    async def test_resend_verification_email(self, client: AsyncClient, faker_instance):
         """
         Test resending verification email.
 
@@ -158,16 +163,17 @@ class TestRegistrationToLoginFlow:
         """
         # Step 1: Register
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": faker_instance.user_name().lower().replace(".", "_"),
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": faker_instance.user_name().lower().replace(".", "_"),
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Step 2: Resend verification
-        resend_response = await client.post("/auth/resend-verification", json={
-            "email": email
-        })
+        resend_response = await client.post("/auth/resend-verification", json={"email": email})
 
         assert resend_response.status_code == 200
         resend_data = resend_response.json()
@@ -199,39 +205,42 @@ class TestPasswordResetFlow:
         old_password = "OldPassword123!"
         new_password = "NewPassword456!"
 
-        register_response = await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": old_password,
-        })
+        register_response = await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": old_password,
+            },
+        )
 
         user_id = register_response.json()["data"]["user_id"]
 
         # TODO: Verify email programmatically
         # For now, manually set user as verified
         from src.models.user import User
-        result = await db_session.execute(
-            select(User).where(User.id == user_id)
-        )
+
+        result = await db_session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one()
         user.is_verified = True
         await db_session.commit()
 
         # Step 2: Request password reset
-        reset_request_response = await client.post("/auth/password-reset/request", json={
-            "email": email
-        })
+        reset_request_response = await client.post(
+            "/auth/password-reset/request", json={"email": email}
+        )
 
         assert reset_request_response.status_code == 200
         assert reset_request_response.json()["success"] is True
 
         # Step 3: Extract reset token from database
         from src.models.auth import PasswordReset
+
         result = await db_session.execute(
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "password_reset",
-                PasswordReset.used_at.is_(None)
+                PasswordReset.used_at.is_(None),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -241,28 +250,34 @@ class TestPasswordResetFlow:
         reset_token = "extracted_reset_token"
 
         # Step 4: Confirm password reset
-        reset_confirm_response = await client.post("/auth/password-reset/confirm", json={
-            "token": reset_token,
-            "new_password": new_password
-        })
+        reset_confirm_response = await client.post(
+            "/auth/password-reset/confirm",
+            json={"token": reset_token, "new_password": new_password},
+        )
 
         assert reset_confirm_response.status_code == 200
         assert reset_confirm_response.json()["success"] is True
 
         # Step 5: Verify old password no longer works
-        old_login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": old_password,
-        })
+        old_login_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": old_password,
+            },
+        )
 
         assert old_login_response.status_code == 401
         assert old_login_response.json()["error"]["code"] == "INVALID_CREDENTIALS"
 
         # Step 6: Login with new password
-        new_login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": new_password,
-        })
+        new_login_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": new_password,
+            },
+        )
 
         assert new_login_response.status_code == 200
         assert new_login_response.json()["success"] is True
@@ -282,11 +297,14 @@ class TestPasswordResetFlow:
         """
         # Step 1: Register and verify
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": faker_instance.user_name().lower().replace(".", "_"),
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": faker_instance.user_name().lower().replace(".", "_"),
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Step 2: Request reset
         await client.post("/auth/password-reset/request", json={"email": email})
@@ -301,9 +319,7 @@ class TestPasswordResetFlow:
 class TestTokenRefreshFlow:
     """T048: Integration test for token refresh mechanism."""
 
-    async def test_refresh_token_mechanism(
-        self, client: AsyncClient, faker_instance
-    ):
+    async def test_refresh_token_mechanism(self, client: AsyncClient, faker_instance):
         """
         Test the token refresh flow.
 
@@ -319,27 +335,33 @@ class TestTokenRefreshFlow:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # TODO: Verify email
         # TODO: Login to get tokens
 
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        login_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         old_access_token = login_response.json()["data"]["access_token"]
         old_refresh_token = login_response.json()["data"]["refresh_token"]
 
         # Step 2: Refresh tokens
-        refresh_response = await client.post("/auth/refresh", json={
-            "refresh_token": old_refresh_token
-        })
+        refresh_response = await client.post(
+            "/auth/refresh", json={"refresh_token": old_refresh_token}
+        )
 
         assert refresh_response.status_code == 200
         refresh_data = refresh_response.json()
@@ -350,35 +372,31 @@ class TestTokenRefreshFlow:
 
         # Step 3: Verify old access token still works
         old_me_response = await client.get(
-            "/auth/me",
-            headers={"Authorization": f"Bearer {old_access_token}"}
+            "/auth/me", headers={"Authorization": f"Bearer {old_access_token}"}
         )
         # Old access token should still work until it expires
         assert old_me_response.status_code == 200
 
         # Step 4: Verify new access token works
         new_me_response = await client.get(
-            "/auth/me",
-            headers={"Authorization": f"Bearer {new_access_token}"}
+            "/auth/me", headers={"Authorization": f"Bearer {new_access_token}"}
         )
         assert new_me_response.status_code == 200
 
         # Step 5: Verify new refresh token works
-        second_refresh_response = await client.post("/auth/refresh", json={
-            "refresh_token": new_refresh_token
-        })
+        second_refresh_response = await client.post(
+            "/auth/refresh", json={"refresh_token": new_refresh_token}
+        )
         assert second_refresh_response.status_code == 200
 
         # Step 6: Verify old refresh token no longer works
-        old_refresh_response = await client.post("/auth/refresh", json={
-            "refresh_token": old_refresh_token
-        })
+        old_refresh_response = await client.post(
+            "/auth/refresh", json={"refresh_token": old_refresh_token}
+        )
         assert old_refresh_response.status_code == 401
         assert old_refresh_response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
 
-    async def test_logout_invalidates_refresh_token(
-        self, client: AsyncClient, faker_instance
-    ):
+    async def test_logout_invalidates_refresh_token(self, client: AsyncClient, faker_instance):
         """
         Test that logout invalidates refresh token.
 
@@ -393,18 +411,24 @@ class TestTokenRefreshFlow:
         email = faker_instance.email()
         password = "SecurePass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # TODO: Verify and login
 
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        login_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         access_token = login_response.json()["data"]["access_token"]
         refresh_token = login_response.json()["data"]["refresh_token"]
@@ -413,23 +437,20 @@ class TestTokenRefreshFlow:
         logout_response = await client.post(
             "/auth/logout",
             json={"refresh_token": refresh_token},
-            headers={"Authorization": f"Bearer {access_token}"}
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         assert logout_response.status_code == 200
 
         # Step 3: Verify refresh token no longer works
-        refresh_response = await client.post("/auth/refresh", json={
-            "refresh_token": refresh_token
-        })
+        refresh_response = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
 
         assert refresh_response.status_code == 401
         assert refresh_response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
 
         # Step 4: Verify access token still works
         me_response = await client.get(
-            "/auth/me",
-            headers={"Authorization": f"Bearer {access_token}"}
+            "/auth/me", headers={"Authorization": f"Bearer {access_token}"}
         )
         assert me_response.status_code == 200
 
@@ -458,20 +479,26 @@ class TestRateLimiting:
         email = faker_instance.email()
         password = "CorrectPass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # TODO: Verify email
 
         # Step 2: Attempt 5 failed logins
         for i in range(5):
-            response = await client.post("/auth/login", json={
-                "login": username,
-                "password": "WrongPassword123!",
-            })
+            response = await client.post(
+                "/auth/login",
+                json={
+                    "login": username,
+                    "password": "WrongPassword123!",
+                },
+            )
 
             if i < 4:
                 # First 4 attempts should return 401
@@ -483,10 +510,13 @@ class TestRateLimiting:
                 assert response.json()["error"]["code"] == "ACCOUNT_LOCKED"
 
         # Step 3: Verify account is locked even with correct password
-        response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
 
         assert response.status_code == 429
         assert response.json()["error"]["code"] == "ACCOUNT_LOCKED"
@@ -512,40 +542,50 @@ class TestRateLimiting:
         email = faker_instance.email()
         password = "CorrectPass123!"
 
-        await client.post("/auth/register", json={
-            "username": username,
-            "email": email,
-            "password": password,
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
 
         # TODO: Verify email
 
         # Step 2: 3 failed attempts
         for _ in range(3):
-            await client.post("/auth/login", json={
-                "login": username,
-                "password": "WrongPassword123!",
-            })
+            await client.post(
+                "/auth/login",
+                json={
+                    "login": username,
+                    "password": "WrongPassword123!",
+                },
+            )
 
         # Step 3: Successful login
-        success_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password,
-        })
+        success_response = await client.post(
+            "/auth/login",
+            json={
+                "login": username,
+                "password": password,
+            },
+        )
         assert success_response.status_code == 200
 
         # Step 4: 3 more failed attempts
         for i in range(3):
-            response = await client.post("/auth/login", json={
-                "login": username,
-                "password": "WrongPassword123!",
-            })
+            response = await client.post(
+                "/auth/login",
+                json={
+                    "login": username,
+                    "password": "WrongPassword123!",
+                },
+            )
             # Should return 401, not 429 (account locked)
             assert response.status_code == 401
 
-    async def test_verification_email_rate_limiting(
-        self, client: AsyncClient, faker_instance
-    ):
+    async def test_verification_email_rate_limiting(self, client: AsyncClient, faker_instance):
         """
         Test rate limiting for verification email resends (3 per hour).
 
@@ -556,17 +596,18 @@ class TestRateLimiting:
         """
         # Step 1: Register
         email = faker_instance.email()
-        await client.post("/auth/register", json={
-            "username": faker_instance.user_name().lower().replace(".", "_"),
-            "email": email,
-            "password": "SecurePass123!",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "username": faker_instance.user_name().lower().replace(".", "_"),
+                "email": email,
+                "password": "SecurePass123!",
+            },
+        )
 
         # Step 2: Resend 3 times
         for i in range(4):
-            response = await client.post("/auth/resend-verification", json={
-                "email": email
-            })
+            response = await client.post("/auth/resend-verification", json={"email": email})
 
             if i < 3:
                 # First 3 should succeed

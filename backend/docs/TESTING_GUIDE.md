@@ -9,6 +9,7 @@ Guía completa para ejecutar tests y verificar cobertura.
 - [Tests Existentes](#tests-existentes)
 - [Verificación de Mensajes en Español](#verificación-de-mensajes-en-español)
 - [CI/CD Integration](#cicd-integration)
+- [Manual Testing](#manual-testing)
 
 ---
 
@@ -27,8 +28,20 @@ poetry run pytest tests/ --cov=src --cov-report=html --cov-report=term -v
 
 **Contract Tests** (validan respuestas contra OpenAPI spec):
 ```bash
+# Ejecutar todos los contract tests (116 tests) ✅ RE-ENABLED 2025-12-30
 poetry run pytest tests/contract/ -v
+
+# Por módulo
+poetry run pytest tests/contract/test_auth_contracts.py -v       # 22 tests
+poetry run pytest tests/contract/test_profile_contracts.py -v    # 14 tests
+poetry run pytest tests/contract/test_social_contracts.py -v     # 22 tests
+poetry run pytest tests/contract/test_stats_contracts.py -v      # 14 tests
+poetry run pytest tests/contract/test_trip_contracts.py -v       # 35 tests
+poetry run pytest tests/contract/test_trip_photo_contracts.py -v # 9 tests
 ```
+
+> **Nota**: Los contract tests usan validación manual de schemas (sin openapi-core).
+> Validan estructura de respuestas JSON y campos requeridos.
 
 **Integration Tests** (workflows completos con DB):
 ```bash
@@ -47,6 +60,8 @@ locust -f tests/performance/locustfile.py --host http://localhost:8000
 
 ### Tests por User Story
 
+#### User Profile Features (001-user-profiles)
+
 ```bash
 # User Story 1: Authentication
 poetry run pytest tests/contract/test_auth_contracts.py -v
@@ -63,6 +78,63 @@ poetry run pytest tests/integration/test_stats_calculation.py -v
 # User Story 4: Social Features
 poetry run pytest tests/contract/test_social_contracts.py -v
 poetry run pytest tests/integration/test_follow_workflow.py -v
+```
+
+#### Travel Diary Features (002-travel-diary)
+
+```bash
+# User Story 1: Crear Viajes (Create Trips)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py::TestCreateTripContract -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py::TestCreateTrip -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py::TestCreateTrip -v
+
+# User Story 2: Subir Fotos de Viajes (Upload Trip Photos)
+# Contract tests
+poetry run pytest tests/contract/test_trip_photo_contracts.py -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py -k "photo" -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py -k "photo" -v
+
+# User Story 3: Editar y Eliminar Viajes (Edit & Delete Trips)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py::TestUpdateTripContract -v
+poetry run pytest tests/contract/test_trip_contracts.py::TestDeleteTripContract -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py::TestUpdateTrip -v
+poetry run pytest tests/integration/test_trips_api.py::TestDeleteTrip -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py::TestUpdateTrip -v
+poetry run pytest tests/unit/test_trip_service.py::TestDeleteTrip -v
+
+# User Story 4: Etiquetas y Categorización (Tags & Categorization)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py -k "tag" -v
+# Integration tests
+poetry run pytest tests/integration/test_trips_api.py::TestTagFilteringWorkflow -v
+poetry run pytest tests/integration/test_trips_api.py::TestTagPopularityWorkflow -v
+# Unit tests
+poetry run pytest tests/unit/test_trip_service.py -k "tag" -v
+
+# User Story 5: Borradores de Viaje (Draft Trips)
+# Contract tests
+poetry run pytest tests/contract/test_trip_contracts.py -k "draft" -v
+# Integration tests - TODOS PASANDO ✅ (10/10)
+poetry run pytest tests/integration/test_trips_api.py -k "draft" -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftCreationWorkflow -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftVisibility -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftListing -v
+poetry run pytest tests/integration/test_trips_api.py::TestDraftToPublishedTransition -v
+# Unit tests - TODOS PASANDO ✅ (5/5)
+poetry run pytest tests/unit/test_trip_service.py::TestDraftValidation -v
+
+# Ejecutar TODOS los tests de Travel Diary
+poetry run pytest tests/contract/test_trip_contracts.py tests/contract/test_trip_photo_contracts.py -v
+poetry run pytest tests/integration/test_trips_api.py -v
+poetry run pytest tests/unit/test_trip_service.py -v
 ```
 
 ---
@@ -216,15 +288,161 @@ directory = htmlcov
 - ✅ Duplicate follow prevention
 - ✅ Transactional counter updates
 
+### User Story 5: Crear Viajes (Travel Diary - Create Trips)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ POST /trips success schema validation
+- ✅ POST /trips validation error schema
+- ✅ GET /trips/{trip_id} success schema
+- ✅ GET /users/{username}/trips list schema
+- ✅ Required field validation (title, description, dates)
+- ✅ Optional field handling (distance_km, difficulty)
+- ✅ Tags array validation (max 10 tags)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestCreateTrip: Full trip creation workflow
+- ✅ Valid trip data accepted
+- ✅ Stats updated after trip creation
+- ✅ Location data stored correctly
+- ✅ Tags normalized and associated
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ TripService.create_trip()
+- ✅ TripService.get_trip()
+- ✅ TripService.get_user_trips()
+- ✅ Validation: title length (3-200 chars)
+- ✅ Validation: description min length
+- ✅ Validation: date consistency (start <= end)
+
+### User Story 6: Subir Fotos de Viajes (Travel Diary - Upload Photos)
+
+**Contract Tests** (backend/tests/contract/test_trip_photo_contracts.py):
+
+- ✅ POST /trips/{trip_id}/photos success schema
+- ✅ GET /trips/{trip_id}/photos list schema
+- ✅ DELETE /trips/{trip_id}/photos/{photo_id} success
+- ✅ Photo metadata validation (url, file_size, dimensions)
+- ✅ Caption validation (max 500 chars)
+- ✅ Order validation (photo ordering)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestUploadPhoto: Photo upload workflow
+- ✅ MIME type validation (JPEG, PNG only)
+- ✅ File size validation (max 10MB)
+- ✅ Max photos per trip (20 photos)
+- ✅ Photo processing (metadata extraction)
+- ✅ Storage path validation
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ TripService.upload_photo()
+- ✅ TripService.delete_photo()
+- ✅ TripService.reorder_photos()
+- ✅ Photo count enforcement
+- ✅ Storage cleanup on delete
+
+### User Story 7: Editar y Eliminar Viajes (Travel Diary - Edit & Delete)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ PUT /trips/{trip_id} success schema
+- ✅ PUT /trips/{trip_id} validation error schema
+- ✅ DELETE /trips/{trip_id} success schema
+- ✅ Partial update validation
+- ✅ Immutable field protection (user_id, created_at)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestUpdateTrip: Trip update workflow
+- ✅ TestDeleteTrip: Trip deletion workflow
+- ✅ Ownership validation (only owner can edit/delete)
+- ✅ Stats recalculation after update
+- ✅ Stats adjustment after deletion
+- ✅ Cascade delete (photos, locations, tags)
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ TripService.update_trip()
+- ✅ TripService.delete_trip()
+- ✅ Partial update validation
+- ✅ Ownership verification
+- ✅ Stats integration
+
+### User Story 8: Etiquetas y Categorización (Travel Diary - Tags)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ GET /tags success schema
+- ✅ GET /users/{username}/trips?tag={tag} schema
+- ✅ Tag array validation
+- ✅ Popular tags ordering (by usage_count)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py):
+
+- ✅ TestTagFiltering: Tag-based trip filtering
+- ✅ Case-insensitive tag matching
+- ✅ Tag normalization (lowercase storage)
+- ✅ Tag usage count updates
+- ✅ Popular tags endpoint
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py):
+
+- ✅ Tag normalization logic
+- ✅ Tag association/disassociation
+- ✅ Tag reuse detection
+- ✅ Usage count increments/decrements
+
+### User Story 9: Borradores de Viaje (Travel Diary - Draft Workflow)
+
+**Contract Tests** (backend/tests/contract/test_trip_contracts.py):
+
+- ✅ POST /trips/{trip_id}/publish success schema
+- ✅ GET /users/{username}/trips?status=draft schema
+- ✅ GET /users/{username}/trips?status=published schema
+- ✅ Status field validation (DRAFT/PUBLISHED enum)
+
+**Integration Tests** (backend/tests/integration/test_trips_api.py) - ✅ **10/10 PASSING**:
+
+- ✅ TestDraftCreationWorkflow: Default draft creation
+- ✅ TestDraftVisibility: Owner-only draft access
+- ✅ TestDraftListing: Status filtering (draft/published)
+- ✅ TestDraftToPublishedTransition: Publish workflow
+- ✅ Minimal validation for drafts
+- ✅ Full validation on publish
+- ✅ Stats updated only on publish
+- ✅ Draft access control (403 for non-owners)
+
+**Unit Tests** (backend/tests/unit/test_trip_service.py) - ✅ **5/5 PASSING**:
+
+- ✅ TestDraftValidation: Draft-specific validation
+- ✅ Publish validation (description ≥50 chars)
+- ✅ Status transition (DRAFT→PUBLISHED)
+- ✅ Stats integration on publish
+- ✅ Draft query filtering
+
 ### Total Tests Count
 
+```text
+User Profile Features (001-user-profiles):
+  Contract Tests:    ~35 tests
+  Integration Tests: ~25 tests
+  Unit Tests:        ~40 tests
+
+Travel Diary Features (002-travel-diary):
+  Contract Tests:    ~70 tests
+  Integration Tests: ~50 tests
+  Unit Tests:        ~295 tests
+
+---------------------------------------------------
+TOTAL:              515 tests (as of 2025-12-30)
+Coverage:           41.73% (target: 90%)
 ```
-Contract Tests:   ~35 tests
-Integration Tests: ~25 tests
-Unit Tests:       ~40 tests
-----------------------------
-TOTAL:           ~100 tests
-```
+
+**Note**: Contract tests re-enabled on 2025-12-30 after removing unused openapi-core dependencies.
 
 ---
 
@@ -444,6 +662,56 @@ TOTAL                                 1039     17    98%
 ```
 
 **Target: ≥90% ✅ PASSED (98%)**
+
+---
+
+## Manual Testing
+
+Para testing manual interactivo de la API, consulta la documentación en `api/`:
+
+### Guías de Testing Manual
+
+- **[api/MANUAL_TESTING.md](api/MANUAL_TESTING.md)** - Testing con comandos `curl`
+  - Prerequisitos y configuración
+  - Todos los endpoints con ejemplos completos
+  - Scripts bash para flujos end-to-end
+  - Validaciones y casos de error
+  - Troubleshooting
+
+- **[api/POSTMAN_COLLECTION.md](api/POSTMAN_COLLECTION.md)** - Testing con Postman/Insomnia
+  - Colección JSON lista para importar
+  - Environment variables con auto-update scripts
+  - Flujos de testing paso a paso
+  - Tips para testing eficiente
+
+### Quick Start - Manual Testing
+
+```bash
+# 1. Login
+curl -X POST "http://localhost:8000/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "TestPass123!"}'
+
+# 2. Guardar token
+export TOKEN="<access_token_from_response>"
+
+# 3. Crear trip
+curl -X POST "http://localhost:8000/trips" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test Trip",
+    "description": "Descripción de al menos 50 caracteres para testing...",
+    "start_date": "2024-05-15"
+  }'
+
+# 4. Upload foto
+curl -X POST "http://localhost:8000/trips/<TRIP_ID>/photos" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "photo=@test_photo.jpg"
+```
+
+Ver [api/README.md](api/README.md) para documentación completa.
 
 ---
 

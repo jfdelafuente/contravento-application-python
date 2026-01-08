@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import Boolean, String, Text, DateTime, ForeignKey
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
@@ -167,6 +167,14 @@ class User(Base):
         doc="Users this user follows",
     )
 
+    # Travel Diary relationships (002-travel-diary)
+    trips: Mapped[list["Trip"]] = relationship(
+        "Trip",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Travel diary trips created by this user",
+    )
+
     def __repr__(self) -> str:
         """String representation for debugging."""
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
@@ -185,7 +193,7 @@ class UserProfile(Base):
         full_name: User's full name (optional)
         bio: Profile biography (max 500 characters)
         location: User's location (city, country)
-        cycling_type: Type of cycling (road, mountain, gravel, touring, commuting)
+        cycling_type: Type of cycling (bikepacking, commuting, gravel, mountain, road, touring)
         profile_photo_url: URL/path to profile photo
         created_at: Profile creation timestamp
         updated_at: Last profile update timestamp
@@ -233,7 +241,7 @@ class UserProfile(Base):
     cycling_type: Mapped[Optional[str]] = mapped_column(
         String(20),
         nullable=True,
-        doc="Type of cycling: road, mountain, gravel, touring, commuting",
+        doc="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring",
     )
 
     profile_photo_url: Mapped[Optional[str]] = mapped_column(

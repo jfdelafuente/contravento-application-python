@@ -1,25 +1,40 @@
-# ContraVento - Docker Compose Configuration
-# Includes: Backend API, PostgreSQL, Redis, MailHog (development)
+# ============================================================================
+# ContraVento - Docker Compose Base Configuration
+# ============================================================================
+# This file contains common service definitions for all environments.
+# Use overlay files for environment-specific configurations:
+#
+#   Local (Development):    docker-compose -f docker-compose.yml -f docker-compose.local.yml up
+#   Dev (Integration):      docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Staging (Pre-prod):     docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+#   Production:             docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Quick commands (using scripts):
+#   ./deploy.sh local       # Start local development
+#   ./deploy.sh dev         # Start integration environment
+#   ./deploy.sh staging     # Start staging environment
+#   ./deploy.sh prod        # Start production environment
+# ============================================================================
 
 version: '3.8'
 
 services:
+  # ==========================================================================
   # PostgreSQL Database
+  # ==========================================================================
   postgres:
     image: postgres:16-alpine
-    container_name: contravento-db
+    container_name: contravento-db-${APP_ENV:-local}
     environment:
-      POSTGRES_DB: contravento
-      POSTGRES_USER: contravento_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme_in_production}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=en_US.UTF-8
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U contravento_user -d contravento"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,13 +42,13 @@ services:
     networks:
       - contravento-network
 
+  # ==========================================================================
   # Redis Cache & Session Store
+  # ==========================================================================
   redis:
     image: redis:7-alpine
-    container_name: contravento-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme_in_production}
-    ports:
-      - "6379:6379"
+    container_name: contravento-redis-${APP_ENV:-local}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     healthcheck:
@@ -45,54 +60,57 @@ services:
     networks:
       - contravento-network
 
-  # Backend API
+  # ==========================================================================
+  # Backend API (FastAPI)
+  # ==========================================================================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: contravento-api
+      args:
+        APP_ENV: ${APP_ENV:-local}
+    container_name: contravento-api-${APP_ENV:-local}
     environment:
-      # App Config
-      APP_ENV: ${APP_ENV:-production}
-      APP_NAME: ContraVento
+      # Application
+      APP_NAME: ${APP_NAME:-ContraVento}
+      APP_ENV: ${APP_ENV}
       DEBUG: ${DEBUG:-false}
 
       # Database
-      DATABASE_URL: postgresql+asyncpg://contravento_user:${DB_PASSWORD:-changeme_in_production}@postgres:5432/contravento
+      DATABASE_URL: ${DATABASE_URL}
 
       # Redis
-      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme_in_production}@redis:6379/0
+      REDIS_URL: ${REDIS_URL}
 
       # Security
       SECRET_KEY: ${SECRET_KEY}
-      ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 15
-      REFRESH_TOKEN_EXPIRE_DAYS: 30
-      BCRYPT_ROUNDS: 12
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-30}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
 
-      # SMTP (use MailHog for development)
-      SMTP_HOST: ${SMTP_HOST:-mailhog}
-      SMTP_PORT: ${SMTP_PORT:-1025}
+      # SMTP
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-noreply@contravento.com}
+      SMTP_FROM: ${SMTP_FROM}
       SMTP_TLS: ${SMTP_TLS:-false}
 
       # CORS
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
       # Storage
-      STORAGE_PATH: /app/storage
+      STORAGE_PATH: ${STORAGE_PATH:-/app/storage}
 
-    ports:
-      - "8000:8000"
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+
     volumes:
       - backend_storage:/app/storage
-      - ./backend/src:/app/src:ro  # Development: mount source for hot reload
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -104,29 +122,16 @@ services:
     networks:
       - contravento-network
 
-  # MailHog (Email testing - development only)
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: contravento-mailhog
-    ports:
-      - "1025:1025"  # SMTP server
-      - "8025:8025"  # Web UI
-    restart: unless-stopped
-    networks:
-      - contravento-network
-    profiles:
-      - development
-
-  # pgAdmin (Database UI - development only)
+  # ==========================================================================
+  # pgAdmin - Database Management UI
+  # ==========================================================================
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: contravento-pgadmin
+    container_name: contravento-pgadmin-${APP_ENV:-local}
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@contravento.com
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@contravento.local}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - "5050:80"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
@@ -134,9 +139,10 @@ services:
     restart: unless-stopped
     networks:
       - contravento-network
-    profiles:
-      - development
 
+# ============================================================================
+# Volumes
+# ============================================================================
 volumes:
   postgres_data:
     driver: local
@@ -147,6 +153,9 @@ volumes:
   pgadmin_data:
     driver: local
 
+# ============================================================================
+# Networks
+# ============================================================================
 networks:
   contravento-network:
     driver: bridge

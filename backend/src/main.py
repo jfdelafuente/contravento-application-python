@@ -5,7 +5,7 @@ Initializes the FastAPI app with middleware, error handling, and routing.
 """
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -14,13 +14,13 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import settings
+from src.models.social import Follow  # noqa: F401
+from src.models.stats import Achievement, UserAchievement, UserStats  # noqa: F401
+from src.models.trip import Tag, Trip, TripLocation, TripPhoto, TripTag  # noqa: F401
 
 # Import all models to ensure SQLAlchemy relationships are resolved
 # This must happen before any route handlers are registered
 from src.models.user import User, UserProfile  # noqa: F401
-from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
-from src.models.social import Follow  # noqa: F401
-
 
 # Create FastAPI application
 app = FastAPI(
@@ -46,9 +46,9 @@ app.add_middleware(
 def create_response(
     success: bool,
     data: Any = None,
-    error: Dict[str, str] = None,
+    error: dict[str, str] = None,
     message: str = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create standardized API response.
 
@@ -169,6 +169,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     """
     # Log the actual error for debugging
     import logging
+
     logger = logging.getLogger(__name__)
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
 
@@ -203,7 +204,7 @@ async def add_timestamp_header(request: Request, call_next):
 
 # Health check endpoint
 @app.get("/health", tags=["System"])
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """
     Health check endpoint.
 
@@ -222,7 +223,7 @@ async def health_check() -> Dict[str, Any]:
 
 # Root endpoint
 @app.get("/", tags=["System"])
-async def root() -> Dict[str, Any]:
+async def root() -> dict[str, Any]:
     """
     Root endpoint.
 
@@ -240,9 +241,12 @@ async def root() -> Dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth, profile, stats, social
+from src.api import auth, profile, social, stats, trips
+
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(stats.router)
 app.include_router(stats.achievements_router)
 app.include_router(social.router)
+app.include_router(trips.router)
+app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints

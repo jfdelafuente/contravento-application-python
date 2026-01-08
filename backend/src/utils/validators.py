@@ -5,10 +5,6 @@ Provides validation functions for username, email, and other user-submitted data
 """
 
 import re
-from typing import Any
-
-from pydantic import field_validator
-
 
 # Username validation pattern: 3-30 alphanumeric characters and underscores
 USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
@@ -54,9 +50,7 @@ def validate_username(value: str) -> str:
         raise ValueError("El nombre de usuario debe tener entre 3 y 30 caracteres")
 
     if not USERNAME_PATTERN.match(value):
-        raise ValueError(
-            "El nombre de usuario solo puede contener letras, números y guiones bajos"
-        )
+        raise ValueError("El nombre de usuario solo puede contener letras, números y guiones bajos")
 
     return value.lower()
 
@@ -126,7 +120,7 @@ def validate_password(value: str) -> str:
         raise ValueError(f"La contraseña debe tener al menos {PASSWORD_MIN_LENGTH} caracteres")
 
     # Bcrypt has a 72-byte limitation
-    if len(value.encode('utf-8')) > 72:
+    if len(value.encode("utf-8")) > 72:
         raise ValueError("La contraseña no puede exceder 72 bytes")
 
     if not re.search(r"[A-Z]", value):
@@ -177,7 +171,7 @@ def validate_cycling_type(value: str) -> str:
     Validate cycling type.
 
     Rules (FR-015):
-    - Must be one of: road, mountain, gravel, touring, commuting
+    - Must be one of: road, mountain, gravel, touring, commuting, bikepacking
 
     Args:
         value: Cycling type to validate
@@ -191,16 +185,16 @@ def validate_cycling_type(value: str) -> str:
     Example:
         >>> validate_cycling_type("mountain")
         'mountain'
+        >>> validate_cycling_type("bikepacking")
+        'bikepacking'
     """
     if not value:
         return None
 
-    allowed_types = {"road", "mountain", "gravel", "touring", "commuting"}
+    allowed_types = {"road", "mountain", "gravel", "touring", "commuting", "bikepacking"}
     value_lower = value.lower()
 
     if value_lower not in allowed_types:
-        raise ValueError(
-            f"El tipo de ciclismo debe ser uno de: {', '.join(allowed_types)}"
-        )
+        raise ValueError(f"El tipo de ciclismo debe ser uno de: {', '.join(sorted(allowed_types))}")
 
     return value_lower

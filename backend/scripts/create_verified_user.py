@@ -26,12 +26,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy import select
+
 from src.database import AsyncSessionLocal
-from src.models.user import User, UserProfile
-from src.models.stats import UserStats, Achievement, UserAchievement
-from src.models.social import Follow
-from src.services.auth_service import AuthService
+from src.models.user import User
 from src.schemas.auth import RegisterRequest
+from src.services.auth_service import AuthService
 
 
 async def create_verified_user(username: str, email: str, password: str):
@@ -57,7 +56,7 @@ async def create_verified_user(username: str, email: str, password: str):
             existing_user = result.scalar_one_or_none()
 
             if existing_user:
-                print(f"[ERROR] Usuario ya existe:")
+                print("[ERROR] Usuario ya existe:")
                 print(f"  Username: {existing_user.username}")
                 print(f"  Email: {existing_user.email}")
                 print(f"  Verificado: {'Si' if existing_user.is_verified else 'No'}")
@@ -75,20 +74,14 @@ async def create_verified_user(username: str, email: str, password: str):
             print(f"\n[INFO] Creando usuario '{username}'...")
             auth_service = AuthService(db)
 
-            register_data = RegisterRequest(
-                username=username,
-                email=email,
-                password=password
-            )
+            register_data = RegisterRequest(username=username, email=email, password=password)
 
             # Register user
             user_response = await auth_service.register(register_data)
             print(f"[OK] Usuario registrado: {user_response.username}")
 
             # Fetch the actual user object
-            result = await db.execute(
-                select(User).where(User.id == user_response.user_id)
-            )
+            result = await db.execute(select(User).where(User.id == user_response.user_id))
             user = result.scalar_one()
 
             # Verify the user automatically (bypass email verification)
@@ -96,19 +89,19 @@ async def create_verified_user(username: str, email: str, password: str):
             await db.commit()
             await db.refresh(user)
 
-            print(f"[OK] Email verificado automaticamente")
+            print("[OK] Email verificado automaticamente")
 
             # Display user info
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("USUARIO CREADO Y VERIFICADO")
-            print("="*60)
+            print("=" * 60)
             print(f"Username: {user.username}")
             print(f"Email: {user.email}")
             print(f"Password: {password}")
             print(f"User ID: {user.id}")
-            print(f"Verificado: Si")
+            print("Verificado: Si")
             print(f"Activo: {'Si' if user.is_active else 'No'}")
-            print("="*60)
+            print("=" * 60)
 
             return user
 
@@ -118,6 +111,7 @@ async def create_verified_user(username: str, email: str, password: str):
         except Exception as e:
             print(f"[ERROR] Error inesperado: {e}")
             import traceback
+
             traceback.print_exc()
             return None
 
@@ -135,16 +129,14 @@ async def verify_user_by_email(email: str):
     async with AsyncSessionLocal() as db:
         try:
             # Find user by email
-            result = await db.execute(
-                select(User).where(User.email == email.lower())
-            )
+            result = await db.execute(select(User).where(User.email == email.lower()))
             user = result.scalar_one_or_none()
 
             if not user:
                 print(f"[ERROR] No se encontro usuario con email: {email}")
                 return None
 
-            print(f"\n[INFO] Usuario encontrado:")
+            print("\n[INFO] Usuario encontrado:")
             print(f"  Username: {user.username}")
             print(f"  Email: {user.email}")
             print(f"  Verificado: {'Si' if user.is_verified else 'No'}")
@@ -161,56 +153,43 @@ async def verify_user_by_email(email: str):
             print("\n[OK] Usuario verificado exitosamente!")
 
             # Display user info
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("USUARIO VERIFICADO")
-            print("="*60)
+            print("=" * 60)
             print(f"Username: {user.username}")
             print(f"Email: {user.email}")
             print(f"User ID: {user.id}")
-            print(f"Verificado: Si")
+            print("Verificado: Si")
             print(f"Activo: {'Si' if user.is_active else 'No'}")
-            print("="*60)
+            print("=" * 60)
 
             return user
 
         except Exception as e:
             print(f"[ERROR] Error inesperado: {e}")
             import traceback
+
             traceback.print_exc()
             return None
 
 
 async def main():
     """Main function to create test users or verify existing ones."""
-    parser = argparse.ArgumentParser(
-        description="Create and verify test users for development"
-    )
-    parser.add_argument(
-        "--username",
-        type=str,
-        help="Username for the new user"
-    )
-    parser.add_argument(
-        "--email",
-        type=str,
-        help="Email address for the new user"
-    )
+    parser = argparse.ArgumentParser(description="Create and verify test users for development")
+    parser.add_argument("--username", type=str, help="Username for the new user")
+    parser.add_argument("--email", type=str, help="Email address for the new user")
     parser.add_argument(
         "--password",
         type=str,
-        help="Password for the new user (min 8 chars, uppercase, lowercase, number)"
+        help="Password for the new user (min 8 chars, uppercase, lowercase, number)",
     )
-    parser.add_argument(
-        "--verify-email",
-        type=str,
-        help="Email of existing user to verify"
-    )
+    parser.add_argument("--verify-email", type=str, help="Email of existing user to verify")
 
     args = parser.parse_args()
 
-    print("="*60)
+    print("=" * 60)
     print("CREADOR DE USUARIOS VERIFICADOS - DESARROLLO")
-    print("="*60)
+    print("=" * 60)
     print()
 
     # If verify-email flag is provided, only verify that user
@@ -222,9 +201,7 @@ async def main():
     if args.username and args.email and args.password:
         print(f"[INFO] Creando usuario personalizado '{args.username}'...")
         user = await create_verified_user(
-            username=args.username,
-            email=args.email,
-            password=args.password
+            username=args.username, email=args.email, password=args.password
         )
 
         if user:
@@ -238,36 +215,34 @@ async def main():
     if args.username or args.email or args.password:
         print("[ERROR] Debes proporcionar --username, --email y --password juntos")
         print("\nUso:")
-        print("  poetry run python scripts/create_verified_user.py --username john --email john@example.com --password SecurePass123!")
+        print(
+            "  poetry run python scripts/create_verified_user.py --username john --email john@example.com --password SecurePass123!"
+        )
         return
 
     # Default behavior: create default test users
     print("[INFO] Creando usuario de prueba por defecto...")
     user1 = await create_verified_user(
-        username="exampletuser",
-        email="example@example.com",
-        password="TestPass123!"
+        username="testuser", email="test@example.com", password="TestPass123!"
     )
 
     if user1:
         print("\n[OK] Usuario de prueba creado exitosamente!")
 
-    print("\n" + "-"*60)
+    print("\n" + "-" * 60)
 
     # Additional test user with different credentials
     print("\n[INFO] Creando segundo usuario de prueba...")
     user2 = await create_verified_user(
-        username="maria_garcia",
-        email="maria@example.com",
-        password="SecurePass456!"
+        username="maria_garcia", email="maria@example.com", password="SecurePass456!"
     )
 
     if user2:
         print("\n[OK] Segundo usuario creado exitosamente!")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PROCESO COMPLETADO")
-    print("="*60)
+    print("=" * 60)
     print("\nPuedes hacer login con cualquiera de estos usuarios:")
     print("  POST /auth/login")
     print('  {"login": "testuser", "password": "TestPass123!"}')

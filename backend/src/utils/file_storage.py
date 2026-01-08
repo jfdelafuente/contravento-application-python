@@ -5,19 +5,16 @@ Handles profile photo upload, validation, resizing, and storage path management.
 """
 
 import logging
-import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple, BinaryIO, Union
-from io import BytesIO
+from typing import BinaryIO, Optional
 
 import aiofiles
-from PIL import Image
 from fastapi import UploadFile
+from PIL import Image
 
 from src.config import settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -99,11 +96,7 @@ def generate_photo_filename(user_id: str, extension: str) -> str:
     return f"{user_id}_{unique_id}.{ext}"
 
 
-def validate_photo(
-    photo_bytes: BinaryIO,
-    content_type: str,
-    max_size_mb: int = 5
-) -> None:
+def validate_photo(photo_bytes: BinaryIO, content_type: str, max_size_mb: int = 5) -> None:
     """
     Validate photo file (sync version for BytesIO).
 
@@ -206,7 +199,7 @@ def resize_photo(file_path: Path, target_size: int = 400) -> Path:
         raise
 
 
-async def validate_photo_async(file: UploadFile) -> Tuple[bool, Optional[str]]:
+async def validate_photo_async(file: UploadFile) -> tuple[bool, Optional[str]]:
     """
     Validate uploaded photo file (async version for FastAPI UploadFile).
 
@@ -315,7 +308,7 @@ async def save_profile_photo(user_id: str, file: UploadFile) -> str:
         # Clean up on error
         if full_path.exists():
             full_path.unlink()
-        raise IOError(f"Error al guardar la foto: {str(e)}")
+        raise OSError(f"Error al guardar la foto: {str(e)}")
 
 
 async def delete_profile_photo(relative_path: str) -> bool:

@@ -4,18 +4,19 @@ Unit tests for security utilities (password hashing, JWT tokens).
 Tests the core security functions used for authentication.
 """
 
-import pytest
 from datetime import datetime, timedelta
-from jose import jwt, JWTError
 
+import pytest
+from jose import JWTError, jwt
+
+from src.config import settings
 from src.utils.security import (
-    hash_password,
-    verify_password,
     create_access_token,
     create_refresh_token,
     decode_token,
+    hash_password,
+    verify_password,
 )
-from src.config import settings
 
 
 @pytest.mark.unit

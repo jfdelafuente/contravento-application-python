@@ -5,14 +5,13 @@ Tests validation logic for user input fields.
 """
 
 import pytest
-from pydantic import ValidationError
 
 from src.utils.validators import (
-    validate_username,
-    validate_email,
-    validate_password,
     validate_bio,
     validate_cycling_type,
+    validate_email,
+    validate_password,
+    validate_username,
 )
 
 
@@ -60,8 +59,8 @@ class TestUsernameValidator:
             "user.name",  # Dot not allowed
             "user name",  # Space not allowed
             "user@name",  # @ not allowed
-            "user#123",   # # not allowed
-            "maría",      # Accents not allowed
+            "user#123",  # # not allowed
+            "maría",  # Accents not allowed
         ]
 
         for username in invalid_usernames:
@@ -255,7 +254,7 @@ class TestCyclingTypeValidator:
         for cycling_type in invalid_types:
             with pytest.raises(ValueError) as exc_info:
                 validate_cycling_type(cycling_type)
-            assert "tipo de ciclismo válido" in str(exc_info.value).lower()
+            assert "tipo de ciclismo debe ser uno de" in str(exc_info.value).lower()
 
     def test_cycling_type_none_is_valid(self):
         """Verify that None is a valid cycling_type (optional field)."""

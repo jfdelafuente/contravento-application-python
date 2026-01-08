@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -40,6 +40,100 @@ poetry run alembic downgrade -1
 # View migration history
 poetry run alembic history
 ```
+
+### Local Development Options
+
+ContraVento offers multiple ways to develop locally, from instant SQLite setup to full Docker environments:
+
+#### Option 1: LOCAL-DEV (SQLite - No Docker) ⚡ FASTEST & RECOMMENDED
+
+**Zero configuration, instant startup with SQLite database**
+
+```bash
+# First-time setup (one-time)
+./run-local-dev.sh --setup      # Linux/Mac
+.\run-local-dev.ps1 -Setup      # Windows PowerShell
+
+# Start development server
+./run-local-dev.sh              # Linux/Mac
+.\run-local-dev.ps1             # Windows PowerShell
+
+# Access:
+# - Backend API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+# - Database: backend/contravento_dev.db (SQLite file)
+```
+
+**Perfect for:**
+- ✅ Quick development iterations
+- ✅ Learning the codebase
+- ✅ Working on trips, stats, profiles
+- ✅ Prototyping features
+- ✅ No Docker needed!
+
+---
+
+#### Option 2: LOCAL-MINIMAL (PostgreSQL via Docker)
+
+**When you need PostgreSQL compatibility testing**
+
+```bash
+# Setup
+cp .env.local-minimal.example .env.local-minimal
+nano .env.local-minimal
+./deploy.sh local-minimal
+
+# Access:
+# - Backend API: http://localhost:8000
+# - PostgreSQL: localhost:5432
+```
+
+**Perfect for:**
+- ✅ Testing PostgreSQL-specific features
+- ✅ Pre-staging validation
+- ✅ Database migration testing
+
+---
+
+#### Option 3: LOCAL-FULL (Complete Stack via Docker)
+
+**When you need email testing, Redis, or visual DB tools**
+
+```bash
+./deploy.sh local
+
+# Access:
+# - Backend API: http://localhost:8000
+# - MailHog UI: http://localhost:8025 (email testing)
+# - pgAdmin: http://localhost:5050 (database UI)
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
+```
+
+**Perfect for:**
+- ✅ Testing auth/email features
+- ✅ Implementing Redis cache
+- ✅ Full-stack integration testing
+
+---
+
+#### Other Environments
+
+```bash
+./deploy.sh dev       # Development/Integration (Nginx, real SMTP)
+./deploy.sh staging   # Staging (production mirror with monitoring)
+./deploy.sh prod      # Production (high availability, SSL/TLS)
+```
+
+**Quick Reference:**
+
+| Environment | Startup | Docker | Database | Use When |
+|------------|---------|--------|----------|----------|
+| **local-dev** | ⚡ Instant | ❌ No | SQLite | Daily development (RECOMMENDED) |
+| **local-minimal** | ~10s | ✅ Yes | PostgreSQL | PostgreSQL testing |
+| **local-full** | ~20s | ✅ Yes | PostgreSQL | Email/cache testing |
+
+See [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) for complete deployment guide.
 
 ### Development Server
 
@@ -262,6 +356,119 @@ Profile photos follow this pattern:
 6. Delete original
 
 **Security**: Never trust client-provided filenames or MIME types - validate content.
+
+## Travel Diary Feature (002-travel-diary)
+
+The Travel Diary feature allows cyclists to document trips with rich content, photos, tags, and draft workflow.
+
+### Key Entities
+
+- **Trip**: Main entity for documenting cycling trips
+  - Fields: title, description, start_date, end_date, distance_km, difficulty, status (DRAFT/PUBLISHED)
+  - Relationships: belongs to User, has many TripPhoto, TripLocation, Tag
+- **TripPhoto**: Photos attached to trips (max 20 per trip)
+  - Fields: url, file_size, width, height, order, caption
+  - Stored at: `storage/trip_photos/{year}/{month}/{trip_id}/`
+- **Tag**: Categorization tags (case-insensitive matching)
+  - Fields: name, normalized (lowercase for matching), usage_count
+  - Max 10 tags per trip
+- **TripLocation**: Optional location data for trips
+  - Fields: latitude, longitude, address, country
+
+### Trip Workflow
+
+**Create Trip** (Draft by default):
+
+```bash
+POST /trips
+{
+  "title": "Ruta Bikepacking Pirineos",
+  "description": "Viaje de 5 días...",
+  "start_date": "2024-06-01",
+  "end_date": "2024-06-05",
+  "distance_km": 320.5,
+  "tags": ["bikepacking", "montaña"]
+}
+```
+
+**Publish Trip** (validates requirements):
+
+```bash
+POST /trips/{trip_id}/publish
+# Requirements: description ≥50 chars, valid dates
+```
+
+**Upload Photos**:
+
+```bash
+POST /trips/{trip_id}/photos
+Content-Type: multipart/form-data
+# Max 20 photos per trip, 10MB per photo
+```
+
+**Filter Trips by Tag/Status**:
+
+```bash
+GET /users/{username}/trips?tag=bikepacking&status=PUBLISHED
+GET /users/{username}/trips?status=DRAFT  # Owner-only
+```
+
+**Get Popular Tags**:
+
+```bash
+GET /tags  # Returns tags ordered by usage_count
+```
+
+### Draft Workflow
+
+- Trips default to `status=DRAFT` on creation
+- Drafts visible only to owner
+- Minimal validation for drafts (title + description required)
+- Publishing enforces full validation (description ≥50 chars)
+- Draft→Published transition updates stats automatically
+
+### Stats Integration
+
+Trip actions automatically update UserStats:
+
+- **Publish trip**: Increments trip_count, adds distance_km, updates countries
+- **Upload photo**: Increments photo_count (if trip published)
+- **Edit trip**: Recalculates distance_km, longest_trip_km
+- **Delete trip**: Decrements trip_count, subtracts distance_km
+
+See [backend/docs/STATS_INTEGRATION.md](backend/docs/STATS_INTEGRATION.md) for full details.
+
+### Manual Testing
+
+**Tags & Categorization**:
+
+```bash
+cd backend
+bash scripts/test_tags.sh
+# Interactive script for testing tag filtering, status filtering, pagination
+```
+
+See [backend/docs/api/TAGS_TESTING.md](backend/docs/api/TAGS_TESTING.md) for detailed manual testing guide.
+
+### Implementation Notes
+
+- **TripService** (`src/services/trip_service.py`): Core business logic
+  - create_trip(), publish_trip(), update_trip(), delete_trip()
+  - upload_photo(), delete_photo(), reorder_photos()
+  - get_user_trips() with tag/status filtering
+- **Trips API** (`src/api/trips.py`): RESTful endpoints
+- **HTML Sanitization**: Applied to trip descriptions to prevent XSS
+- **Tag Normalization**: Case-insensitive matching via `tag.normalized` column
+- **Photo Processing**: Background tasks for metadata extraction
+- **Optimistic Locking**: Prevents concurrent edit conflicts (future enhancement)
+
+### Data Model
+
+See [specs/002-travel-diary/data-model.md](../specs/002-travel-diary/data-model.md) for complete schema including:
+
+- SQLite DDL (development/testing)
+- PostgreSQL DDL (production)
+- Migrations in `backend/migrations/versions/`
 
 ## Testing Patterns
 

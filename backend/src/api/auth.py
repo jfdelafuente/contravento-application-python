@@ -15,32 +15,31 @@ Endpoints:
 - GET /auth/me: Get current user info
 """
 
-from typing import Dict, Any
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_db, get_current_user
-from src.services.auth_service import AuthService
+from src.api.deps import get_current_user, get_db
+from src.models.user import User
 from src.schemas.auth import (
-    RegisterRequest,
-    RegisterResponse,
     LoginRequest,
-    LoginResponse,
-    TokenResponse,
-    PasswordResetRequest,
     PasswordResetConfirm,
+    PasswordResetRequest,
+    RegisterRequest,
 )
 from src.schemas.user import UserResponse
-from src.models.user import User
+from src.services.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def create_response(success: bool, data: Any = None, error: Dict = None, message: str = None) -> Dict:
+def create_response(
+    success: bool, data: Any = None, error: dict = None, message: str = None
+) -> dict:
     """
     Create standardized JSON response.
 
@@ -63,7 +62,7 @@ def create_response(success: bool, data: Any = None, error: Dict = None, message
 async def register(
     data: RegisterRequest,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Register a new user.
 
@@ -89,7 +88,7 @@ async def register(
         return create_response(
             success=True,
             data=user.model_dump(),
-            message="Usuario registrado. Revisa tu email para verificar tu cuenta."
+            message="Usuario registrado. Revisa tu email para verificar tu cuenta.",
         )
 
     except ValueError as e:
@@ -111,8 +110,8 @@ async def register(
             detail={
                 "success": False,
                 "data": None,
-                "error": {"code": error_code, "message": error_msg, "field": field}
-            }
+                "error": {"code": error_code, "message": error_msg, "field": field},
+            },
         )
 
 
@@ -120,7 +119,7 @@ async def register(
 async def verify_email(
     token: str,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Verify user email with token.
 
@@ -140,10 +139,7 @@ async def verify_email(
         auth_service = AuthService(db)
         await auth_service.verify_email(token)
 
-        return create_response(
-            success=True,
-            message="Tu cuenta ha sido verificada correctamente"
-        )
+        return create_response(success=True, message="Tu cuenta ha sido verificada correctamente")
 
     except ValueError as e:
         error_msg = str(e)
@@ -158,8 +154,8 @@ async def verify_email(
             detail={
                 "success": False,
                 "data": None,
-                "error": {"code": error_code, "message": error_msg}
-            }
+                "error": {"code": error_code, "message": error_msg},
+            },
         )
 
 
@@ -167,7 +163,7 @@ async def verify_email(
 async def resend_verification(
     email: str,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Resend verification email.
 
@@ -189,10 +185,7 @@ async def resend_verification(
         auth_service = AuthService(db)
         await auth_service.resend_verification(email)
 
-        return create_response(
-            success=True,
-            message="Email de verificación enviado"
-        )
+        return create_response(success=True, message="Email de verificación enviado")
 
     except ValueError as e:
         error_msg = str(e)
@@ -203,8 +196,8 @@ async def resend_verification(
                 detail={
                     "success": False,
                     "data": None,
-                    "error": {"code": "RATE_LIMIT_EXCEEDED", "message": error_msg}
-                }
+                    "error": {"code": "RATE_LIMIT_EXCEEDED", "message": error_msg},
+                },
             )
 
         raise HTTPException(
@@ -212,8 +205,8 @@ async def resend_verification(
             detail={
                 "success": False,
                 "data": None,
-                "error": {"code": "VALIDATION_ERROR", "message": error_msg}
-            }
+                "error": {"code": "VALIDATION_ERROR", "message": error_msg},
+            },
         )
 
 
@@ -221,7 +214,7 @@ async def resend_verification(
 async def login(
     data: LoginRequest,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Login with username/email and password.
 
@@ -245,10 +238,7 @@ async def login(
         auth_service = AuthService(db)
         response = await auth_service.login(data)
 
-        return create_response(
-            success=True,
-            data=response.model_dump()
-        )
+        return create_response(success=True, data=response.model_dump())
 
     except ValueError as e:
         error_msg = str(e)
@@ -259,8 +249,8 @@ async def login(
                 detail={
                     "success": False,
                     "data": None,
-                    "error": {"code": "EMAIL_NOT_VERIFIED", "message": error_msg}
-                }
+                    "error": {"code": "EMAIL_NOT_VERIFIED", "message": error_msg},
+                },
             )
 
         elif "cuenta bloqueada" in error_msg.lower() or "demasiados intentos" in error_msg.lower():
@@ -269,8 +259,8 @@ async def login(
                 detail={
                     "success": False,
                     "data": None,
-                    "error": {"code": "ACCOUNT_LOCKED", "message": error_msg}
-                }
+                    "error": {"code": "ACCOUNT_LOCKED", "message": error_msg},
+                },
             )
 
         else:
@@ -279,8 +269,8 @@ async def login(
                 detail={
                     "success": False,
                     "data": None,
-                    "error": {"code": "INVALID_CREDENTIALS", "message": error_msg}
-                }
+                    "error": {"code": "INVALID_CREDENTIALS", "message": error_msg},
+                },
             )
 
 
@@ -288,7 +278,7 @@ async def login(
 async def refresh_token(
     refresh_token: str,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Refresh access token using refresh token.
 
@@ -310,10 +300,7 @@ async def refresh_token(
         auth_service = AuthService(db)
         tokens = await auth_service.refresh_token(refresh_token)
 
-        return create_response(
-            success=True,
-            data=tokens.model_dump()
-        )
+        return create_response(success=True, data=tokens.model_dump())
 
     except ValueError as e:
         raise HTTPException(
@@ -321,17 +308,17 @@ async def refresh_token(
             detail={
                 "success": False,
                 "data": None,
-                "error": {"code": "INVALID_REFRESH_TOKEN", "message": str(e)}
-            }
+                "error": {"code": "INVALID_REFRESH_TOKEN", "message": str(e)},
+            },
         )
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(
     refresh_token: str,
-    current_user: Dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Logout and invalidate refresh token.
 
@@ -354,10 +341,7 @@ async def logout(
         auth_service = AuthService(db)
         await auth_service.logout(refresh_token)
 
-        return create_response(
-            success=True,
-            message="Sesión cerrada correctamente"
-        )
+        return create_response(success=True, message="Sesión cerrada correctamente")
 
     except ValueError as e:
         raise HTTPException(
@@ -365,8 +349,8 @@ async def logout(
             detail={
                 "success": False,
                 "data": None,
-                "error": {"code": "INVALID_REFRESH_TOKEN", "message": str(e)}
-            }
+                "error": {"code": "INVALID_REFRESH_TOKEN", "message": str(e)},
+            },
         )
 
 
@@ -374,7 +358,7 @@ async def logout(
 async def request_password_reset(
     data: PasswordResetRequest,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Request password reset email.
 
@@ -393,8 +377,7 @@ async def request_password_reset(
     await auth_service.request_password_reset(data.email)
 
     return create_response(
-        success=True,
-        message="Si el email existe, recibirás un enlace de restablecimiento"
+        success=True, message="Si el email existe, recibirás un enlace de restablecimiento"
     )
 
 
@@ -402,7 +385,7 @@ async def request_password_reset(
 async def confirm_password_reset(
     data: PasswordResetConfirm,
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Confirm password reset with token.
 
@@ -423,10 +406,7 @@ async def confirm_password_reset(
         auth_service = AuthService(db)
         await auth_service.confirm_password_reset(data.token, data.new_password)
 
-        return create_response(
-            success=True,
-            message="Contraseña actualizada correctamente"
-        )
+        return create_response(success=True, message="Contraseña actualizada correctamente")
 
     except ValueError as e:
         error_msg = str(e)
@@ -446,16 +426,16 @@ async def confirm_password_reset(
             detail={
                 "success": False,
                 "data": None,
-                "error": {"code": error_code, "message": error_msg, "field": field}
-            }
+                "error": {"code": error_code, "message": error_msg, "field": field},
+            },
         )
 
 
 @router.get("/me", status_code=status.HTTP_200_OK)
 async def get_current_user_info(
-    current_user: Dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict:
+) -> dict:
     """
     Get current authenticated user information.
 
@@ -471,25 +451,8 @@ async def get_current_user_info(
     Raises:
         HTTPException 401: Not authenticated
     """
-    from sqlalchemy import select
 
-    # Get full user data from database
-    result = await db.execute(
-        select(User).where(User.id == current_user["id"])
-    )
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={
-                "success": False,
-                "data": None,
-                "error": {"code": "UNAUTHORIZED", "message": "Usuario no encontrado"}
-            }
-        )
-
+    # current_user already is a User model from get_current_user dependency
     return create_response(
-        success=True,
-        data=UserResponse.from_user_model(user).model_dump()
+        success=True, data=UserResponse.from_user_model(current_user).model_dump()
     )

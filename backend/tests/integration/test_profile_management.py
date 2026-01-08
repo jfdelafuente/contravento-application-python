@@ -48,10 +48,9 @@ class TestProfileUpdateWorkflow:
         await db_session.commit()
 
         # Step 2: Login
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": password
-        })
+        login_response = await client.post(
+            "/auth/login", json={"login": username, "password": password}
+        )
         assert login_response.status_code == 200
 
         access_token = login_response.json()["data"]["access_token"]
@@ -64,13 +63,11 @@ class TestProfileUpdateWorkflow:
             "location": "Barcelona, España",
             "cycling_type": "mountain",
             "show_email": False,
-            "show_location": True
+            "show_location": True,
         }
 
         update_response = await client.put(
-            f"/users/{username}/profile",
-            json=update_data,
-            headers=auth_headers
+            f"/users/{username}/profile", json=update_data, headers=auth_headers
         )
 
         assert update_response.status_code == 200
@@ -78,9 +75,7 @@ class TestProfileUpdateWorkflow:
         assert update_result["success"] is True
 
         # Step 4: Verify changes in database
-        result = await db_session.execute(
-            select(UserProfile).where(UserProfile.user_id == user_id)
-        )
+        result = await db_session.execute(select(UserProfile).where(UserProfile.user_id == user_id))
         profile = result.scalar_one()
 
         assert profile.full_name == update_data["full_name"]
@@ -129,18 +124,15 @@ class TestPrivacySettings:
         await db_session.commit()
 
         # Login
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": sample_user_data["password"]
-        })
+        login_response = await client.post(
+            "/auth/login", json={"login": username, "password": sample_user_data["password"]}
+        )
         access_token = login_response.json()["data"]["access_token"]
         auth_headers = {"Authorization": f"Bearer {access_token}"}
 
         # Step 2: Update privacy to hide email
         privacy_response = await client.put(
-            f"/users/{username}/profile/privacy",
-            json={"show_email": False},
-            headers=auth_headers
+            f"/users/{username}/profile/privacy", json={"show_email": False}, headers=auth_headers
         )
 
         assert privacy_response.status_code == 200
@@ -178,25 +170,22 @@ class TestPrivacySettings:
         await db_session.commit()
 
         # Login
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": sample_user_data["password"]
-        })
+        login_response = await client.post(
+            "/auth/login", json={"login": username, "password": sample_user_data["password"]}
+        )
         access_token = login_response.json()["data"]["access_token"]
         auth_headers = {"Authorization": f"Bearer {access_token}"}
 
         # Step 2: Set location
         await client.put(
-            f"/users/{username}/profile",
-            json={"location": "Madrid, España"},
-            headers=auth_headers
+            f"/users/{username}/profile", json={"location": "Madrid, España"}, headers=auth_headers
         )
 
         # Step 3: Hide location
         await client.put(
             f"/users/{username}/profile/privacy",
             json={"show_location": False},
-            headers=auth_headers
+            headers=auth_headers,
         )
 
         # Step 4 & 5: View public profile and verify location is hidden
@@ -236,10 +225,9 @@ class TestPublicProfileView:
         await db_session.commit()
 
         # Login
-        login_response = await client.post("/auth/login", json={
-            "login": username,
-            "password": sample_user_data["password"]
-        })
+        login_response = await client.post(
+            "/auth/login", json={"login": username, "password": sample_user_data["password"]}
+        )
         access_token = login_response.json()["data"]["access_token"]
         auth_headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -252,14 +240,14 @@ class TestPublicProfileView:
                 "location": "Barcelona, España",
                 "cycling_type": "mountain",
             },
-            headers=auth_headers
+            headers=auth_headers,
         )
 
         # Step 2: Set strict privacy
         await client.put(
             f"/users/{username}/profile/privacy",
             json={"show_email": False, "show_location": False},
-            headers=auth_headers
+            headers=auth_headers,
         )
 
         # Step 3 & 4: View as anonymous user
@@ -279,7 +267,7 @@ class TestPublicProfileView:
         await client.put(
             f"/users/{username}/profile/privacy",
             json={"show_email": True, "show_location": True},
-            headers=auth_headers
+            headers=auth_headers,
         )
 
         # Step 6: Verify info now visible

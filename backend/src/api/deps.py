@@ -4,7 +4,8 @@ Dependency injection functions for FastAPI routes.
 Provides reusable dependencies for database sessions, authentication, etc.
 """
 
-from typing import Generator, Optional
+from collections.abc import Generator
+from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -13,9 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import AsyncSessionLocal
 from src.utils.security import decode_token
 
-
-# HTTP Bearer token scheme
-security = HTTPBearer()
+# HTTP Bearer token scheme - auto_error=False to return 401 instead of 403
+security = HTTPBearer(auto_error=False)
 
 
 async def get_db() -> Generator[AsyncSession, None, None]:
@@ -45,21 +45,20 @@ async def get_db() -> Generator[AsyncSession, None, None]:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+):
     """
     Dependency to get current authenticated user from JWT token.
 
-    Validates JWT token and returns user information.
-    Placeholder until User model is implemented.
+    Validates JWT token and returns User model instance.
 
     Args:
         credentials: HTTP bearer credentials from request header
         db: Database session
 
     Returns:
-        Current user information
+        User model instance
 
     Raises:
         HTTPException: If token is invalid or user not found
@@ -67,19 +66,27 @@ async def get_current_user(
     Example:
         @router.get("/protected")
         async def protected_route(
-            current_user: dict = Depends(get_current_user)
+            current_user: User = Depends(get_current_user)
         ):
-            # current_user is validated from JWT
+            # current_user is User model instance
             pass
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={
-            "code": "UNAUTHORIZED",
-            "message": "Token de autenticación inválido o expirado",
+            "success": False,
+            "data": None,
+            "error": {
+                "code": "UNAUTHORIZED",
+                "message": "Token de autenticación inválido o expirado",
+            },
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # If no credentials provided, raise unauthorized
+    if credentials is None:
+        raise credentials_exception
 
     try:
         # Decode JWT token
@@ -97,14 +104,19 @@ async def get_current_user(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
-                    "code": "INVALID_TOKEN_TYPE",
-                    "message": "Token inválido. Use un token de acceso.",
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "INVALID_TOKEN_TYPE",
+                        "message": "Token inválido. Use un token de acceso.",
+                    },
                 },
             )
 
         # Load user from database
-        from src.models.user import User
         from sqlalchemy import select
+
+        from src.models.user import User
 
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
@@ -112,28 +124,21 @@ async def get_current_user(
         if user is None or not user.is_active:
             raise credentials_exception
 
-        # Return user data as dict
-        return {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "is_verified": user.is_verified,
-        }
+        # Return User model instance
+        return user
 
     except Exception:
         raise credentials_exception
 
 
 async def get_optional_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-        HTTPBearer(auto_error=False)
-    ),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
     db: AsyncSession = Depends(get_db),
-) -> Optional[dict]:
+):
     """
     Dependency to optionally get current user.
 
-    Returns user if authenticated, None if not.
+    Returns User model if authenticated, None if not.
     Useful for endpoints that work differently for authenticated vs anonymous users.
 
     Args:
@@ -141,12 +146,12 @@ async def get_optional_current_user(
         db: Database session
 
     Returns:
-        Current user if authenticated, None otherwise
+        User model instance if authenticated, None otherwise
 
     Example:
         @router.get("/public")
         async def public_route(
-            current_user: Optional[dict] = Depends(get_optional_current_user)
+            current_user: Optional[User] = Depends(get_optional_current_user)
         ):
             if current_user:
                 # Show personalized content
