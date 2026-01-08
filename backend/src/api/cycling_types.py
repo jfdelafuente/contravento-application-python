@@ -20,7 +20,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_current_user, get_db
+from src.api.deps import get_current_admin, get_db
 from src.models.user import User
 from src.schemas.cycling_type import (
     CyclingTypeCreateRequest,
@@ -103,18 +103,18 @@ async def get_cycling_types_public(
 async def get_all_cycling_types_admin(
     active_only: bool = Query(False, description="Filter to only active types"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ) -> list[CyclingTypeResponse]:
     """
     Get all cycling types (admin endpoint).
 
     Returns all cycling types including inactive ones.
-    Requires authentication.
+    Requires admin role.
 
     Args:
         active_only: If True, only return active types
         db: Database session
-        current_user: Current authenticated user
+        admin: Current admin user
 
     Returns:
         List of cycling types
@@ -140,17 +140,17 @@ async def get_all_cycling_types_admin(
 async def get_cycling_type_by_code_admin(
     code: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ) -> CyclingTypeResponse:
     """
     Get cycling type by code (admin endpoint).
 
-    Requires authentication.
+    Requires admin role.
 
     Args:
         code: Cycling type code
         db: Database session
-        current_user: Current authenticated user
+        admin: Current admin user
 
     Returns:
         Cycling type details
@@ -190,17 +190,17 @@ async def get_cycling_type_by_code_admin(
 async def create_cycling_type_admin(
     data: CyclingTypeCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ) -> dict:
     """
     Create a new cycling type (admin endpoint).
 
-    Requires authentication.
+    Requires admin role.
 
     Args:
         data: Cycling type creation data
         db: Database session
-        current_user: Current authenticated user
+        admin: Current admin user
 
     Returns:
         Created cycling type
@@ -243,18 +243,18 @@ async def update_cycling_type_admin(
     code: str,
     data: CyclingTypeUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ) -> dict:
     """
     Update an existing cycling type (admin endpoint).
 
-    Requires authentication.
+    Requires admin role.
 
     Args:
         code: Cycling type code to update
         data: Update data
         db: Database session
-        current_user: Current authenticated user
+        admin: Current admin user
 
     Returns:
         Updated cycling type
@@ -310,7 +310,7 @@ async def delete_cycling_type_admin(
     code: str,
     hard: bool = Query(False, description="If True, hard delete; if False, soft delete"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ) -> None:
     """
     Delete a cycling type (admin endpoint).
@@ -318,13 +318,13 @@ async def delete_cycling_type_admin(
     By default, performs soft delete (sets is_active=False).
     Use hard=True for permanent deletion.
 
-    Requires authentication.
+    Requires admin role.
 
     Args:
         code: Cycling type code to delete
         hard: If True, hard delete; if False, soft delete
         db: Database session
-        current_user: Current authenticated user
+        admin: Current admin user
 
     Raises:
         HTTPException 404: If cycling type not found

@@ -168,9 +168,10 @@ def faker_instance() -> Faker:
 @pytest.fixture(scope="function")
 async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
     """
-    Provide authentication headers with a valid JWT token.
+    Provide authentication headers with a valid JWT token for an ADMIN user.
 
-    Creates a test user, generates token, and returns headers for authenticated requests.
+    Creates an admin test user, generates token, and returns headers for authenticated requests.
+    Use this for testing admin-protected endpoints.
 
     Args:
         client: Async HTTP client
@@ -180,18 +181,66 @@ async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
         Dictionary with Authorization header
 
     Example:
-        async def test_protected_endpoint(client, auth_headers):
-            response = await client.get("/protected", headers=auth_headers)
-            assert response.status_code == 200
+        async def test_admin_endpoint(client, auth_headers):
+            response = await client.post("/admin/cycling-types", headers=auth_headers, json={...})
+            assert response.status_code == 201
     """
-    from src.models.user import User, UserProfile
+    from src.models.user import User, UserProfile, UserRole
     from src.utils.security import create_access_token, hash_password
 
-    # Create a test user in the database
+    # Create an admin test user in the database
+    user = User(
+        username="admin_user",
+        email="admin@example.com",
+        hashed_password=hash_password("AdminPass123!"),
+        role=UserRole.ADMIN,
+        is_active=True,
+        is_verified=True,
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    # Create profile for user
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    # Generate token with actual user ID
+    token = create_access_token({"sub": user.id, "username": user.username})
+
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(scope="function")
+async def regular_user_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
+    """
+    Provide authentication headers with a valid JWT token for a regular USER.
+
+    Creates a regular test user, generates token, and returns headers for authenticated requests.
+    Use this for testing that regular users cannot access admin endpoints.
+
+    Args:
+        client: Async HTTP client
+        db_session: Database session
+
+    Returns:
+        Dictionary with Authorization header
+
+    Example:
+        async def test_regular_user_cannot_access_admin(client, regular_user_headers):
+            response = await client.post("/admin/cycling-types", headers=regular_user_headers, json={...})
+            assert response.status_code == 403
+    """
+    from src.models.user import User, UserProfile, UserRole
+    from src.utils.security import create_access_token, hash_password
+
+    # Create a regular test user in the database
     user = User(
         username="test_user",
         email="test@example.com",
         hashed_password=hash_password("TestPass123!"),
+        role=UserRole.USER,
         is_active=True,
         is_verified=True,
     )
@@ -240,13 +289,14 @@ async def test_user(db_session: AsyncSession) -> "User":
 
     if not user:
         # Create user if it doesn't exist (when test_user is used without auth_headers)
-        from src.models.user import UserProfile
+        from src.models.user import UserProfile, UserRole
         from src.utils.security import hash_password
 
         user = User(
             username="test_user",
             email="test@example.com",
             hashed_password=hash_password("TestPass123!"),
+            role=UserRole.USER,
             is_active=True,
             is_verified=True,
         )

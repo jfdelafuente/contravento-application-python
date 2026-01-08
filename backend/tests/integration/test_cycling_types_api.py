@@ -99,10 +99,14 @@ class TestAdminCyclingTypesWorkflow:
         assert register_response.status_code == 201
         user_id = register_response.json()["data"]["user_id"]
 
-        # Verify user
+        # Verify user and promote to admin
         result = await db_session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one()
         user.is_verified = True
+
+        from src.models.user import UserRole
+
+        user.role = UserRole.ADMIN
         await db_session.commit()
 
         # Login
@@ -282,6 +286,37 @@ class TestAdminCyclingTypesWorkflow:
         # Test DELETE
         response = await client.delete("/admin/cycling-types/test")
         assert response.status_code == 401
+
+    async def test_admin_endpoints_require_admin_role(self, client: AsyncClient, regular_user_headers):
+        """Test that admin endpoints return 403 for regular users."""
+        # Test GET all
+        response = await client.get("/admin/cycling-types", headers=regular_user_headers)
+        assert response.status_code == 403
+        assert "administrador" in response.json()["error"]["message"].lower()
+
+        # Test GET by code
+        response = await client.get("/admin/cycling-types/mountain", headers=regular_user_headers)
+        assert response.status_code == 403
+
+        # Test POST
+        response = await client.post(
+            "/admin/cycling-types",
+            json={"code": "test", "display_name": "Test", "is_active": True},
+            headers=regular_user_headers,
+        )
+        assert response.status_code == 403
+
+        # Test PUT
+        response = await client.put(
+            "/admin/cycling-types/test",
+            json={"display_name": "New"},
+            headers=regular_user_headers,
+        )
+        assert response.status_code == 403
+
+        # Test DELETE
+        response = await client.delete("/admin/cycling-types/test", headers=regular_user_headers)
+        assert response.status_code == 403
 
 
 @pytest.mark.integration

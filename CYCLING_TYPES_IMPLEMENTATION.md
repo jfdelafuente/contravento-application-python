@@ -49,12 +49,18 @@ Se ha implementado un sistema completo para gestionar dinámicamente los tipos d
 **Endpoints Públicos**:
 - `GET /cycling-types`: Listar tipos activos (no requiere auth)
 
-**Endpoints Administrativos** (requieren autenticación):
+**Endpoints Administrativos** (requieren rol ADMIN):
 - `GET /admin/cycling-types`: Listar todos los tipos
 - `GET /admin/cycling-types/{code}`: Obtener tipo específico
 - `POST /admin/cycling-types`: Crear nuevo tipo
 - `PUT /admin/cycling-types/{code}`: Actualizar tipo
 - `DELETE /admin/cycling-types/{code}`: Eliminar tipo (soft delete por defecto)
+
+**IMPORTANTE**: Los endpoints administrativos requieren:
+1. Autenticación válida (JWT token)
+2. Rol de administrador (UserRole.ADMIN)
+
+Si un usuario regular intenta acceder, recibirá HTTP 403 Forbidden.
 
 ### 6. Validación Dinámica
 
