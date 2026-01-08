@@ -24,8 +24,19 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig;
 
-    // If 401 and not already retrying
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    // Don't retry on these endpoints (they are used for initial auth check)
+    const noRetryEndpoints = ['/auth/me', '/auth/refresh-token', '/auth/login', '/auth/register'];
+    const isNoRetryEndpoint = noRetryEndpoints.some((endpoint) =>
+      originalRequest?.url?.includes(endpoint)
+    );
+
+    // If 401 and not already retrying and not a no-retry endpoint
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isNoRetryEndpoint
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -35,10 +46,7 @@ api.interceptors.response.use(
         // Retry original request with new access token
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - redirect to login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
+        // Refresh failed - user needs to login again
         return Promise.reject(refreshError);
       }
     }
