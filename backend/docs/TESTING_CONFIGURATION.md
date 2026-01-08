@@ -465,7 +465,7 @@ BCRYPT_ROUNDS=12 poetry run pytest tests/integration/
 ## Related Documentation
 
 - [Testing Patterns](../docs/TESTING.md) - General testing approach and patterns
-- [Environment Configuration](../../ENVIRONMENTS.md) - All environment configurations
+- [Environment Configuration](ENVIRONMENTS.md) - All environment configurations
 - [Quick Start Guide](../../QUICK_START.md) - Development setup options
 
 ---
