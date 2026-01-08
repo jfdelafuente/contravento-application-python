@@ -2,8 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/routing/ProtectedRoute';
+import { RegisterPage } from './pages/RegisterPage';
 
-// Placeholder components (will be implemented in Phase 3+)
+// Placeholder components (will be implemented in Phase 4+)
 const HomePage: React.FC = () => (
   <div className="app">
     <h1>ContraVento</h1>
@@ -18,13 +19,6 @@ const LoginPage: React.FC = () => (
   <div className="app">
     <h2>Iniciar Sesión</h2>
     <p>Formulario de login (Fase 4)</p>
-  </div>
-);
-
-const RegisterPage: React.FC = () => (
-  <div className="app">
-    <h2>Registro</h2>
-    <p>Formulario de registro (Fase 3)</p>
   </div>
 );
 

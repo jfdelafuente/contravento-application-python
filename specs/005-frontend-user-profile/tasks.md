@@ -84,17 +84,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T030 [P] [US1] Create PasswordStrengthMeter component with red/yellow/green visual indicator in frontend/src/components/auth/PasswordStrengthMeter.tsx
-- [ ] T031 [P] [US1] Create TurnstileWidget component wrapping @marsidev/react-turnstile in frontend/src/components/auth/TurnstileWidget.tsx
-- [ ] T032 [US1] Create RegisterForm component with React Hook Form + Zod validation in frontend/src/components/auth/RegisterForm.tsx
-- [ ] T033 [US1] Implement debounced email availability check in RegisterForm component
-- [ ] T034 [US1] Implement debounced username availability check in RegisterForm component
-- [ ] T035 [US1] Integrate PasswordStrengthMeter into RegisterForm password field
-- [ ] T036 [US1] Integrate TurnstileWidget into RegisterForm
-- [ ] T037 [US1] Create RegisterPage component that renders RegisterForm in frontend/src/pages/RegisterPage.tsx
-- [ ] T038 [US1] Add /register route to App.tsx router configuration
-- [ ] T039 [US1] Add error handling and success messaging to RegisterPage
-- [ ] T040 [US1] Add loading states during form submission
+- [x] T030 [P] [US1] Create PasswordStrengthMeter component with red/yellow/green visual indicator in frontend/src/components/auth/PasswordStrengthMeter.tsx
+- [x] T031 [P] [US1] Create TurnstileWidget component wrapping @marsidev/react-turnstile in frontend/src/components/auth/TurnstileWidget.tsx
+- [x] T032 [US1] Create RegisterForm component with React Hook Form + Zod validation in frontend/src/components/auth/RegisterForm.tsx
+- [x] T033 [US1] Implement debounced email availability check in RegisterForm component
+- [x] T034 [US1] Implement debounced username availability check in RegisterForm component
+- [x] T035 [US1] Integrate PasswordStrengthMeter into RegisterForm password field
+- [x] T036 [US1] Integrate TurnstileWidget into RegisterForm
+- [x] T037 [US1] Create RegisterPage component that renders RegisterForm in frontend/src/pages/RegisterPage.tsx
+- [x] T038 [US1] Add /register route to App.tsx router configuration
+- [x] T039 [US1] Add error handling and success messaging to RegisterPage
+- [x] T040 [US1] Add loading states during form submission
 
 **Checkpoint**: User Story 1 complete - users can register with full validation, password strength feedback, and CAPTCHA protection
 
