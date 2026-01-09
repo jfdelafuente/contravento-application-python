@@ -30,7 +30,7 @@ export const LoginPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Get the page user was trying to access (if redirected from ProtectedRoute)
-  const from = (location.state as LocationState)?.from?.pathname || '/dashboard';
+  const from = (location.state as LocationState)?.from?.pathname || '/welcome';
 
   const handleSuccess = () => {
     setSuccessMessage('Inicio de sesión exitoso! Redirigiendo...');

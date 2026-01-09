@@ -8,6 +8,7 @@ import { LoginPage } from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { WelcomePage } from './pages/WelcomePage';
 
 // Lazy load non-critical routes for better performance
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
@@ -46,7 +47,15 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-              {/* Protected routes (lazy loaded) */}
+              {/* Protected routes */}
+              <Route
+                path="/welcome"
+                element={
+                  <ProtectedRoute>
+                    <WelcomePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/dashboard"
                 element={

@@ -1,0 +1,226 @@
+/* WelcomePage.css */
+
+.welcome-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.welcome-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.welcome-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.welcome-header h1 {
+  font-size: 2.5rem;
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.welcome-subtitle {
+  font-size: 1.25rem;
+  margin: 0;
+  opacity: 0.95;
+}
+
+.welcome-subtitle strong {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.welcome-content {
+  padding: 2rem;
+}
+
+.welcome-message {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.welcome-message h2 {
+  color: #1f2937;
+  font-size: 1.75rem;
+  margin: 0 0 1rem 0;
+}
+
+.welcome-message p {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.welcome-actions {
+  margin: 2rem 0;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.welcome-actions h3 {
+  color: #1f2937;
+  font-size: 1.25rem;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.action-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.action-button.secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.action-button.secondary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+}
+
+.button-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.welcome-info {
+  margin-top: 2rem;
+}
+
+.welcome-info h3 {
+  color: #1f2937;
+  font-size: 1.25rem;
+  margin: 0 0 1rem 0;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.info-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.verified-badge {
+  color: #059669;
+  background: #d1fae5;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.unverified-badge {
+  color: #d97706;
+  background: #fef3c7;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.welcome-footer {
+  padding: 1.5rem 2rem;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.logout-button {
+  background: white;
+  color: #dc2626;
+  border: 2px solid #dc2626;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-button:hover {
+  background: #dc2626;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .welcome-header h1 {
+    font-size: 2rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
