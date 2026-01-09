@@ -1,14 +1,22 @@
 /**
+ * Country information from backend API
+ */
+export interface CountryInfo {
+  code: string;
+  name: string;
+}
+
+/**
  * User statistics from backend API
  */
 export interface UserStats {
-  trip_count: number;
-  total_distance_km: number;
-  countries_visited: string[];
-  follower_count: number;
-  following_count: number;
-  longest_trip_km: number;
-  photo_count: number;
+  total_trips: number;
+  total_kilometers: number;
+  countries_visited: CountryInfo[];
+  total_photos: number;
+  achievements_count: number;
+  last_trip_date: string | null;
+  updated_at: string;
 }
 
 /**

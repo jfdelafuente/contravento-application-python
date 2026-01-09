@@ -25,7 +25,7 @@ const StatsSection: React.FC = () => {
         {/* Stat 1: Total Trips */}
         <StatsCard
           title="Viajes Publicados"
-          value={stats ? formatStatNumber(stats.trip_count) : 0}
+          value={stats ? formatStatNumber(stats.total_trips) : '0'}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -40,7 +40,7 @@ const StatsSection: React.FC = () => {
         {/* Stat 2: Total Distance */}
         <StatsCard
           title="Kilómetros Recorridos"
-          value={stats ? formatDistance(stats.total_distance_km) : '0 km'}
+          value={stats ? formatDistance(stats.total_kilometers) : '0 km'}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
@@ -56,7 +56,7 @@ const StatsSection: React.FC = () => {
         <StatsCard
           title="Países Visitados"
           value={stats ? stats.countries_visited.length : 0}
-          subtitle={stats ? formatCountries(stats.countries_visited) : undefined}
+          subtitle={stats ? formatCountries(stats.countries_visited.map(c => c.name)) : undefined}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
@@ -69,16 +69,15 @@ const StatsSection: React.FC = () => {
           color="var(--color-earth)"
         />
 
-        {/* Stat 4: Followers */}
+        {/* Stat 4: Total Photos */}
         <StatsCard
-          title="Seguidores"
-          value={stats ? formatStatNumber(stats.follower_count) : 0}
+          title="Fotos Subidas"
+          value={stats ? formatStatNumber(stats.total_photos) : '0'}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
             </svg>
           }
           loading={loading}
