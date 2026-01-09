@@ -1,29 +1,29 @@
 import { api } from './api';
 
-interface ProfileResponse {
-  success: boolean;
-  data: {
-    user_id: string;
-    username: string;
-    email: string;
-    full_name?: string;
-    bio?: string;
-    location?: string;
-    cycling_type?: string;
-    photo_url?: string;
-    is_public: boolean;
-    followers_count: number;
-    following_count: number;
-    created_at: string;
+interface ProfileData {
+  username: string;
+  full_name?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  cycling_type?: string | null;
+  photo_url?: string | null;
+  show_email: boolean;
+  show_location: boolean;
+  followers_count: number;
+  following_count: number;
+  stats: {
+    total_trips: number;
+    total_kilometers: number;
+    achievements_count: number;
   };
-  error: null | any;
+  created_at: string;
 }
 
 /**
  * Fetch user's public profile by username
  * @param username - Username to fetch profile for
  */
-export const getUserProfile = async (username: string): Promise<ProfileResponse['data']> => {
-  const response = await api.get<ProfileResponse>(`/users/${username}/profile`);
-  return response.data.data;
+export const getUserProfile = async (username: string): Promise<ProfileData> => {
+  const response = await api.get<ProfileData>(`/users/${username}/profile`);
+  return response.data;
 };
