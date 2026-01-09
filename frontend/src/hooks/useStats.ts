@@ -22,16 +22,43 @@ export const useStats = (username: string): UseStatsResult => {
 
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-  const fetchStats = async () => {
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!username) {
+        setLoading(false);
+        return;
+      }
+
+      const now = Date.now();
+
+      // Check if cached data is still valid
+      if (stats && lastFetch && now - lastFetch < CACHE_DURATION) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getUserStats(username);
+        setStats(data);
+        setLastFetch(now);
+      } catch (err: any) {
+        console.error('Error fetching stats:', err);
+        setError(err.response?.data?.message || 'Error al cargar estadísticas');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username]);
+
+  const refetch = async () => {
+    setLastFetch(0); // Clear cache
+
     if (!username) {
-      setLoading(false);
-      return;
-    }
-
-    const now = Date.now();
-
-    // Check if cached data is still valid
-    if (stats && lastFetch && now - lastFetch < CACHE_DURATION) {
       setLoading(false);
       return;
     }
@@ -41,7 +68,7 @@ export const useStats = (username: string): UseStatsResult => {
       setError(null);
       const data = await getUserStats(username);
       setStats(data);
-      setLastFetch(now);
+      setLastFetch(Date.now());
     } catch (err: any) {
       console.error('Error fetching stats:', err);
       setError(err.response?.data?.message || 'Error al cargar estadísticas');
@@ -49,15 +76,6 @@ export const useStats = (username: string): UseStatsResult => {
       setLoading(false);
     }
   };
-
-  const refetch = async () => {
-    setLastFetch(0); // Clear cache
-    await fetchStats();
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, [username]);
 
   return {
     stats,

@@ -19,7 +19,38 @@ export const useRecentTrips = (username: string, limit: number = 5): UseRecentTr
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTrips = async () => {
+  useEffect(() => {
+    const fetchTrips = async () => {
+      if (!username) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getRecentTrips(username, limit);
+
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setTrips(data);
+        } else {
+          console.warn('Unexpected trips data format:', data);
+          setTrips([]);
+        }
+      } catch (err: any) {
+        console.error('Error fetching recent trips:', err);
+        setError(err.response?.data?.message || 'Error al cargar viajes recientes');
+        setTrips([]); // Ensure trips is always an array
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrips();
+  }, [username, limit]);
+
+  const refetch = async () => {
     if (!username) {
       setLoading(false);
       return;
@@ -30,7 +61,6 @@ export const useRecentTrips = (username: string, limit: number = 5): UseRecentTr
       setError(null);
       const data = await getRecentTrips(username, limit);
 
-      // Ensure data is an array
       if (Array.isArray(data)) {
         setTrips(data);
       } else {
@@ -40,19 +70,11 @@ export const useRecentTrips = (username: string, limit: number = 5): UseRecentTr
     } catch (err: any) {
       console.error('Error fetching recent trips:', err);
       setError(err.response?.data?.message || 'Error al cargar viajes recientes');
-      setTrips([]); // Ensure trips is always an array
+      setTrips([]);
     } finally {
       setLoading(false);
     }
   };
-
-  const refetch = async () => {
-    await fetchTrips();
-  };
-
-  useEffect(() => {
-    fetchTrips();
-  }, [username, limit]);
 
   return {
     trips,
