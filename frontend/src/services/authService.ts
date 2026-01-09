@@ -50,18 +50,20 @@ export const authService = {
 
   /**
    * Login user
+   *
+   * Note: Backend does not support remember_me or turnstile_token yet.
+   * These parameters are kept for future implementation.
    */
   async login(
     email: string,
     password: string,
-    rememberMe: boolean,
-    turnstileToken?: string
+    _rememberMe: boolean, // Prefixed with _ to indicate intentionally unused
+    _turnstileToken?: string // Prefixed with _ to indicate intentionally unused
   ): Promise<User> {
-    const payload: LoginRequestPayload = {
-      email,
+    // Backend expects 'login' field (username or email), not 'email'
+    const payload = {
+      login: email, // Backend accepts email in 'login' field
       password,
-      remember_me: rememberMe,
-      turnstile_token: turnstileToken,
     };
 
     const { data } = await api.post<ApiResponse<LoginResponse>>(

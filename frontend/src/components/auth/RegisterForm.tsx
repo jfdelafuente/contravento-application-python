@@ -69,69 +69,73 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onError }
   const username = watch('username');
 
   // Debounced email validation (T033)
+  // TODO: Enable when backend endpoints are implemented
   const debouncedEmail = useDebounce(email, 500);
 
   useEffect(() => {
-    const checkEmail = async () => {
-      if (!debouncedEmail || errors.email || debouncedEmail.length === 0) {
-        setEmailAvailable(null);
-        return;
-      }
+    // Temporarily disabled - backend endpoints /auth/check-email and /auth/check-username not implemented
+    // const checkEmail = async () => {
+    //   if (!debouncedEmail || errors.email || debouncedEmail.length === 0) {
+    //     setEmailAvailable(null);
+    //     return;
+    //   }
 
-      setIsCheckingEmail(true);
-      try {
-        const available = await authService.checkEmailAvailability(debouncedEmail);
-        setEmailAvailable(available);
+    //   setIsCheckingEmail(true);
+    //   try {
+    //     const available = await authService.checkEmailAvailability(debouncedEmail);
+    //     setEmailAvailable(available);
 
-        if (!available) {
-          setError('email', {
-            type: 'manual',
-            message: 'Este email ya está registrado',
-          });
-        } else {
-          clearErrors('email');
-        }
-      } catch (error) {
-        console.error('Error checking email:', error);
-      } finally {
-        setIsCheckingEmail(false);
-      }
-    };
+    //     if (!available) {
+    //       setError('email', {
+    //         type: 'manual',
+    //         message: 'Este email ya está registrado',
+    //       });
+    //     } else {
+    //       clearErrors('email');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error checking email:', error);
+    //   } finally {
+    //     setIsCheckingEmail(false);
+    //   }
+    // };
 
-    checkEmail();
+    // checkEmail();
   }, [debouncedEmail, errors.email, setError, clearErrors]);
 
   // Debounced username validation (T034)
+  // TODO: Enable when backend endpoints are implemented
   const debouncedUsername = useDebounce(username, 500);
 
   useEffect(() => {
-    const checkUsername = async () => {
-      if (!debouncedUsername || errors.username || debouncedUsername.length < 3) {
-        setUsernameAvailable(null);
-        return;
-      }
+    // Temporarily disabled - backend endpoints /auth/check-email and /auth/check-username not implemented
+    // const checkUsername = async () => {
+    //   if (!debouncedUsername || errors.username || debouncedUsername.length < 3) {
+    //     setUsernameAvailable(null);
+    //     return;
+    //   }
 
-      setIsCheckingUsername(true);
-      try {
-        const available = await authService.checkUsernameAvailability(debouncedUsername);
-        setUsernameAvailable(available);
+    //   setIsCheckingUsername(true);
+    //   try {
+    //     const available = await authService.checkUsernameAvailability(debouncedUsername);
+    //     setUsernameAvailable(available);
 
-        if (!available) {
-          setError('username', {
-            type: 'manual',
-            message: 'Este nombre de usuario no está disponible',
-          });
-        } else {
-          clearErrors('username');
-        }
-      } catch (error) {
-        console.error('Error checking username:', error);
-      } finally {
-        setIsCheckingUsername(false);
-      }
-    };
+    //     if (!available) {
+    //       setError('username', {
+    //         type: 'manual',
+    //         message: 'Este nombre de usuario no está disponible',
+    //       });
+    //     } else {
+    //       clearErrors('username');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error checking username:', error);
+    //   } finally {
+    //     setIsCheckingUsername(false);
+    //   }
+    // };
 
-    checkUsername();
+    // checkUsername();
   }, [debouncedUsername, errors.username, setError, clearErrors]);
 
   const handleTurnstileVerify = (token: string) => {
