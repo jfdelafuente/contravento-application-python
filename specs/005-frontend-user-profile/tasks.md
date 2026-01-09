@@ -150,17 +150,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T054 [P] [US3] Create ForgotPasswordForm component with email field and CAPTCHA in frontend/src/components/auth/ForgotPasswordForm.tsx
-- [ ] T055 [P] [US3] Create ResetPasswordForm component with new password fields in frontend/src/components/auth/ResetPasswordForm.tsx
-- [ ] T056 [US3] Integrate TurnstileWidget into ForgotPasswordForm
-- [ ] T057 [US3] Integrate PasswordStrengthMeter into ResetPasswordForm
-- [ ] T058 [US3] Create ForgotPasswordPage that renders ForgotPasswordForm in frontend/src/pages/ForgotPasswordPage.tsx
-- [ ] T059 [US3] Create ResetPasswordPage that extracts token from URL and renders ResetPasswordForm in frontend/src/pages/ResetPasswordPage.tsx
-- [ ] T060 [US3] Add /forgot-password route to App.tsx
-- [ ] T061 [US3] Add /reset-password route to App.tsx
-- [ ] T062 [US3] Handle TOKEN_EXPIRED and INVALID_TOKEN errors in ResetPasswordPage
-- [ ] T063 [US3] Add success messaging and redirect to /login after password reset
-- [ ] T064 [US3] Add link to /forgot-password from LoginPage
+- [x] T054 [P] [US3] Create ForgotPasswordForm component with email field and CAPTCHA in frontend/src/components/auth/ForgotPasswordForm.tsx
+- [x] T055 [P] [US3] Create ResetPasswordForm component with new password fields in frontend/src/components/auth/ResetPasswordForm.tsx
+- [x] T056 [US3] Integrate TurnstileWidget into ForgotPasswordForm
+- [x] T057 [US3] Integrate PasswordStrengthMeter into ResetPasswordForm
+- [x] T058 [US3] Create ForgotPasswordPage that renders ForgotPasswordForm in frontend/src/pages/ForgotPasswordPage.tsx
+- [x] T059 [US3] Create ResetPasswordPage that extracts token from URL and renders ResetPasswordForm in frontend/src/pages/ResetPasswordPage.tsx
+- [x] T060 [US3] Add /forgot-password route to App.tsx
+- [x] T061 [US3] Add /reset-password route to App.tsx
+- [x] T062 [US3] Handle TOKEN_EXPIRED and INVALID_TOKEN errors in ResetPasswordPage
+- [x] T063 [US3] Add success messaging and redirect to /login after password reset
+- [x] T064 [US3] Add link to /forgot-password from LoginPage
 
 **Checkpoint**: User Story 3 complete - users can request password reset, receive email, and set new password with full validation
 
