@@ -8,17 +8,12 @@ interface GetTripsParams {
   offset?: number;
 }
 
-interface GetTripsResponse {
-  trips: TripSummary[];
-  total: number;
-}
-
 /**
  * Fetch user's trips
  * @param params - Query parameters (username, status, limit, offset)
- * @returns List of trips and total count
+ * @returns List of trips
  */
-export const getUserTrips = async (params: GetTripsParams): Promise<GetTripsResponse> => {
+export const getUserTrips = async (params: GetTripsParams): Promise<TripSummary[]> => {
   const { username, status, limit, offset } = params;
 
   const queryParams = new URLSearchParams();
@@ -27,7 +22,7 @@ export const getUserTrips = async (params: GetTripsParams): Promise<GetTripsResp
   if (offset) queryParams.append('offset', offset.toString());
 
   const url = `/users/${username}/trips${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  const response = await api.get<GetTripsResponse>(url);
+  const response = await api.get<TripSummary[]>(url);
   return response.data;
 };
 
@@ -39,10 +34,9 @@ export const getUserTrips = async (params: GetTripsParams): Promise<GetTripsResp
  * @returns List of recent published trips
  */
 export const getRecentTrips = async (username: string, limit: number = 5): Promise<TripSummary[]> => {
-  const response = await getUserTrips({
+  return await getUserTrips({
     username,
     status: 'PUBLISHED',
     limit,
   });
-  return response.trips;
 };
