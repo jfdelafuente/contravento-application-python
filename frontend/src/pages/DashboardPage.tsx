@@ -3,6 +3,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
+import StatsSection from '../components/dashboard/StatsSection';
 import './DashboardPage.css';
 
 /**
@@ -65,12 +66,14 @@ export const DashboardPage: React.FC = () => {
             )}
           </div>
 
+          {/* Stats Section - FR-001 */}
+          <StatsSection />
+
           <div className="placeholder-content">
             <h3>Próximamente</h3>
             <ul>
               <li>Perfil de usuario editable</li>
               <li>Diario de viajes</li>
-              <li>Estadísticas de ciclismo</li>
               <li>Galería de fotos</li>
               <li>Red social de ciclistas</li>
             </ul>

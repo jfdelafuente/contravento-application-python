@@ -1,0 +1,41 @@
+/* SkeletonLoader.css - Loading skeleton animation */
+
+.skeleton-loader {
+  background: linear-gradient(
+    90deg,
+    rgba(139, 115, 85, 0.1) 0%,
+    rgba(139, 115, 85, 0.2) 50%,
+    rgba(139, 115, 85, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.skeleton-loader:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Screen reader accessibility */
+.skeleton-loader[aria-busy='true'] {
+  position: relative;
+}
+
+.skeleton-loader[aria-busy='true']::before {
+  content: 'Cargando...';
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
