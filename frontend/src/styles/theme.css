@@ -1,0 +1,222 @@
+/* Theme Variables - Rustic & Modern Travel Aesthetic */
+
+:root {
+  /* Color Palette - Earth tones, greens, and cream */
+  --color-primary: #6B8E23;        /* Olive green - main brand color */
+  --color-primary-light: #8FBC8F;  /* Light sea green */
+  --color-primary-dark: #556B2F;   /* Dark olive green */
+
+  --color-secondary: #8B4513;      /* Saddle brown - accent */
+  --color-secondary-light: #A0522D; /* Sienna */
+  --color-secondary-dark: #654321;  /* Dark brown */
+
+  --color-earth: #C19A6B;          /* Camel/tan */
+  --color-earth-light: #D2B48C;    /* Tan */
+  --color-earth-dark: #8B7355;     /* Burlywood dark */
+
+  --color-cream: #FFF8DC;          /* Cornsilk - backgrounds */
+  --color-cream-light: #FFFAF0;    /* Floral white */
+  --color-cream-dark: #F5DEB3;     /* Wheat */
+
+  --color-forest: #2F4F2F;         /* Dark slate gray green */
+  --color-moss: #8A9A5B;           /* Moss green */
+
+  /* Neutrals */
+  --color-white: #FFFFFF;
+  --color-off-white: #FAFAF8;
+  --color-gray-100: #F5F5F0;
+  --color-gray-200: #E8E8E0;
+  --color-gray-300: #D1D1C7;
+  --color-gray-400: #A8A89E;
+  --color-gray-500: #6B6B61;
+  --color-gray-600: #4A4A42;
+  --color-gray-700: #2C2C26;
+  --color-gray-800: #1A1A16;
+  --color-black: #0F0F0D;
+
+  /* Semantic colors */
+  --color-success: #6B8E23;        /* Olive green */
+  --color-success-light: #E8F5E9;
+  --color-warning: #D4A574;        /* Tan/amber */
+  --color-warning-light: #FFF4E6;
+  --color-error: #A0522D;          /* Sienna */
+  --color-error-light: #FFE8E8;
+
+  /* Typography */
+  --font-serif: 'Merriweather', 'Georgia', 'Times New Roman', serif;
+  --font-sans: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-display: 'Playfair Display', 'Georgia', serif;
+
+  /* Font sizes */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+  --text-5xl: 3rem;      /* 48px */
+
+  /* Spacing */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* Border radius */
+  --radius-sm: 0.25rem;  /* 4px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-xl: 1rem;     /* 16px */
+  --radius-2xl: 1.5rem;  /* 24px */
+  --radius-full: 9999px;
+
+  /* Shadows - softer, more organic */
+  --shadow-sm: 0 2px 4px rgba(75, 70, 60, 0.08);
+  --shadow-md: 0 4px 12px rgba(75, 70, 60, 0.12);
+  --shadow-lg: 0 8px 24px rgba(75, 70, 60, 0.15);
+  --shadow-xl: 0 16px 40px rgba(75, 70, 60, 0.2);
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+}
+
+/* Global reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-gray-700);
+  background-color: var(--color-cream);
+}
+
+/* Typography - Travel journal aesthetic */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-forest);
+  margin-bottom: var(--space-4);
+}
+
+h1 {
+  font-size: var(--text-5xl);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--text-4xl);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-3xl);
+}
+
+h4 {
+  font-size: var(--text-2xl);
+}
+
+h5 {
+  font-size: var(--text-xl);
+}
+
+h6 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin-bottom: var(--space-4);
+  color: var(--color-gray-600);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Buttons - Rustic style */
+button, .button {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-base);
+}
+
+button:disabled, .button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Utility classes */
+.text-serif {
+  font-family: var(--font-serif);
+}
+
+.text-sans {
+  font-family: var(--font-sans);
+}
+
+.text-display {
+  font-family: var(--font-display);
+}
+
+/* Loading and transitions */
+.fade-in {
+  animation: fadeIn var(--transition-slow) ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scrollbar styling - rustic */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-earth);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-earth-dark);
+}
