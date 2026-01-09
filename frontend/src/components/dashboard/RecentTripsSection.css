@@ -1,0 +1,203 @@
+/* RecentTripsSection.css - Recent trips section with grid layout */
+
+.recent-trips-section {
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+.recent-trips-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.recent-trips-section__title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.recent-trips-section__view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.recent-trips-section__view-all:hover {
+  background-color: rgba(107, 114, 59, 0.1);
+  color: var(--color-forest);
+}
+
+.recent-trips-section__view-all svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Grid */
+.recent-trips-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.recent-trips-section__grid-item {
+  animation: slideUp 0.4s ease-out both;
+}
+
+/* Skeleton cards */
+.recent-trips-section__skeleton-card {
+  background-color: var(--color-cream);
+  border: 2px solid rgba(139, 115, 85, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Empty state */
+.recent-trips-section__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: rgba(139, 115, 85, 0.03);
+  border: 2px dashed rgba(139, 115, 85, 0.2);
+  border-radius: 12px;
+}
+
+.recent-trips-section__empty-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1.5rem;
+  color: rgba(139, 115, 85, 0.3);
+}
+
+.recent-trips-section__empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.recent-trips-section__empty-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.recent-trips-section__empty-text {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 2rem 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.recent-trips-section__empty-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(107, 114, 59, 0.2);
+}
+
+.recent-trips-section__empty-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 59, 0.3);
+}
+
+/* Error state */
+.recent-trips-section__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: rgba(220, 38, 38, 0.05);
+  border: 2px solid rgba(220, 38, 38, 0.2);
+  border-radius: 12px;
+}
+
+.recent-trips-section__error svg {
+  width: 48px;
+  height: 48px;
+  color: var(--color-error);
+  margin-bottom: 1rem;
+}
+
+.recent-trips-section__error p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-error);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .recent-trips-section {
+    margin-bottom: 2rem;
+  }
+
+  .recent-trips-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .recent-trips-section__title {
+    font-size: 1.5rem;
+  }
+
+  .recent-trips-section__grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .recent-trips-section__empty {
+    padding: 3rem 1.5rem;
+  }
+
+  .recent-trips-section__empty-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .recent-trips-section__empty-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .recent-trips-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+  .recent-trips-section__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

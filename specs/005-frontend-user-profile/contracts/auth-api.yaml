@@ -1,0 +1,1100 @@
+openapi: 3.0.3
+info:
+  title: ContraVento Authentication API
+  description: |
+    API endpoints for user authentication, registration, email verification, and password management.
+
+    **Authentication Method**: HttpOnly Cookies
+    - Access tokens (15 minutes) and refresh tokens (30 days or session-only) are set via HttpOnly cookies
+    - Frontend sends cookies automatically with `withCredentials: true`
+    - No tokens are returned in response bodies for security
+
+    **Rate Limiting**:
+    - Login: 5 attempts per 15 minutes per IP
+    - Registration: 10 attempts per hour per IP
+    - Password reset: 3 attempts per hour per email
+  version: 1.0.0
+  contact:
+    name: ContraVento API Support
+    url: https://contravento.com/support
+
+servers:
+  - url: http://localhost:8000
+    description: Local development (SQLite)
+  - url: https://api-dev.contravento.com
+    description: Development environment (PostgreSQL)
+  - url: https://api.contravento.com
+    description: Production environment
+
+tags:
+  - name: Authentication
+    description: User login, logout, token refresh
+  - name: Registration
+    description: User registration and email verification
+  - name: Password Management
+    description: Password reset and recovery
+
+paths:
+  /auth/register:
+    post:
+      operationId: registerUser
+      summary: Register new user
+      description: |
+        Creates a new user account with email verification required.
+
+        **Workflow**:
+        1. Validates input (username, email, password, CAPTCHA)
+        2. Creates user with `is_verified=false`
+        3. Sends verification email with token
+        4. Returns user data (no auto-login)
+
+        **Requirements** (per FR-001, FR-002):
+        - Username: 3-30 alphanumeric + underscore
+        - Email: Valid format, unique
+        - Password: 8-128 chars (strength validated client-side)
+        - CAPTCHA: Valid Cloudflare Turnstile token
+      tags:
+        - Registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              validRegistration:
+                summary: Valid registration request
+                value:
+                  username: maria_garcia
+                  email: maria@example.com
+                  password: SecurePass123!
+                  turnstile_token: "0.abc123..."
+      responses:
+        '201':
+          description: User registered successfully, verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Registro exitoso. Revisa tu email para verificar tu cuenta."
+                      user:
+                        id: "123e4567-e89b-12d3-a456-426614174000"
+                        username: "maria_garcia"
+                        email: "maria@example.com"
+                        is_verified: false
+                        created_at: "2026-01-08T10:30:00Z"
+        '400':
+          description: Validation error or invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emailTaken:
+                  summary: Email already registered
+                  value:
+                    success: false
+                    error:
+                      code: "EMAIL_ALREADY_EXISTS"
+                      message: "Este email ya está registrado"
+                      field: "email"
+                usernameTaken:
+                  summary: Username not available
+                  value:
+                    success: false
+                    error:
+                      code: "USERNAME_TAKEN"
+                      message: "Este nombre de usuario no está disponible"
+                      field: "username"
+                captchaFailed:
+                  summary: CAPTCHA verification failed
+                  value:
+                    success: false
+                    error:
+                      code: "CAPTCHA_FAILED"
+                      message: "Verificación CAPTCHA fallida. Inténtalo de nuevo."
+                      field: "turnstile_token"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /auth/login:
+    post:
+      operationId: loginUser
+      summary: Authenticate user
+      description: |
+        Authenticates user and sets HttpOnly cookies for access/refresh tokens.
+
+        **Workflow**:
+        1. Validates credentials
+        2. Checks if email is verified (blocks login if not, per FR-038)
+        3. Checks for account blocking (5 failed attempts = 15min block, per FR-028)
+        4. Sets HttpOnly cookies: access_token (15min), refresh_token (30 days or session-only)
+        5. Returns user data
+
+        **Remember Me** (per FR-020):
+        - `true`: Refresh token lasts 30 days (persistent cookie)
+        - `false`: Refresh token is session-only (deleted on browser close)
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              standardLogin:
+                summary: Login without Remember Me
+                value:
+                  email: maria@example.com
+                  password: SecurePass123!
+                  remember_me: false
+              rememberMeLogin:
+                summary: Login with Remember Me
+                value:
+                  email: maria@example.com
+                  password: SecurePass123!
+                  remember_me: true
+      responses:
+        '200':
+          description: Login successful, cookies set
+          headers:
+            Set-Cookie:
+              description: HttpOnly cookies for access and refresh tokens
+              schema:
+                type: string
+                example: access_token=eyJ...; HttpOnly; Secure; SameSite=Lax; Max-Age=900
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Inicio de sesión exitoso"
+                      user:
+                        id: "123e4567-e89b-12d3-a456-426614174000"
+                        username: "maria_garcia"
+                        email: "maria@example.com"
+                        is_verified: true
+                        created_at: "2026-01-08T10:30:00Z"
+                        profile:
+                          full_name: "María García"
+                          photo_url: "https://storage.contravento.com/..."
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidCredentials:
+                  summary: Wrong email or password
+                  value:
+                    success: false
+                    error:
+                      code: "INVALID_CREDENTIALS"
+                      message: "Email o contraseña incorrectos"
+        '403':
+          description: Email not verified or account blocked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emailNotVerified:
+                  summary: User hasn't verified email
+                  value:
+                    success: false
+                    error:
+                      code: "EMAIL_NOT_VERIFIED"
+                      message: "Debes verificar tu email antes de iniciar sesión"
+                accountBlocked:
+                  summary: Account temporarily blocked
+                  value:
+                    success: false
+                    error:
+                      code: "ACCOUNT_BLOCKED"
+                      message: "Cuenta bloqueada temporalmente por múltiples intentos fallidos"
+                      blocked_until: "2026-01-08T11:00:00Z"
+                      retry_after_seconds: 847
+        '429':
+          description: Rate limit exceeded (too many login attempts)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      summary: Logout user
+      description: |
+        Invalidates refresh token and clears cookies.
+
+        **Workflow** (per FR-024):
+        1. Invalidates refresh token in database
+        2. Clears access_token and refresh_token cookies
+        3. Returns success message
+      tags:
+        - Authentication
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Clears auth cookies
+              schema:
+                type: string
+                example: access_token=; Max-Age=0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Sesión cerrada exitosamente"
+
+  /auth/refresh-token:
+    post:
+      operationId: refreshAccessToken
+      summary: Refresh access token
+      description: |
+        Exchanges valid refresh token for new access token.
+
+        **Workflow** (per FR-021):
+        1. Validates refresh token from HttpOnly cookie
+        2. Issues new access token (15 min expiration)
+        3. Optionally rotates refresh token for security
+        4. Sets new cookies
+
+        **Called automatically** by Axios interceptor on 401 responses.
+      tags:
+        - Authentication
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          headers:
+            Set-Cookie:
+              description: New access token cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Token renovado exitosamente"
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidToken:
+                  value:
+                    success: false
+                    error:
+                      code: "INVALID_REFRESH_TOKEN"
+                      message: "Sesión expirada. Inicia sesión de nuevo."
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get current authenticated user
+      description: |
+        Returns current user profile data.
+
+        **Used for**:
+        - Initial auth check on app load
+        - Refreshing user data after profile updates
+      tags:
+        - Authentication
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      id: "123e4567-e89b-12d3-a456-426614174000"
+                      username: "maria_garcia"
+                      email: "maria@example.com"
+                      is_verified: true
+                      created_at: "2026-01-08T10:30:00Z"
+                      profile:
+                        full_name: "María García"
+                        photo_url: "https://storage.contravento.com/..."
+                        bio: "Ciclista de montaña apasionada"
+                        location: "Barcelona, España"
+                      stats:
+                        trip_count: 12
+                        total_distance_km: 1250.5
+                        followers_count: 45
+                        following_count: 38
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-email:
+    post:
+      operationId: verifyEmail
+      summary: Verify email with token
+      description: |
+        Verifies user email using token from verification email.
+
+        **Workflow** (per FR-009):
+        1. Validates token (checks expiration, user exists)
+        2. Sets `user.is_verified = true`
+        3. Returns success message
+
+        **Token expiration**: 24 hours
+      tags:
+        - Registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Verification token from email link
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyEmailResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Email verificado exitosamente. Ya puedes iniciar sesión."
+                      user:
+                        id: "123e4567-e89b-12d3-a456-426614174000"
+                        username: "maria_garcia"
+                        email: "maria@example.com"
+                        is_verified: true
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                expiredToken:
+                  summary: Token expired
+                  value:
+                    success: false
+                    error:
+                      code: "TOKEN_EXPIRED"
+                      message: "El enlace de verificación ha expirado. Solicita uno nuevo."
+                invalidToken:
+                  summary: Invalid token
+                  value:
+                    success: false
+                    error:
+                      code: "INVALID_TOKEN"
+                      message: "El enlace de verificación no es válido"
+
+  /auth/resend-verification:
+    post:
+      operationId: resendVerificationEmail
+      summary: Resend verification email
+      description: |
+        Sends new verification email to current user.
+
+        **Requirements** (per FR-010):
+        - User must be authenticated
+        - Email must not already be verified
+        - Rate limited: 1 email per 5 minutes
+      tags:
+        - Registration
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendVerificationResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Email de verificación enviado. Revisa tu bandeja de entrada."
+                      email_sent_to: "maria@example.com"
+        '400':
+          description: Email already verified or too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyVerified:
+                  value:
+                    success: false
+                    error:
+                      code: "EMAIL_ALREADY_VERIFIED"
+                      message: "Tu email ya está verificado"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /auth/forgot-password:
+    post:
+      operationId: requestPasswordReset
+      summary: Request password reset
+      description: |
+        Sends password reset email with token.
+
+        **Workflow** (per FR-030):
+        1. Validates email and CAPTCHA
+        2. Generates password reset token (1 hour expiration)
+        3. Sends email with reset link
+        4. Always returns success (prevents email enumeration)
+
+        **Rate limiting**: 3 attempts per hour per email
+      tags:
+        - Password Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+            examples:
+              validRequest:
+                value:
+                  email: maria@example.com
+                  turnstile_token: "0.abc123..."
+      responses:
+        '200':
+          description: Reset email sent (or email doesn't exist - same response for security)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPasswordResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Si el email existe, recibirás instrucciones para restablecer tu contraseña"
+                      email_sent_to: "m***a@example.com"
+        '400':
+          description: Invalid CAPTCHA
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      summary: Reset password with token
+      description: |
+        Resets user password using token from reset email.
+
+        **Workflow** (per FR-031):
+        1. Validates reset token (checks expiration)
+        2. Validates new password strength
+        3. Hashes and updates password
+        4. Invalidates all existing refresh tokens (force re-login)
+        5. Returns success message
+
+        **Token expiration**: 1 hour
+      tags:
+        - Password Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+            examples:
+              validReset:
+                value:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  new_password: "NewSecurePass456!"
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      message: "Contraseña restablecida exitosamente. Ya puedes iniciar sesión."
+        '400':
+          description: Invalid or expired token, or weak password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                expiredToken:
+                  summary: Token expired
+                  value:
+                    success: false
+                    error:
+                      code: "TOKEN_EXPIRED"
+                      message: "El enlace de recuperación ha expirado. Solicita uno nuevo."
+                weakPassword:
+                  summary: Password doesn't meet requirements
+                  value:
+                    success: false
+                    error:
+                      code: "WEAK_PASSWORD"
+                      message: "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número"
+
+  /auth/check-email:
+    get:
+      operationId: checkEmailAvailability
+      summary: Check if email is available
+      description: |
+        Checks if email is already registered (for real-time validation).
+
+        **Used for** (per FR-003):
+        - Debounced validation during registration
+        - Prevents submission of duplicate emails
+      tags:
+        - Registration
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+          example: maria@example.com
+      responses:
+        '200':
+          description: Email availability status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAvailabilityResponse'
+              examples:
+                available:
+                  summary: Email is available
+                  value:
+                    success: true
+                    data:
+                      available: true
+                notAvailable:
+                  summary: Email already registered
+                  value:
+                    success: true
+                    data:
+                      available: false
+                      message: "Este email ya está registrado"
+
+  /auth/check-username:
+    get:
+      operationId: checkUsernameAvailability
+      summary: Check if username is available
+      description: |
+        Checks if username is already taken (for real-time validation).
+
+        **Used for** (per FR-004):
+        - Debounced validation during registration
+        - Prevents submission of duplicate usernames
+      tags:
+        - Registration
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 30
+            pattern: '^[a-zA-Z0-9_]+$'
+          example: maria_garcia
+      responses:
+        '200':
+          description: Username availability status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsernameAvailabilityResponse'
+              examples:
+                available:
+                  summary: Username is available
+                  value:
+                    success: true
+                    data:
+                      available: true
+                notAvailable:
+                  summary: Username already taken
+                  value:
+                    success: true
+                    data:
+                      available: false
+                      message: "Este nombre de usuario no está disponible"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: HttpOnly cookie containing JWT access token
+
+  schemas:
+    # ==================== Request Schemas ====================
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - turnstile_token
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-zA-Z0-9_]+$'
+          example: maria_garcia
+          description: Unique username (alphanumeric + underscore)
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: maria@example.com
+          description: Unique email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          example: SecurePass123!
+          description: User password (validated client-side for strength)
+        turnstile_token:
+          type: string
+          example: "0.abc123def456..."
+          description: Cloudflare Turnstile CAPTCHA token
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+        - remember_me
+      properties:
+        email:
+          type: string
+          format: email
+          example: maria@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+        remember_me:
+          type: boolean
+          default: false
+          description: If true, refresh token lasts 30 days; if false, session-only
+        turnstile_token:
+          type: string
+          description: Optional CAPTCHA token (required if rate limited)
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+        - turnstile_token
+      properties:
+        email:
+          type: string
+          format: email
+          example: maria@example.com
+        turnstile_token:
+          type: string
+          description: Cloudflare Turnstile CAPTCHA token
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - new_password
+      properties:
+        token:
+          type: string
+          description: Reset token from email link
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        new_password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          example: NewSecurePass456!
+
+    # ==================== Response Schemas ====================
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Registro exitoso. Revisa tu email para verificar tu cuenta."
+            user:
+              $ref: '#/components/schemas/UserBasic'
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Inicio de sesión exitoso"
+            user:
+              $ref: '#/components/schemas/UserFull'
+
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Sesión cerrada exitosamente"
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Token renovado exitosamente"
+
+    CurrentUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/UserFull'
+
+    VerifyEmailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Email verificado exitosamente. Ya puedes iniciar sesión."
+            user:
+              $ref: '#/components/schemas/UserBasic'
+
+    ResendVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Email de verificación enviado. Revisa tu bandeja de entrada."
+            email_sent_to:
+              type: string
+              example: "maria@example.com"
+
+    ForgotPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Si el email existe, recibirás instrucciones para restablecer tu contraseña"
+            email_sent_to:
+              type: string
+              example: "m***a@example.com"
+              description: Masked email for privacy
+
+    ResetPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Contraseña restablecida exitosamente. Ya puedes iniciar sesión."
+
+    EmailAvailabilityResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            available:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Este email ya está registrado"
+
+    UsernameAvailabilityResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            available:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Este nombre de usuario no está disponible"
+
+    # ==================== Error Schemas ====================
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - INVALID_CREDENTIALS
+                - EMAIL_NOT_VERIFIED
+                - ACCOUNT_BLOCKED
+                - INVALID_TOKEN
+                - TOKEN_EXPIRED
+                - EMAIL_ALREADY_EXISTS
+                - USERNAME_TAKEN
+                - WEAK_PASSWORD
+                - CAPTCHA_FAILED
+                - VALIDATION_ERROR
+              example: "INVALID_CREDENTIALS"
+            message:
+              type: string
+              example: "Email o contraseña incorrectos"
+            field:
+              type: string
+              description: Field name for validation errors
+              example: "email"
+            blocked_until:
+              type: string
+              format: date-time
+              description: ISO timestamp when account unblocks (for ACCOUNT_BLOCKED)
+              example: "2026-01-08T11:00:00Z"
+            retry_after_seconds:
+              type: integer
+              description: Seconds until retry allowed (for ACCOUNT_BLOCKED)
+              example: 847
+
+    RateLimitError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "RATE_LIMIT_EXCEEDED"
+            message:
+              type: string
+              example: "Demasiados intentos. Inténtalo de nuevo en 15 minutos."
+            retry_after_seconds:
+              type: integer
+              example: 900
+
+    # ==================== Entity Schemas ====================
+
+    UserBasic:
+      type: object
+      description: Basic user information (registration, verification responses)
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        username:
+          type: string
+          example: "maria_garcia"
+        email:
+          type: string
+          format: email
+          example: "maria@example.com"
+        is_verified:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-01-08T10:30:00Z"
+
+    UserFull:
+      type: object
+      description: Full user data (login, /auth/me responses)
+      allOf:
+        - $ref: '#/components/schemas/UserBasic'
+        - type: object
+          properties:
+            profile:
+              $ref: '#/components/schemas/UserProfile'
+            stats:
+              $ref: '#/components/schemas/UserStats'
+
+    UserProfile:
+      type: object
+      nullable: true
+      properties:
+        full_name:
+          type: string
+          nullable: true
+          example: "María García"
+        photo_url:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://storage.contravento.com/profile_photos/2026/01/..."
+        bio:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Ciclista de montaña apasionada por el bikepacking"
+        location:
+          type: string
+          nullable: true
+          example: "Barcelona, España"
+        social_links:
+          type: object
+          nullable: true
+          properties:
+            instagram:
+              type: string
+              nullable: true
+            strava:
+              type: string
+              nullable: true
+            website:
+              type: string
+              nullable: true
+
+    UserStats:
+      type: object
+      nullable: true
+      properties:
+        trip_count:
+          type: integer
+          example: 12
+        total_distance_km:
+          type: number
+          format: float
+          example: 1250.5
+        followers_count:
+          type: integer
+          example: 45
+        following_count:
+          type: integer
+          example: 38
