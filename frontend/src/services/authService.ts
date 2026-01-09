@@ -106,7 +106,7 @@ export const authService = {
    * Refresh access token
    */
   async refreshToken(): Promise<void> {
-    await api.post('/auth/refresh-token');
+    await api.post('/auth/refresh');
   },
 
   /**

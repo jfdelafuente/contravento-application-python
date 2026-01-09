@@ -25,7 +25,7 @@ api.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig;
 
     // Don't retry on these endpoints (they are used for initial auth check)
-    const noRetryEndpoints = ['/auth/me', '/auth/refresh-token', '/auth/login', '/auth/register'];
+    const noRetryEndpoints = ['/auth/me', '/auth/refresh', '/auth/login', '/auth/register'];
     const isNoRetryEndpoint = noRetryEndpoints.some((endpoint) =>
       originalRequest?.url?.includes(endpoint)
     );
@@ -41,7 +41,7 @@ api.interceptors.response.use(
 
       try {
         // Call refresh endpoint (backend sets new access token cookie)
-        await api.post('/auth/refresh-token');
+        await api.post('/auth/refresh');
 
         // Retry original request with new access token
         return api(originalRequest);

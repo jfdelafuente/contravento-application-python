@@ -4,11 +4,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import { AccountBlockedMessage } from './AccountBlockedMessage';
 import { TurnstileWidget } from './TurnstileWidget';
-import type { LoginFormData } from '../../types/forms';
-import type { APIError } from '../../types/api';
+import type { AxiosError } from 'axios';
 import './LoginForm.css';
 
 // Validation schema
@@ -44,6 +43,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onError,
   onEmailNotVerified,
 }) => {
+  const { login } = useAuth();
+
   const {
     register,
     handleSubmit,
@@ -64,16 +65,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setGeneralError(null);
 
     try {
-      await authService.login(
+      await login(
         data.email,
         data.password,
-        data.rememberMe ?? false,
-        turnstileToken ?? undefined
+        data.rememberMe ?? false
       );
 
       onSuccess();
     } catch (error) {
-      const apiError = error as APIError;
+      const apiError = error as AxiosError<any>;
 
       // Handle account blocking (403 ACCOUNT_BLOCKED)
       if (
