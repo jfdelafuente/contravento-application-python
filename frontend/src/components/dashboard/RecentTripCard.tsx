@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TripSummary } from '../../types/trip';
 import { formatShortDate, formatDistance } from '../../utils/formatters';
 import './RecentTripCard.css';
@@ -9,50 +9,23 @@ export interface RecentTripCardProps {
 
 /**
  * RecentTripCard component - Display trip summary with photo and details
- * Features lazy loading for images and fallback placeholder
+ * Shows photo count placeholder since backend doesn't return photo URLs in summary
  */
 const RecentTripCard: React.FC<RecentTripCardProps> = ({ trip }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
-    setImageLoaded(true);
-  };
-
   return (
     <article className="recent-trip-card">
-      <a href={`/trips/${trip.id}`} className="recent-trip-card__link">
+      <a href={`/trips/${trip.trip_id}`} className="recent-trip-card__link">
         {/* Photo */}
         <div className="recent-trip-card__photo">
-          {!imageLoaded && !imageError && (
-            <div className="recent-trip-card__photo-skeleton" aria-busy="true">
-              Cargando...
-            </div>
-          )}
-          {trip.photo_url && !imageError ? (
-            <img
-              src={trip.photo_url}
-              alt={trip.title}
-              className={`recent-trip-card__image ${imageLoaded ? 'recent-trip-card__image--loaded' : ''}`}
-              loading="lazy"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-            />
-          ) : (
-            <div className="recent-trip-card__photo-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-              <span>Sin foto</span>
-            </div>
-          )}
+          {/* Always show placeholder since backend doesn't return photo URLs in summary */}
+          <div className="recent-trip-card__photo-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <span>{trip.photos_count > 0 ? `${trip.photos_count} foto${trip.photos_count > 1 ? 's' : ''}` : 'Sin foto'}</span>
+          </div>
         </div>
 
         {/* Content */}

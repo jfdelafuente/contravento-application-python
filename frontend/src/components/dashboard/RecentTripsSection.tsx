@@ -84,7 +84,7 @@ const RecentTripsSection: React.FC = () => {
         <div className="recent-trips-section__grid">
           {trips.map((trip, index) => (
             <div
-              key={trip.id}
+              key={trip.trip_id}
               style={{ animationDelay: `${index * 0.1}s` }}
               className="recent-trips-section__grid-item"
             >

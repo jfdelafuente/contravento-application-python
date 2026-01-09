@@ -2,7 +2,8 @@
  * Trip summary for dashboard and lists
  */
 export interface TripSummary {
-  id: string;
+  trip_id: string;
+  user_id: string;
   title: string;
   description?: string;
   start_date: string;
@@ -11,7 +12,7 @@ export interface TripSummary {
   difficulty?: 'easy' | 'moderate' | 'hard' | 'extreme';
   status: 'draft' | 'published';
   tags: string[];
-  photo_url?: string;
+  photos_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -20,7 +21,6 @@ export interface TripSummary {
  * Full trip details (for trip detail page)
  */
 export interface Trip extends TripSummary {
-  user_id: string;
   photos: TripPhoto[];
   location?: TripLocation;
 }
