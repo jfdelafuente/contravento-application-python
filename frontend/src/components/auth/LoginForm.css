@@ -1,155 +1,205 @@
-/* src/components/auth/LoginForm.css */
+/* LoginForm.css - Rustic Travel Aesthetic */
 
 .login-form {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  width: 100%;
+  padding: var(--space-8) var(--space-8) var(--space-6);
 }
 
 .login-form .form-error {
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  background-color: #fee;
-  border: 1px solid #fcc;
-  border-radius: 4px;
-  color: #c00;
-  font-size: 0.9rem;
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+  background: var(--color-error-light);
+  border: 2px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  color: var(--color-secondary-dark);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  animation: slideDown 0.3s ease-out;
 }
 
 .login-form .form-field {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
 }
 
 .login-form .form-field label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #333;
+  margin-bottom: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-forest);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .login-form .form-field input[type='email'],
 .login-form .form-field input[type='password'] {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  padding: var(--space-4) var(--space-5);
+  border: 2px solid var(--color-earth-light);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-gray-700);
+  background: var(--color-white);
+  transition: all var(--transition-base);
 }
 
 .login-form .form-field input[type='email']:focus,
 .login-form .form-field input[type='password']:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--color-primary);
+  background: var(--color-cream);
+  box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
 }
 
 .login-form .form-field input[aria-invalid='true'] {
-  border-color: #dc3545;
+  border-color: var(--color-error);
+  background: var(--color-error-light);
+}
+
+.login-form .form-field input::placeholder {
+  color: var(--color-gray-400);
 }
 
 .login-form .field-error {
   display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: #dc3545;
+  margin-top: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  font-weight: 600;
 }
 
 .login-form .checkbox-field {
   display: flex;
   align-items: center;
+  margin-bottom: var(--space-5);
 }
 
 .login-form .checkbox-field label {
   display: flex;
   align-items: center;
+  gap: var(--space-2);
   margin-bottom: 0;
   cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
   font-weight: normal;
 }
 
 .login-form .checkbox-field input[type='checkbox'] {
-  margin-right: 0.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
   cursor: pointer;
+  accent-color: var(--color-primary);
 }
 
 .login-form .form-links {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
   text-align: right;
 }
 
 .login-form .forgot-password-link {
-  color: #007bff;
+  color: var(--color-primary);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: color var(--transition-fast);
 }
 
 .login-form .forgot-password-link:hover {
-  color: #0056b3;
+  color: var(--color-primary-dark);
   text-decoration: underline;
 }
 
 .login-form .submit-button {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
+  padding: var(--space-5) var(--space-8);
+  background: linear-gradient(135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-cream);
+  border: 2px solid var(--color-primary-dark);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .login-form .submit-button:hover:not(:disabled) {
-  background-color: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-forest) 100%
+  );
+}
+
+.login-form .submit-button:active:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .login-form .submit-button:disabled {
-  background-color: #6c757d;
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
+  background: var(--color-gray-400);
+  border-color: var(--color-gray-500);
 }
 
 .login-form .form-footer {
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
   text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-earth-light);
 }
 
 .login-form .form-footer p {
   margin: 0;
-  color: #666;
-  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
 }
 
 .login-form .form-footer a {
-  color: #007bff;
+  color: var(--color-primary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  transition: color var(--transition-fast);
 }
 
 .login-form .form-footer a:hover {
+  color: var(--color-primary-dark);
   text-decoration: underline;
 }
 
 /* Account blocked message styles */
 .account-blocked-alert {
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  color: white;
+  max-width: 520px;
+  margin: var(--space-8) auto;
+  padding: var(--space-8);
+  background: linear-gradient(135deg,
+    var(--color-secondary) 0%,
+    var(--color-secondary-dark) 100%
+  );
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 2px solid var(--color-secondary-dark);
+  color: var(--color-cream);
   display: flex;
-  gap: 1rem;
+  gap: var(--space-6);
+  animation: slideUp 0.6s ease-out;
 }
 
 .account-blocked-alert .alert-icon {
@@ -157,8 +207,9 @@
 }
 
 .account-blocked-alert .alert-icon svg {
-  width: 48px;
-  height: 48px;
+  width: 3rem;
+  height: 3rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .account-blocked-alert .alert-content {
@@ -166,41 +217,91 @@
 }
 
 .account-blocked-alert h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin: 0 0 var(--space-3) 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-cream);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .account-blocked-alert p {
-  margin: 0.5rem 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  margin: var(--space-2) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-cream-light);
 }
 
 .account-blocked-alert .countdown {
-  margin-top: 1rem;
-  font-size: 1rem;
+  margin-top: var(--space-5);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
 }
 
 .account-blocked-alert .countdown-timer {
-  font-size: 1.5rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: var(--color-cream);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .account-blocked-alert .help-text {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-  font-size: 0.9rem;
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid rgba(255, 248, 220, 0.3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-cream-light);
 }
 
 .account-blocked-alert a {
-  color: #fff;
+  color: var(--color-cream);
   text-decoration: underline;
-  font-weight: 500;
+  font-weight: 600;
+  transition: opacity var(--transition-fast);
 }
 
 .account-blocked-alert a:hover {
   opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .login-form {
+    padding: var(--space-6) var(--space-6) var(--space-4);
+  }
+
+  .account-blocked-alert {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .account-blocked-alert .alert-icon {
+    align-self: center;
+  }
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
