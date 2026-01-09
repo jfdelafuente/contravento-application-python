@@ -8,6 +8,17 @@ interface GetTripsParams {
   offset?: number;
 }
 
+interface TripsApiResponse {
+  success: boolean;
+  data: {
+    trips: TripSummary[];
+    count: number;
+    limit: number;
+    offset: number;
+  };
+  error: null | any;
+}
+
 /**
  * Fetch user's trips
  * @param params - Query parameters (username, status, limit, offset)
@@ -22,8 +33,8 @@ export const getUserTrips = async (params: GetTripsParams): Promise<TripSummary[
   if (offset) queryParams.append('offset', offset.toString());
 
   const url = `/users/${username}/trips${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  const response = await api.get<TripSummary[]>(url);
-  return response.data;
+  const response = await api.get<TripsApiResponse>(url);
+  return response.data.data.trips;
 };
 
 /**
