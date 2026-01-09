@@ -9,7 +9,7 @@ export interface TripSummary {
   end_date?: string;
   distance_km: number;
   difficulty?: 'easy' | 'moderate' | 'hard' | 'extreme';
-  status: 'DRAFT' | 'PUBLISHED';
+  status: 'draft' | 'published';
   tags: string[];
   photo_url?: string;
   created_at: string;

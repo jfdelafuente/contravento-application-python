@@ -3,7 +3,7 @@ import { TripSummary } from '../types/trip';
 
 interface GetTripsParams {
   username: string;
-  status?: 'DRAFT' | 'PUBLISHED';
+  status?: 'draft' | 'published';
   limit?: number;
   offset?: number;
 }
@@ -36,7 +36,7 @@ export const getUserTrips = async (params: GetTripsParams): Promise<TripSummary[
 export const getRecentTrips = async (username: string, limit: number = 5): Promise<TripSummary[]> => {
   return await getUserTrips({
     username,
-    status: 'PUBLISHED',
+    status: 'published',
     limit,
   });
 };
