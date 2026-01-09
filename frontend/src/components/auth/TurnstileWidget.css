@@ -1,0 +1,14 @@
+/* TurnstileWidget.css */
+
+.turnstile-widget {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+  min-height: 65px; /* Reserve space for the widget */
+}
+
+.turnstile-widget > div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}

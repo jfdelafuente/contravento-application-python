@@ -667,3 +667,25 @@ This project uses `/speckit.*` commands for specification-driven development:
 - `/speckit.implement`: Execute implementation phases
 
 See `.specify/` directory for templates and workflows.
+
+## Active Technologies
+
+### Backend (Python/FastAPI)
+- Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
+- SQLAlchemy 2.0 (async ORM)
+- PostgreSQL (production) / SQLite (development)
+
+### Frontend (React/TypeScript)
+- React 18 + TypeScript 5 + Vite (005-frontend-user-profile)
+- React Router 6 for navigation
+- React Hook Form + Zod for form validation
+- Axios for HTTP client (HttpOnly cookie authentication)
+- Cloudflare Turnstile for CAPTCHA
+
+## Recent Changes
+
+- 005-frontend-user-profile: Added React 18 + TypeScript 5 + Vite frontend with authentication
+- 002-travel-diary: Added travel diary feature with trips, photos, tags, and draft workflow
+- 001-user-profiles: Added user authentication, profiles, and statistics
+
+**Last updated**: 2026-01-08
