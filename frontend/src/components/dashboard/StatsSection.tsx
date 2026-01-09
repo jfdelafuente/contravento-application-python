@@ -1,6 +1,7 @@
 import React from 'react';
 import StatsCard from './StatsCard';
 import { useStats } from '../../hooks/useStats';
+import { useAuth } from '../../contexts/AuthContext';
 import { formatStatNumber, formatDistance, formatCountries } from '../../utils/formatters';
 import './StatsSection.css';
 
@@ -12,7 +13,8 @@ import './StatsSection.css';
  * - Current followers
  */
 const StatsSection: React.FC = () => {
-  const { stats, loading, error } = useStats();
+  const { user } = useAuth();
+  const { stats, loading, error } = useStats(user?.username || '');
 
   return (
     <section className="stats-section" aria-labelledby="stats-heading">

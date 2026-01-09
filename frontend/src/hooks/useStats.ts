@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserStats } from '../types/stats';
-import { getMyStats } from '../services/statsService';
+import { getUserStats } from '../services/statsService';
 
 interface UseStatsResult {
   stats: UserStats | null;
@@ -12,8 +12,9 @@ interface UseStatsResult {
 /**
  * Custom hook for fetching and managing user statistics
  * Includes caching (5 minutes) and automatic refetch
+ * @param username - Username to fetch stats for
  */
-export const useStats = (): UseStatsResult => {
+export const useStats = (username: string): UseStatsResult => {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +23,11 @@ export const useStats = (): UseStatsResult => {
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   const fetchStats = async () => {
+    if (!username) {
+      setLoading(false);
+      return;
+    }
+
     const now = Date.now();
 
     // Check if cached data is still valid
@@ -33,7 +39,7 @@ export const useStats = (): UseStatsResult => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getMyStats();
+      const data = await getUserStats(username);
       setStats(data);
       setLastFetch(now);
     } catch (err: any) {
@@ -51,7 +57,7 @@ export const useStats = (): UseStatsResult => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [username]);
 
   return {
     stats,

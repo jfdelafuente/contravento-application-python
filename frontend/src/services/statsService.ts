@@ -1,10 +1,17 @@
 import { api } from './api';
 import { UserStats } from '../types/stats';
 
+interface StatsApiResponse {
+  success: boolean;
+  data: UserStats;
+  error: null | any;
+}
+
 /**
- * Fetch current user's statistics
+ * Fetch user's statistics by username
+ * @param username - Username to fetch stats for
  */
-export const getMyStats = async (): Promise<UserStats> => {
-  const response = await api.get<UserStats>('/api/stats/me');
-  return response.data;
+export const getUserStats = async (username: string): Promise<UserStats> => {
+  const response = await api.get<StatsApiResponse>(`/users/${username}/stats`);
+  return response.data.data;
 };
