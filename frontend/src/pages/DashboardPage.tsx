@@ -6,6 +6,8 @@ import { UserMenu } from '../components/auth/UserMenu';
 import StatsSection from '../components/dashboard/StatsSection';
 import RecentTripsSection from '../components/dashboard/RecentTripsSection';
 import QuickActionsSection from '../components/dashboard/QuickActionsSection';
+import AchievementsSection from '../components/dashboard/AchievementsSection';
+import SocialStatsSection from '../components/dashboard/SocialStatsSection';
 import './DashboardPage.css';
 
 /**
@@ -43,10 +45,12 @@ export const DashboardPage: React.FC = () => {
       <main className="dashboard-main">
         <div className="dashboard-content">
           <div className="welcome-card">
-            <h2>Bienvenido a tu Dashboard</h2>
-            <p>
-              Has iniciado sesión correctamente como <strong>{user.email}</strong>
-            </p>
+            <div className="welcome-card__content">
+              <h2>Bienvenido a tu Dashboard</h2>
+              <p>
+                Has iniciado sesión correctamente como <strong>{user.email}</strong>
+              </p>
+            </div>
             {user.is_verified && (
               <p className="verified-badge">
                 <svg
@@ -70,6 +74,12 @@ export const DashboardPage: React.FC = () => {
 
           {/* Stats Section - FR-001 */}
           <StatsSection />
+
+          {/* Achievements Section - FR-003 */}
+          <AchievementsSection />
+
+          {/* Social Stats Section - FR-003 */}
+          <SocialStatsSection />
 
           {/* Recent Trips Section - FR-002 */}
           <RecentTripsSection />

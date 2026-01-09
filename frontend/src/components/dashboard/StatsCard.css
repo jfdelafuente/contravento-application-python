@@ -63,6 +63,7 @@
   gap: 0.25rem;
   position: relative;
   z-index: 1;
+  text-align: center;
 }
 
 .stats-card__title {
