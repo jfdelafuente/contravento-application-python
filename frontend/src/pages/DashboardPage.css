@@ -26,31 +26,6 @@
   font-weight: 700;
 }
 
-.dashboard-header .user-actions {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.dashboard-header .welcome-text {
-  font-size: 1rem;
-}
-
-.dashboard-header .logout-button {
-  padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.dashboard-header .logout-button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
 .dashboard-main {
   padding: 2rem;
 }

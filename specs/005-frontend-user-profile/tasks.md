@@ -180,14 +180,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T065 [US4] Create VerifyEmailPage that extracts token from URL and calls verify endpoint in frontend/src/pages/VerifyEmailPage.tsx
-- [ ] T066 [US4] Add /verify-email route to App.tsx
-- [ ] T067 [US4] Handle TOKEN_EXPIRED error and show "resend verification" button
-- [ ] T068 [US4] Handle INVALID_TOKEN error with clear messaging
-- [ ] T069 [US4] Implement resend verification email functionality using authService
-- [ ] T070 [US4] Add success animation or visual feedback on successful verification
-- [ ] T071 [US4] Add automatic redirect to /login after 3 seconds on success
-- [ ] T072 [US4] Add rate limiting feedback for resend verification (max 1 per 5 minutes)
+- [x] T065 [US4] Create VerifyEmailPage that extracts token from URL and calls verify endpoint in frontend/src/pages/VerifyEmailPage.tsx
+- [x] T066 [US4] Add /verify-email route to App.tsx
+- [x] T067 [US4] Handle TOKEN_EXPIRED error and show "resend verification" button
+- [x] T068 [US4] Handle INVALID_TOKEN error with clear messaging
+- [x] T069 [US4] Implement resend verification email functionality using authService
+- [x] T070 [US4] Add success animation or visual feedback on successful verification
+- [x] T071 [US4] Add automatic redirect to /login after 3 seconds on success
+- [x] T072 [US4] Add rate limiting feedback for resend verification (max 1 per 5 minutes)
 
 **Checkpoint**: User Story 4 complete - users can verify email via link, resend verification if expired, and access platform after verification
 
@@ -207,14 +207,14 @@
 
 ### Implementation for User Story 5
 
-- [ ] T073 [P] [US5] Create UserMenu component with logout button in frontend/src/components/auth/UserMenu.tsx
-- [ ] T074 [US5] Implement logout handler that calls authService.logout()
-- [ ] T075 [US5] Update AuthContext to clear user state on logout
-- [ ] T076 [US5] Add UserMenu to DashboardPage navigation bar
-- [ ] T077 [US5] Add loading state during logout operation
-- [ ] T078 [US5] Add confirmation dialog for logout action (optional - can skip for MVP)
-- [ ] T079 [US5] Ensure all protected routes redirect to /login after logout
-- [ ] T080 [US5] Clear any client-side cached data on logout
+- [x] T073 [P] [US5] Create UserMenu component with logout button in frontend/src/components/auth/UserMenu.tsx
+- [x] T074 [US5] Implement logout handler that calls authService.logout()
+- [x] T075 [US5] Update AuthContext to clear user state on logout
+- [x] T076 [US5] Add UserMenu to DashboardPage navigation bar
+- [x] T077 [US5] Add loading state during logout operation
+- [x] T078 [US5] Add confirmation dialog for logout action (optional - can skip for MVP)
+- [x] T079 [US5] Ensure all protected routes redirect to /login after logout
+- [x] T080 [US5] Clear any client-side cached data on logout
 
 **Checkpoint**: User Story 5 complete - users can logout securely, session is invalidated on backend, and routes are protected
 
@@ -235,16 +235,16 @@
 
 ### Implementation for User Story 6
 
-- [ ] T081 [P] [US6] Create ProfilePage placeholder component in frontend/src/pages/ProfilePage.tsx
-- [ ] T082 [US6] Add /profile protected route to App.tsx
-- [ ] T083 [US6] Update UserMenu to display user info (username, photo) from AuthContext
-- [ ] T084 [US6] Implement automatic auth check on app mount in AuthContext
-- [ ] T085 [US6] Test automatic token refresh on 401 response (already in api.ts interceptor)
-- [ ] T086 [US6] Add loading spinner while auth check is in progress
-- [ ] T087 [US6] Handle session expiration gracefully (refresh token expired)
-- [ ] T088 [US6] Add navigation links to UserMenu (Dashboard, Profile, Logout)
-- [ ] T089 [US6] Ensure ProtectedRoute shows loading state during auth check
-- [ ] T090 [US6] Test navigation between protected routes maintains state
+- [x] T081 [P] [US6] Create ProfilePage placeholder component in frontend/src/pages/ProfilePage.tsx
+- [x] T082 [US6] Add /profile protected route to App.tsx
+- [x] T083 [US6] Update UserMenu to display user info (username, photo) from AuthContext
+- [x] T084 [US6] Implement automatic auth check on app mount in AuthContext
+- [x] T085 [US6] Test automatic token refresh on 401 response (already in api.ts interceptor)
+- [x] T086 [US6] Add loading spinner while auth check is in progress
+- [x] T087 [US6] Handle session expiration gracefully (refresh token expired)
+- [x] T088 [US6] Add navigation links to UserMenu (Dashboard, Profile, Logout)
+- [x] T089 [US6] Ensure ProtectedRoute shows loading state during auth check
+- [x] T090 [US6] Test navigation between protected routes maintains state
 
 **Checkpoint**: User Story 6 complete - authentication persists across navigation, page refreshes, and browser sessions (with Remember Me)
 

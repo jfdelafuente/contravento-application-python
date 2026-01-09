@@ -5,10 +5,12 @@ import { ProtectedRoute } from './components/routing/ProtectedRoute';
 import { RegisterPage } from './pages/RegisterPage';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 
-// Placeholder components (will be implemented in Phase 6)
+// Placeholder components
 const HomePage: React.FC = () => (
   <div className="app">
     <h1>ContraVento</h1>
@@ -16,13 +18,6 @@ const HomePage: React.FC = () => (
     <p>
       <a href="/login">Iniciar sesión</a> | <a href="/register">Registrarse</a>
     </p>
-  </div>
-);
-
-const VerifyEmailPage: React.FC = () => (
-  <div className="app">
-    <h2>Verificar Email</h2>
-    <p>Página de verificación de email (Fase 6)</p>
   </div>
 );
 
@@ -45,6 +40,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

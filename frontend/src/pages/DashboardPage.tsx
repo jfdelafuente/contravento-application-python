@@ -2,26 +2,19 @@
 
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { UserMenu } from '../components/auth/UserMenu';
 import './DashboardPage.css';
 
 /**
  * Protected dashboard page - only accessible to authenticated and verified users
  *
  * Features:
- * - Displays user information
- * - Shows logout button
+ * - Displays user information via UserMenu
+ * - Shows logout button with loading state
  * - Placeholder for future dashboard content (trips, stats, etc.)
  */
 export const DashboardPage: React.FC = () => {
-  const { user, logout, isLoading } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -40,14 +33,7 @@ export const DashboardPage: React.FC = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <h1>ContraVento</h1>
-          <div className="user-actions">
-            <span className="welcome-text">
-              Hola, <strong>@{user.username}</strong>
-            </span>
-            <button onClick={handleLogout} className="logout-button">
-              Cerrar sesión
-            </button>
-          </div>
+          <UserMenu />
         </div>
       </header>
 
