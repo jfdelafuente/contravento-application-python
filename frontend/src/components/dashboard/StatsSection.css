@@ -67,3 +67,15 @@
 .stats-section__grid > *:nth-child(4) {
   animation-delay: 0.3s;
 }
+
+.stats-section__grid > *:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.stats-section__grid > *:nth-child(6) {
+  animation-delay: 0.5s;
+}
+
+.stats-section__grid > *:nth-child(7) {
+  animation-delay: 0.6s;
+}

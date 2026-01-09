@@ -17,6 +17,9 @@ export interface UserStats {
   achievements_count: number;
   last_trip_date: string | null;
   updated_at: string;
+  // Social stats (from profile endpoint, optional)
+  followers_count?: number;
+  following_count?: number;
 }
 
 /**

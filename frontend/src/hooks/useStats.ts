@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserStats } from '../types/stats';
 import { getUserStats } from '../services/statsService';
+import { getUserProfile } from '../services/profileService';
 
 interface UseStatsResult {
   stats: UserStats | null;
@@ -40,8 +41,21 @@ export const useStats = (username: string): UseStatsResult => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getUserStats(username);
-        setStats(data);
+
+        // Fetch both stats and profile data in parallel
+        const [statsData, profileData] = await Promise.all([
+          getUserStats(username),
+          getUserProfile(username).catch(() => null), // Fallback to null if profile fails
+        ]);
+
+        // Combine stats with social data from profile
+        const combinedStats: UserStats = {
+          ...statsData,
+          followers_count: profileData?.followers_count,
+          following_count: profileData?.following_count,
+        };
+
+        setStats(combinedStats);
         setLastFetch(now);
       } catch (err: any) {
         console.error('Error fetching stats:', err);
@@ -66,8 +80,21 @@ export const useStats = (username: string): UseStatsResult => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getUserStats(username);
-      setStats(data);
+
+      // Fetch both stats and profile data in parallel
+      const [statsData, profileData] = await Promise.all([
+        getUserStats(username),
+        getUserProfile(username).catch(() => null),
+      ]);
+
+      // Combine stats with social data from profile
+      const combinedStats: UserStats = {
+        ...statsData,
+        followers_count: profileData?.followers_count,
+        following_count: profileData?.following_count,
+      };
+
+      setStats(combinedStats);
       setLastFetch(Date.now());
     } catch (err: any) {
       console.error('Error fetching stats:', err);
