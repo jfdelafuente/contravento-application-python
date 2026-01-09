@@ -29,10 +29,18 @@ export const useRecentTrips = (username: string, limit: number = 5): UseRecentTr
       setLoading(true);
       setError(null);
       const data = await getRecentTrips(username, limit);
-      setTrips(data);
+
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setTrips(data);
+      } else {
+        console.warn('Unexpected trips data format:', data);
+        setTrips([]);
+      }
     } catch (err: any) {
       console.error('Error fetching recent trips:', err);
       setError(err.response?.data?.message || 'Error al cargar viajes recientes');
+      setTrips([]); // Ensure trips is always an array
     } finally {
       setLoading(false);
     }
