@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
 import StatsSection from '../components/dashboard/StatsSection';
 import RecentTripsSection from '../components/dashboard/RecentTripsSection';
+import QuickActionsSection from '../components/dashboard/QuickActionsSection';
 import './DashboardPage.css';
 
 /**
@@ -73,12 +74,15 @@ export const DashboardPage: React.FC = () => {
           {/* Recent Trips Section - FR-002 */}
           <RecentTripsSection />
 
+          {/* Quick Actions Section - FR-004 */}
+          <QuickActionsSection />
+
           <div className="placeholder-content">
             <h3>Próximamente</h3>
             <ul>
-              <li>Perfil de usuario editable</li>
-              <li>Galería de fotos</li>
-              <li>Red social de ciclistas</li>
+              <li>Feed de actividad social</li>
+              <li>Galería de fotos avanzada</li>
+              <li>Comparación de estadísticas</li>
             </ul>
           </div>
         </div>
