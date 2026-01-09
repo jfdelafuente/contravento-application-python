@@ -4,6 +4,7 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
 import StatsSection from '../components/dashboard/StatsSection';
+import RecentTripsSection from '../components/dashboard/RecentTripsSection';
 import './DashboardPage.css';
 
 /**
@@ -69,11 +70,13 @@ export const DashboardPage: React.FC = () => {
           {/* Stats Section - FR-001 */}
           <StatsSection />
 
+          {/* Recent Trips Section - FR-002 */}
+          <RecentTripsSection />
+
           <div className="placeholder-content">
             <h3>Próximamente</h3>
             <ul>
               <li>Perfil de usuario editable</li>
-              <li>Diario de viajes</li>
               <li>Galería de fotos</li>
               <li>Red social de ciclistas</li>
             </ul>
