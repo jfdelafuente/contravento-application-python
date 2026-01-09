@@ -254,24 +254,24 @@
 
 **Purpose**: Improvements and optimizations that affect multiple user stories
 
-- [ ] T091 [P] Add accessibility attributes (ARIA labels, roles) to all form components
-- [ ] T092 [P] Add proper focus management and keyboard navigation to forms
-- [ ] T093 [P] Optimize bundle size - verify <200KB initial load via `npm run build` + analysis
-- [ ] T094 [P] Add error boundary for graceful error handling in frontend/src/components/ErrorBoundary.tsx
-- [ ] T095 [P] Implement lazy loading for non-critical routes (Dashboard, Profile pages)
-- [ ] T096 [P] Add loading skeletons for better UX during data fetching
-- [ ] T097 [P] Create reusable Button component with loading states in frontend/src/components/common/Button.tsx
-- [ ] T098 [P] Create reusable Input component with validation styles in frontend/src/components/common/Input.tsx
-- [ ] T099 [P] Add Spanish translations for all user-facing text (ensure consistency)
-- [ ] T100 [P] Add meta tags for SEO in index.html
-- [ ] T101 [P] Configure CSP headers for security in production
-- [ ] T102 [P] Add unit tests for critical utilities (passwordStrength, validators) - target ≥90% coverage
-- [ ] T103 [P] Add component tests for forms using @testing-library/react
-- [ ] T104 Code cleanup and refactoring - remove console.logs, unused imports
-- [ ] T105 Performance audit - ensure Lighthouse score ≥90
-- [ ] T106 Security audit - verify no tokens in localStorage, HTTPS enforced, etc.
-- [ ] T107 Run quickstart.md validation - verify all setup steps work
-- [ ] T108 Create README.md in frontend/ with setup, dev commands, and architecture overview
+- [x] T091 [P] Add accessibility attributes (ARIA labels, roles) to all form components
+- [x] T092 [P] Add proper focus management and keyboard navigation to forms
+- [x] T093 [P] Optimize bundle size - verify <200KB initial load via `npm run build` + analysis
+- [x] T094 [P] Add error boundary for graceful error handling in frontend/src/components/ErrorBoundary.tsx
+- [x] T095 [P] Implement lazy loading for non-critical routes (Dashboard, Profile pages)
+- [x] T096 [P] Add loading skeletons for better UX during data fetching
+- [x] T097 [P] Create reusable Button component with loading states in frontend/src/components/common/Button.tsx
+- [x] T098 [P] Create reusable Input component with validation styles in frontend/src/components/common/Input.tsx
+- [x] T099 [P] Add Spanish translations for all user-facing text (ensure consistency)
+- [x] T100 [P] Add meta tags for SEO in index.html
+- [x] T101 [P] Configure CSP headers for security in production
+- [x] T102 [P] Add unit tests for critical utilities (passwordStrength, validators) - target ≥90% coverage
+- [x] T103 [P] Add component tests for forms using @testing-library/react
+- [x] T104 Code cleanup and refactoring - remove console.logs, unused imports
+- [x] T105 Performance audit - ensure Lighthouse score ≥90
+- [x] T106 Security audit - verify no tokens in localStorage, HTTPS enforced, etc.
+- [x] T107 Run quickstart.md validation - verify all setup steps work
+- [x] T108 Create README.md in frontend/ with setup, dev commands, and architecture overview
 
 ---
 
