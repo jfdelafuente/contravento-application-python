@@ -11,12 +11,26 @@ declare module 'axios' {
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
-  withCredentials: true, // CRITICAL: Send HttpOnly cookies
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 second timeout
 });
+
+// Request interceptor to add access token to headers
+api.interceptors.request.use(
+  (config) => {
+    const accessToken = localStorage.getItem('access_token');
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Response interceptor for automatic token refresh
 api.interceptors.response.use(
@@ -40,13 +54,37 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Call refresh endpoint (backend sets new access token cookie)
-        await api.post('/auth/refresh');
+        // Get refresh token from localStorage
+        const refreshToken = localStorage.getItem('refresh_token');
+
+        if (!refreshToken) {
+          // No refresh token available - user needs to login again
+          localStorage.clear();
+          window.location.href = '/login';
+          return Promise.reject(new Error('No refresh token available'));
+        }
+
+        // Call refresh endpoint with refresh token as query parameter
+        const response = await api.post('/auth/refresh', null, {
+          params: {
+            refresh_token: refreshToken,
+          },
+        });
+
+        // Store new tokens if provided
+        if (response.data?.data?.access_token) {
+          localStorage.setItem('access_token', response.data.data.access_token);
+        }
+        if (response.data?.data?.refresh_token) {
+          localStorage.setItem('refresh_token', response.data.data.refresh_token);
+        }
 
         // Retry original request with new access token
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - user needs to login again
+        // Refresh failed - clear storage and redirect to login
+        localStorage.clear();
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

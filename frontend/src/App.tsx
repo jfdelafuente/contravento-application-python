@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/routing/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -13,6 +14,7 @@ import { WelcomePage } from './pages/WelcomePage';
 // Lazy load non-critical routes for better performance
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
+const ProfileEditPage = lazy(() => import('./pages/ProfileEditPage').then(module => ({ default: module.ProfileEditPage })));
 
 // Placeholder components
 const HomePage: React.FC = () => (
@@ -37,6 +39,7 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
+          <Toaster />
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
@@ -69,6 +72,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/edit"
+                element={
+                  <ProtectedRoute>
+                    <ProfileEditPage />
                   </ProtectedRoute>
                 }
               />

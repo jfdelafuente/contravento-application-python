@@ -1,0 +1,196 @@
+/* BasicInfoSection.css - Rustic travel aesthetic */
+
+.basic-info-section {
+  /* No background, border, or padding - handled by parent .profile-edit-section */
+  position: relative;
+}
+
+.section-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-forest);
+  margin: 0 0 var(--space-6) 0;
+  padding-top: var(--space-2);
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: var(--space-6);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Labels */
+.form-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.form-label-optional {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: var(--space-2);
+  font-style: italic;
+}
+
+/* Text Input */
+.form-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background: white;
+  border: 2px solid var(--color-earth-light);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(107, 114, 59, 0.1);
+}
+
+.form-input--error {
+  border-color: var(--color-error);
+}
+
+.form-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Select Dropdown */
+.form-select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background: white;
+  border: 2px solid var(--color-earth-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b723b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  padding-right: var(--space-10);
+  box-sizing: border-box;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(107, 114, 59, 0.1);
+}
+
+.form-select--error {
+  border-color: var(--color-error);
+}
+
+/* Textarea */
+.textarea-wrapper {
+  position: relative;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: white;
+  border: 2px solid var(--color-earth-light);
+  border-radius: var(--radius-lg);
+  resize: vertical;
+  min-height: 120px;
+  transition: all var(--transition-base);
+  box-sizing: border-box;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(107, 114, 59, 0.1);
+}
+
+.form-textarea--error {
+  border-color: var(--color-error);
+}
+
+/* Character Counter */
+.char-counter-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+}
+
+.char-counter {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: color var(--transition-base);
+}
+
+.char-counter--warning {
+  color: var(--color-brown);
+}
+
+.char-counter--limit {
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+/* Error Messages */
+.form-error {
+  margin-top: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-error::before {
+  content: '⚠';
+  font-size: var(--text-base);
+}
+
+/* Placeholders */
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: var(--text-xl);
+  }
+
+  .form-group {
+    margin-bottom: var(--space-5);
+  }
+}
+
+@media (max-width: 480px) {
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: var(--text-sm);
+  }
+}

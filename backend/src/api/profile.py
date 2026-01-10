@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.deps import get_current_user, get_db, get_optional_current_user
 from src.models.user import User
 from src.schemas.profile import (
+    PasswordChangeRequest,
     PrivacySettings,
     ProfileResponse,
     ProfileUpdateRequest,
@@ -399,5 +400,91 @@ async def update_privacy_settings(
             detail={
                 "code": "INTERNAL_ERROR",
                 "message": "Error al actualizar la privacidad",
+            },
+        )
+
+
+@router.put("/{username}/profile/password")
+async def change_password(
+    username: str,
+    password_data: PasswordChangeRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: "User" = Depends(get_current_user),
+) -> dict:
+    """
+    T128: Change user password (authenticated, owner-only).
+
+    Verifies current password and updates to new password.
+
+    **Functional Requirements**: FR-009, FR-010, FR-012
+
+    Args:
+        username: Username of profile
+        password_data: Password change request data
+        db: Database session
+        current_user: Current authenticated user
+
+    Returns:
+        Success confirmation
+
+    Raises:
+        HTTPException 401: If not authenticated
+        HTTPException 403: If not the profile owner
+        HTTPException 404: If user not found
+        HTTPException 400: If current password incorrect or validation fails
+    """
+    # Check owner authorization
+    check_owner_authorization(current_user, username)
+
+    try:
+        profile_service = ProfileService(db)
+        await profile_service.change_password(
+            username=username,
+            current_password=password_data.current_password,
+            new_password=password_data.new_password,
+        )
+
+        # TODO: Send confirmation email (FR-012)
+
+        return create_response(
+            success=True, data=None, message="Contraseña cambiada correctamente"
+        )
+
+    except ValueError as e:
+        # User not found or incorrect current password
+        error_msg = str(e)
+
+        if "no existe" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "code": "USER_NOT_FOUND",
+                    "message": error_msg,
+                },
+            )
+        elif "incorrecta" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "code": "INVALID_PASSWORD",
+                    "message": error_msg,
+                },
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "code": "VALIDATION_ERROR",
+                    "message": error_msg,
+                },
+            )
+
+    except Exception as e:
+        logger.error(f"Error changing password for {username}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "code": "INTERNAL_ERROR",
+                "message": "Error al cambiar la contraseña",
             },
         )

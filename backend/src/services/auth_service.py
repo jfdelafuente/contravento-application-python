@@ -355,17 +355,26 @@ class AuthService:
         if not user_id:
             raise ValueError("Token de refresco inválido")
 
-        # Verify token exists in database and is not used
-        token_hash = hash_password(refresh_token)
+        # Get all unused refresh tokens for this user
+        # We can't filter by token_hash directly because bcrypt hashes are different each time
         result = await self.db.execute(
-            select(PasswordReset).where(
+            select(PasswordReset)
+            .where(
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "refresh_token",
                 PasswordReset.used_at.is_(None),
                 PasswordReset.expires_at > datetime.utcnow(),
             )
+            .order_by(PasswordReset.created_at.desc())
         )
-        token_record = result.scalar_one_or_none()
+        token_records = result.scalars().all()
+
+        # Find the token that matches the provided refresh token
+        token_record = None
+        for record in token_records:
+            if verify_password(refresh_token, record.token_hash):
+                token_record = record
+                break
 
         if not token_record:
             raise ValueError("Token de refresco inválido o expirado")

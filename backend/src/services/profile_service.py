@@ -28,6 +28,7 @@ from src.schemas.profile import (
     ProfileUpdateRequest,
 )
 from src.utils.file_storage import generate_photo_filename, resize_photo, validate_photo
+from src.utils.security import hash_password, verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -98,11 +99,16 @@ class ProfileService:
         # Build response respecting privacy
         is_owner = viewer_username == username
 
+        # Convert relative photo URLs to absolute URLs for backward compatibility
+        photo_url = profile.profile_photo_url
+        if photo_url and photo_url.startswith("/storage/"):
+            photo_url = f"{settings.backend_url}{photo_url}"
+
         return ProfileResponse(
             username=user.username,
             full_name=profile.full_name,
             bio=profile.bio,
-            photo_url=profile.profile_photo_url,
+            photo_url=photo_url,
             location=profile.location if (profile.show_location or is_owner) else None,
             cycling_type=profile.cycling_type,
             show_email=profile.show_email,
@@ -234,32 +240,31 @@ class ProfileService:
         storage_dir.mkdir(parents=True, exist_ok=True)
 
         # T227: Async photo processing to avoid blocking event loop
-        # Save temporary file in thread pool
-        temp_path = storage_dir / f"temp_{filename}"
+        # Save file in thread pool and resize
+        file_path = storage_dir / filename
 
         def write_and_resize():
             """Write file and resize - runs in thread pool."""
-            with open(temp_path, "wb") as f:
+            with open(file_path, "wb") as f:
                 f.write(content)
-            return resize_photo(temp_path, target_size=400)
+            return resize_photo(file_path, target_size=400)
 
         try:
             # Run I/O-bound operation in thread pool
             final_path = await asyncio.to_thread(write_and_resize)
         except Exception as e:
-            # Clean up temp file
-            if temp_path.exists():
-                temp_path.unlink()
+            # Clean up file on error
+            if file_path.exists():
+                file_path.unlink()
             raise ValueError(f"Error al procesar la imagen: {str(e)}")
 
         # Delete old photo if exists
         if profile.profile_photo_url:
             await self._delete_photo_file(profile.profile_photo_url)
 
-        # Generate URL
-        # TODO: Use actual base URL from settings
+        # Generate absolute URL with backend base URL
         photo_url = (
-            f"/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
+            f"{settings.backend_url}/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
         )
 
         # Update profile
@@ -360,17 +365,64 @@ class ProfileService:
             "show_location": profile.show_location,
         }
 
+    async def change_password(
+        self, username: str, current_password: str, new_password: str
+    ) -> bool:
+        """
+        T128: Change user password.
+
+        Verifies current password and updates to new password.
+
+        **Functional Requirements**: FR-009, FR-010
+
+        Args:
+            username: Username of user
+            current_password: Current password for verification
+            new_password: New password (already validated by schema)
+
+        Returns:
+            True if password changed successfully
+
+        Raises:
+            ValueError: If user not found or current password incorrect
+        """
+        # Get user
+        result = await self.db.execute(select(User).where(User.username == username))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise ValueError(f"El usuario '{username}' no existe")
+
+        # Verify current password
+        if not verify_password(current_password, user.hashed_password):
+            raise ValueError("La contraseña actual es incorrecta")
+
+        # Update password
+        user.hashed_password = hash_password(new_password)
+        user.updated_at = datetime.utcnow()
+
+        await self.db.commit()
+
+        logger.info(f"Password changed for user: {username}")
+
+        return True
+
     async def _delete_photo_file(self, photo_url: str) -> None:
         """
         Delete photo file from filesystem.
 
         Args:
-            photo_url: URL or path to photo file
+            photo_url: URL or path to photo file (can be relative or absolute URL)
         """
         try:
-            # Extract path from URL
+            # Extract path from URL (handle both relative and absolute URLs)
             if photo_url.startswith("/storage/"):
+                # Relative URL: /storage/profile_photos/...
                 file_path = Path(settings.storage_path) / photo_url.replace("/storage/", "")
+            elif "/storage/" in photo_url:
+                # Absolute URL: http://localhost:8000/storage/profile_photos/...
+                path_part = photo_url.split("/storage/", 1)[1]
+                file_path = Path(settings.storage_path) / path_part
             else:
                 file_path = Path(photo_url)
 

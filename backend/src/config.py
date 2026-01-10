@@ -128,6 +128,9 @@ class Settings(BaseSettings):
     # Server
     host: str = Field(default="0.0.0.0", description="Server host")
     port: int = Field(default=8000, ge=1, le=65535, description="Server port")
+    backend_url: str = Field(
+        default="http://localhost:8000", description="Backend base URL for constructing absolute URLs"
+    )
 
     @field_validator("cors_origins", mode="before")
     @classmethod

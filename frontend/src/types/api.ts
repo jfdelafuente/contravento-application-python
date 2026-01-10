@@ -58,6 +58,8 @@ export interface RegisterResponse {
 export interface LoginResponse {
   message: string;
   user: User;
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface LogoutResponse {

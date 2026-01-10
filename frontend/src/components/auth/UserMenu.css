@@ -1,4 +1,4 @@
-/* src/components/auth/UserMenu.css */
+/* src/components/auth/UserMenu.css - Modern Minimalist Design */
 
 .user-menu {
   display: flex;
@@ -18,20 +18,23 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  color: white;
+  color: var(--color-gray-700);
   text-decoration: none;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--color-gray-100);
+  color: var(--color-primary);
 }
 
 .nav-link.active {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
 .nav-icon {
@@ -49,14 +52,16 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
   font-weight: 600;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: var(--color-white);
+  border: 2px solid var(--color-primary-dark);
+  box-shadow: 0 2px 4px rgba(107, 114, 59, 0.2);
 }
 
 .user-details {
@@ -66,8 +71,9 @@
 }
 
 .username {
-  color: white;
-  font-size: 1rem;
+  color: var(--color-gray-900);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -79,7 +85,7 @@
 .verified-icon {
   width: 18px;
   height: 18px;
-  color: #22c55e;
+  color: var(--color-primary);
 }
 
 .logout-error {
@@ -87,9 +93,9 @@
   margin: 0.5rem 0;
   background-color: #fee;
   border: 1px solid #fcc;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   color: #c00;
-  font-size: 0.85rem;
+  font-size: var(--text-xs);
 }
 
 .logout-button {
@@ -97,18 +103,21 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  font-size: 0.9rem;
+  background-color: var(--color-white);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .logout-button:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-900);
 }
 
 .logout-button:disabled {
@@ -125,8 +134,8 @@
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid var(--color-gray-300);
+  border-top-color: var(--color-gray-700);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

@@ -41,6 +41,27 @@ poetry run alembic downgrade -1
 poetry run alembic history
 ```
 
+### Frontend Development
+
+```bash
+# Install dependencies (first time only)
+cd frontend
+npm install
+
+# Start development server
+npm run dev
+
+# Quick restart (kills all Node.js processes and starts fresh)
+# Windows CMD:
+restart-frontend.bat
+
+# Windows PowerShell:
+.\restart-frontend.ps1
+
+# Linux/Mac:
+./restart-frontend.sh
+```
+
 ### Local Development Options
 
 ContraVento offers multiple ways to develop locally, from instant SQLite setup to full Docker environments:
