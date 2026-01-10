@@ -173,7 +173,7 @@
 - [ ] T077 [P] Verify color contrast meets WCAG AA standards
 - [ ] T078 [P] Test all components with keyboard-only navigation
 - [ ] T079 [P] Add loading skeleton for ProfileEditPage initial render
-- [ ] T080 Create manual testing checklist in frontend/tests/manual/profile-edit-checklist.md
+- [x] T080 Create manual testing checklist in specs/007-profile-management/MANUAL_TESTING.md
 - [ ] T081 Test edge cases: 10MB+ photo, concurrent edits, session expiry during edit
 - [ ] T082 Test performance: form validation <500ms, photo upload <30s, password change <10s
 - [ ] T083 Verify all success criteria from spec.md are met (SC-001 through SC-012)
