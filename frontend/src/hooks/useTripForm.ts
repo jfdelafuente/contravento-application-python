@@ -18,8 +18,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTrip, updateTrip, publishTrip } from '../services/tripService';
+import { uploadTripPhoto } from '../services/tripPhotoService';
 import { TripCreateInput, Trip } from '../types/trip';
 import toast from 'react-hot-toast';
+import type { PhotoPreview } from '../components/trips/TripForm/Step3Photos';
 
 interface UseTripFormOptions {
   /** Trip ID (for editing existing trip) */
@@ -37,7 +39,7 @@ interface UseTripFormOptions {
 
 interface UseTripFormReturn {
   /** Submit form data (create or update trip) */
-  handleSubmit: (data: TripCreateInput, isDraft: boolean) => Promise<void>;
+  handleSubmit: (data: TripCreateInput, isDraft: boolean, photos?: PhotoPreview[]) => Promise<void>;
 
   /** Is form submitting? */
   isSubmitting: boolean;
@@ -130,7 +132,7 @@ export const useTripForm = ({
    * Submit form (create new trip or update existing)
    */
   const handleSubmit = useCallback(
-    async (data: TripCreateInput, isDraft: boolean) => {
+    async (data: TripCreateInput, isDraft: boolean, photos?: PhotoPreview[]) => {
       setIsSubmitting(true);
 
       try {
@@ -152,6 +154,31 @@ export const useTripForm = ({
         } else {
           // Create new trip
           trip = await createTrip(data);
+
+          // Upload photos if provided (only for published trips or if explicitly requested)
+          if (photos && photos.length > 0 && !isDraft) {
+            toast.loading(`Subiendo ${photos.length} foto(s)...`, { id: 'photo-upload' });
+
+            try {
+              let uploadedCount = 0;
+
+              for (const photo of photos) {
+                try {
+                  await uploadTripPhoto(trip.trip_id, photo.file);
+                  uploadedCount++;
+                } catch (error) {
+                  console.error(`Error uploading ${photo.file.name}:`, error);
+                }
+              }
+
+              toast.success(`${uploadedCount} de ${photos.length} foto(s) subida(s)`, {
+                id: 'photo-upload',
+                duration: 3000
+              });
+            } catch (error) {
+              toast.error('Error al subir algunas fotos', { id: 'photo-upload' });
+            }
+          }
 
           // If publishing, call publish endpoint
           if (!isDraft) {

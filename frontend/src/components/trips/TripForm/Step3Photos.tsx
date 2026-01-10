@@ -8,11 +8,13 @@
  * - TripFormWizard (step 3/4)
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { TripCreateInput } from '../../../types/trip';
 import './Step1BasicInfo.css'; // Shared styles
 
-interface PhotoPreview {
+export interface PhotoPreview {
   file: File;
   preview: string;
   id: string;
@@ -21,9 +23,15 @@ interface PhotoPreview {
 export const Step3Photos: React.FC = () => {
   const [photos, setPhotos] = useState<PhotoPreview[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { setValue } = useFormContext<TripCreateInput>();
 
   const MAX_PHOTOS = 20;
   const MAX_SIZE_MB = 10;
+
+  // Sync photos with form context (stored in a custom field)
+  useEffect(() => {
+    setValue('selectedPhotos' as any, photos);
+  }, [photos, setValue]);
 
   /**
    * Handle file selection
