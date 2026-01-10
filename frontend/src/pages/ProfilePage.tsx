@@ -24,7 +24,7 @@ export const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  // Fetch profile data when component mounts
+  // Fetch profile data when component mounts or when user photo changes
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
@@ -41,7 +41,7 @@ export const ProfilePage: React.FC = () => {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, user?.photo_url]); // Re-fetch when photo_url changes
 
   if (authLoading || isLoadingProfile) {
     return (

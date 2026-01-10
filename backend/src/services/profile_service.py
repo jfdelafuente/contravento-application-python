@@ -98,11 +98,16 @@ class ProfileService:
         # Build response respecting privacy
         is_owner = viewer_username == username
 
+        # Convert relative photo URLs to absolute URLs for backward compatibility
+        photo_url = profile.profile_photo_url
+        if photo_url and photo_url.startswith("/storage/"):
+            photo_url = f"{settings.backend_url}{photo_url}"
+
         return ProfileResponse(
             username=user.username,
             full_name=profile.full_name,
             bio=profile.bio,
-            photo_url=profile.profile_photo_url,
+            photo_url=photo_url,
             location=profile.location if (profile.show_location or is_owner) else None,
             cycling_type=profile.cycling_type,
             show_email=profile.show_email,
@@ -256,10 +261,9 @@ class ProfileService:
         if profile.profile_photo_url:
             await self._delete_photo_file(profile.profile_photo_url)
 
-        # Generate URL
-        # TODO: Use actual base URL from settings
+        # Generate absolute URL with backend base URL
         photo_url = (
-            f"/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
+            f"{settings.backend_url}/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
         )
 
         # Update profile
@@ -365,12 +369,17 @@ class ProfileService:
         Delete photo file from filesystem.
 
         Args:
-            photo_url: URL or path to photo file
+            photo_url: URL or path to photo file (can be relative or absolute URL)
         """
         try:
-            # Extract path from URL
+            # Extract path from URL (handle both relative and absolute URLs)
             if photo_url.startswith("/storage/"):
+                # Relative URL: /storage/profile_photos/...
                 file_path = Path(settings.storage_path) / photo_url.replace("/storage/", "")
+            elif "/storage/" in photo_url:
+                # Absolute URL: http://localhost:8000/storage/profile_photos/...
+                path_part = photo_url.split("/storage/", 1)[1]
+                file_path = Path(settings.storage_path) / path_part
             else:
                 file_path = Path(photo_url)
 

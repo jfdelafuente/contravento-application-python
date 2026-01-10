@@ -5,12 +5,14 @@ Initializes the FastAPI app with middleware, error handling, and routing.
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import settings
@@ -253,3 +255,12 @@ app.include_router(trips.router)
 app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
 app.include_router(cycling_types.router)  # Public cycling types endpoint
 app.include_router(cycling_types.admin_router)  # Admin cycling types endpoints
+
+# Mount static files for uploaded content (profile photos, trip photos, etc.)
+storage_path = Path(settings.storage_path)
+if storage_path.exists():
+    app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+else:
+    # Create storage directory if it doesn't exist
+    storage_path.mkdir(parents=True, exist_ok=True)
+    app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
