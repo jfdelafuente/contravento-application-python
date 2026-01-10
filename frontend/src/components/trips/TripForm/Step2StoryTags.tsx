@@ -195,14 +195,18 @@ export const Step2StoryTags: React.FC = () => {
         .tag-input-wrapper {
           display: flex;
           gap: 8px;
+          align-items: stretch;
         }
 
         .tag-input-wrapper input {
           flex: 1;
+          min-width: 0;
         }
 
         .tag-add-button {
-          padding: 12px 20px;
+          flex: 0 0 auto;
+          width: 90px;
+          padding: 12px 16px;
           font-size: 0.875rem;
           font-weight: 600;
           color: #ffffff;
