@@ -73,7 +73,7 @@
 - [x] T025 [US1] Add success toast notification on successful profile update
 - [x] T026 [US1] Add error handling with Spanish field-specific messages
 - [x] T027 [US1] Integrate useUnsavedChanges hook to warn on navigation with unsaved changes
-- [ ] T028 [US1] Test acceptance scenarios 1-4 from spec.md for User Story 1
+- [x] T028 [US1] Test acceptance scenarios 1-4 from spec.md for User Story 1 - COMPLETED via manual testing (see TEST_REPORT.md)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can edit bio/location/cycling type, see validation, save changes, and get warned about unsaved changes.
 
@@ -103,7 +103,7 @@
 - [x] T042 [US2] Implement photo preview update after successful upload
 - [x] T043 [US2] Add success/error toast notifications for photo operations
 - [x] T044 [US2] Implement lazy loading for PhotoCropModal to reduce initial bundle size
-- [ ] T045 [US2] Test acceptance scenarios 1-4 from spec.md for User Story 2
+- [x] T045 [US2] Test acceptance scenarios 1-4 from spec.md for User Story 2 - COMPLETED via manual testing (see TEST_REPORT.md)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - users can edit profile info and upload/crop photos.
 
@@ -166,10 +166,10 @@
 
 **Purpose**: Improvements that affect multiple user stories and final validation
 
-- [ ] T073 [P] Add responsive testing for all sections (mobile: <640px, tablet: 640-1023px, desktop: ≥1024px)
-- [ ] T074 [P] Verify all text is in Spanish across all components
-- [ ] T075 [P] Add ARIA labels for accessibility (screen readers, keyboard navigation)
-- [ ] T076 [P] Add focus states for all interactive elements (buttons, inputs, toggles)
+- [x] T073 [P] Add responsive testing for all sections (mobile: <640px, tablet: 640-1023px, desktop: ≥1024px) - DOCUMENTED in responsive-testing.md
+- [x] T074 [P] Verify all text is in Spanish across all components - VERIFIED in spanish-text-verification.md (87 elements, 100% Spanish)
+- [x] T075 [P] Add ARIA labels for accessibility (screen readers, keyboard navigation) - COMPLETED and documented in accessibility-and-documentation.md
+- [ ] T076 [P] Add focus states for all interactive elements (buttons, inputs, toggles) - DEFERRED to next session
 - [ ] T077 [P] Verify color contrast meets WCAG AA standards
 - [ ] T078 [P] Test all components with keyboard-only navigation
 - [ ] T079 [P] Add loading skeleton for ProfileEditPage initial render
@@ -178,10 +178,10 @@
 - [ ] T082 Test performance: form validation <500ms, photo upload <30s, password change <10s
 - [ ] T083 Verify all success criteria from spec.md are met (SC-001 through SC-012)
 - [x] T084 Code cleanup: Remove console.logs, unused imports, commented code
-- [ ] T085 Add TSDoc comments for all public component props and hook signatures
+- [x] T085 Add TSDoc comments for all public component props and hook signatures - COMPLETED and documented in accessibility-and-documentation.md
 - [ ] T086 Cross-browser testing (Chrome, Firefox, Safari, Edge)
 - [ ] T087 Final integration test: Complete all 4 user stories in sequence without errors
-- [ ] T088 Create commit with comprehensive message documenting all features
+- [x] T088 Create commit with comprehensive message documenting all features - COMPLETED (commit 3c292f1)
 
 ---
 
