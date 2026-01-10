@@ -2,7 +2,7 @@
 
 export interface User {
   /** Unique user identifier (UUID from backend) */
-  id: string;
+  user_id: string;
 
   /** Unique username (3-30 alphanumeric + underscore) */
   username: string;
