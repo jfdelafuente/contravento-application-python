@@ -52,8 +52,8 @@ export const TripEditPage: React.FC = () => {
         setIsLoading(true);
         const tripData = await getTripById(tripId);
 
-        // Check ownership
-        if (tripData.owner.username !== user?.username) {
+        // Check ownership - compare user_id with current user's id
+        if (tripData.user_id !== user?.id) {
           toast.error('No tienes permiso para editar este viaje');
           navigate(`/trips/${tripId}`);
           return;
