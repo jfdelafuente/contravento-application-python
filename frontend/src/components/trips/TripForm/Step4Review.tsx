@@ -29,6 +29,9 @@ export const Step4Review: React.FC = () => {
     tags = [],
   } = formData;
 
+  // Get selected photos from custom field
+  const selectedPhotos = (formData as any).selectedPhotos || [];
+
   // Format display values
   const formattedStartDate = start_date ? formatDate(start_date) : 'No especificada';
   const formattedEndDate = end_date ? formatDate(end_date) : 'Viaje de un día';
@@ -122,13 +125,32 @@ export const Step4Review: React.FC = () => {
           </div>
         </div>
 
-        {/* Photos Section (placeholder) */}
+        {/* Photos Section */}
         <div className="review-section">
           <h3 className="review-section__title">Fotos</h3>
           <div className="review-section__content">
-            <p className="review-empty">
-              La gestión de fotos se implementará en la siguiente fase (T048)
-            </p>
+            {selectedPhotos.length > 0 ? (
+              <>
+                <div className="review-photos-grid">
+                  {selectedPhotos.map((photo: any) => (
+                    <div key={photo.id} className="review-photo-thumbnail">
+                      <img
+                        src={photo.preview}
+                        alt={photo.file.name}
+                        className="review-photo-image"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="review-photos-count">
+                  {selectedPhotos.length} foto{selectedPhotos.length !== 1 ? 's' : ''} seleccionada{selectedPhotos.length !== 1 ? 's' : ''}
+                </p>
+              </>
+            ) : (
+              <p className="review-empty">
+                Sin fotos (puedes añadirlas más tarde editando el viaje)
+              </p>
+            )}
           </div>
         </div>
 
@@ -255,6 +277,35 @@ export const Step4Review: React.FC = () => {
         .review-empty {
           color: var(--text-secondary, #6b7280);
           font-style: italic;
+          margin: 0;
+        }
+
+        .review-photos-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .review-photo-thumbnail {
+          position: relative;
+          aspect-ratio: 1;
+          border-radius: 8px;
+          overflow: hidden;
+          background-color: #f3f4f6;
+          border: 2px solid #e5e7eb;
+        }
+
+        .review-photo-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .review-photos-count {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--text-secondary, #6b7280);
           margin: 0;
         }
 
