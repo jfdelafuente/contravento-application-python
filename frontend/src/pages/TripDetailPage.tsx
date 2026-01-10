@@ -41,6 +41,7 @@ export const TripDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch trip details
   useEffect(() => {
@@ -99,16 +100,17 @@ export const TripDetailPage: React.FC = () => {
   // Check if current user is the trip owner
   const isOwner = user && trip && user.user_id === trip.user_id;
 
-  // Handle trip deletion
-  const handleDelete = async () => {
+  // Handle trip deletion - Phase 8: Show confirmation dialog
+  const handleDelete = () => {
     if (!trip || !isOwner) return;
+    setShowDeleteConfirm(true);
+  };
 
-    const confirmed = window.confirm(
-      '¿Estás seguro de que quieres eliminar este viaje? Esta acción no se puede deshacer.'
-    );
+  // Confirm deletion after dialog confirmation
+  const confirmDelete = async () => {
+    if (!trip) return;
 
-    if (!confirmed) return;
-
+    setShowDeleteConfirm(false);
     setIsDeleting(true);
 
     try {
@@ -120,16 +122,29 @@ export const TripDetailPage: React.FC = () => {
       });
 
       navigate('/trips');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting trip:', err);
 
-      toast.error('Error al eliminar el viaje. Intenta nuevamente.', {
+      // Handle specific error cases
+      const errorMessage =
+        err.response?.status === 404
+          ? 'Viaje no encontrado'
+          : err.response?.status === 403
+          ? 'No tienes permiso para eliminar este viaje'
+          : err.response?.data?.error?.message || 'Error al eliminar el viaje. Intenta nuevamente.';
+
+      toast.error(errorMessage, {
         duration: 5000,
         position: 'top-center',
       });
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Cancel deletion
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   // Handle trip publishing
@@ -422,6 +437,56 @@ export const TripDetailPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog - Phase 8 */}
+      {showDeleteConfirm && (
+        <div className="trip-detail-page__delete-dialog-overlay" onClick={cancelDelete}>
+          <div
+            className="trip-detail-page__delete-dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="trip-detail-page__delete-dialog-icon">
+              <svg
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <h3 className="trip-detail-page__delete-dialog-title">
+              ¿Eliminar viaje?
+            </h3>
+            <p className="trip-detail-page__delete-dialog-text">
+              ¿Estás seguro de que quieres eliminar este viaje? Esta acción es permanente y
+              eliminará el viaje junto con todas sus fotos. No se puede deshacer.
+            </p>
+            <div className="trip-detail-page__delete-dialog-actions">
+              <button
+                type="button"
+                className="trip-detail-page__delete-dialog-button trip-detail-page__delete-dialog-button--cancel"
+                onClick={cancelDelete}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="trip-detail-page__delete-dialog-button trip-detail-page__delete-dialog-button--confirm"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
