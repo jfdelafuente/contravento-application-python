@@ -75,6 +75,14 @@ export const authService = {
       throw new Error(data.error?.message || 'Login failed');
     }
 
+    // Store tokens in localStorage for authentication
+    if (data.data.access_token) {
+      localStorage.setItem('access_token', data.data.access_token);
+    }
+    if (data.data.refresh_token) {
+      localStorage.setItem('refresh_token', data.data.refresh_token);
+    }
+
     return data.data.user;
   },
 
@@ -82,10 +90,30 @@ export const authService = {
    * Logout user
    */
   async logout(): Promise<void> {
-    const { data } = await api.post<ApiResponse<LogoutResponse>>('/auth/logout');
+    const refreshToken = localStorage.getItem('refresh_token');
 
-    if (!data.success) {
-      throw new Error(data.error?.message || 'Logout failed');
+    // Clear tokens from localStorage immediately
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+
+    // If no refresh token, just clear locally and return
+    if (!refreshToken) {
+      return;
+    }
+
+    try {
+      const { data } = await api.post<ApiResponse<LogoutResponse>>('/auth/logout', null, {
+        params: {
+          refresh_token: refreshToken,
+        },
+      });
+
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Logout failed');
+      }
+    } catch (error) {
+      // Even if backend logout fails, local tokens are already cleared
+      console.error('Logout error:', error);
     }
   },
 

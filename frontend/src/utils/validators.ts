@@ -99,3 +99,80 @@ export const sanitizeInput = (input: string): string => {
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;');
 };
+
+// ============================================================================
+// Zod Schemas for Profile Management
+// ============================================================================
+
+import { z } from 'zod';
+
+/**
+ * Profile Edit Schema
+ * Validates bio, location, and cycling type fields.
+ */
+export const profileEditSchema = z.object({
+  bio: z
+    .string()
+    .max(500, 'La bio no puede exceder 500 caracteres')
+    .optional()
+    .or(z.literal('')),
+  location: z.string().optional().or(z.literal('')),
+  cycling_type: z.string().optional().or(z.literal('')),
+});
+
+/**
+ * Password Change Schema
+ * Validates current password and new password with strength requirements.
+ */
+export const passwordChangeSchema = z.object({
+  current_password: z.string().min(1, 'Ingresa tu contraseña actual'),
+  new_password: z
+    .string()
+    .min(8, 'Mínimo 8 caracteres')
+    .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
+    .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
+    .regex(/\d/, 'Debe incluir al menos un número'),
+});
+
+/**
+ * Photo Upload Schema
+ * Validates file size and MIME type for profile photo uploads.
+ */
+export const photoUploadSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine((file) => file.size <= 5 * 1024 * 1024, 'El archivo no puede exceder 5MB')
+    .refine(
+      (file) => ['image/jpeg', 'image/png'].includes(file.type),
+      'Solo se permiten archivos JPG o PNG'
+    ),
+});
+
+/**
+ * Calculate password strength
+ * Returns: 'weak' | 'medium' | 'strong'
+ */
+export const calculatePasswordStrength = (password: string): 'weak' | 'medium' | 'strong' => {
+  if (password.length < 8) return 'weak';
+
+  let strength = 0;
+
+  // Check length
+  if (password.length >= 12) strength++;
+
+  // Check for uppercase
+  if (/[A-Z]/.test(password)) strength++;
+
+  // Check for lowercase
+  if (/[a-z]/.test(password)) strength++;
+
+  // Check for numbers
+  if (/\d/.test(password)) strength++;
+
+  // Check for special characters
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+
+  if (strength <= 2) return 'weak';
+  if (strength <= 4) return 'medium';
+  return 'strong';
+};

@@ -234,22 +234,22 @@ class ProfileService:
         storage_dir.mkdir(parents=True, exist_ok=True)
 
         # T227: Async photo processing to avoid blocking event loop
-        # Save temporary file in thread pool
-        temp_path = storage_dir / f"temp_{filename}"
+        # Save file in thread pool and resize
+        file_path = storage_dir / filename
 
         def write_and_resize():
             """Write file and resize - runs in thread pool."""
-            with open(temp_path, "wb") as f:
+            with open(file_path, "wb") as f:
                 f.write(content)
-            return resize_photo(temp_path, target_size=400)
+            return resize_photo(file_path, target_size=400)
 
         try:
             # Run I/O-bound operation in thread pool
             final_path = await asyncio.to_thread(write_and_resize)
         except Exception as e:
-            # Clean up temp file
-            if temp_path.exists():
-                temp_path.unlink()
+            # Clean up file on error
+            if file_path.exists():
+                file_path.unlink()
             raise ValueError(f"Error al procesar la imagen: {str(e)}")
 
         # Delete old photo if exists

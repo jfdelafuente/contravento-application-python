@@ -1,0 +1,218 @@
+/* ProfileEditPage.css - Rustic travel aesthetic for profile editing */
+
+.profile-edit-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f1e8 0%, #e8dfc8 100%);
+  padding: var(--space-6) var(--space-4);
+}
+
+.profile-edit-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+/* Header */
+.profile-edit-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  padding: var(--space-6);
+  color: var(--color-cream);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.profile-edit-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-earth) 0px,
+    var(--color-earth) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  opacity: 0.3;
+}
+
+.profile-edit-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-cream);
+}
+
+.btn-cancel {
+  padding: var(--space-2) var(--space-4);
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--color-cream);
+  border-radius: var(--radius-lg);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-cancel:hover {
+  background: var(--color-cream);
+  color: var(--color-forest);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Content */
+.profile-edit-content {
+  padding: var(--space-8);
+}
+
+.password-change-form {
+  margin-top: var(--space-8);
+}
+
+.temp-message {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--color-cream);
+  border: 2px dashed var(--color-earth-light);
+  border-radius: var(--radius-lg);
+}
+
+/* Section spacing */
+.profile-edit-content > * + * {
+  margin-top: var(--space-8);
+}
+
+/* Save Button Actions */
+.profile-edit-actions {
+  padding: var(--space-6) var(--space-8);
+  background: #fafaf8;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.btn-save {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-save:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.unsaved-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: #d97706;
+  font-weight: 600;
+}
+
+.unsaved-dot {
+  width: 8px;
+  height: 8px;
+  background: #d97706;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-edit-page {
+    padding: var(--space-4) var(--space-2);
+  }
+
+  .profile-edit-header {
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: flex-start;
+  }
+
+  .profile-edit-title {
+    font-size: var(--text-2xl);
+  }
+
+  .profile-edit-content {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-edit-title {
+    font-size: var(--text-xl);
+  }
+
+  .profile-edit-content {
+    padding: var(--space-4);
+  }
+}
