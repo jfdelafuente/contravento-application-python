@@ -697,16 +697,428 @@ See `.specify/` directory for templates and workflows.
 - PostgreSQL (production) / SQLite (development)
 
 ### Frontend (React/TypeScript)
-- React 18 + TypeScript 5 + Vite (005-frontend-user-profile)
+- React 18 + TypeScript 5 + Vite (005-frontend-user-profile, 008-travel-diary-frontend)
 - React Router 6 for navigation
 - React Hook Form + Zod for form validation
 - Axios for HTTP client (HttpOnly cookie authentication)
 - Cloudflare Turnstile for CAPTCHA
+- react-dropzone for photo uploads
+- yet-another-react-lightbox for photo galleries
+- react-leaflet for map display
+
+## Travel Diary Frontend (Feature 008)
+
+The Travel Diary Frontend provides a comprehensive UI for managing cycling trips with photos, tags, and rich metadata.
+
+### Architecture Pattern: Container/Presentational Components
+
+**Smart Containers** (Pages):
+- Manage state with hooks (useTripList, useTripForm, useTripPhotos)
+- Handle API calls and error handling
+- Pass data and callbacks to presentational components
+
+**Presentational Components**:
+- Display UI based on props
+- No direct API calls
+- Reusable across features
+
+Example:
+```typescript
+// Smart Container
+export const TripsListPage: React.FC = () => {
+  const { trips, isLoading, error } = useTripList(username);
+  const { filters, setFilter } = useTripFilters();
+
+  return (
+    <div>
+      <TripFilters filters={filters} onChange={setFilter} />
+      <TripCard trips={trips} />
+    </div>
+  );
+};
+
+// Presentational Component
+interface TripCardProps {
+  trip: Trip;
+  onClick?: (tripId: string) => void;
+}
+
+export const TripCard: React.FC<TripCardProps> = ({ trip, onClick }) => {
+  return (
+    <div className="trip-card" onClick={() => onClick?.(trip.trip_id)}>
+      <img src={getPhotoUrl(trip.photos[0]?.photo_url)} alt={trip.title} />
+      <h3>{trip.title}</h3>
+    </div>
+  );
+};
+```
+
+### Custom Hooks Pattern
+
+All business logic lives in custom hooks for reusability:
+
+**Data Fetching Hooks**:
+```typescript
+// frontend/src/hooks/useTripList.ts
+export const useTripList = (username: string, filters?: TripFilters) => {
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const response = await getUserTrips(username, filters);
+        setTrips(response.data);
+      } catch (err: any) {
+        setError(err.response?.data?.error?.message || 'Error al cargar viajes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTrips();
+  }, [username, filters]);
+
+  return { trips, isLoading, error };
+};
+```
+
+**Form Management Hooks**:
+```typescript
+// frontend/src/hooks/useTripForm.ts
+export const useTripForm = ({ tripId, isEditMode }: Options) => {
+  const methods = useForm<TripCreateInput>({
+    resolver: zodResolver(tripFormSchema),
+  });
+
+  const handleSubmit = async (data: TripCreateInput, isDraft: boolean) => {
+    try {
+      if (isEditMode && tripId) {
+        const trip = await updateTrip(tripId, data);
+        toast.success('Viaje actualizado correctamente');
+      } else {
+        const trip = await createTrip(data);
+        if (!isDraft) {
+          await publishTrip(trip.trip_id);
+        }
+        toast.success('Viaje creado correctamente');
+      }
+      navigate('/trips');
+    } catch (error: any) {
+      // Handle optimistic locking conflicts (409)
+      if (error.response?.status === 409) {
+        toast.error('El viaje fue modificado por otra sesión. Recarga la página...');
+      }
+    }
+  };
+
+  return { methods, handleSubmit, isSubmitting };
+};
+```
+
+### Photo Upload Pattern
+
+Chunked upload with progress tracking using react-dropzone:
+
+```typescript
+// frontend/src/hooks/useTripPhotos.ts
+export const useTripPhotos = ({ tripId, maxPhotos = 20 }: Options) => {
+  const [photos, setPhotos] = useState<PhotoFile[]>([]);
+
+  const uploadPhoto = useCallback(
+    async (file: File, onProgress: (progress: number) => void) => {
+      try {
+        const response = await uploadTripPhoto(tripId, file);
+        onProgress(100);
+        return response.photo_id;
+      } catch (error: any) {
+        throw new Error(error.response?.data?.error?.message || 'Error al subir foto');
+      }
+    },
+    [tripId]
+  );
+
+  const reorderPhotos = useCallback(
+    async (photoIds: string[]) => {
+      // Optimistic update
+      const reordered = photoIds
+        .map((id) => photos.find((p) => p.photoId === id))
+        .filter(Boolean);
+      setPhotos(reordered);
+
+      // Persist to backend
+      try {
+        await reorderTripPhotos(tripId, photoIds);
+      } catch (error) {
+        setPhotos(photos); // Revert on error
+      }
+    },
+    [photos, tripId]
+  );
+
+  return { photos, uploadPhoto, reorderPhotos };
+};
+```
+
+### Wizard Pattern (Multi-Step Forms)
+
+Use React Hook Form's FormProvider for shared state across steps:
+
+```typescript
+// frontend/src/components/trips/TripForm/TripFormWizard.tsx
+export const TripFormWizard: React.FC = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const methods = useForm<TripCreateInput>({
+    resolver: zodResolver(tripFormSchema),
+    mode: 'onChange',
+  });
+
+  const steps = [
+    <Step1BasicInfo />,
+    <Step2StoryTags />,
+    <Step3Photos />,
+    <Step4Review />,
+  ];
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <FormStepIndicator currentStep={currentStep} totalSteps={4} />
+        {steps[currentStep]}
+        <div className="wizard-navigation">
+          {currentStep > 0 && <button onClick={handlePrevious}>Anterior</button>}
+          {currentStep < 3 && <button onClick={handleNext}>Siguiente</button>}
+          {currentStep === 3 && <button type="submit">Publicar</button>}
+        </div>
+      </form>
+    </FormProvider>
+  );
+};
+
+// Each step uses useFormContext to access shared form state
+export const Step1BasicInfo: React.FC = () => {
+  const { register, formState } = useFormContext<TripCreateInput>();
+
+  return (
+    <div>
+      <input {...register('title')} />
+      {formState.errors.title && <span>{formState.errors.title.message}</span>}
+    </div>
+  );
+};
+```
+
+### Photo URL Helper Pattern
+
+**CRITICAL**: Backend returns absolute URLs, not relative paths. Always use `getPhotoUrl()`:
+
+```typescript
+// frontend/src/utils/tripHelpers.ts
+export const getPhotoUrl = (url: string | null | undefined): string => {
+  if (!url) return '/images/placeholders/trip-placeholder.jpg';
+
+  // Already absolute URL (from backend)
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  // Relative path (development only)
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${url}`;
+};
+
+// Usage
+<img src={getPhotoUrl(trip.photos[0]?.photo_url)} alt={trip.title} />
+```
+
+### Optimistic Locking Pattern
+
+Prevent concurrent edits with 409 Conflict detection:
+
+```typescript
+// frontend/src/hooks/useTripForm.ts
+const handleSubmit = async (data: TripCreateInput) => {
+  try {
+    const trip = await updateTrip(tripId, data);
+    toast.success('Viaje actualizado correctamente');
+    navigate(`/trips/${trip.trip_id}`);
+  } catch (error: any) {
+    // Detect optimistic locking conflict
+    if (error.response?.status === 409) {
+      toast.error(
+        'El viaje fue modificado por otra sesión. Recarga la página para ver los cambios más recientes.',
+        { duration: 6000 }
+      );
+      throw error; // Stop execution
+    }
+
+    // Other errors
+    const errorMessage = error.response?.data?.error?.message || 'Error al actualizar viaje';
+    toast.error(errorMessage);
+  }
+};
+```
+
+### Owner-Only Actions Pattern
+
+Check ownership on page load and hide/disable actions for non-owners:
+
+```typescript
+// frontend/src/pages/TripDetailPage.tsx
+export const TripDetailPage: React.FC = () => {
+  const { user } = useAuth();
+  const [trip, setTrip] = useState<Trip | null>(null);
+
+  useEffect(() => {
+    const fetchTrip = async () => {
+      const tripData = await getTripById(tripId);
+      setTrip(tripData);
+    };
+    fetchTrip();
+  }, [tripId]);
+
+  // Ownership check
+  const isOwner = user && trip && user.user_id === trip.user_id;
+
+  return (
+    <div>
+      <h1>{trip.title}</h1>
+
+      {/* Owner-only action buttons */}
+      {isOwner && (
+        <div className="actions">
+          {trip.status === 'draft' && (
+            <button onClick={handlePublish}>Publicar</button>
+          )}
+          <Link to={`/trips/${trip.trip_id}/edit`}>Editar</Link>
+          <button onClick={handleDelete}>Eliminar</button>
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+### Tag Normalization Pattern
+
+Backend stores tags with both `name` (display) and `normalized` (lowercase for matching):
+
+```typescript
+// Display tags using tag.name
+<div className="tags">
+  {trip.tags.map(tag => (
+    <Link key={tag.tag_id} to={`/trips?tag=${tag.normalized}`}>
+      {tag.name}  {/* Display with original capitalization */}
+    </Link>
+  ))}
+</div>
+
+// Filter tags using tag.normalized
+const filterTrips = (tagName: string) => {
+  const params = {
+    tag: tagName.toLowerCase()  // Always lowercase for matching
+  };
+  navigate(`/trips?${new URLSearchParams(params)}`);
+};
+```
+
+### Date Handling Pattern
+
+Backend stores dates as `YYYY-MM-DD` strings (no timezone). Parse as **local dates**:
+
+```typescript
+// frontend/src/utils/tripHelpers.ts
+export const formatDate = (dateString: string): string => {
+  // Force local timezone to avoid off-by-one errors
+  const date = new Date(dateString + 'T00:00:00');
+  return date.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+export const formatDateRange = (startDate: string, endDate?: string): string => {
+  if (!endDate || startDate === endDate) {
+    return formatDate(startDate);
+  }
+
+  const start = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+
+  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+};
+```
+
+### Confirmation Dialog Pattern
+
+Use modal overlays for destructive actions instead of `window.confirm()`:
+
+```typescript
+// State management
+const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+// Event handlers
+const handleDelete = () => setShowDeleteConfirm(true);
+const confirmDelete = async () => {
+  setShowDeleteConfirm(false);
+  await deleteTrip(tripId);
+  navigate('/trips');
+};
+const cancelDelete = () => setShowDeleteConfirm(false);
+
+// Modal JSX
+{showDeleteConfirm && (
+  <div className="delete-dialog-overlay" onClick={cancelDelete}>
+    <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="delete-dialog-icon">
+        <svg>{/* Warning icon */}</svg>
+      </div>
+      <h3>¿Eliminar viaje?</h3>
+      <p>Esta acción es permanente y eliminará el viaje junto con todas sus fotos...</p>
+      <div className="delete-dialog-actions">
+        <button onClick={cancelDelete}>Cancelar</button>
+        <button onClick={confirmDelete}>Eliminar</button>
+      </div>
+    </div>
+  </div>
+)}
+```
+
+### Common Pitfalls - Frontend
+
+1. **Don't use photo URLs directly**: Always use `getPhotoUrl()` helper (backend returns absolute URLs)
+2. **Don't parse dates as UTC**: Use local timezone to avoid off-by-one errors
+3. **Don't skip tag normalization**: Always lowercase tags for matching
+4. **Don't forget owner checks**: Hide edit/delete buttons for non-owners
+5. **Don't ignore 409 conflicts**: Handle optimistic locking errors gracefully
+6. **Don't use window.confirm()**: Use modal dialogs for better UX
+7. **Don't skip loading states**: Show skeletons/spinners during async operations
+8. **Don't forget Spanish error messages**: All user-facing text must be in Spanish
+9. **Don't batch state updates in forms**: Use single FormProvider for wizard steps
+10. **Don't forget photo reordering**: Wire onReorder callback to persist changes
+
+### Testing Frontend Features
+
+```bash
+# Manual testing guide
+cat specs/008-travel-diary-frontend/TESTING_GUIDE.md
+
+# Troubleshooting common issues
+cat specs/008-travel-diary-frontend/TROUBLESHOOTING.md
+
+# Run frontend dev server
+cd frontend
+npm run dev
+
+# Access at http://localhost:5173
+```
 
 ## Recent Changes
 
+- 008-travel-diary-frontend: Added full CRUD UI for trips with photos, multi-step wizard, and owner controls
 - 005-frontend-user-profile: Added React 18 + TypeScript 5 + Vite frontend with authentication
 - 002-travel-diary: Added travel diary feature with trips, photos, tags, and draft workflow
 - 001-user-profiles: Added user authentication, profiles, and statistics
 
-**Last updated**: 2026-01-08
+**Last updated**: 2026-01-10
