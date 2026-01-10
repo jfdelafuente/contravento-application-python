@@ -229,11 +229,11 @@
 
 ### Implementation for User Story 6
 
-- [ ] T072 [US6] Implement handleDeleteTrip function in TripDetailPage (calls deleteTrip service)
-- [ ] T073 [US6] Add delete confirmation dialog in TripDetailPage
-- [ ] T074 [US6] Add delete button to TripDetailPage (owner-only, danger style)
-- [ ] T075 [US6] Add error handling for delete failures (403 Forbidden, 404 Not Found) with Spanish toast messages
-- [ ] T076 [US6] Add success handling for deletion (redirect to /trips with success toast: "Viaje eliminado correctamente")
+- [x] T072 [US6] Implement handleDeleteTrip function in TripDetailPage (calls deleteTrip service) ✅
+- [x] T073 [US6] Add delete confirmation dialog in TripDetailPage ✅
+- [x] T074 [US6] Add delete button to TripDetailPage (owner-only, danger style) ✅ (Already existed, enhanced with confirmation dialog)
+- [x] T075 [US6] Add error handling for delete failures (403 Forbidden, 404 Not Found) with Spanish toast messages ✅
+- [x] T076 [US6] Add success handling for deletion (redirect to /trips with success toast: "Viaje eliminado correctamente") ✅
 
 **Checkpoint**: All user stories complete! Users can browse (US1), view (US2), create (US3), manage photos (US4), edit (US5), and delete (US6) trips.
 
