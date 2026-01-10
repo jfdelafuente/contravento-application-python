@@ -19,8 +19,8 @@ const ProfileEditPage = lazy(() => import('./pages/ProfileEditPage').then(module
 // Travel Diary routes (Feature 008)
 const TripsListPage = lazy(() => import('./pages/TripsListPage').then(module => ({ default: module.TripsListPage })));
 const TripDetailPage = lazy(() => import('./pages/TripDetailPage').then(module => ({ default: module.TripDetailPage })));
-// Note: TripCreatePage and TripEditPage will be created in Phase 5
-// const TripCreatePage = lazy(() => import('./pages/TripCreatePage').then(module => ({ default: module.TripCreatePage })));
+const TripCreatePage = lazy(() => import('./pages/TripCreatePage').then(module => ({ default: module.TripCreatePage })));
+// Note: TripEditPage will be created in Phase 7
 // const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({ default: module.TripEditPage })));
 
 // Placeholder components
@@ -100,15 +100,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* Phase 5: Create/Edit routes will be added later */}
-              {/* <Route
+              <Route
                 path="/trips/new"
                 element={
                   <ProtectedRoute>
                     <TripCreatePage />
                   </ProtectedRoute>
                 }
-              /> */}
+              />
               <Route
                 path="/trips/:tripId"
                 element={
@@ -117,6 +116,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              {/* Phase 7: Edit route will be added later */}
               {/* <Route
                 path="/trips/:tripId/edit"
                 element={
