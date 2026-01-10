@@ -107,6 +107,39 @@
   font-weight: 700;
 }
 
+/* Edit Profile Button */
+.btn-edit-profile {
+  margin: 0 0 var(--space-8) 0;
+  padding: var(--space-4) var(--space-8);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  color: var(--color-cream);
+  border: 2px solid var(--color-earth);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-edit-profile:hover {
+  background: linear-gradient(135deg, var(--color-forest) 0%, var(--color-primary-dark) 100%);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-dark);
+}
+
+.btn-edit-profile:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-edit-profile:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .profile-info {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,7 @@
 // src/pages/ProfilePage.tsx
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
 import './ProfilePage.css';
@@ -16,6 +17,7 @@ import './ProfilePage.css';
  */
 export const ProfilePage: React.FC = () => {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -46,6 +48,14 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <h2>@{user.username}</h2>
+
+            <button
+              className="btn-edit-profile"
+              onClick={() => navigate('/profile/edit')}
+              type="button"
+            >
+              Editar Perfil
+            </button>
 
             <div className="profile-info">
               <div className="info-item">
