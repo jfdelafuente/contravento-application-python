@@ -203,13 +203,13 @@
 
 ### Implementation for User Story 5
 
-- [ ] T065 [US5] Create TripEditPage in frontend/src/pages/TripEditPage.tsx (wrapper for TripFormWizard in edit mode)
-- [ ] T066 [US5] Style TripEditPage in frontend/src/pages/TripEditPage.css
-- [ ] T067 [US5] Add edit mode support to TripFormWizard (detect tripId param, fetch existing trip, pre-fill form)
-- [ ] T068 [US5] Add edit mode support to useTripForm hook (load existing trip data, track original updated_at for optimistic locking)
-- [ ] T069 [US5] Modify form submission to use updateTrip service when in edit mode
-- [ ] T070 [US5] Add optimistic locking error handling (409 Conflict → show warning: "El viaje fue modificado por otra sesión. Recarga la página.")
-- [ ] T071 [US5] Add edit button to TripDetailPage (owner-only, routes to /trips/{id}/edit)
+- [X] T065 [US5] Create TripEditPage in frontend/src/pages/TripEditPage.tsx (wrapper for TripFormWizard in edit mode)
+- [X] T066 [US5] Style TripEditPage in frontend/src/pages/TripEditPage.css
+- [X] T067 [US5] Add edit mode support to TripFormWizard (detect tripId param, fetch existing trip, pre-fill form) - **Already implemented in Phase 5**
+- [X] T068 [US5] Add edit mode support to useTripForm hook (load existing trip data, track original updated_at for optimistic locking)
+- [X] T069 [US5] Modify form submission to use updateTrip service when in edit mode
+- [X] T070 [US5] Add optimistic locking error handling (409 Conflict → show warning: "El viaje fue modificado por otra sesión. Recarga la página.")
+- [X] T071 [US5] Add edit button to TripDetailPage (owner-only, routes to /trips/{id}/edit)
 
 **Checkpoint**: At this point, User Story 5 allows editing existing trips. All CRUD operations complete (Create, Read, Update). Only Delete remains.
 
