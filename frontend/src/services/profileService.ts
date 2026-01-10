@@ -75,3 +75,15 @@ export const getMyProfile = async (): Promise<UserProfile> => {
   const response = await api.get<{ success: boolean; data: UserProfile }>('/profile/me');
   return response.data.data;
 };
+
+/**
+ * Get user profile by username
+ * Endpoint: GET /api/users/{username}/profile
+ *
+ * @param username - Username of the profile to fetch
+ * @returns Complete user profile data
+ */
+export const getProfile = async (username: string): Promise<UserProfile> => {
+  const response = await api.get<{ success: boolean; data: UserProfile }>(`/users/${username}/profile`);
+  return response.data.data;
+};
