@@ -71,16 +71,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Create TripCard component in frontend/src/components/trips/TripCard.tsx
-- [ ] T022 [P] [US1] Style TripCard component in frontend/src/components/trips/TripCard.css (difficulty badges, thumbnail, responsive grid)
-- [ ] T023 [P] [US1] Create TripFilters component in frontend/src/components/trips/TripFilters.tsx (search input, tag chips, status toggle)
-- [ ] T024 [P] [US1] Style TripFilters component in frontend/src/components/trips/TripFilters.css
-- [ ] T025 [US1] Create useTripList hook in frontend/src/hooks/useTripList.ts (fetch trips with pagination)
-- [ ] T026 [US1] Create useTripFilters hook in frontend/src/hooks/useTripFilters.ts (manage search, tags, status state)
-- [ ] T027 [US1] Create TripsListPage in frontend/src/pages/TripsListPage.tsx (integrate TripCard, TripFilters, useTripList, useTripFilters)
-- [ ] T028 [US1] Style TripsListPage in frontend/src/pages/TripsListPage.css (responsive grid: 3 cols desktop, 2 cols tablet, 1 col mobile)
-- [ ] T029 [US1] Add empty state illustration to frontend/public/images/trips/placeholders/no-trips-empty-state.svg
-- [ ] T030 [US1] Add loading skeleton for trip cards in TripsListPage
+- [X] T021 [P] [US1] Create TripCard component in frontend/src/components/trips/TripCard.tsx
+- [X] T022 [P] [US1] Style TripCard component in frontend/src/components/trips/TripCard.css (difficulty badges, thumbnail, responsive grid)
+- [X] T023 [P] [US1] Create TripFilters component in frontend/src/components/trips/TripFilters.tsx (search input, tag chips, status toggle)
+- [X] T024 [P] [US1] Style TripFilters component in frontend/src/components/trips/TripFilters.css
+- [X] T025 [US1] Create useTripList hook in frontend/src/hooks/useTripList.ts (fetch trips with pagination)
+- [X] T026 [US1] Create useTripFilters hook in frontend/src/hooks/useTripFilters.ts (manage search, tags, status state)
+- [X] T027 [US1] Create TripsListPage in frontend/src/pages/TripsListPage.tsx (integrate TripCard, TripFilters, useTripList, useTripFilters)
+- [X] T028 [US1] Style TripsListPage in frontend/src/pages/TripsListPage.css (responsive grid: 3 cols desktop, 2 cols tablet, 1 col mobile)
+- [X] T029 [US1] Add empty state illustration to frontend/public/images/trips/placeholders/no-trips-empty-state.svg
+- [X] T030 [US1] Add loading skeleton for trip cards in TripsListPage
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Users can browse, filter, and search trips.
 
@@ -102,15 +102,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] Create TripGallery component in frontend/src/components/trips/TripGallery.tsx (photo grid with lightbox integration)
-- [ ] T032 [P] [US2] Style TripGallery component in frontend/src/components/trips/TripGallery.css (3 cols desktop, 2 cols tablet, 1 col mobile)
-- [ ] T033 [P] [US2] Create TripMap component in frontend/src/components/trips/TripMap.tsx (react-leaflet with OpenStreetMap, lazy loaded)
-- [ ] T034 [P] [US2] Style TripMap component in frontend/src/components/trips/TripMap.css
-- [ ] T035 [US2] Create TripDetailPage in frontend/src/pages/TripDetailPage.tsx (integrate TripGallery, TripMap, display all trip data)
-- [ ] T036 [US2] Style TripDetailPage in frontend/src/pages/TripDetailPage.css (hero image, difficulty badges, tag chips, responsive layout)
-- [ ] T037 [US2] Integrate yet-another-react-lightbox in TripGallery (plugins: Thumbnails, Zoom, keyboard navigation)
-- [ ] T038 [US2] Add conditional rendering for map (only show if trip.locations exists)
-- [ ] T039 [US2] Add owner-only action buttons (Edit, Delete, Publish for drafts)
+- [X] T031 [P] [US2] Create TripGallery component in frontend/src/components/trips/TripGallery.tsx (photo grid with lightbox integration)
+- [X] T032 [P] [US2] Style TripGallery component in frontend/src/components/trips/TripGallery.css (3 cols desktop, 2 cols tablet, 1 col mobile)
+- [X] T033 [P] [US2] Create TripMap component in frontend/src/components/trips/TripMap.tsx (react-leaflet with OpenStreetMap, lazy loaded)
+- [X] T034 [P] [US2] Style TripMap component in frontend/src/components/trips/TripMap.css
+- [X] T035 [US2] Create TripDetailPage in frontend/src/pages/TripDetailPage.tsx (integrate TripGallery, TripMap, display all trip data)
+- [X] T036 [US2] Style TripDetailPage in frontend/src/pages/TripDetailPage.css (hero image, difficulty badges, tag chips, responsive layout)
+- [X] T037 [US2] Integrate yet-another-react-lightbox in TripGallery (plugins: Thumbnails, Zoom, keyboard navigation)
+- [X] T038 [US2] Add conditional rendering for map (only show if trip.locations exists)
+- [X] T039 [US2] Add owner-only action buttons (Edit, Delete, Publish for drafts)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Users can browse trips AND view full trip details with photos.
 

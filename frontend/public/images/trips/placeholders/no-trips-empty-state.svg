@@ -1,0 +1,34 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="120" cy="120" r="100" fill="#F3F4F6"/>
+
+  <!-- Bicycle illustration -->
+  <g transform="translate(30, 80)">
+    <!-- Rear wheel -->
+    <circle cx="30" cy="50" r="20" stroke="#9CA3AF" stroke-width="3" fill="none"/>
+    <circle cx="30" cy="50" r="15" stroke="#9CA3AF" stroke-width="2" fill="none" opacity="0.5"/>
+
+    <!-- Front wheel -->
+    <circle cx="150" cy="50" r="20" stroke="#9CA3AF" stroke-width="3" fill="none"/>
+    <circle cx="150" cy="50" r="15" stroke="#9CA3AF" stroke-width="2" fill="none" opacity="0.5"/>
+
+    <!-- Frame -->
+    <path d="M30 50 L90 15 L150 50 L90 50 L30 50 Z" stroke="#6B7280" stroke-width="3" fill="none" stroke-linejoin="round"/>
+    <path d="M90 15 L90 50" stroke="#6B7280" stroke-width="3"/>
+    <path d="M70 35 L110 35" stroke="#6B7280" stroke-width="3"/>
+
+    <!-- Handlebars -->
+    <path d="M150 50 L160 45 M150 50 L160 40" stroke="#6B7280" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Saddle -->
+    <ellipse cx="90" cy="10" rx="12" ry="5" fill="#6B7280"/>
+  </g>
+
+  <!-- Road/path -->
+  <path d="M20 200 Q120 190 220 200" stroke="#E5E7EB" stroke-width="4" fill="none" stroke-dasharray="12 8"/>
+
+  <!-- Mountains in background -->
+  <g opacity="0.3">
+    <path d="M0 160 L40 100 L80 140 L120 80 L160 120 L200 100 L240 140 L240 160 Z" fill="#D1D5DB"/>
+  </g>
+</svg>
