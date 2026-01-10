@@ -333,13 +333,13 @@ export const TripDetailPage: React.FC = () => {
                 </button>
               )}
 
-              {/* Edit button - Phase 5: Enable when TripEditPage is implemented */}
-              {/* <Link
+              {/* Edit button - Phase 7 */}
+              <Link
                 to={`/trips/${trip.trip_id}/edit`}
                 className="trip-detail-page__action-button trip-detail-page__action-button--edit"
               >
                 Editar
-              </Link> */}
+              </Link>
 
               {/* Delete button */}
               <button

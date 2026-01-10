@@ -140,17 +140,32 @@ export const useTripForm = ({
 
         if (isEditMode && tripId) {
           // Update existing trip
-          trip = await updateTrip(tripId, data);
+          try {
+            trip = await updateTrip(tripId, data);
 
-          // If publishing from draft, call publish endpoint
-          if (!isDraft && trip.status === 'DRAFT') {
-            trip = await publishTrip(tripId);
+            // If publishing from draft, call publish endpoint
+            if (!isDraft && trip.status === 'DRAFT') {
+              trip = await publishTrip(tripId);
+            }
+
+            toast.success('Viaje actualizado correctamente', {
+              duration: 3000,
+              position: 'top-center',
+            });
+          } catch (error: any) {
+            // Handle optimistic locking conflict (409)
+            if (error.response?.status === 409) {
+              toast.error(
+                'El viaje fue modificado por otra sesión. Recarga la página para ver los cambios más recientes.',
+                {
+                  duration: 6000,
+                  position: 'top-center',
+                }
+              );
+              throw error; // Re-throw to stop execution
+            }
+            throw error; // Re-throw other errors
           }
-
-          toast.success('Viaje actualizado correctamente', {
-            duration: 3000,
-            position: 'top-center',
-          });
         } else {
           // Create new trip
           trip = await createTrip(data);

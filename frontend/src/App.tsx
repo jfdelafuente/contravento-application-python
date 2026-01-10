@@ -20,8 +20,7 @@ const ProfileEditPage = lazy(() => import('./pages/ProfileEditPage').then(module
 const TripsListPage = lazy(() => import('./pages/TripsListPage').then(module => ({ default: module.TripsListPage })));
 const TripDetailPage = lazy(() => import('./pages/TripDetailPage').then(module => ({ default: module.TripDetailPage })));
 const TripCreatePage = lazy(() => import('./pages/TripCreatePage').then(module => ({ default: module.TripCreatePage })));
-// Note: TripEditPage will be created in Phase 7
-// const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({ default: module.TripEditPage })));
+const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({ default: module.TripEditPage })));
 
 // Placeholder components
 const HomePage: React.FC = () => (
@@ -116,15 +115,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* Phase 7: Edit route will be added later */}
-              {/* <Route
+              {/* Phase 7: Edit trip route */}
+              <Route
                 path="/trips/:tripId/edit"
                 element={
                   <ProtectedRoute>
                     <TripEditPage />
                   </ProtectedRoute>
                 }
-              /> */}
+              />
 
               {/* Catch-all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
