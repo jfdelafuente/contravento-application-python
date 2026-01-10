@@ -3,12 +3,13 @@
  *
  * Photo gallery for trip detail page with responsive grid and lightbox.
  * Integrates yet-another-react-lightbox for full-screen photo viewing.
+ * Uses Intersection Observer for optimized lazy loading (T080).
  *
  * Used in:
  * - TripDetailPage (main photo gallery section)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -26,9 +27,52 @@ interface TripGalleryProps {
   tripTitle: string;
 }
 
+/**
+ * Custom hook for optimized lazy loading with Intersection Observer (T080)
+ * Loads images only when they enter the viewport with configurable threshold
+ */
+const useLazyLoadImages = () => {
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    // Create Intersection Observer with optimized settings
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            setLoadedImages((prev) => new Set(prev).add(index));
+            // Stop observing once loaded
+            observerRef.current?.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '50px', // Start loading 50px before entering viewport
+        threshold: 0.01, // Trigger when 1% visible
+      }
+    );
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, []);
+
+  const observeImage = useCallback((element: HTMLElement | null, index: number) => {
+    if (element && observerRef.current) {
+      element.setAttribute('data-index', index.toString());
+      observerRef.current.observe(element);
+    }
+  }, []);
+
+  return { loadedImages, observeImage };
+};
+
 export const TripGallery: React.FC<TripGalleryProps> = ({ photos, tripTitle }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const { loadedImages, observeImage } = useLazyLoadImages();
 
   // Handle photo click - open lightbox at clicked photo
   const handlePhotoClick = (index: number) => {
@@ -73,48 +117,75 @@ export const TripGallery: React.FC<TripGalleryProps> = ({ photos, tripTitle }) =
       <div className="trip-gallery">
         {/* Photo Grid */}
         <div className="trip-gallery__grid">
-          {photos.map((photo, index) => (
-            <button
-              key={photo.photo_id}
-              className="trip-gallery__item"
-              onClick={() => handlePhotoClick(index)}
-              aria-label={`Ver foto ${index + 1} de ${photos.length}${
-                photo.caption ? `: ${photo.caption}` : ''
-              }`}
-            >
-              <img
-                src={getPhotoUrl(photo.thumbnail_url || photo.photo_url) || ''}
-                alt={photo.caption || `${tripTitle} - Foto ${index + 1}`}
-                className="trip-gallery__image"
-                loading="lazy"
-              />
+          {photos.map((photo, index) => {
+            const isLoaded = loadedImages.has(index);
+            const imageUrl = getPhotoUrl(photo.thumbnail_url || photo.photo_url) || '';
 
-              {/* Caption overlay (only shown if caption exists) */}
-              {photo.caption && (
-                <div className="trip-gallery__caption-overlay">
-                  <p className="trip-gallery__caption-text">{photo.caption}</p>
-                </div>
-              )}
-
-              {/* Zoom icon overlay */}
-              <div className="trip-gallery__zoom-overlay">
-                <svg
-                  className="trip-gallery__zoom-icon"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+            return (
+              <button
+                key={photo.photo_id}
+                ref={(el) => !isLoaded && observeImage(el, index)}
+                className="trip-gallery__item"
+                onClick={() => handlePhotoClick(index)}
+                aria-label={`Ver foto ${index + 1} de ${photos.length}${
+                  photo.caption ? `: ${photo.caption}` : ''
+                }`}
+              >
+                {/* Optimized lazy loading with Intersection Observer (T080) */}
+                {isLoaded ? (
+                  <img
+                    src={imageUrl}
+                    alt={photo.caption || `${tripTitle} - Foto ${index + 1}`}
+                    className="trip-gallery__image trip-gallery__image--loaded"
                   />
-                </svg>
-              </div>
-            </button>
-          ))}
+                ) : (
+                  <div className="trip-gallery__placeholder">
+                    <svg
+                      className="trip-gallery__placeholder-icon"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Caption overlay (only shown if caption exists and image loaded) */}
+                {photo.caption && isLoaded && (
+                  <div className="trip-gallery__caption-overlay">
+                    <p className="trip-gallery__caption-text">{photo.caption}</p>
+                  </div>
+                )}
+
+                {/* Zoom icon overlay (only shown when image loaded) */}
+                {isLoaded && (
+                  <div className="trip-gallery__zoom-overlay">
+                    <svg
+                      className="trip-gallery__zoom-icon"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Photo count */}
