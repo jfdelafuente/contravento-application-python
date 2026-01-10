@@ -125,8 +125,8 @@ export const getUserTrips = async (
  * });
  */
 export const createTrip = async (tripData: TripCreateInput): Promise<Trip> => {
-  const response = await api.post<ApiResponse<{ trip: Trip }>>('/trips', tripData);
-  return response.data.data.trip;
+  const response = await api.post<ApiResponse<Trip>>('/trips', tripData);
+  return response.data.data;
 };
 
 /**
@@ -152,8 +152,8 @@ export const updateTrip = async (
   tripId: string,
   updates: TripUpdateInput
 ): Promise<Trip> => {
-  const response = await api.put<ApiResponse<{ trip: Trip }>>(`/trips/${tripId}`, updates);
-  return response.data.data.trip;
+  const response = await api.put<ApiResponse<Trip>>(`/trips/${tripId}`, updates);
+  return response.data.data;
 };
 
 /**
@@ -196,8 +196,8 @@ export const deleteTrip = async (tripId: string): Promise<void> => {
  * }
  */
 export const publishTrip = async (tripId: string): Promise<Trip> => {
-  const response = await api.post<ApiResponse<{ trip: Trip }>>(`/trips/${tripId}/publish`);
-  return response.data.data.trip;
+  const response = await api.post<ApiResponse<Trip>>(`/trips/${tripId}/publish`);
+  return response.data.data;
 };
 
 // ============================================================================
