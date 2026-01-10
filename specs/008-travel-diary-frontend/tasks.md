@@ -257,7 +257,7 @@
 - [ ] T088 [P] Test tag filtering performance (verify filters update in <500ms)
 - [ ] T089 [P] Test form navigation performance (verify step transitions in <200ms)
 - [ ] T090 [P] Test lightbox transitions (verify photo transitions in <300ms)
-- [x] T091 Create manual acceptance testing guide in specs/008-travel-diary-frontend/TESTING_GUIDE.md ✅
+- [x] T091 Create manual acceptance testing guide in specs/008-travel-diary-frontend/MANUAL_TESTING.md ✅
 - [x] T092 Document common pitfalls in specs/008-travel-diary-frontend/TROUBLESHOOTING.md (photo URLs are absolute, tag normalization, date formats, form state vs API payload) ✅
 - [x] T093 Update CLAUDE.md with Travel Diary frontend patterns and examples ✅
 

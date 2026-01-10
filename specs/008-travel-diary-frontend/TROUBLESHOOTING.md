@@ -814,7 +814,7 @@ If you encounter an issue not covered in this guide:
 
 ## Related Documentation
 
-- [TESTING_GUIDE.md](TESTING_GUIDE.md) - Manual testing procedures
+- [MANUAL_TESTING.md](MANUAL_TESTING.md) - Manual testing procedures
 - [spec.md](spec.md) - Feature requirements and success criteria
 - [plan.md](plan.md) - Technical architecture and design decisions
 - [tasks.md](tasks.md) - Implementation task breakdown

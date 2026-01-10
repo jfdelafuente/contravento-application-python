@@ -134,7 +134,8 @@ The remaining 7 tasks are **QA/testing activities** requiring manual validation,
 
 ### Documentation (3 tasks)
 
-#### T091: TESTING_GUIDE.md ✅
+#### T091: MANUAL_TESTING.md ✅
+
 - **Status**: NEW - Comprehensive manual testing guide
 - **Content**:
   - **Prerequisites**: Backend setup, test users, test data
@@ -149,7 +150,7 @@ The remaining 7 tasks are **QA/testing activities** requiring manual validation,
   - **Cross-Cutting Tests**: Responsive, loading states, errors, accessibility
   - **Test Execution Checklist**: Step-by-step QA workflow
   - **Issue Reporting Guidelines**: Bug report template
-- **Location**: `specs/008-travel-diary-frontend/TESTING_GUIDE.md`
+- **Location**: `specs/008-travel-diary-frontend/MANUAL_TESTING.md`
 - **Usage**: QA team manual testing reference
 - **Commit**: `771d5fe`
 
@@ -282,7 +283,7 @@ These tasks require **manual QA testing**, **performance profiling tools**, and 
 4. **Semantic HTML**: Proper heading hierarchy, list roles
 
 ### Developer Experience
-1. **Comprehensive Documentation**: TESTING_GUIDE.md, TROUBLESHOOTING.md, CLAUDE.md
+1. **Comprehensive Documentation**: MANUAL_TESTING.md, TROUBLESHOOTING.md, CLAUDE.md
 2. **Common Pitfalls**: Documented photo URL pattern, date handling, tag normalization
 3. **Code Examples**: Real TypeScript snippets from codebase
 
