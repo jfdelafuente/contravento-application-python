@@ -175,13 +175,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T058 [US4] Add drag-and-drop reordering to PhotoUploader component (HTML5 drag API or react-beautiful-dnd)
-- [ ] T059 [US4] Implement handlePhotoReorder function in useTripPhotos hook (calls reorderTripPhotos service)
-- [ ] T060 [US4] Implement handlePhotoDelete function in useTripPhotos hook (calls deleteTripPhoto service with confirmation)
-- [ ] T061 [US4] Add photo reorder visual feedback in PhotoUploader (dragging state, drop target highlight)
-- [ ] T062 [US4] Add delete confirmation dialog in PhotoUploader
-- [ ] T063 [US4] Add retry button for failed uploads in PhotoUploader
-- [ ] T064 [US4] Add file validation error messages in PhotoUploader (Spanish: "Solo se permiten imágenes JPG y PNG (máx 10MB)")
+- [X] T058 [US4] Add drag-and-drop reordering to PhotoUploader component (HTML5 drag API or react-beautiful-dnd)
+- [X] T059 [US4] Implement handlePhotoReorder function in useTripPhotos hook (calls reorderTripPhotos service)
+- [X] T060 [US4] Implement handlePhotoDelete function in useTripPhotos hook (calls deleteTripPhoto service with confirmation)
+- [X] T061 [US4] Add photo reorder visual feedback in PhotoUploader (dragging state, drop target highlight)
+- [X] T062 [US4] Add delete confirmation dialog in PhotoUploader
+- [X] T063 [US4] Add retry button for failed uploads in PhotoUploader - **Already implemented in Phase 5**
+- [X] T064 [US4] Add file validation error messages in PhotoUploader (Spanish: "Solo se permiten imágenes JPG y PNG (máx 10MB)") - **Already implemented in Phase 5**
 
 **Checkpoint**: At this point, User Story 4 enhances User Story 3 (Create Trip) with advanced photo management. All photo operations work independently.
 
