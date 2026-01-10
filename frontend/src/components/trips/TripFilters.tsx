@@ -76,7 +76,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
 
   return (
     <div className="trip-filters">
-      {/* Search Input */}
+      {/* Search Input - T082: Accessibility */}
       <div className="trip-filters__search-section">
         <div className="trip-filters__search-wrapper">
           <svg
@@ -85,6 +85,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
             stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -95,14 +96,18 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
           </svg>
           <input
             type="text"
+            id="trip-search"
             className="trip-filters__search-input"
             placeholder="Buscar viajes..."
             value={searchQuery}
             onChange={handleSearchChange}
             disabled={isLoading}
+            aria-label="Buscar viajes por título o descripción"
+            aria-describedby="search-hint"
           />
           {searchQuery && (
             <button
+              type="button"
               className="trip-filters__search-clear"
               onClick={() => onSearchChange('')}
               aria-label="Limpiar búsqueda"

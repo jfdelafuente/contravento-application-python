@@ -33,7 +33,7 @@ export const Step1BasicInfo: React.FC = () => {
       </div>
 
       <div className="step1-basic-info__form">
-        {/* Title Field (Required) */}
+        {/* Title Field (Required) - T082: Accessibility */}
         <div className="form-field">
           <label htmlFor="title" className="form-field__label">
             Título del viaje *
@@ -43,6 +43,10 @@ export const Step1BasicInfo: React.FC = () => {
             type="text"
             className={`form-field__input ${errors.title ? 'form-field__input--error' : ''}`}
             placeholder="Ej: Ruta Transpirenaica 2024"
+            aria-label="Título del viaje"
+            aria-required="true"
+            aria-invalid={!!errors.title}
+            aria-describedby={errors.title ? 'title-error title-hint' : 'title-hint'}
             {...register('title', {
               required: 'El título es obligatorio',
               minLength: {
@@ -56,16 +60,18 @@ export const Step1BasicInfo: React.FC = () => {
             })}
           />
           {errors.title && (
-            <span className="form-field__error">{errors.title.message}</span>
+            <span id="title-error" className="form-field__error" role="alert">
+              {errors.title.message}
+            </span>
           )}
-          <span className="form-field__hint">
+          <span id="title-hint" className="form-field__hint">
             Un título descriptivo ayudará a otros ciclistas a encontrar tu ruta
           </span>
         </div>
 
         {/* Date Fields Row */}
         <div className="form-field-row">
-          {/* Start Date (Required) */}
+          {/* Start Date (Required) - T082: Accessibility */}
           <div className="form-field">
             <label htmlFor="start_date" className="form-field__label">
               Fecha de inicio *
@@ -74,16 +80,22 @@ export const Step1BasicInfo: React.FC = () => {
               id="start_date"
               type="date"
               className={`form-field__input ${errors.start_date ? 'form-field__input--error' : ''}`}
+              aria-label="Fecha de inicio del viaje"
+              aria-required="true"
+              aria-invalid={!!errors.start_date}
+              aria-describedby={errors.start_date ? 'start-date-error' : undefined}
               {...register('start_date', {
                 required: 'La fecha de inicio es obligatoria',
               })}
             />
             {errors.start_date && (
-              <span className="form-field__error">{errors.start_date.message}</span>
+              <span id="start-date-error" className="form-field__error" role="alert">
+                {errors.start_date.message}
+              </span>
             )}
           </div>
 
-          {/* End Date (Optional) */}
+          {/* End Date (Optional) - T082: Accessibility */}
           <div className="form-field">
             <label htmlFor="end_date" className="form-field__label">
               Fecha de fin (opcional)
@@ -93,6 +105,10 @@ export const Step1BasicInfo: React.FC = () => {
               type="date"
               className={`form-field__input ${errors.end_date ? 'form-field__input--error' : ''}`}
               min={startDate || undefined}
+              aria-label="Fecha de fin del viaje (opcional)"
+              aria-required="false"
+              aria-invalid={!!errors.end_date}
+              aria-describedby={errors.end_date ? 'end-date-error end-date-hint' : 'end-date-hint'}
               {...register('end_date', {
                 validate: (value) => {
                   if (!value) return true; // Optional field
@@ -103,15 +119,17 @@ export const Step1BasicInfo: React.FC = () => {
               })}
             />
             {errors.end_date && (
-              <span className="form-field__error">{errors.end_date.message}</span>
+              <span id="end-date-error" className="form-field__error" role="alert">
+                {errors.end_date.message}
+              </span>
             )}
-            <span className="form-field__hint">
+            <span id="end-date-hint" className="form-field__hint">
               Deja vacío si fue un viaje de un solo día
             </span>
           </div>
         </div>
 
-        {/* Distance Field (Optional) */}
+        {/* Distance Field (Optional) - T082: Accessibility */}
         <div className="form-field">
           <label htmlFor="distance_km" className="form-field__label">
             Distancia (km, opcional)
@@ -124,6 +142,10 @@ export const Step1BasicInfo: React.FC = () => {
             max="10000"
             className={`form-field__input ${errors.distance_km ? 'form-field__input--error' : ''}`}
             placeholder="Ej: 125.5"
+            aria-label="Distancia del viaje en kilómetros (opcional)"
+            aria-required="false"
+            aria-invalid={!!errors.distance_km}
+            aria-describedby={errors.distance_km ? 'distance-error distance-hint' : 'distance-hint'}
             {...register('distance_km', {
               valueAsNumber: true,
               min: {
@@ -137,14 +159,16 @@ export const Step1BasicInfo: React.FC = () => {
             })}
           />
           {errors.distance_km && (
-            <span className="form-field__error">{errors.distance_km.message}</span>
+            <span id="distance-error" className="form-field__error" role="alert">
+              {errors.distance_km.message}
+            </span>
           )}
-          <span className="form-field__hint">
+          <span id="distance-hint" className="form-field__hint">
             Distancia total recorrida en kilómetros
           </span>
         </div>
 
-        {/* Difficulty Field (Optional) */}
+        {/* Difficulty Field (Optional) - T082: Accessibility */}
         <div className="form-field">
           <label htmlFor="difficulty" className="form-field__label">
             Dificultad (opcional)
@@ -152,6 +176,10 @@ export const Step1BasicInfo: React.FC = () => {
           <select
             id="difficulty"
             className={`form-field__select ${errors.difficulty ? 'form-field__input--error' : ''}`}
+            aria-label="Dificultad del viaje (opcional)"
+            aria-required="false"
+            aria-invalid={!!errors.difficulty}
+            aria-describedby={errors.difficulty ? 'difficulty-error difficulty-hint' : 'difficulty-hint'}
             {...register('difficulty')}
           >
             <option value="">-- Selecciona la dificultad --</option>
@@ -161,9 +189,11 @@ export const Step1BasicInfo: React.FC = () => {
             <option value="extreme">{DIFFICULTY_LABELS.extreme}</option>
           </select>
           {errors.difficulty && (
-            <span className="form-field__error">{errors.difficulty.message}</span>
+            <span id="difficulty-error" className="form-field__error" role="alert">
+              {errors.difficulty.message}
+            </span>
           )}
-          <span className="form-field__hint">
+          <span id="difficulty-hint" className="form-field__hint">
             Califica la dificultad técnica y física del viaje
           </span>
         </div>

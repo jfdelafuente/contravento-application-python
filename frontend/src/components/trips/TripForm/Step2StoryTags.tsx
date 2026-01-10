@@ -88,7 +88,7 @@ export const Step2StoryTags: React.FC = () => {
       </div>
 
       <div className="step2-story-tags__form">
-        {/* Description Field (Required) */}
+        {/* Description Field (Required) - T082: Accessibility */}
         <div className="form-field">
           <label htmlFor="description" className="form-field__label">
             Descripción del viaje *
@@ -98,6 +98,10 @@ export const Step2StoryTags: React.FC = () => {
             className={`form-field__textarea ${errors.description ? 'form-field__input--error' : ''}`}
             placeholder="Cuéntanos sobre tu viaje: ¿qué viste? ¿cómo fue el terreno? ¿qué desafíos encontraste? ¿qué recomendarías a otros ciclistas?"
             rows={10}
+            aria-label="Descripción del viaje"
+            aria-required="true"
+            aria-invalid={!!errors.description}
+            aria-describedby={errors.description ? 'description-error description-hint description-counter' : 'description-hint description-counter'}
             {...register('description', {
               required: 'La descripción es obligatoria',
               minLength: {
@@ -115,15 +119,18 @@ export const Step2StoryTags: React.FC = () => {
           <div className="form-field__counter">
             <div>
               {errors.description && (
-                <span className="form-field__error">{errors.description.message}</span>
+                <span id="description-error" className="form-field__error" role="alert">
+                  {errors.description.message}
+                </span>
               )}
               {!errors.description && descriptionLength < 50 && (
-                <span className="form-field__hint">
+                <span id="description-hint" className="form-field__hint">
                   Mínimo 50 caracteres para publicar (puedes guardar como borrador con menos)
                 </span>
               )}
             </div>
             <span
+              id="description-counter"
               className={`form-field__counter-text ${
                 isDescriptionError
                   ? 'form-field__counter-text--error'
@@ -131,6 +138,8 @@ export const Step2StoryTags: React.FC = () => {
                   ? 'form-field__counter-text--warning'
                   : ''
               }`}
+              aria-live="polite"
+              aria-atomic="true"
             >
               {descriptionLength.toLocaleString()} / 50,000
             </span>
@@ -143,7 +152,7 @@ export const Step2StoryTags: React.FC = () => {
             Etiquetas (opcional, máximo 10)
           </label>
 
-          {/* Tag Input */}
+          {/* Tag Input - T082: Accessibility */}
           <div className="tag-input-wrapper">
             <input
               id="tag-input"
@@ -154,22 +163,32 @@ export const Step2StoryTags: React.FC = () => {
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagKeyDown}
               disabled={tags.length >= 10}
+              aria-label="Agregar etiqueta al viaje"
+              aria-required="false"
+              aria-describedby="tag-hint tag-list"
+              aria-invalid={false}
             />
             <button
               type="button"
               className="tag-add-button"
               onClick={handleAddTag}
               disabled={!tagInput.trim() || tags.length >= 10}
+              aria-label="Añadir etiqueta a la lista"
             >
               Añadir
             </button>
           </div>
 
-          {/* Tag List */}
+          {/* Tag List - T082: Accessibility */}
           {tags.length > 0 && (
-            <div className="tag-list">
+            <div
+              id="tag-list"
+              className="tag-list"
+              role="list"
+              aria-label="Etiquetas del viaje"
+            >
               {tags.map((tag, index) => (
-                <div key={index} className="tag-chip">
+                <div key={index} className="tag-chip" role="listitem">
                   <span className="tag-chip__text">{tag}</span>
                   <button
                     type="button"
@@ -184,7 +203,7 @@ export const Step2StoryTags: React.FC = () => {
             </div>
           )}
 
-          <span className="form-field__hint">
+          <span id="tag-hint" className="form-field__hint">
             Ejemplos: bikepacking, montaña, gravel, costa, vías verdes
             {tags.length > 0 && ` (${tags.length}/10 etiquetas)`}
           </span>
