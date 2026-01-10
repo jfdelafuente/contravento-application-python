@@ -238,8 +238,9 @@
 }
 
 .difficulty-badge--very_difficult {
-  background-color: #e0e7ff;
-  color: #3730a3;
+  background-color: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #991b1b;
 }
 
 .difficulty-badge--default {
