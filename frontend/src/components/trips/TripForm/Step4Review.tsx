@@ -15,7 +15,7 @@ import { formatDate, formatDistance, getDifficultyLabel } from '../../../utils/t
 import './Step1BasicInfo.css'; // Shared styles
 
 export const Step4Review: React.FC = () => {
-  const { watch } = useFormContext<TripCreateInput>();
+  const { watch, setValue } = useFormContext<TripCreateInput>();
 
   // Get all form values
   const formData = watch();
@@ -40,6 +40,21 @@ export const Step4Review: React.FC = () => {
 
   // Check if description meets publish requirements
   const isDescriptionValid = description && description.length >= 50;
+
+  /**
+   * Remove photo from selection
+   */
+  const handleRemovePhoto = (photoId: string) => {
+    const updatedPhotos = selectedPhotos.filter((p: any) => p.id !== photoId);
+
+    // Revoke blob URL to free memory
+    const photoToRemove = selectedPhotos.find((p: any) => p.id === photoId);
+    if (photoToRemove && photoToRemove.preview) {
+      URL.revokeObjectURL(photoToRemove.preview);
+    }
+
+    setValue('selectedPhotos' as any, updatedPhotos);
+  };
 
   return (
     <div className="step4-review">
@@ -139,6 +154,14 @@ export const Step4Review: React.FC = () => {
                         alt={photo.file.name}
                         className="review-photo-image"
                       />
+                      <button
+                        type="button"
+                        className="review-photo-remove"
+                        onClick={() => handleRemovePhoto(photo.id)}
+                        aria-label="Eliminar foto"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -300,6 +323,32 @@ export const Step4Review: React.FC = () => {
           width: 100%;
           height: 100%;
           object-fit: cover;
+        }
+
+        .review-photo-remove {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          background-color: rgba(0, 0, 0, 0.6);
+          border: none;
+          border-radius: 50%;
+          color: #ffffff;
+          font-size: 1.25rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease-in-out;
+          line-height: 1;
+        }
+
+        .review-photo-remove:hover {
+          background-color: #ef4444;
+          transform: scale(1.1);
         }
 
         .review-photos-count {
