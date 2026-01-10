@@ -1,0 +1,321 @@
+/**
+ * PhotoUploader Styles
+ *
+ * Styles for drag-and-drop photo uploader with progress tracking.
+ * Responsive grid layout with thumbnail previews.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.photo-uploader {
+  width: 100%;
+}
+
+/* ============================================================================
+   Drop Zone
+   ============================================================================ */
+
+.photo-uploader__dropzone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  background-color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 24px;
+}
+
+.photo-uploader__dropzone:hover {
+  border-color: var(--primary-color, #2563eb);
+  background-color: #eff6ff;
+}
+
+.photo-uploader__dropzone--active {
+  border-color: var(--primary-color, #2563eb);
+  background-color: #eff6ff;
+  border-style: solid;
+}
+
+.photo-uploader__dropzone--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.photo-uploader__dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.photo-uploader__dropzone-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--primary-color, #2563eb);
+}
+
+.photo-uploader__dropzone-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0;
+}
+
+.photo-uploader__dropzone-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================================================
+   Max Reached Message
+   ============================================================================ */
+
+.photo-uploader__max-message {
+  padding: 16px 24px;
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+/* ============================================================================
+   Thumbnail Grid
+   ============================================================================ */
+
+.photo-uploader__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.photo-uploader__thumbnail {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.photo-uploader__thumbnail:hover {
+  border-color: var(--primary-color, #2563eb);
+}
+
+.photo-uploader__thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================================================
+   Upload Progress Overlay
+   ============================================================================ */
+
+.photo-uploader__thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+}
+
+.photo-uploader__thumbnail-overlay--error {
+  background-color: rgba(239, 68, 68, 0.9);
+}
+
+.photo-uploader__progress-bar {
+  width: 80%;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.photo-uploader__progress-fill {
+  height: 100%;
+  background-color: #ffffff;
+  transition: width 0.3s ease-in-out;
+}
+
+.photo-uploader__progress-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.photo-uploader__error-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: center;
+  margin: 0 8px 8px;
+  line-height: 1.4;
+}
+
+.photo-uploader__retry-button {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background-color: #ffffff;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.photo-uploader__retry-button:hover {
+  background-color: #fef2f2;
+  transform: scale(1.05);
+}
+
+/* ============================================================================
+   Success Check
+   ============================================================================ */
+
+.photo-uploader__thumbnail-success {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.photo-uploader__success-icon {
+  width: 18px;
+  height: 18px;
+  color: #ffffff;
+  stroke-width: 3;
+}
+
+/* ============================================================================
+   Remove Button
+   ============================================================================ */
+
+.photo-uploader__remove-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  line-height: 1;
+}
+
+.photo-uploader__remove-button:hover {
+  background-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.photo-uploader__remove-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Upload Summary
+   ============================================================================ */
+
+.photo-uploader__summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.photo-uploader__summary-count {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.photo-uploader__summary-uploading {
+  color: var(--primary-color, #2563eb);
+  font-weight: 500;
+}
+
+.photo-uploader__summary-error {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .photo-uploader__dropzone {
+    padding: 32px 16px;
+  }
+
+  .photo-uploader__dropzone-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .photo-uploader__dropzone-title {
+    font-size: 1rem;
+  }
+
+  .photo-uploader__dropzone-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .photo-uploader__grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+
+  .photo-uploader__max-message {
+    padding: 12px 16px;
+    font-size: 0.875rem;
+  }
+
+  .photo-uploader__summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .photo-uploader__grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+}
