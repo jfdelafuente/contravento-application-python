@@ -60,10 +60,18 @@ export const updatePrivacy = async (data: PrivacySettingsUpdate): Promise<UserPr
 
 /**
  * Change current user's password
- * Endpoint: PUT /api/profile/me/password
+ * Endpoint: PUT /api/users/{username}/profile/password
+ *
+ * @param username - Username of the user changing password
+ * @param data - Password change request data
  */
-export const changePassword = async (data: PasswordChangeRequest): Promise<{ message: string }> => {
-  const response = await api.put<{ success: boolean; message: string }>('/profile/me/password', data);
+export const changePassword = async (username: string, data: PasswordChangeRequest): Promise<{ message: string }> => {
+  // Extract only the fields needed by backend (exclude confirm_password)
+  const { current_password, new_password } = data;
+  const response = await api.put<{ success: boolean; message: string }>(
+    `/users/${username}/profile/password`,
+    { current_password, new_password }
+  );
   return { message: response.data.message };
 };
 

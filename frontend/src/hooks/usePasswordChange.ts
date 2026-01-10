@@ -27,6 +27,7 @@ export const usePasswordChange = () => {
     defaultValues: {
       current_password: '',
       new_password: '',
+      confirm_password: '',
     },
     mode: 'onBlur',
   });

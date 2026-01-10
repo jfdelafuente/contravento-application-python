@@ -51,10 +51,12 @@ export interface PrivacySettingsUpdate {
  * Password Change Request
  * Data sent to backend when changing password.
  * Requires current password verification.
+ * Note: confirm_password is validated client-side only, not sent to backend.
  */
 export interface PasswordChangeRequest {
   current_password: string;
   new_password: string;
+  confirm_password: string;
 }
 
 /**

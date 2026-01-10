@@ -28,6 +28,7 @@ from src.schemas.profile import (
     ProfileUpdateRequest,
 )
 from src.utils.file_storage import generate_photo_filename, resize_photo, validate_photo
+from src.utils.security import hash_password, verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -363,6 +364,48 @@ class ProfileService:
             "show_email": profile.show_email,
             "show_location": profile.show_location,
         }
+
+    async def change_password(
+        self, username: str, current_password: str, new_password: str
+    ) -> bool:
+        """
+        T128: Change user password.
+
+        Verifies current password and updates to new password.
+
+        **Functional Requirements**: FR-009, FR-010
+
+        Args:
+            username: Username of user
+            current_password: Current password for verification
+            new_password: New password (already validated by schema)
+
+        Returns:
+            True if password changed successfully
+
+        Raises:
+            ValueError: If user not found or current password incorrect
+        """
+        # Get user
+        result = await self.db.execute(select(User).where(User.username == username))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise ValueError(f"El usuario '{username}' no existe")
+
+        # Verify current password
+        if not verify_password(current_password, user.hashed_password):
+            raise ValueError("La contraseña actual es incorrecta")
+
+        # Update password
+        user.hashed_password = hash_password(new_password)
+        user.updated_at = datetime.utcnow()
+
+        await self.db.commit()
+
+        logger.info(f"Password changed for user: {username}")
+
+        return True
 
     async def _delete_photo_file(self, photo_url: str) -> None:
         """

@@ -123,16 +123,23 @@ export const profileEditSchema = z.object({
 /**
  * Password Change Schema
  * Validates current password and new password with strength requirements.
+ * Also validates password confirmation matches new password.
  */
-export const passwordChangeSchema = z.object({
-  current_password: z.string().min(1, 'Ingresa tu contraseña actual'),
-  new_password: z
-    .string()
-    .min(8, 'Mínimo 8 caracteres')
-    .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
-    .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
-    .regex(/\d/, 'Debe incluir al menos un número'),
-});
+export const passwordChangeSchema = z
+  .object({
+    current_password: z.string().min(1, 'Ingresa tu contraseña actual'),
+    new_password: z
+      .string()
+      .min(8, 'Mínimo 8 caracteres')
+      .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
+      .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
+      .regex(/\d/, 'Debe incluir al menos un número'),
+    confirm_password: z.string().min(1, 'Confirma tu nueva contraseña'),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirm_password'],
+  });
 
 /**
  * Photo Upload Schema

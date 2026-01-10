@@ -25,7 +25,7 @@ import './ProfileEditPage.css';
 const PhotoCropModal = lazy(() => import('../components/profile/PhotoCropModal'));
 
 export const ProfileEditPage: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -114,10 +114,10 @@ export const ProfileEditPage: React.FC = () => {
     try {
       setIsChangingPassword(true);
 
-      await changePassword(data);
+      await changePassword(user.username, data);
 
-      toast.success('Contraseña actualizada correctamente. Recibirás un email de confirmación.', {
-        duration: 5000,
+      toast.success('Contraseña actualizada correctamente. Por seguridad, debes iniciar sesión nuevamente.', {
+        duration: 3000,
         position: 'top-center',
         style: {
           background: '#6b723b',
@@ -130,6 +130,12 @@ export const ProfileEditPage: React.FC = () => {
 
       // Reset password form
       resetPassword();
+
+      // Wait for toast to be visible, then logout and redirect
+      setTimeout(async () => {
+        await logout();
+        navigate('/login', { replace: true });
+      }, 1500);
     } catch (error: any) {
       console.error('Error changing password:', error);
 
@@ -147,7 +153,6 @@ export const ProfileEditPage: React.FC = () => {
           fontWeight: '600',
         },
       });
-    } finally {
       setIsChangingPassword(false);
     }
   };

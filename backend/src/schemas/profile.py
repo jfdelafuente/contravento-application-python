@@ -201,3 +201,49 @@ class PhotoUploadResponse(BaseModel):
                 "photo_height": 400,
             }
         }
+
+
+class PasswordChangeRequest(BaseModel):
+    """
+    Schema for password change request.
+
+    Validates password change data requiring current password verification.
+
+    **Functional Requirements**: FR-009, FR-010
+
+    Attributes:
+        current_password: User's current password for verification
+        new_password: New password (min 8 chars, uppercase, lowercase, number)
+    """
+
+    current_password: str = Field(..., min_length=1, description="Current password")
+    new_password: str = Field(
+        ...,
+        min_length=8,
+        description="New password (min 8 chars with uppercase, lowercase, and number)",
+    )
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        """Validate new password strength (FR-010)."""
+        if len(v) < 8:
+            raise ValueError("La contraseña debe tener al menos 8 caracteres")
+
+        if not any(c.isupper() for c in v):
+            raise ValueError("La contraseña debe contener al menos una mayúscula")
+
+        if not any(c.islower() for c in v):
+            raise ValueError("La contraseña debe contener al menos una minúscula")
+
+        if not any(c.isdigit() for c in v):
+            raise ValueError("La contraseña debe contener al menos un número")
+
+        return v
+
+    class Config:
+        """Pydantic config."""
+
+        json_schema_extra = {
+            "example": {"current_password": "OldPass123!", "new_password": "NewSecurePass456!"}
+        }
