@@ -24,10 +24,10 @@
 
 **Purpose**: Install dependencies and configure project for Travel Diary feature
 
-- [ ] T001 Install react-dropzone@14.x for drag-and-drop file uploads
-- [ ] T002 Install yet-another-react-lightbox@2.x for photo gallery viewer
-- [ ] T003 [P] Install react-leaflet@4.x and leaflet@1.9.x for map display
-- [ ] T004 [P] Verify all dependencies installed successfully with npm list
+- [x] T001 Install react-dropzone@14.x for drag-and-drop file uploads
+- [x] T002 Install yet-another-react-lightbox@2.x for photo gallery viewer
+- [x] T003 [P] Install react-leaflet@4.x and leaflet@1.9.x for map display
+- [x] T004 [P] Verify all dependencies installed successfully with npm list
 
 ---
 
