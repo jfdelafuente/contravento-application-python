@@ -204,6 +204,20 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
   return (
     <FormProvider {...methods}>
       <div className="trip-form-wizard">
+        {/* Loading Overlay - T079 */}
+        {isSubmitting && (
+          <div className="trip-form-wizard__loading-overlay">
+            <div className="trip-form-wizard__loading-spinner">
+              <div className="spinner"></div>
+              <p className="trip-form-wizard__loading-text">
+                {currentStep === 4 && methods.getValues().description?.length >= 50
+                  ? 'Publicando viaje...'
+                  : 'Guardando borrador...'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Step Indicator */}
         <FormStepIndicator
           currentStep={currentStep}
