@@ -14,6 +14,10 @@ import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { FormStepIndicator } from './FormStepIndicator';
+import { Step1BasicInfo } from './Step1BasicInfo';
+import { Step2StoryTags } from './Step2StoryTags';
+import { Step3Photos } from './Step3Photos';
+import { Step4Review } from './Step4Review';
 import { TripCreateInput } from '../../../types/trip';
 import toast from 'react-hot-toast';
 import './TripFormWizard.css';
@@ -209,41 +213,25 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
         <div className="trip-form-wizard__content">
           {currentStep === 1 && (
             <div className="trip-form-wizard__step">
-              {/* Step 1: Basic Info - Will be implemented in T043 */}
-              <div className="trip-form-wizard__placeholder">
-                <h2>Paso 1: Información Básica</h2>
-                <p>Componente Step1BasicInfo se agregará en T043</p>
-              </div>
+              <Step1BasicInfo />
             </div>
           )}
 
           {currentStep === 2 && (
             <div className="trip-form-wizard__step">
-              {/* Step 2: Story & Tags - Will be implemented in T044 */}
-              <div className="trip-form-wizard__placeholder">
-                <h2>Paso 2: Historia y Etiquetas</h2>
-                <p>Componente Step2StoryTags se agregará en T044</p>
-              </div>
+              <Step2StoryTags />
             </div>
           )}
 
           {currentStep === 3 && (
             <div className="trip-form-wizard__step">
-              {/* Step 3: Photos - Will be implemented in T045 */}
-              <div className="trip-form-wizard__placeholder">
-                <h2>Paso 3: Fotos</h2>
-                <p>Componente Step3Photos se agregará en T045</p>
-              </div>
+              <Step3Photos />
             </div>
           )}
 
           {currentStep === 4 && (
             <div className="trip-form-wizard__step">
-              {/* Step 4: Review - Will be implemented in T046 */}
-              <div className="trip-form-wizard__placeholder">
-                <h2>Paso 4: Revisión</h2>
-                <p>Componente Step4Review se agregará en T046</p>
-              </div>
+              <Step4Review />
             </div>
           )}
         </div>

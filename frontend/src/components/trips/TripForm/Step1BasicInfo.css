@@ -1,0 +1,235 @@
+/**
+ * Form Step Styles (Shared across all steps)
+ *
+ * Common styles for form fields, labels, inputs, and layout.
+ * Used by Step1BasicInfo, Step2StoryTags, Step3Photos, Step4Review.
+ */
+
+/* ============================================================================
+   Step Container
+   ============================================================================ */
+
+.step1-basic-info,
+.step2-story-tags,
+.step3-photos,
+.step4-review {
+  width: 100%;
+}
+
+/* ============================================================================
+   Step Header
+   ============================================================================ */
+
+.step1-basic-info__header,
+.step2-story-tags__header,
+.step3-photos__header,
+.step4-review__header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.step1-basic-info__title,
+.step2-story-tags__title,
+.step3-photos__title,
+.step4-review__title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 8px 0;
+}
+
+.step1-basic-info__description,
+.step2-story-tags__description,
+.step3-photos__description,
+.step4-review__description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Form Container
+   ============================================================================ */
+
+.step1-basic-info__form,
+.step2-story-tags__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================================================
+   Form Field
+   ============================================================================ */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.form-field__input,
+.form-field__select,
+.form-field__textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-primary, #111827);
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  font-family: inherit;
+}
+
+.form-field__input:focus,
+.form-field__select:focus,
+.form-field__textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-field__input::placeholder,
+.form-field__textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Textarea specific */
+.form-field__textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+/* Select specific */
+.form-field__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 20px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Error State */
+.form-field__input--error,
+.form-field__select--error,
+.form-field__textarea--error {
+  border-color: #ef4444;
+}
+
+.form-field__input--error:focus,
+.form-field__select--error:focus,
+.form-field__textarea--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Error Message */
+.form-field__error {
+  font-size: 0.875rem;
+  color: #ef4444;
+  margin-top: -2px;
+}
+
+/* Hint Text */
+.form-field__hint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: -2px;
+}
+
+/* ============================================================================
+   Form Field Row (for side-by-side fields)
+   ============================================================================ */
+
+.form-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Mobile: Stack fields vertically */
+@media (max-width: 640px) {
+  .form-field-row {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ============================================================================
+   Character Counter
+   ============================================================================ */
+
+.form-field__counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -2px;
+}
+
+.form-field__counter-text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.form-field__counter-text--warning {
+  color: #f59e0b;
+}
+
+.form-field__counter-text--error {
+  color: #ef4444;
+}
+
+/* ============================================================================
+   Disabled State
+   ============================================================================ */
+
+.form-field__input:disabled,
+.form-field__select:disabled,
+.form-field__textarea:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Mobile */
+@media (max-width: 640px) {
+  .step1-basic-info__header,
+  .step2-story-tags__header,
+  .step3-photos__header,
+  .step4-review__header {
+    margin-bottom: 24px;
+  }
+
+  .step1-basic-info__title,
+  .step2-story-tags__title,
+  .step3-photos__title,
+  .step4-review__title {
+    font-size: 1.5rem;
+  }
+
+  .step1-basic-info__description,
+  .step2-story-tags__description,
+  .step3-photos__description,
+  .step4-review__description {
+    font-size: 0.9375rem;
+  }
+
+  .step1-basic-info__form,
+  .step2-story-tags__form {
+    gap: 20px;
+  }
+}
