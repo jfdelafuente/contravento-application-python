@@ -18,7 +18,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { uploadTripPhoto, deleteTripPhoto } from '../services/tripPhotoService';
+import { uploadTripPhoto, deleteTripPhoto, reorderTripPhotos } from '../services/tripPhotoService';
 import { PhotoFile } from '../components/trips/PhotoUploader';
 
 interface UseTripPhotosOptions {
@@ -182,17 +182,31 @@ export const useTripPhotos = ({
    */
   const reorderPhotos = useCallback(
     async (photoIds: string[]): Promise<void> => {
+      if (!tripId) {
+        throw new Error('Trip ID is required for photo reordering');
+      }
+
       // Reorder locally
       const reordered = photoIds
-        .map((id) => photos.find((p) => p.id === id))
+        .map((id) => photos.find((p) => p.photoId === id))
         .filter(Boolean) as PhotoFile[];
 
       setPhotos(reordered);
 
-      // TODO: Call backend API to persist order
-      // await reorderTripPhotos(tripId, photoIds);
+      // Call backend API to persist order
+      try {
+        await reorderTripPhotos(tripId, photoIds);
+      } catch (error: any) {
+        console.error('Reorder error:', error);
+
+        const errorMessage =
+          error.response?.data?.error?.message ||
+          'Error al reordenar las fotos. Intenta nuevamente.';
+
+        throw new Error(errorMessage);
+      }
     },
-    [photos]
+    [photos, tripId]
   );
 
   // Computed properties

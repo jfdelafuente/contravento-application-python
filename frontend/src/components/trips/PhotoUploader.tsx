@@ -22,6 +22,14 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import './PhotoUploader.css';
 
+/**
+ * Drag-and-drop reorder state
+ */
+interface DragState {
+  draggedIndex: number | null;
+  dragOverIndex: number | null;
+}
+
 export interface PhotoFile {
   /** Unique local ID for tracking */
   id: string;
@@ -58,6 +66,9 @@ interface PhotoUploaderProps {
   /** Delete function (for already uploaded photos) */
   onDelete?: (photoId: string) => Promise<void>;
 
+  /** Reorder function (for drag-and-drop reordering) */
+  onReorder?: (photoIds: string[]) => Promise<void>;
+
   /** Maximum number of photos (default: 20) */
   maxPhotos?: number;
 
@@ -73,11 +84,17 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   onChange,
   onUpload,
   onDelete,
+  onReorder,
   maxPhotos = 20,
   maxSizeMB = 10,
   disabled = false,
 }) => {
   const [uploadQueue, setUploadQueue] = useState<string[]>([]); // IDs of photos being uploaded
+  const [dragState, setDragState] = useState<DragState>({
+    draggedIndex: null,
+    dragOverIndex: null,
+  });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null); // Photo ID to delete
 
   /**
    * Handle file drop/selection
@@ -202,7 +219,75 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   };
 
   /**
-   * Remove photo (local or uploaded)
+   * Handle drag start for photo reordering
+   */
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+    setDragState({ draggedIndex: index, dragOverIndex: null });
+  };
+
+  /**
+   * Handle drag over for photo reordering
+   */
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    if (dragState.draggedIndex !== index) {
+      setDragState((prev) => ({ ...prev, dragOverIndex: index }));
+    }
+  };
+
+  /**
+   * Handle drop for photo reordering
+   */
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    const { draggedIndex } = dragState;
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDragState({ draggedIndex: null, dragOverIndex: null });
+      return;
+    }
+
+    // Reorder photos array
+    const reordered = [...photos];
+    const [draggedPhoto] = reordered.splice(draggedIndex, 1);
+    reordered.splice(dropIndex, 0, draggedPhoto);
+
+    // Update local state
+    onChange(reordered);
+
+    // Call backend to persist order
+    if (onReorder) {
+      try {
+        const photoIds = reordered
+          .filter((p) => p.photoId) // Only include uploaded photos
+          .map((p) => p.photoId!);
+
+        if (photoIds.length > 0) {
+          await onReorder(photoIds);
+        }
+      } catch (error) {
+        console.error('Reorder error:', error);
+        // Revert to original order on error
+        onChange(photos);
+      }
+    }
+
+    setDragState({ draggedIndex: null, dragOverIndex: null });
+  };
+
+  /**
+   * Handle drag end
+   */
+  const handleDragEnd = () => {
+    setDragState({ draggedIndex: null, dragOverIndex: null });
+  };
+
+  /**
+   * Remove photo (local or uploaded) with confirmation
    */
   const handleRemove = async (photo: PhotoFile) => {
     // If uploaded, call onDelete
@@ -223,6 +308,23 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
     // Remove from list
     onChange(photos.filter((p) => p.id !== photo.id));
+
+    // Close confirmation dialog
+    setShowDeleteConfirm(null);
+  };
+
+  /**
+   * Show delete confirmation dialog
+   */
+  const confirmDelete = (photoId: string) => {
+    setShowDeleteConfirm(photoId);
+  };
+
+  /**
+   * Cancel delete operation
+   */
+  const cancelDelete = () => {
+    setShowDeleteConfirm(null);
   };
 
   /**
@@ -303,14 +405,48 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       {/* Thumbnail Grid */}
       {photos.length > 0 && (
         <div className="photo-uploader__grid">
-          {photos.map((photo) => (
-            <div key={photo.id} className="photo-uploader__thumbnail">
-              {/* Preview Image */}
-              <img
-                src={photo.preview}
-                alt="Preview"
-                className="photo-uploader__thumbnail-image"
-              />
+          {photos.map((photo, index) => {
+            const isBeingDragged = dragState.draggedIndex === index;
+            const isDraggedOver = dragState.dragOverIndex === index;
+
+            return (
+              <div
+                key={photo.id}
+                className={`photo-uploader__thumbnail ${
+                  isBeingDragged ? 'photo-uploader__thumbnail--dragging' : ''
+                } ${isDraggedOver ? 'photo-uploader__thumbnail--drag-over' : ''}`}
+                draggable={photo.status !== 'uploading' && !disabled}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+              >
+                {/* Drag Handle (visible on hover) */}
+                {photo.status !== 'uploading' && !disabled && (
+                  <div className="photo-uploader__drag-handle">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M3 5h10M3 8h10M3 11h10"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Preview Image */}
+                <img
+                  src={photo.preview}
+                  alt="Preview"
+                  className="photo-uploader__thumbnail-image"
+                />
 
               {/* Upload Progress Overlay */}
               {photo.status === 'uploading' && (
@@ -363,18 +499,19 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                 </div>
               )}
 
-              {/* Remove Button */}
-              <button
-                type="button"
-                className="photo-uploader__remove-button"
-                onClick={() => handleRemove(photo)}
-                disabled={photo.status === 'uploading'}
-                aria-label="Eliminar foto"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+                {/* Remove Button */}
+                <button
+                  type="button"
+                  className="photo-uploader__remove-button"
+                  onClick={() => confirmDelete(photo.id)}
+                  disabled={photo.status === 'uploading'}
+                  aria-label="Eliminar foto"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -394,6 +531,41 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
               {photos.filter((p) => p.status === 'error').length} error(es)
             </span>
           )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="photo-uploader__delete-dialog-overlay">
+          <div className="photo-uploader__delete-dialog">
+            <h3 className="photo-uploader__delete-dialog-title">
+              ¿Eliminar foto?
+            </h3>
+            <p className="photo-uploader__delete-dialog-text">
+              Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar esta foto?
+            </p>
+            <div className="photo-uploader__delete-dialog-actions">
+              <button
+                type="button"
+                className="photo-uploader__delete-dialog-button photo-uploader__delete-dialog-button--cancel"
+                onClick={cancelDelete}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="photo-uploader__delete-dialog-button photo-uploader__delete-dialog-button--confirm"
+                onClick={() => {
+                  const photo = photos.find((p) => p.id === showDeleteConfirm);
+                  if (photo) {
+                    handleRemove(photo);
+                  }
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
