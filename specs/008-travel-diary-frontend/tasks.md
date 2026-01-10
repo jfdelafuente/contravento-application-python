@@ -248,7 +248,7 @@
 - [x] T079 [P] Add loading spinner for TripFormWizard (while submitting) ✅
 - [x] T080 [P] Optimize image lazy loading in TripGallery (use Intersection Observer) ✅
 - [ ] T081 [P] Add responsive design testing (mobile <640px, tablet 640-1023px, desktop ≥1024px)
-- [ ] T082 [P] Add accessibility features (alt text for all images, ARIA labels for form fields, keyboard navigation for lightbox)
+- [x] T082 [P] Add accessibility features (alt text for all images, ARIA labels for form fields, keyboard navigation for lightbox) ✅
 - [x] T083 [P] Add difficulty badge CSS classes in TripCard.css (easy: green, moderate: orange, difficult: red, very_difficult: dark red) ✅
 - [x] T084 [P] Add Spanish error messages for all API failures (network errors, validation errors, authorization errors) ✅ (Already implemented)
 - [ ] T085 [P] Verify all success criteria from spec.md (SC-001 to SC-012)
