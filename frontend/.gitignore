@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+# Vite cache and build artifacts
+.vite
+
 # Environment variables
 .env.local
 .env.development.local
