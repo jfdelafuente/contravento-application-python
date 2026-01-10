@@ -1,10 +1,24 @@
 /**
  * BasicInfoSection Component
  *
- * Form section for editing basic profile information:
- * - Bio (max 500 characters with counter)
- * - Location (free text)
- * - Cycling Type (dropdown)
+ * Form section for editing basic profile information including bio, location, and cycling preferences.
+ *
+ * Features:
+ * - Bio textarea with real-time character counter (max 500 characters)
+ * - Location input field with placeholder guidance
+ * - Cycling type dropdown with predefined options
+ * - Real-time validation and error display
+ * - Accessible form controls with proper ARIA labels
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <BasicInfoSection
+ *   register={register}
+ *   errors={errors}
+ *   bioLength={bioLength}
+ * />
+ * ```
  */
 
 import React from 'react';
@@ -13,9 +27,15 @@ import { CYCLING_TYPES } from '../../types/profile';
 import type { ProfileFormData } from '../../types/profile';
 import './BasicInfoSection.css';
 
+/**
+ * Props for BasicInfoSection component
+ */
 interface BasicInfoSectionProps {
+  /** React Hook Form register function for form fields */
   register: UseFormRegister<ProfileFormData>;
+  /** Form validation errors */
   errors: FieldErrors<ProfileFormData>;
+  /** Current length of bio text for character counter */
   bioLength: number;
 }
 
@@ -30,8 +50,8 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   const isAtLimit = remainingChars <= 0;
 
   return (
-    <section className="basic-info-section">
-      <h2 className="section-title">Información Básica</h2>
+    <section className="basic-info-section" aria-labelledby="basic-info-title">
+      <h2 id="basic-info-title" className="section-title">Información Básica</h2>
 
       {/* Bio Field */}
       <div className="form-group">
@@ -57,13 +77,15 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                   ? 'char-counter--warning'
                   : ''
               }`}
+              aria-live="polite"
+              aria-label={`Caracteres utilizados: ${bioLength} de ${maxBioLength}`}
             >
               {bioLength} / {maxBioLength}
             </span>
           </div>
         </div>
         {errors.bio && (
-          <p className="form-error">{errors.bio.message}</p>
+          <p className="form-error" role="alert">{errors.bio.message}</p>
         )}
       </div>
 
@@ -81,7 +103,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
           placeholder="Barcelona, España"
         />
         {errors.location && (
-          <p className="form-error">{errors.location.message}</p>
+          <p className="form-error" role="alert">{errors.location.message}</p>
         )}
       </div>
 
@@ -104,7 +126,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
           ))}
         </select>
         {errors.cycling_type && (
-          <p className="form-error">{errors.cycling_type.message}</p>
+          <p className="form-error" role="alert">{errors.cycling_type.message}</p>
         )}
       </div>
     </section>

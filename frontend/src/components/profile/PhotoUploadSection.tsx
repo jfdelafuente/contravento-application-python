@@ -1,9 +1,29 @@
 /**
- * PhotoUploadSection
+ * PhotoUploadSection Component
  *
- * Component for uploading and managing profile photos.
- * Features file validation (JPG/PNG, max 5MB), current photo preview,
- * upload progress indicator, and crop functionality.
+ * Component for uploading and managing profile photos with file validation,
+ * preview, progress tracking, and crop functionality.
+ *
+ * Features:
+ * - Current photo preview with placeholder fallback
+ * - File validation (JPG/PNG formats, max 5MB size)
+ * - Upload progress bar with percentage indicator
+ * - Change photo button to select new image
+ * - Remove photo button (shown only when photo exists)
+ * - Real-time validation error display
+ * - Accessible controls with ARIA labels
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PhotoUploadSection
+ *   currentPhotoUrl={user.photo_url}
+ *   onPhotoSelected={handleFileSelected}
+ *   onRemovePhoto={handleRemovePhoto}
+ *   uploadProgress={50}
+ *   isUploading={true}
+ * />
+ * ```
  */
 
 import React, { useState, useRef } from 'react';
@@ -11,16 +31,19 @@ import type { ChangeEvent } from 'react';
 import { validatePhotoFile } from '../../utils/fileHelpers';
 import './PhotoUploadSection.css';
 
+/**
+ * Props for PhotoUploadSection component
+ */
 export interface PhotoUploadSectionProps {
-  /** Current photo URL (if exists) */
+  /** Current photo URL to display in preview (optional) */
   currentPhotoUrl?: string;
-  /** Callback when user selects a file (before crop) */
+  /** Callback invoked when user selects a file (before crop modal) */
   onPhotoSelected: (file: File) => void;
-  /** Callback when user clicks remove photo button */
+  /** Callback invoked when user clicks remove photo button */
   onRemovePhoto: () => void;
-  /** Upload progress (0-100) */
+  /** Upload progress percentage (0-100), shown in progress bar */
   uploadProgress?: number;
-  /** Whether upload is in progress */
+  /** Whether upload is currently in progress (disables buttons and shows progress) */
   isUploading?: boolean;
 }
 
@@ -71,8 +94,8 @@ export const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   };
 
   return (
-    <section className="photo-upload-section">
-      <h2 className="section-title">Foto de Perfil</h2>
+    <section className="photo-upload-section" aria-labelledby="photo-upload-title">
+      <h2 id="photo-upload-title" className="section-title">Foto de Perfil</h2>
 
       <div className="photo-upload-content">
         {/* Current Photo Preview */}
@@ -105,8 +128,8 @@ export const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
 
         {/* Upload Progress Bar (shown during upload) */}
         {isUploading && (
-          <div className="upload-progress-container">
-            <div className="upload-progress-bar">
+          <div className="upload-progress-container" role="status" aria-live="polite">
+            <div className="upload-progress-bar" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
               <div
                 className="upload-progress-fill"
                 style={{ width: `${uploadProgress}%` }}
@@ -135,6 +158,7 @@ export const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
             onClick={handleChangePhotoClick}
             className="btn-change-photo"
             disabled={isUploading}
+            aria-label="Seleccionar nueva foto de perfil"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -159,6 +183,7 @@ export const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
               onClick={handleRemovePhotoClick}
               className="btn-remove-photo"
               disabled={isUploading}
+              aria-label="Eliminar foto de perfil actual"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -182,8 +207,8 @@ export const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
 
         {/* Validation Error */}
         {validationError && (
-          <p className="photo-error">
-            <span className="error-icon">⚠</span>
+          <p className="photo-error" role="alert">
+            <span className="error-icon" aria-hidden="true">⚠</span>
             {validationError}
           </p>
         )}

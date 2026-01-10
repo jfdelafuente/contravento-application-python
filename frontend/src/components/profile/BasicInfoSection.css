@@ -1,24 +1,8 @@
 /* BasicInfoSection.css - Rustic travel aesthetic */
 
 .basic-info-section {
-  background: white;
-  border: 2px solid var(--color-earth-light);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  /* No background, border, or padding - handled by parent .profile-edit-section */
   position: relative;
-}
-
-/* Add subtle texture */
-.basic-info-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .section-title {
@@ -67,6 +51,7 @@
   border: 2px solid var(--color-earth-light);
   border-radius: var(--radius-lg);
   transition: all var(--transition-base);
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -100,6 +85,7 @@
   background-repeat: no-repeat;
   background-position: right var(--space-4) center;
   padding-right: var(--space-10);
+  box-sizing: border-box;
 }
 
 .form-select:focus {
@@ -130,6 +116,7 @@
   resize: vertical;
   min-height: 120px;
   transition: all var(--transition-base);
+  box-sizing: border-box;
 }
 
 .form-textarea:focus {
@@ -191,10 +178,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .basic-info-section {
-    padding: var(--space-5);
-  }
-
   .section-title {
     font-size: var(--text-xl);
   }
@@ -205,10 +188,6 @@
 }
 
 @media (max-width: 480px) {
-  .basic-info-section {
-    padding: var(--space-4);
-  }
-
   .form-input,
   .form-select,
   .form-textarea {

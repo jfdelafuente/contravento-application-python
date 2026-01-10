@@ -1,8 +1,27 @@
 /**
- * PasswordChangeSection
+ * PasswordChangeSection Component
  *
- * Component for changing user password with current password verification,
- * real-time strength indicator, and validation feedback.
+ * Form section for changing user password with comprehensive validation,
+ * strength indicator, and visual feedback on password requirements.
+ *
+ * Features:
+ * - Current password input with show/hide toggle
+ * - New password input with real-time strength indicator
+ * - Confirm password input with matching validation
+ * - Visual requirements checklist (min length, uppercase, lowercase, number)
+ * - Password strength meter (weak/medium/strong)
+ * - Accessible password toggle buttons
+ * - Form validation with error messages
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PasswordChangeSection
+ *   register={registerPassword}
+ *   errors={passwordErrors}
+ *   newPasswordValue={newPassword}
+ * />
+ * ```
  */
 
 import React, { useState } from 'react';
@@ -11,12 +30,15 @@ import { calculatePasswordStrength } from '../../utils/validators';
 import type { PasswordStrength } from '../../types/profile';
 import './PasswordChangeSection.css';
 
+/**
+ * Props for PasswordChangeSection component
+ */
 export interface PasswordChangeSectionProps {
-  /** React Hook Form register function */
+  /** React Hook Form register function for form fields */
   register: UseFormRegister<any>;
-  /** Form errors from validation */
+  /** Form validation errors object */
   errors: FieldErrors;
-  /** New password value (watched for strength calculation) */
+  /** Current value of new password field (watched for strength calculation) */
   newPasswordValue?: string;
 }
 
@@ -39,8 +61,8 @@ export const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
   const hasNumber = /\d/.test(newPasswordValue);
 
   return (
-    <section className="password-change-section">
-      <h2 className="section-title">Cambiar Contraseña</h2>
+    <section className="password-change-section" aria-labelledby="password-change-title">
+      <h2 id="password-change-title" className="section-title">Cambiar Contraseña</h2>
 
       {/* Current Password */}
       <div className="form-group">
@@ -92,8 +114,8 @@ export const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
           </button>
         </div>
         {errors.current_password && (
-          <p className="form-error">
-            <span className="error-icon">⚠</span>
+          <p className="form-error" role="alert">
+            <span className="error-icon" aria-hidden="true">⚠</span>
             {errors.current_password.message as string}
           </p>
         )}
@@ -149,16 +171,16 @@ export const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
           </button>
         </div>
         {errors.new_password && (
-          <p className="form-error">
-            <span className="error-icon">⚠</span>
+          <p className="form-error" role="alert">
+            <span className="error-icon" aria-hidden="true">⚠</span>
             {errors.new_password.message as string}
           </p>
         )}
 
         {/* Password Strength Indicator */}
         {newPasswordValue && (
-          <div className="password-strength">
-            <div className="strength-bar-container">
+          <div className="password-strength" role="status" aria-live="polite">
+            <div className="strength-bar-container" role="progressbar" aria-label="Fuerza de la contraseña">
               <div className={`strength-bar strength-bar--${strength}`} />
             </div>
             <p className={`strength-label strength-label--${strength}`}>
@@ -170,20 +192,20 @@ export const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
         )}
 
         {/* Requirements Checklist */}
-        <div className="password-requirements">
+        <div className="password-requirements" aria-label="Requisitos de contraseña">
           <p className="requirements-title">Requisitos:</p>
           <ul className="requirements-list">
-            <li className={hasMinLength ? 'requirement-met' : 'requirement-unmet'}>
-              {hasMinLength ? '✓' : '○'} Mínimo 8 caracteres
+            <li className={hasMinLength ? 'requirement-met' : 'requirement-unmet'} aria-label={hasMinLength ? 'Requisito cumplido: Mínimo 8 caracteres' : 'Requisito pendiente: Mínimo 8 caracteres'}>
+              <span aria-hidden="true">{hasMinLength ? '✓' : '○'}</span> Mínimo 8 caracteres
             </li>
-            <li className={hasUppercase ? 'requirement-met' : 'requirement-unmet'}>
-              {hasUppercase ? '✓' : '○'} Al menos una mayúscula
+            <li className={hasUppercase ? 'requirement-met' : 'requirement-unmet'} aria-label={hasUppercase ? 'Requisito cumplido: Al menos una mayúscula' : 'Requisito pendiente: Al menos una mayúscula'}>
+              <span aria-hidden="true">{hasUppercase ? '✓' : '○'}</span> Al menos una mayúscula
             </li>
-            <li className={hasLowercase ? 'requirement-met' : 'requirement-unmet'}>
-              {hasLowercase ? '✓' : '○'} Al menos una minúscula
+            <li className={hasLowercase ? 'requirement-met' : 'requirement-unmet'} aria-label={hasLowercase ? 'Requisito cumplido: Al menos una minúscula' : 'Requisito pendiente: Al menos una minúscula'}>
+              <span aria-hidden="true">{hasLowercase ? '✓' : '○'}</span> Al menos una minúscula
             </li>
-            <li className={hasNumber ? 'requirement-met' : 'requirement-unmet'}>
-              {hasNumber ? '✓' : '○'} Al menos un número
+            <li className={hasNumber ? 'requirement-met' : 'requirement-unmet'} aria-label={hasNumber ? 'Requisito cumplido: Al menos un número' : 'Requisito pendiente: Al menos un número'}>
+              <span aria-hidden="true">{hasNumber ? '✓' : '○'}</span> Al menos un número
             </li>
           </ul>
         </div>
@@ -239,8 +261,8 @@ export const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
           </button>
         </div>
         {errors.confirm_password && (
-          <p className="form-error">
-            <span className="error-icon">⚠</span>
+          <p className="form-error" role="alert">
+            <span className="error-icon" aria-hidden="true">⚠</span>
             {errors.confirm_password.message as string}
           </p>
         )}

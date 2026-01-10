@@ -7,7 +7,7 @@
 }
 
 .profile-edit-container {
-  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
   background: white;
   border-radius: var(--radius-2xl);
@@ -71,35 +71,44 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Content */
-.profile-edit-content {
+/* Content Container - full width */
+.profile-edit-content-wrapper {
+  width: 100%;
   padding: var(--space-8);
+  box-sizing: border-box;
 }
 
-.password-change-form {
-  margin-top: var(--space-8);
+/* Row layout for sections */
+.profile-edit-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
-.temp-message {
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-  text-align: center;
-  padding: var(--space-8);
-  background: var(--color-cream);
-  border: 2px dashed var(--color-earth-light);
-  border-radius: var(--radius-lg);
+.profile-edit-row.full-width {
+  grid-template-columns: 1fr;
 }
 
-/* Section spacing */
-.profile-edit-content > * + * {
-  margin-top: var(--space-8);
-}
-
-/* Save Button Actions */
-.profile-edit-actions {
-  padding: var(--space-6) var(--space-8);
+/* Section Cards */
+.profile-edit-section {
   background: #fafaf8;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.section-content {
+  padding: var(--space-6);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Section Actions (buttons) */
+.section-actions {
+  padding: var(--space-4) var(--space-6);
+  background: #f5f1e8;
   border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -109,14 +118,14 @@
 
 .btn-save {
   width: 100%;
-  max-width: 400px;
-  padding: var(--space-4) var(--space-6);
+  max-width: 300px;
+  padding: var(--space-3) var(--space-5);
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
   border: none;
   border-radius: var(--radius-lg);
   color: var(--color-cream);
   font-family: var(--font-sans);
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-base);
@@ -144,8 +153,8 @@
 
 .spinner {
   display: inline-block;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
@@ -164,7 +173,7 @@
   gap: var(--space-2);
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: #d97706;
   font-weight: 600;
 }
@@ -186,7 +195,24 @@
   }
 }
 
+.temp-message {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--color-cream);
+  border: 2px dashed var(--color-earth-light);
+  border-radius: var(--radius-lg);
+}
+
 /* Responsive */
+@media (max-width: 968px) {
+  .profile-edit-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .profile-edit-page {
     padding: var(--space-4) var(--space-2);
@@ -202,8 +228,16 @@
     font-size: var(--text-2xl);
   }
 
-  .profile-edit-content {
+  .profile-edit-content-wrapper {
     padding: var(--space-6) var(--space-4);
+  }
+
+  .section-content {
+    padding: var(--space-4);
+  }
+
+  .section-actions {
+    padding: var(--space-3) var(--space-4);
   }
 }
 
@@ -212,7 +246,11 @@
     font-size: var(--text-xl);
   }
 
-  .profile-edit-content {
-    padding: var(--space-4);
+  .profile-edit-content-wrapper {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .section-content {
+    padding: var(--space-3);
   }
 }

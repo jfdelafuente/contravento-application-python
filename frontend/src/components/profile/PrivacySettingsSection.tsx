@@ -1,22 +1,48 @@
 /**
- * PrivacySettingsSection
+ * PrivacySettingsSection Component
  *
- * Component for configuring account privacy settings including profile visibility
- * (public/private) and trip visibility (public/followers only/private).
+ * Form section for configuring user privacy settings with intuitive radio button controls.
+ *
+ * Features:
+ * - Profile visibility control (public/private)
+ * - Trip visibility control (public/followers/private)
+ * - Visual icons for each privacy level
+ * - Clear descriptions for each option
+ * - Radio button groups with proper ARIA labels
+ * - Real-time validation and error display
+ *
+ * Privacy Levels:
+ * - **Public**: Content visible to everyone
+ * - **Followers**: Content visible only to followers
+ * - **Private**: Content visible only to the user
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PrivacySettingsSection
+ *   register={register}
+ *   errors={errors}
+ *   profileVisibility="public"
+ *   tripVisibility="followers"
+ * />
+ * ```
  */
 
 import React from 'react';
 import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import './PrivacySettingsSection.css';
 
+/**
+ * Props for PrivacySettingsSection component
+ */
 export interface PrivacySettingsSectionProps {
-  /** React Hook Form register function */
+  /** React Hook Form register function for form fields */
   register: UseFormRegister<any>;
-  /** Form errors from validation */
+  /** Form validation errors object */
   errors: FieldErrors;
-  /** Current profile visibility value */
+  /** Current profile visibility setting (public/private) */
   profileVisibility?: string;
-  /** Current trip visibility value */
+  /** Current trip visibility setting (public/followers/private) */
   tripVisibility?: string;
 }
 
@@ -27,8 +53,8 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
   tripVisibility = 'public',
 }) => {
   return (
-    <section className="privacy-settings-section">
-      <h2 className="section-title">Configuración de Privacidad</h2>
+    <section className="privacy-settings-section" aria-labelledby="privacy-settings-title">
+      <h2 id="privacy-settings-title" className="section-title">Configuración de Privacidad</h2>
 
       {/* Profile Visibility */}
       <div className="form-group">
@@ -41,13 +67,14 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
           </p>
         </div>
 
-        <div className="radio-group">
+        <div className="radio-group" role="radiogroup" aria-labelledby="profile_visibility">
           <label className="radio-option">
             <input
               type="radio"
               {...register('profile_visibility')}
               value="public"
               className="radio-input"
+              aria-describedby="profile-public-help"
             />
             <div className="radio-content">
               <div className="radio-label">
@@ -67,7 +94,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
                 </svg>
                 <span className="radio-title">Público</span>
               </div>
-              <p className="radio-help">Cualquiera puede ver tu perfil</p>
+              <p id="profile-public-help" className="radio-help">Cualquiera puede ver tu perfil</p>
             </div>
           </label>
 
@@ -77,6 +104,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
               {...register('profile_visibility')}
               value="private"
               className="radio-input"
+              aria-describedby="profile-private-help"
             />
             <div className="radio-content">
               <div className="radio-label">
@@ -95,14 +123,14 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
                 </svg>
                 <span className="radio-title">Privado</span>
               </div>
-              <p className="radio-help">Solo tus seguidores pueden ver tu perfil</p>
+              <p id="profile-private-help" className="radio-help">Solo tus seguidores pueden ver tu perfil</p>
             </div>
           </label>
         </div>
 
         {errors.profile_visibility && (
-          <p className="form-error">
-            <span className="error-icon">⚠</span>
+          <p className="form-error" role="alert">
+            <span className="error-icon" aria-hidden="true">⚠</span>
             {errors.profile_visibility.message as string}
           </p>
         )}
@@ -119,13 +147,14 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
           </p>
         </div>
 
-        <div className="radio-group">
+        <div className="radio-group" role="radiogroup" aria-labelledby="trip_visibility">
           <label className="radio-option">
             <input
               type="radio"
               {...register('trip_visibility')}
               value="public"
               className="radio-input"
+              aria-describedby="trip-public-help"
             />
             <div className="radio-content">
               <div className="radio-label">
@@ -145,7 +174,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
                 </svg>
                 <span className="radio-title">Público</span>
               </div>
-              <p className="radio-help">Cualquiera puede ver tus viajes</p>
+              <p id="trip-public-help" className="radio-help">Cualquiera puede ver tus viajes</p>
             </div>
           </label>
 
@@ -155,6 +184,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
               {...register('trip_visibility')}
               value="followers"
               className="radio-input"
+              aria-describedby="trip-followers-help"
             />
             <div className="radio-content">
               <div className="radio-label">
@@ -175,7 +205,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
                 </svg>
                 <span className="radio-title">Solo Seguidores</span>
               </div>
-              <p className="radio-help">Solo tus seguidores pueden ver tus viajes</p>
+              <p id="trip-followers-help" className="radio-help">Solo tus seguidores pueden ver tus viajes</p>
             </div>
           </label>
 
@@ -185,6 +215,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
               {...register('trip_visibility')}
               value="private"
               className="radio-input"
+              aria-describedby="trip-private-help"
             />
             <div className="radio-content">
               <div className="radio-label">
@@ -203,14 +234,14 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
                 </svg>
                 <span className="radio-title">Privado</span>
               </div>
-              <p className="radio-help">Solo tú puedes ver tus viajes</p>
+              <p id="trip-private-help" className="radio-help">Solo tú puedes ver tus viajes</p>
             </div>
           </label>
         </div>
 
         {errors.trip_visibility && (
-          <p className="form-error">
-            <span className="error-icon">⚠</span>
+          <p className="form-error" role="alert">
+            <span className="error-icon" aria-hidden="true">⚠</span>
             {errors.trip_visibility.message as string}
           </p>
         )}

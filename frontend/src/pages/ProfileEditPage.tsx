@@ -1,8 +1,34 @@
 /**
- * ProfileEditPage
+ * ProfileEditPage Component
  *
- * Page container for editing user profile including bio, location, cycling type,
- * profile photo, password, and privacy settings.
+ * Main page for editing user profile with multiple sections organized in a card-based layout.
+ * Uses rustic design aesthetic with gradient backgrounds and decorative elements.
+ *
+ * Features:
+ * - **Basic Info Section**: Edit bio, location, and cycling type preferences
+ * - **Photo Upload Section**: Upload, crop, and manage profile photo
+ * - **Password Change Section**: Change password with strength validation
+ * - **Privacy Settings Section**: Configure profile and trip visibility
+ *
+ * Layout:
+ * - Row 1: Basic Info (left) + Photo Upload (right) - 2 columns
+ * - Row 2: Password Change - full width
+ * - Row 3: Privacy Settings - full width
+ *
+ * Each section has:
+ * - Separate form for independent submission
+ * - Save button that enables only when form is dirty
+ * - Unsaved changes indicator with visual dot
+ * - Loading states during API calls
+ *
+ * User Experience:
+ * - Warns before navigating away with unsaved changes
+ * - Shows toast notifications for success/error states
+ * - Auto-logout after password change for security
+ * - Lazy-loads photo crop modal for better performance
+ *
+ * @component
+ * @page
  */
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
@@ -220,97 +246,142 @@ export const ProfileEditPage: React.FC = () => {
     <div className="profile-edit-page">
       <div className="profile-edit-container">
         <header className="profile-edit-header">
-          <h1 className="profile-edit-title">Editar Perfil</h1>
-          <button className="btn-cancel" onClick={handleCancel} type="button">
-            Cancelar
+          <h1 id="profile-edit-title" className="profile-edit-title">Editar Perfil</h1>
+          <button className="btn-cancel" onClick={handleCancel} type="button" aria-label="Volver al perfil">
+            Volver
           </button>
         </header>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="profile-edit-form">
-          <div className="profile-edit-content">
-            {/* User Story 1: Basic Info Section */}
-            <BasicInfoSection register={register} errors={errors} bioLength={bioLength} />
+        <div className="profile-edit-content-wrapper" aria-labelledby="profile-edit-title">
+          {/* Primera fila: Información Básica + Foto de Perfil */}
+          <div className="profile-edit-row">
+            {/* Información Básica */}
+            <form onSubmit={handleSubmit(onSubmit)} aria-label="Formulario de información básica">
+              <div className="profile-edit-section">
+                <div className="section-content">
+                  <BasicInfoSection register={register} errors={errors} bioLength={bioLength} />
+                </div>
+                <div className="section-actions">
+                  <button
+                    type="submit"
+                    className="btn-save"
+                    disabled={isSaving || isSubmitting || !isDirty}
+                    aria-label={isSaving ? 'Guardando cambios' : 'Guardar cambios de información básica'}
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        Guardando...
+                      </>
+                    ) : (
+                      'Guardar Cambios'
+                    )}
+                  </button>
+                  {isDirty && (
+                    <p className="unsaved-indicator" role="status" aria-live="polite">
+                      <span className="unsaved-dot" aria-hidden="true"></span>
+                      Tienes cambios sin guardar
+                    </p>
+                  )}
+                </div>
+              </div>
+            </form>
 
-            {/* User Story 2: Photo Upload Section */}
-            <PhotoUploadSection
-              currentPhotoUrl={currentPhotoUrl}
-              onPhotoSelected={handleFileSelected}
-              onRemovePhoto={handleRemovePhoto}
-              uploadProgress={uploadProgress}
-              isUploading={isUploading}
-            />
-
-            {/* User Story 4: Privacy Settings Section */}
-            <PrivacySettingsSection
-              register={register}
-              errors={errors}
-              profileVisibility={profileVisibility}
-              tripVisibility={tripVisibility}
-            />
+            {/* Foto de Perfil */}
+            <div className="profile-edit-section">
+              <div className="section-content">
+                <PhotoUploadSection
+                  currentPhotoUrl={currentPhotoUrl}
+                  onPhotoSelected={handleFileSelected}
+                  onRemovePhoto={handleRemovePhoto}
+                  uploadProgress={uploadProgress}
+                  isUploading={isUploading}
+                />
+              </div>
+              <div className="section-actions">
+                <p className="temp-message" style={{ fontSize: 'var(--text-xs)', padding: 'var(--space-2)' }}>
+                  {isUploading ? 'Subiendo foto...' : 'Selecciona una foto para cambiarla'}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Save Button */}
-          <div className="profile-edit-actions">
-            <button
-              type="submit"
-              className="btn-save"
-              disabled={isSaving || isSubmitting || !isDirty}
-            >
-              {isSaving ? (
-                <>
-                  <span className="spinner"></span>
-                  Guardando...
-                </>
-              ) : (
-                'Guardar Cambios'
-              )}
-            </button>
-            {isDirty && (
-              <p className="unsaved-indicator">
-                <span className="unsaved-dot"></span>
-                Tienes cambios sin guardar
-              </p>
-            )}
-          </div>
-        </form>
+          {/* Segunda fila: Cambio de Contraseña + Configuración de Privacidad */}
+          <div className="profile-edit-row">
+            {/* Cambio de Contraseña */}
+            <form onSubmit={handleSubmitPassword(onPasswordSubmit)} aria-label="Formulario de cambio de contraseña">
+              <div className="profile-edit-section">
+                <div className="section-content">
+                  <PasswordChangeSection
+                    register={registerPassword}
+                    errors={passwordErrors}
+                    newPasswordValue={newPassword}
+                  />
+                </div>
+                <div className="section-actions">
+                  <button
+                    type="submit"
+                    className="btn-save"
+                    disabled={isChangingPassword || isPasswordSubmitting || !isPasswordDirty}
+                    aria-label={isChangingPassword ? 'Cambiando contraseña' : 'Cambiar contraseña'}
+                  >
+                    {isChangingPassword ? (
+                      <>
+                        <span className="spinner"></span>
+                        Cambiando contraseña...
+                      </>
+                    ) : (
+                      'Cambiar Contraseña'
+                    )}
+                  </button>
+                  {isPasswordDirty && (
+                    <p className="unsaved-indicator" role="status" aria-live="polite">
+                      <span className="unsaved-dot" aria-hidden="true"></span>
+                      Cambios pendientes en la contraseña
+                    </p>
+                  )}
+                </div>
+              </div>
+            </form>
 
-        {/* User Story 3: Password Change Section (separate form) */}
-        <form
-          onSubmit={handleSubmitPassword(onPasswordSubmit)}
-          className="password-change-form"
-        >
-          <div className="profile-edit-content">
-            <PasswordChangeSection
-              register={registerPassword}
-              errors={passwordErrors}
-              newPasswordValue={newPassword}
-            />
+            {/* Configuración de Privacidad */}
+            <form onSubmit={handleSubmit(onSubmit)} aria-label="Formulario de configuración de privacidad">
+              <div className="profile-edit-section">
+                <div className="section-content">
+                  <PrivacySettingsSection
+                    register={register}
+                    errors={errors}
+                    profileVisibility={profileVisibility}
+                    tripVisibility={tripVisibility}
+                  />
+                </div>
+                <div className="section-actions">
+                  <button
+                    type="submit"
+                    className="btn-save"
+                    disabled={isSaving || isSubmitting || !isDirty}
+                    aria-label={isSaving ? 'Guardando configuración' : 'Guardar configuración de privacidad'}
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        Guardando...
+                      </>
+                    ) : (
+                      'Guardar Configuración'
+                    )}
+                  </button>
+                  {isDirty && (
+                    <p className="unsaved-indicator" role="status" aria-live="polite">
+                      <span className="unsaved-dot" aria-hidden="true"></span>
+                      Tienes cambios sin guardar
+                    </p>
+                  )}
+                </div>
+              </div>
+            </form>
           </div>
-
-          {/* Password Change Button */}
-          <div className="profile-edit-actions">
-            <button
-              type="submit"
-              className="btn-save btn-password-save"
-              disabled={isChangingPassword || isPasswordSubmitting || !isPasswordDirty}
-            >
-              {isChangingPassword ? (
-                <>
-                  <span className="spinner"></span>
-                  Cambiando contraseña...
-                </>
-              ) : (
-                'Cambiar Contraseña'
-              )}
-            </button>
-            {isPasswordDirty && (
-              <p className="unsaved-indicator">
-                <span className="unsaved-dot"></span>
-                Cambios pendientes en la contraseña
-              </p>
-            )}
-          </div>
-        </form>
+        </div>
 
         {/* Photo Crop Modal (lazy loaded) */}
         {isCropModalOpen && previewUrl && (

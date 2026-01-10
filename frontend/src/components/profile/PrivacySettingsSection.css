@@ -1,11 +1,7 @@
 /* PrivacySettingsSection.css - Rustic styling for privacy settings */
 
 .privacy-settings-section {
-  background: white;
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-border);
+  /* No background, border, or padding - handled by parent .profile-edit-section */
 }
 
 /* Privacy Header */
@@ -122,10 +118,6 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-  .privacy-settings-section {
-    padding: var(--space-4);
-  }
-
   .radio-option {
     padding: var(--space-3);
   }

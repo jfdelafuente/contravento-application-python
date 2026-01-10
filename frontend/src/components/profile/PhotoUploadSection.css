@@ -1,11 +1,7 @@
 /* PhotoUploadSection.css - Rustic travel aesthetic for photo upload */
 
 .photo-upload-section {
-  background: white;
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-border);
+  /* No background, border, or padding - handled by parent .profile-edit-section */
 }
 
 /* Preview Container */
@@ -221,9 +217,5 @@
   .btn-remove-photo {
     width: 100%;
     justify-content: center;
-  }
-
-  .photo-upload-section {
-    padding: var(--space-4);
   }
 }
