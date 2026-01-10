@@ -243,23 +243,23 @@
 
 **Purpose**: Improvements that affect multiple user stories, responsive design, accessibility, and performance optimization
 
-- [ ] T077 [P] Add loading skeletons for TripCard in TripsListPage (shimmer effect while loading)
-- [ ] T078 [P] Add loading spinner for TripDetailPage (while fetching trip data)
-- [ ] T079 [P] Add loading spinner for TripFormWizard (while submitting)
-- [ ] T080 [P] Optimize image lazy loading in TripGallery (use Intersection Observer)
+- [x] T077 [P] Add loading skeletons for TripCard in TripsListPage (shimmer effect while loading) ✅ (Already implemented)
+- [x] T078 [P] Add loading spinner for TripDetailPage (while fetching trip data) ✅ (Already implemented)
+- [x] T079 [P] Add loading spinner for TripFormWizard (while submitting) ✅
+- [x] T080 [P] Optimize image lazy loading in TripGallery (use Intersection Observer) ✅
 - [ ] T081 [P] Add responsive design testing (mobile <640px, tablet 640-1023px, desktop ≥1024px)
 - [ ] T082 [P] Add accessibility features (alt text for all images, ARIA labels for form fields, keyboard navigation for lightbox)
-- [ ] T083 [P] Add difficulty badge CSS classes in TripCard.css (easy: green, moderate: orange, difficult: red, very_difficult: dark red)
-- [ ] T084 [P] Add Spanish error messages for all API failures (network errors, validation errors, authorization errors)
+- [x] T083 [P] Add difficulty badge CSS classes in TripCard.css (easy: green, moderate: orange, difficult: red, very_difficult: dark red) ✅
+- [x] T084 [P] Add Spanish error messages for all API failures (network errors, validation errors, authorization errors) ✅ (Already implemented)
 - [ ] T085 [P] Verify all success criteria from spec.md (SC-001 to SC-012)
 - [ ] T086 [P] Run Lighthouse performance audit (target: Performance ≥90, Accessibility ≥90)
 - [ ] T087 [P] Test photo upload performance (verify 5 photos upload in <30s on 3G throttling)
 - [ ] T088 [P] Test tag filtering performance (verify filters update in <500ms)
 - [ ] T089 [P] Test form navigation performance (verify step transitions in <200ms)
 - [ ] T090 [P] Test lightbox transitions (verify photo transitions in <300ms)
-- [ ] T091 Create manual acceptance testing guide in specs/008-travel-diary-frontend/TESTING_GUIDE.md
-- [ ] T092 Document common pitfalls in specs/008-travel-diary-frontend/TROUBLESHOOTING.md (photo URLs are absolute, tag normalization, date formats, form state vs API payload)
-- [ ] T093 Update CLAUDE.md with Travel Diary frontend patterns and examples
+- [x] T091 Create manual acceptance testing guide in specs/008-travel-diary-frontend/TESTING_GUIDE.md ✅
+- [x] T092 Document common pitfalls in specs/008-travel-diary-frontend/TROUBLESHOOTING.md (photo URLs are absolute, tag normalization, date formats, form state vs API payload) ✅
+- [x] T093 Update CLAUDE.md with Travel Diary frontend patterns and examples ✅
 
 ---
 
