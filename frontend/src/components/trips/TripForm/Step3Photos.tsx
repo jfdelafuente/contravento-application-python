@@ -45,6 +45,13 @@ export const Step3Photos: React.FC<Step3PhotosProps> = ({
   // Calculate total photo count (existing + new - deleted)
   const totalPhotoCount = serverPhotos.filter(p => !photosToDelete.includes(p.photo_id)).length + photos.length;
 
+  // Update server photos when existingPhotos prop changes (when trip loads)
+  useEffect(() => {
+    if (existingPhotos && existingPhotos.length > 0) {
+      setServerPhotos(existingPhotos);
+    }
+  }, [existingPhotos]);
+
   // Sync photos and deletion list with form context
   useEffect(() => {
     setValue('selectedPhotos' as any, photos);
