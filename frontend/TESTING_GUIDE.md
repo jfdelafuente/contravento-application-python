@@ -295,13 +295,13 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 7: End-to-End Trip Creation
+### Test Suite 7: End-to-End Trip Creation ✅ COMPLETED
 
 #### T7.1 - Create Trip with GPS Coordinates
 
-- [ ] **Login** as testuser
-- [ ] **Navigate** to "Crear Viaje"
-- [ ] **Step 1 - Basic Info**:
+- [x] **Login** as testuser
+- [x] **Navigate** to "Crear Viaje"
+- [x] **Step 1 - Basic Info**:
   - Title: "Ruta GPS Test - Madrid a Toledo"
   - Start Date: (today's date)
   - Distance: `130`
@@ -309,17 +309,17 @@ poetry run python scripts/create_verified_user.py
   - Locations:
     1. Madrid - Lat: `40.416775`, Lon: `-3.703790`
     2. Toledo - Lat: `39.862832`, Lon: `-4.027323`
-- [ ] **Step 2 - Story & Tags**:
+- [x] **Step 2 - Story & Tags**:
   - Description: "Ruta de prueba con coordenadas GPS para validar la integración con el backend."
   - Tags: `gps`, `prueba`
-- [ ] **Step 3 - Photos**: Skip (no photos)
-- [ ] **Step 4 - Review**:
+- [x] **Step 3 - Photos**: Skip (no photos)
+- [x] **Step 4 - Review**:
   - Verify all locations display with coordinates
   - Click "Publicar Viaje"
-- [ ] **Verify** trip created successfully
-- [ ] **Open** browser DevTools → Network tab
-- [ ] **Inspect** POST request to `/trips`
-- [ ] **Verify** payload includes:
+- [x] **Verify** trip created successfully
+- [x] **Open** browser DevTools → Network tab
+- [x] **Inspect** POST request to `/trips`
+- [x] **Verify** payload includes:
 
   ```json
   {
@@ -340,18 +340,18 @@ poetry run python scripts/create_verified_user.py
 
 #### T7.2 - Create Trip Without GPS Coordinates
 
-- [ ] **Create** new trip
-- [ ] **Add** 2 locations with names only (no coordinates)
-- [ ] **Complete** all steps
-- [ ] **Publish** trip
-- [ ] **Verify** trip created successfully
-- [ ] **Verify** locations saved with null coordinates
+- [x] **Create** new trip
+- [x] **Add** 2 locations with names only (no coordinates)
+- [x] **Complete** all steps
+- [x] **Publish** trip
+- [x] **Verify** trip created successfully
+- [x] **Verify** locations saved with null coordinates
 
 #### T7.3 - Backend Response Validation
 
-- [ ] **After** creating trip with GPS
-- [ ] **Check** browser DevTools → Network → Response
-- [ ] **Verify** response includes locations with coordinates:
+- [x] **After** creating trip with GPS
+- [x] **Check** browser DevTools → Network → Response
+- [x] **Verify** response includes locations with coordinates:
 
   ```json
   {
