@@ -378,7 +378,7 @@ export const TripDetailPage: React.FC = () => {
         </section>
 
         {/* Tags */}
-        {trip.tags.length > 0 && (
+        {trip.tags && trip.tags.length > 0 && (
           <section className="trip-detail-page__section">
             <h2 className="trip-detail-page__section-title">Etiquetas</h2>
             <div className="trip-detail-page__tags">
