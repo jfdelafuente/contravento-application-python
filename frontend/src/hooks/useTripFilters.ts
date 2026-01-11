@@ -9,6 +9,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 interface UseTripFiltersReturn {
   /** Current search query */
@@ -64,11 +65,18 @@ export const useTripFilters = ({
   initialLimit = 12,
   onFiltersChange,
 }: UseTripFiltersParams = {}): UseTripFiltersReturn => {
+  // Read URL search parameters
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize filters from URL parameters
+  const initialTag = searchParams.get('tag') || null;
+  const initialStatus = (searchParams.get('status') as 'draft' | 'published' | null) || null;
+
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(initialTag);
   const [selectedStatus, setSelectedStatus] = useState<'draft' | 'published' | null>(
-    null
+    initialStatus
   );
 
   // Pagination state
@@ -77,6 +85,22 @@ export const useTripFilters = ({
 
   // Check if any filters are active
   const hasActiveFilters = Boolean(searchQuery || selectedTag || selectedStatus);
+
+  // Sync filters with URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    if (selectedTag) {
+      params.set('tag', selectedTag);
+    }
+
+    if (selectedStatus) {
+      params.set('status', selectedStatus);
+    }
+
+    // Update URL without triggering navigation
+    setSearchParams(params, { replace: true });
+  }, [selectedTag, selectedStatus, setSearchParams]);
 
   // Reset pagination when filters change
   useEffect(() => {
