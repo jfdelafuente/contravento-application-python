@@ -238,7 +238,7 @@ export const TripDetailPage: React.FC = () => {
     <div className="trip-detail-page">
       {/* Hero Section */}
       <div className="trip-detail-page__hero">
-        {trip.photos.length > 0 ? (
+        {trip.photos && trip.photos.length > 0 ? (
           <img
             src={getPhotoUrl(trip.photos[0].photo_url) || ''}
             alt={trip.title}
@@ -396,7 +396,7 @@ export const TripDetailPage: React.FC = () => {
         )}
 
         {/* Photo Gallery */}
-        {trip.photos.length > 0 && (
+        {trip.photos && trip.photos.length > 0 && (
           <section className="trip-detail-page__section">
             <h2 className="trip-detail-page__section-title">Galería de Fotos</h2>
             <TripGallery photos={trip.photos} tripTitle={trip.title} />
