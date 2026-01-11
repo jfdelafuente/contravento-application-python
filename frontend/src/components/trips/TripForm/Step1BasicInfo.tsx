@@ -318,7 +318,7 @@ export const Step1BasicInfo: React.FC = () => {
             <option value="easy">{DIFFICULTY_LABELS.easy}</option>
             <option value="moderate">{DIFFICULTY_LABELS.moderate}</option>
             <option value="difficult">{DIFFICULTY_LABELS.difficult}</option>
-            <option value="extreme">{DIFFICULTY_LABELS.extreme}</option>
+            <option value="very_difficult">{DIFFICULTY_LABELS.very_difficult}</option>
           </select>
           {errors.difficulty && (
             <span id="difficulty-error" className="form-field__error" role="alert">
