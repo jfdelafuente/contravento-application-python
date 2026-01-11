@@ -276,11 +276,11 @@ bash test-gps-quick.sh
 ### Example 1: Quick Validation
 
 ```bash
-# Start backend
+# Start backend (from project root)
 cd backend && ./run-local-dev.sh &
-cd ..
 
-# Run quick tests (automatic - no token needed)
+# Run quick tests (from project root)
+cd ../scripts/testing/gps
 ./test-gps-quick.sh
 ```
 
@@ -321,10 +321,13 @@ curl -X POST http://localhost:8000/trips \
 
 ## 🔗 Related Resources
 
-- **Feature Spec**: [specs/009-gps-coordinates/spec.md](specs/009-gps-coordinates/spec.md)
-- **Implementation Plan**: [specs/009-gps-coordinates/plan.md](specs/009-gps-coordinates/plan.md)
-- **Tasks**: [specs/009-gps-coordinates/tasks.md](specs/009-gps-coordinates/tasks.md)
-- **OpenAPI Contract**: [specs/009-gps-coordinates/contracts/trips-api.yaml](specs/009-gps-coordinates/contracts/trips-api.yaml)
+- **Feature Spec**: [specs/009-gps-coordinates/spec.md](../../../specs/009-gps-coordinates/spec.md)
+- **Implementation Plan**: [specs/009-gps-coordinates/plan.md](../../../specs/009-gps-coordinates/plan.md)
+- **Tasks**: [specs/009-gps-coordinates/tasks.md](../../../specs/009-gps-coordinates/tasks.md)
+- **OpenAPI Contract**: [specs/009-gps-coordinates/contracts/trips-api.yaml](../../../specs/009-gps-coordinates/contracts/trips-api.yaml)
+- **Manual Testing Guide**: [backend/docs/api/GPS_COORDINATES_MANUAL_TESTING.md](../../../backend/docs/api/GPS_COORDINATES_MANUAL_TESTING.md)
+- **Postman Guide**: [backend/docs/api/GPS_COORDINATES_POSTMAN_GUIDE.md](../../../backend/docs/api/GPS_COORDINATES_POSTMAN_GUIDE.md)
+- **Test Results**: [GPS_COORDINATES_TEST_RESULTS.md](../../../GPS_COORDINATES_TEST_RESULTS.md)
 
 ---
 
@@ -345,7 +348,7 @@ After running tests successfully:
    - Update trip edit form
    - Enable coordinate backfilling
 
-See [specs/009-gps-coordinates/tasks.md](specs/009-gps-coordinates/tasks.md) for complete task list.
+See [specs/009-gps-coordinates/tasks.md](../../../specs/009-gps-coordinates/tasks.md) for complete task list.
 
 ---
 
