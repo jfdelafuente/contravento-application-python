@@ -14,6 +14,7 @@ import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
 import { createNumberedMarkerIcon } from '../../utils/mapHelpers';
+import { MapClickHandler } from './MapClickHandler';
 import './TripMap.css';
 
 interface TripMapProps {
@@ -22,6 +23,15 @@ interface TripMapProps {
 
   /** Trip title (for context) */
   tripTitle: string;
+
+  /** Edit mode - enables map click to add locations (Feature 010) */
+  isEditMode?: boolean;
+
+  /** Callback when user clicks on map in edit mode (Feature 010 - User Story 1) */
+  onMapClick?: (lat: number, lng: number) => void;
+
+  /** Callback when user drags a marker in edit mode (Feature 010 - User Story 2) */
+  onMarkerDrag?: (locationId: string, newLat: number, newLng: number) => void;
 }
 
 /**
@@ -41,7 +51,13 @@ const TileErrorListener: React.FC<TileErrorListenerProps> = ({ onError }) => {
   return null;
 };
 
-export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
+export const TripMap: React.FC<TripMapProps> = ({
+  locations,
+  tripTitle,
+  isEditMode = false,
+  onMapClick,
+  onMarkerDrag,
+}) => {
   // Error state for map tile loading failures
   const [hasMapError, setHasMapError] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Key for re-mounting MapContainer on retry
@@ -145,8 +161,8 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
     [validLocations]
   );
 
-  // No locations at all - show empty state
-  if (locations.length === 0) {
+  // No locations at all and NOT in edit mode - show empty state
+  if (locations.length === 0 && !isEditMode) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
@@ -207,8 +223,8 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
         </div>
       )}
 
-      {/* Map Container - Only show if there are valid GPS coordinates */}
-      {!hasMapError && validLocations.length > 0 && (
+      {/* Map Container - Show if there are valid GPS coordinates OR in edit mode */}
+      {!hasMapError && (validLocations.length > 0 || isEditMode) && (
         <MapContainer
           key={mapKey}
           center={center}
@@ -218,6 +234,11 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
         >
           {/* Tile Error Listener */}
           <TileErrorListener onError={handleTileError} />
+
+          {/* Map Click Handler (Feature 010: Reverse Geocoding) */}
+          {isEditMode && onMapClick && (
+            <MapClickHandler enabled={isEditMode} onMapClick={onMapClick} />
+          )}
 
           {/* OpenStreetMap Tiles */}
           <TileLayer
@@ -246,6 +267,17 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
               key={location.location_id}
               position={[location.latitude!, location.longitude!]}
               icon={createNumberedMarkerIcon(index + 1)}
+              draggable={isEditMode && !!onMarkerDrag}
+              eventHandlers={
+                isEditMode && onMarkerDrag
+                  ? {
+                      dragend: (e: any) => {
+                        const { lat, lng } = e.target.getLatLng();
+                        onMarkerDrag(location.location_id, lat, lng);
+                      },
+                    }
+                  : undefined
+              }
             >
               <Popup>
                 <div className="trip-map__popup">
@@ -261,7 +293,7 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
       )}
 
       {/* Fullscreen Toggle Button - Only show if map is visible */}
-      {!hasMapError && validLocations.length > 0 && (
+      {!hasMapError && (validLocations.length > 0 || isEditMode) && (
         <button
           type="button"
           className="trip-map__fullscreen-button"

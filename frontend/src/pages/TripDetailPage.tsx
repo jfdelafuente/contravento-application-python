@@ -11,7 +11,11 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TripGallery } from '../components/trips/TripGallery';
-import { getTripById, deleteTrip, publishTrip } from '../services/tripService';
+import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
+import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
+import { useReverseGeocode } from '../hooks/useReverseGeocode';
+import type { LocationSelection } from '../types/geocoding';
+import type { LocationInput } from '../types/trip';
 import {
   getDifficultyLabel,
   getDifficultyClass,
@@ -42,6 +46,11 @@ export const TripDetailPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Geocoding state (Feature 010)
+  const [isMapEditMode, setIsMapEditMode] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
+  const { geocode } = useReverseGeocode();
 
   // Fetch trip details
   useEffect(() => {
@@ -182,6 +191,171 @@ export const TripDetailPage: React.FC = () => {
       });
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  // Handle map click for adding locations (Feature 010)
+  const handleMapClick = async (lat: number, lng: number) => {
+    setPendingLocation({
+      latitude: lat,
+      longitude: lng,
+      suggestedName: '',
+      fullAddress: '',
+      isLoading: true,
+      hasError: false,
+    });
+
+    try {
+      const { name, fullAddress } = await geocode(lat, lng);
+      setPendingLocation({
+        latitude: lat,
+        longitude: lng,
+        suggestedName: name,
+        fullAddress,
+        isLoading: false,
+        hasError: false,
+      });
+    } catch (err: any) {
+      console.error('Error geocoding location:', err);
+      setPendingLocation({
+        latitude: lat,
+        longitude: lng,
+        suggestedName: '',
+        fullAddress: '',
+        isLoading: false,
+        hasError: true,
+        errorMessage: err.message || 'Error al obtener el nombre del lugar',
+      });
+    }
+  };
+
+  // Confirm and add/update location to trip (Feature 010)
+  const handleConfirmLocation = async (name: string, lat: number, lng: number) => {
+    if (!trip) return;
+
+    const locationIdToUpdate = pendingLocation?.locationId;
+    const isUpdatingExisting = !!locationIdToUpdate;
+
+    setPendingLocation(null);
+    setIsMapEditMode(false);
+
+    try {
+      const currentLocations = trip.locations || [];
+
+      let updatedLocations: LocationInput[];
+
+      if (isUpdatingExisting) {
+        // Update existing location coordinates and name
+        updatedLocations = currentLocations.map((loc) => {
+          if (loc.location_id === locationIdToUpdate) {
+            return {
+              name,
+              latitude: lat,
+              longitude: lng,
+            };
+          }
+          return {
+            name: loc.name,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+          };
+        });
+      } else {
+        // Add new location at the end
+        const newLocation: LocationInput = {
+          name,
+          latitude: lat,
+          longitude: lng,
+        };
+
+        updatedLocations = [
+          ...currentLocations.map((loc) => ({
+            name: loc.name,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+          })),
+          newLocation,
+        ];
+      }
+
+      // Update trip with locations array
+      const updatedTrip = await updateTrip(trip.trip_id, {
+        locations: updatedLocations,
+      });
+
+      // Update local state with new trip data
+      setTrip(updatedTrip);
+
+      const successMessage = isUpdatingExisting
+        ? `Ubicación "${name}" actualizada correctamente`
+        : `Ubicación "${name}" agregada al viaje`;
+
+      toast.success(successMessage, {
+        duration: 3000,
+        position: 'top-center',
+      });
+    } catch (err: any) {
+      console.error('Error saving location to trip:', err);
+
+      const errorMessage =
+        err.response?.data?.error?.message || 'Error al guardar ubicación. Intenta nuevamente.';
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-center',
+      });
+    }
+  };
+
+  // Cancel location addition (Feature 010)
+  const handleCancelLocation = () => {
+    setPendingLocation(null);
+  };
+
+  // Handle marker drag for updating location coordinates (Feature 010 - User Story 2)
+  const handleMarkerDrag = async (locationId: string, newLat: number, newLng: number) => {
+    setPendingLocation({
+      latitude: newLat,
+      longitude: newLng,
+      suggestedName: '',
+      fullAddress: '',
+      isLoading: true,
+      hasError: false,
+      locationId, // Store the location ID to update the correct location
+    });
+
+    try {
+      const { name, fullAddress } = await geocode(newLat, newLng);
+      setPendingLocation({
+        latitude: newLat,
+        longitude: newLng,
+        suggestedName: name,
+        fullAddress,
+        isLoading: false,
+        hasError: false,
+        locationId,
+      });
+    } catch (err: any) {
+      console.error('Error geocoding dragged location:', err);
+      setPendingLocation({
+        latitude: newLat,
+        longitude: newLng,
+        suggestedName: '',
+        fullAddress: '',
+        isLoading: false,
+        hasError: true,
+        errorMessage: err.message || 'Error al obtener el nombre del lugar',
+        locationId,
+      });
+    }
+  };
+
+  // Toggle map edit mode (Feature 010)
+  const handleToggleMapEdit = () => {
+    setIsMapEditMode(!isMapEditMode);
+    if (isMapEditMode) {
+      // Exiting edit mode - cancel any pending location
+      setPendingLocation(null);
     }
   };
 
@@ -344,6 +518,18 @@ export const TripDetailPage: React.FC = () => {
                 </button>
               )}
 
+              {/* Edit locations button (Feature 010) */}
+              <button
+                className={`trip-detail-page__action-button ${
+                  isMapEditMode
+                    ? 'trip-detail-page__action-button--cancel'
+                    : 'trip-detail-page__action-button--edit'
+                }`}
+                onClick={handleToggleMapEdit}
+              >
+                {isMapEditMode ? 'Cancelar edición' : 'Editar ubicaciones'}
+              </button>
+
               {/* Edit button - Phase 7 */}
               <Link
                 to={`/trips/${trip.trip_id}/edit`}
@@ -407,7 +593,13 @@ export const TripDetailPage: React.FC = () => {
                 <div className="trip-detail-page__map-loading">Cargando ubicaciones...</div>
               }
             >
-              <TripMap locations={trip.locations} tripTitle={trip.title} />
+              <TripMap
+                locations={trip.locations}
+                tripTitle={trip.title}
+                isEditMode={isMapEditMode}
+                onMapClick={handleMapClick}
+                onMarkerDrag={handleMarkerDrag}
+              />
             </Suspense>
           </section>
         )}
@@ -482,6 +674,13 @@ export const TripDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Location Confirmation Modal (Feature 010) */}
+      <LocationConfirmModal
+        location={pendingLocation}
+        onConfirm={handleConfirmLocation}
+        onCancel={handleCancelLocation}
+      />
     </div>
   );
 };

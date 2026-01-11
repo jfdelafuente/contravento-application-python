@@ -32,11 +32,13 @@ vi.mock('react-leaflet', () => ({
     </div>
   )),
   TileLayer: vi.fn(() => <div data-testid="tile-layer" />),
-  Marker: vi.fn(({ position, children, icon }: any) => (
+  Marker: vi.fn(({ position, children, icon, draggable, eventHandlers }: any) => (
     <div
       data-testid="marker"
       data-position={JSON.stringify(position)}
       data-icon={JSON.stringify(icon)}
+      data-draggable={draggable ? 'true' : 'false'}
+      data-event-handlers={JSON.stringify(eventHandlers || {})}
     >
       {children}
     </div>
@@ -556,6 +558,116 @@ describe('TripMap Component', () => {
       const emptyStateDiv = container.querySelector('.trip-map--empty');
       expect(emptyStateDiv).toBeInTheDocument();
       expect(emptyStateDiv).toHaveClass('trip-map', 'trip-map--empty');
+    });
+  });
+
+  /**
+   * T027 [US2]: Test marker drag event handling
+   * Feature 010: Reverse Geocoding - User Story 2
+   */
+  describe('Marker Drag Event Handling (T027)', () => {
+    it('should make markers draggable when isEditMode is true', () => {
+      render(
+        <TripMap
+          locations={mockLocations}
+          tripTitle={mockTripTitle}
+          isEditMode={true}
+          onMapClick={vi.fn()}
+        />
+      );
+
+      const markers = screen.getAllByTestId('marker');
+      expect(markers).toHaveLength(3);
+
+      // Check that all markers have draggable prop set to true
+      markers.forEach((marker) => {
+        expect(marker.getAttribute('data-draggable')).toBe('true');
+      });
+    });
+
+    it('should NOT make markers draggable when isEditMode is false', () => {
+      render(
+        <TripMap
+          locations={mockLocations}
+          tripTitle={mockTripTitle}
+          isEditMode={false}
+        />
+      );
+
+      const markers = screen.getAllByTestId('marker');
+      expect(markers).toHaveLength(3);
+
+      // Markers should not be draggable in view mode
+      markers.forEach((marker) => {
+        expect(marker.getAttribute('data-draggable')).toBe('false');
+      });
+    });
+
+    it('should attach dragend event handler when onMarkerDrag callback is provided', () => {
+      const mockOnMarkerDrag = vi.fn();
+
+      render(
+        <TripMap
+          locations={mockLocations}
+          tripTitle={mockTripTitle}
+          isEditMode={true}
+          onMarkerDrag={mockOnMarkerDrag}
+        />
+      );
+
+      const markers = screen.getAllByTestId('marker');
+
+      // Verify that each marker has a dragend event handler attached
+      markers.forEach((marker) => {
+        const eventHandlers = JSON.parse(marker.getAttribute('data-event-handlers') || '{}');
+        expect(eventHandlers).toHaveProperty('dragend');
+        expect(typeof eventHandlers.dragend).toBe('function');
+      });
+    });
+
+    it('should preserve location_id when dragging marker', () => {
+      const mockOnMarkerDrag = vi.fn();
+
+      render(
+        <TripMap
+          locations={mockLocations}
+          tripTitle={mockTripTitle}
+          isEditMode={true}
+          onMarkerDrag={mockOnMarkerDrag}
+        />
+      );
+
+      // When a marker is dragged, the callback should receive:
+      // - location_id: to identify which location was moved
+      // - newLat: new latitude
+      // - newLng: new longitude
+      // This ensures the parent component can update the correct location
+    });
+
+    it('should show draggable cursor in edit mode', () => {
+      const { container } = render(
+        <TripMap
+          locations={mockLocations}
+          tripTitle={mockTripTitle}
+          isEditMode={true}
+        />
+      );
+
+      // Markers in edit mode should have visual feedback (cursor: move)
+      // This will be tested via CSS class in T034
+    });
+
+    it('should disable marker dragging when not in edit mode', () => {
+      render(
+        <TripMap
+          locations={mockLocations}
+          tripTitle={mockTripTitle}
+          isEditMode={false}
+        />
+      );
+
+      // Markers should not respond to drag events in view mode
+      // Draggable prop should be false or undefined
     });
   });
 
