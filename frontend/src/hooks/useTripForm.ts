@@ -18,7 +18,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTrip, updateTrip, publishTrip } from '../services/tripService';
-import { uploadTripPhoto } from '../services/tripPhotoService';
+import { uploadTripPhoto, deleteTripPhoto } from '../services/tripPhotoService';
 import { TripCreateInput, Trip } from '../types/trip';
 import toast from 'react-hot-toast';
 import type { PhotoPreview } from '../components/trips/TripForm/Step3Photos';
@@ -143,8 +143,59 @@ export const useTripForm = ({
           try {
             trip = await updateTrip(tripId, data);
 
+            // Handle photo deletions (from photosToDelete)
+            const photosToDelete = (data as any).photosToDelete as string[] | undefined;
+            if (photosToDelete && photosToDelete.length > 0) {
+              toast.loading(`Eliminando ${photosToDelete.length} foto(s)...`, { id: 'photo-delete' });
+
+              try {
+                let deletedCount = 0;
+
+                for (const photoId of photosToDelete) {
+                  try {
+                    await deleteTripPhoto(tripId, photoId);
+                    deletedCount++;
+                  } catch (error) {
+                    console.error(`Error deleting photo ${photoId}:`, error);
+                  }
+                }
+
+                toast.success(`${deletedCount} foto(s) eliminada(s)`, {
+                  id: 'photo-delete',
+                  duration: 3000
+                });
+              } catch (error) {
+                toast.error('Error al eliminar algunas fotos', { id: 'photo-delete' });
+              }
+            }
+
+            // Handle new photo uploads
+            if (photos && photos.length > 0) {
+              toast.loading(`Subiendo ${photos.length} foto(s) nueva(s)...`, { id: 'photo-upload' });
+
+              try {
+                let uploadedCount = 0;
+
+                for (const photo of photos) {
+                  try {
+                    await uploadTripPhoto(tripId, photo.file);
+                    uploadedCount++;
+                  } catch (error) {
+                    console.error(`Error uploading ${photo.file.name}:`, error);
+                  }
+                }
+
+                toast.success(`${uploadedCount} de ${photos.length} foto(s) subida(s)`, {
+                  id: 'photo-upload',
+                  duration: 3000
+                });
+              } catch (error) {
+                toast.error('Error al subir algunas fotos', { id: 'photo-upload' });
+              }
+            }
+
             // If publishing from draft, call publish endpoint
-            if (!isDraft && trip.status === 'DRAFT') {
+            if (!isDraft && trip.status === 'draft') {
               trip = await publishTrip(tripId);
             }
 
@@ -170,8 +221,8 @@ export const useTripForm = ({
           // Create new trip
           trip = await createTrip(data);
 
-          // Upload photos if provided (only for published trips or if explicitly requested)
-          if (photos && photos.length > 0 && !isDraft) {
+          // Upload photos if provided (now also for drafts!)
+          if (photos && photos.length > 0) {
             toast.loading(`Subiendo ${photos.length} foto(s)...`, { id: 'photo-upload' });
 
             try {

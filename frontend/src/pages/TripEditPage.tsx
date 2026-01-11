@@ -61,12 +61,6 @@ export const TripEditPage: React.FC = () => {
 
         setTrip(tripData);
         setError(null);
-
-        // Debug: Log trip data after loading
-        console.log('=== TripEditPage - Trip loaded ===');
-        console.log('Trip ID:', tripData.trip_id);
-        console.log('Trip photos:', tripData.photos);
-        console.log('Photos count:', tripData.photos?.length || 0);
       } catch (err: any) {
         console.error('Error loading trip:', err);
         const errorMessage =
@@ -160,9 +154,6 @@ export const TripEditPage: React.FC = () => {
       </div>
 
       <div className="trip-edit-page__main">
-        {/* Debug: Log trip photos */}
-        {console.log('TripEditPage - trip.photos:', trip.photos)}
-        {console.log('TripEditPage - passing existingPhotos:', trip.photos || [])}
         <TripFormWizard
           tripId={tripId}
           initialData={getInitialFormData()}

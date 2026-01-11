@@ -47,10 +47,7 @@ export const Step3Photos: React.FC<Step3PhotosProps> = ({
 
   // Update server photos when existingPhotos prop changes (when trip loads)
   useEffect(() => {
-    console.log('Step3Photos - existingPhotos prop:', existingPhotos);
-    console.log('Step3Photos - existingPhotos.length:', existingPhotos?.length);
     if (existingPhotos && existingPhotos.length > 0) {
-      console.log('Step3Photos - Setting serverPhotos to:', existingPhotos);
       setServerPhotos(existingPhotos);
     }
   }, [existingPhotos]);
@@ -144,11 +141,6 @@ export const Step3Photos: React.FC<Step3PhotosProps> = ({
   const handleSelectClick = () => {
     fileInputRef.current?.click();
   };
-
-  // Debug logs
-  console.log('Step3Photos RENDER - tripId:', tripId);
-  console.log('Step3Photos RENDER - serverPhotos:', serverPhotos);
-  console.log('Step3Photos RENDER - serverPhotos.length:', serverPhotos.length);
 
   return (
     <div className="step3-photos">
