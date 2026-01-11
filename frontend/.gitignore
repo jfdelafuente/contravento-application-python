@@ -21,7 +21,7 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
-# Security: Never commit staging/production environment files
+# Security: Never commit actual staging/production environment files (only .example files)
 .env.staging
 .env.production
 
