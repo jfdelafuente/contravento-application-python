@@ -8,7 +8,7 @@
  * - TripDetailPage (location section, conditionally rendered)
  */
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -46,6 +46,10 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
   const [hasMapError, setHasMapError] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Key for re-mounting MapContainer on retry
 
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
   // Filter locations that have coordinates
   const validLocations = useMemo(
     () => locations.filter((loc) => loc.latitude !== null && loc.longitude !== null),
@@ -61,6 +65,33 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
   const handleRetry = useCallback(() => {
     setHasMapError(false);
     setMapKey((prev) => prev + 1); // Force re-mount with new key
+  }, []);
+
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Toggle fullscreen mode
+  const toggleFullscreen = useCallback(async () => {
+    if (!mapContainerRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await mapContainerRef.current.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+    }
   }, []);
 
   // Calculate map center (average of all coordinates)
@@ -139,7 +170,10 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
   }
 
   return (
-    <div className="trip-map">
+    <div
+      ref={mapContainerRef}
+      className={`trip-map ${isFullscreen ? 'trip-map--fullscreen' : ''}`}
+    >
       {/* Error State UI */}
       {hasMapError && (
         <div className="trip-map__error">
@@ -224,6 +258,49 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
             </Marker>
           ))}
         </MapContainer>
+      )}
+
+      {/* Fullscreen Toggle Button */}
+      {!hasMapError && (
+        <button
+          type="button"
+          className="trip-map__fullscreen-button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+          title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa'}
+        >
+          {isFullscreen ? (
+            // Exit fullscreen icon
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          ) : (
+            // Enter fullscreen icon
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+          )}
+        </button>
       )}
 
       {/* Location List */}

@@ -569,3 +569,156 @@
     font-size: 0.875rem;
   }
 }
+
+/* ============================================================================
+   Fullscreen Mode (Phase 5.3)
+   ============================================================================ */
+
+/* Fullscreen toggle button */
+.trip-map__fullscreen-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background-color: #ffffff;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.trip-map__fullscreen-button svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-primary, #111827);
+}
+
+.trip-map__fullscreen-button:hover {
+  background-color: var(--bg-secondary, #f9fafb);
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+  transform: translateY(-1px);
+}
+
+.trip-map__fullscreen-button:hover svg {
+  color: var(--primary-color, #2563eb);
+}
+
+.trip-map__fullscreen-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trip-map__fullscreen-button:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Fullscreen mode container */
+.trip-map--fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: var(--bg-primary, #ffffff);
+  padding: 0;
+  margin: 0;
+}
+
+.trip-map--fullscreen .trip-map__container {
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+/* Hide location list in fullscreen */
+.trip-map--fullscreen .trip-map__locations {
+  display: none;
+}
+
+/* Adjust fullscreen button position in fullscreen mode */
+.trip-map--fullscreen .trip-map__fullscreen-button {
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+}
+
+.trip-map--fullscreen .trip-map__fullscreen-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Smooth transitions for fullscreen */
+.trip-map {
+  transition: all 0.3s ease;
+}
+
+.trip-map__container {
+  transition: height 0.3s ease, border-radius 0.3s ease;
+}
+
+/* Dark mode for fullscreen button */
+@media (prefers-color-scheme: dark) {
+  .trip-map__fullscreen-button {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-map__fullscreen-button svg {
+    color: #f9fafb;
+  }
+
+  .trip-map__fullscreen-button:hover {
+    background-color: #111827;
+    border-color: #60a5fa;
+  }
+
+  .trip-map__fullscreen-button:hover svg {
+    color: #60a5fa;
+  }
+
+  .trip-map--fullscreen {
+    background-color: #111827;
+  }
+
+  .trip-map--fullscreen .trip-map__fullscreen-button {
+    background-color: rgba(31, 41, 55, 0.95);
+  }
+}
+
+/* Responsive fullscreen button */
+@media (max-width: 767px) {
+  .trip-map__fullscreen-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .trip-map__fullscreen-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .trip-map--fullscreen .trip-map__fullscreen-button {
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .trip-map--fullscreen .trip-map__fullscreen-button svg {
+    width: 22px;
+    height: 22px;
+  }
+}
