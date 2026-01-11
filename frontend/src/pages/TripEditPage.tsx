@@ -61,6 +61,12 @@ export const TripEditPage: React.FC = () => {
 
         setTrip(tripData);
         setError(null);
+
+        // Debug: Log trip data after loading
+        console.log('=== TripEditPage - Trip loaded ===');
+        console.log('Trip ID:', tripData.trip_id);
+        console.log('Trip photos:', tripData.photos);
+        console.log('Photos count:', tripData.photos?.length || 0);
       } catch (err: any) {
         console.error('Error loading trip:', err);
         const errorMessage =
