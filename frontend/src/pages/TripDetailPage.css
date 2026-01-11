@@ -218,6 +218,8 @@
   font-size: 1.0625rem;
   line-height: 1.75;
   color: var(--text-primary, #111827);
+  white-space: pre-wrap; /* Preserve line breaks and spaces */
+  word-wrap: break-word; /* Break long words if needed */
 }
 
 .trip-detail-page__description p {
