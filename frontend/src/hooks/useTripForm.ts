@@ -138,10 +138,18 @@ export const useTripForm = ({
       try {
         let trip: Trip;
 
+        // Sanitize data: convert empty strings to null for optional fields
+        const sanitizedData: TripCreateInput = {
+          ...data,
+          difficulty: data.difficulty === '' ? null : data.difficulty,
+          distance_km: !data.distance_km || isNaN(data.distance_km as any) ? null : data.distance_km,
+          end_date: data.end_date === '' ? null : data.end_date,
+        };
+
         if (isEditMode && tripId) {
           // Update existing trip
           try {
-            trip = await updateTrip(tripId, data);
+            trip = await updateTrip(tripId, sanitizedData);
 
             // Handle photo deletions (from photosToDelete)
             const photosToDelete = (data as any).photosToDelete as string[] | undefined;
@@ -219,7 +227,7 @@ export const useTripForm = ({
           }
         } else {
           // Create new trip
-          trip = await createTrip(data);
+          trip = await createTrip(sanitizedData);
 
           // Upload photos if provided (now also for drafts!)
           if (photos && photos.length > 0) {
