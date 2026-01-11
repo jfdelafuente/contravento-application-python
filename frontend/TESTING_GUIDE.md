@@ -170,46 +170,46 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 4: GPS Coordinate Validation
+### Test Suite 4: GPS Coordinate Validation ✅ COMPLETED
 
 #### T4.1 - Location Without GPS Coordinates ✅ ALLOWS ADVANCEMENT
-- [ ] **Enter** location name: "Camino de Santiago"
-- [ ] **Leave** latitude empty
-- [ ] **Leave** longitude empty
-- [ ] **Proceed** to Step 4
-- [ ] **Expected**: Form advances successfully (coordinates are OPTIONAL)
-- [ ] **Expected**: Step 4 shows location with: "Sin coordenadas GPS"
+- [x] **Enter** location name: "Camino de Santiago"
+- [x] **Leave** latitude empty
+- [x] **Leave** longitude empty
+- [x] **Proceed** to Step 4
+- [x] **Expected**: Form advances successfully (coordinates are OPTIONAL)
+- [x] **Expected**: Step 4 shows location with: "Sin coordenadas GPS"
 
 #### T4.2 - Mix of Locations (With and Without GPS) ✅ ALLOWS ADVANCEMENT
-- [ ] **Create** trip with 3 locations:
+- [x] **Create** trip with 3 locations:
   1. Madrid (with GPS: 40.416775, -3.703790)
   2. Camino de Santiago (no GPS - both fields empty)
   3. Barcelona (with GPS: 41.385064, 2.173404)
-- [ ] **Proceed** to Step 4
-- [ ] **Expected**: Form advances successfully
-- [ ] **Expected**: Step 4 shows:
+- [x] **Proceed** to Step 4
+- [x] **Expected**: Form advances successfully
+- [x] **Expected**: Step 4 shows:
   - Location 1: Madrid with coordinates "📍 Lat: 40.416775°, Lon: -3.703790°"
   - Location 2: Camino de Santiago - "Sin coordenadas GPS"
   - Location 3: Barcelona with coordinates "📍 Lat: 41.385064°, Lon: 2.173404°"
 
 #### T4.3 - Partial Coordinates - Only Latitude ❌ BLOCKS ADVANCEMENT
-- [ ] **Enter** location name: "Test Location"
-- [ ] **Enter** latitude: `40.0`
-- [ ] **Leave** longitude empty
-- [ ] **Attempt** to proceed to next step
-- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
-- [ ] **Expected**: Red error message appears below longitude field: "Debes proporcionar la longitud si ingresas latitud"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Enter** location name: "Test Location"
+- [x] **Enter** latitude: `40.0`
+- [x] **Leave** longitude empty
+- [x] **Attempt** to proceed to next step
+- [x] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [x] **Expected**: Red error message appears below longitude field: "Debes proporcionar la longitud si ingresas latitud"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 #### T4.4 - Partial Coordinates - Only Longitude ❌ BLOCKS ADVANCEMENT
-- [ ] **Clear** previous test
-- [ ] **Enter** location name: "Test Location"
-- [ ] **Leave** latitude empty
-- [ ] **Enter** longitude: `-3.0`
-- [ ] **Attempt** to proceed to next step
-- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
-- [ ] **Expected**: Red error message appears below latitude field: "Debes proporcionar la latitud si ingresas longitud"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Clear** previous test
+- [x] **Enter** location name: "Test Location"
+- [x] **Leave** latitude empty
+- [x] **Enter** longitude: `-3.0`
+- [x] **Attempt** to proceed to next step
+- [x] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [x] **Expected**: Red error message appears below latitude field: "Debes proporcionar la latitud si ingresas longitud"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 ---
 
