@@ -71,8 +71,26 @@ export const Step1BasicInfo: React.FC = () => {
     let hasErrors = false;
 
     locations.forEach((location, index) => {
+      // Validate location name
       if (!location.name || location.name.trim() === '') {
-        errors[index] = { name: 'El nombre de la ubicación es obligatorio' };
+        if (!errors[index]) errors[index] = {};
+        errors[index].name = 'El nombre de la ubicación es obligatorio';
+        hasErrors = true;
+      }
+
+      // Validate partial coordinates (both or none)
+      const hasLatitude = location.latitude !== null && location.latitude !== undefined && location.latitude !== '';
+      const hasLongitude = location.longitude !== null && location.longitude !== undefined && location.longitude !== '';
+
+      if (hasLatitude && !hasLongitude) {
+        if (!errors[index]) errors[index] = {};
+        errors[index].longitude = 'Debes proporcionar la longitud si ingresas latitud';
+        hasErrors = true;
+      }
+
+      if (!hasLatitude && hasLongitude) {
+        if (!errors[index]) errors[index] = {};
+        errors[index].latitude = 'Debes proporcionar la latitud si ingresas longitud';
         hasErrors = true;
       }
     });
