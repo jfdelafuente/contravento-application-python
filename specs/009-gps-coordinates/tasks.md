@@ -689,7 +689,7 @@ With 2-3 developers:
 
 **Checkpoint**: ✅ TripMap component has 97.82% test coverage, all 29 tests passing
 
-**Commit**: [PENDING] - feat: add comprehensive unit tests for TripMap component (Phase 5.4)
+**Commit**: 35951d0 - feat: add comprehensive unit tests for TripMap component (Phase 5.4)
 
 ### Subphase 5.5: Integration & Polish ✅ COMPLETE
 
@@ -731,20 +731,38 @@ With 2-3 developers:
 
 All manual tests are documented in [frontend/TESTING_GUIDE.md](../../frontend/TESTING_GUIDE.md). Test suites include:
 
-- Numbered marker display and sequencing
-- Fullscreen enter/exit with keyboard shortcuts
+- ✅ **Test Suite 10**: Numbered marker display and sequencing (PASSED - Manual validation)
 - Error handling with network simulation
-- Retry functionality validation
+- ✅ **Test Suite 12**: Fullscreen enter/exit with keyboard shortcuts (PASSED - Manual validation)
 - Accessibility testing (keyboard, screen reader, ARIA)
 - Responsive design across device sizes
 - Performance benchmarks (<2s load time for SC-009)
-- Integration testing (create → view → edit flows)
+- ✅ **Test Suite 16**: Integration testing - create → view → edit flows (PASSED - Manual validation)
 - Edge cases (single location, zero GPS, long distances)
 - Browser compatibility (Chrome, Firefox, Safari)
 
-**Checkpoint**: ✅ Phase 5 complete - all enhancements documented with comprehensive manual testing procedures
+**Manual Testing Results** (2026-01-11):
 
-**Commit**: [PENDING] - docs: add Phase 5 testing guide and known limitations (Phase 5.5)
+- ✅ Test Suite 10 (Numbered Markers) - All 3 tests passed
+  - Markers display with correct sequence numbers (1, 2, 3)
+  - Marker order matches trip location sequence
+  - Numbered icons render correctly
+
+- ✅ Test Suite 12 (Fullscreen Mode) - All 5 tests passed
+  - Fullscreen button toggles correctly
+  - Map expands to full viewport
+  - Exit fullscreen works (button + Escape key)
+  - Location list hides in fullscreen
+  - Transitions are smooth
+
+- ✅ Test Suite 16 (Integration) - All 3 tests passed
+  - Create trip with GPS → View trip → Map displays correctly
+  - Edit trip coordinates → Map updates in real-time
+  - End-to-end workflow validated
+
+**Checkpoint**: ✅ Phase 5 complete - Critical test suites validated manually with all tests passing
+
+**Commit**: 9767609 - docs: add Phase 5 testing guide and known limitations (Phase 5.5)
 
 ---
 
@@ -804,7 +822,7 @@ All manual tests are documented in [frontend/TESTING_GUIDE.md](../../frontend/TE
 
 **Key Commit**:
 
-- [PENDING] - test: add integration tests for GPS coordinate editing (Phase 6 - T055)
+- 9987189 - test: add integration tests for GPS coordinate editing (Phase 6 - T055)
 
 **Phase 6**: User Story 3 - Edit GPS Coordinates (P3) ✅ COMPLETE
 
@@ -854,7 +872,7 @@ The TripEditPage component reuses the same LocationInput component from Phase 4 
 
 **Checkpoint**: ✅ GPS coordinate editing fully functional with backend integration test coverage
 
-**Commit**: [PENDING] - test: add integration tests for GPS coordinate editing (Phase 6 - T055)
+**Commit**: 9987189 - test: add integration tests for GPS coordinate editing (Phase 6 - T055)
 
 ### Estimated Effort
 
