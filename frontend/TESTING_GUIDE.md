@@ -23,6 +23,7 @@ This guide provides manual testing steps for the GPS Coordinates frontend UI imp
    - Locations section with "Add Location" button
    - State management for locations array
    - Support for up to 50 locations per trip
+   - Custom validation for location names and coordinate pairs
 
 3. **Step4Review Updates** (`frontend/src/components/trips/TripForm/Step4Review.tsx`)
    - Display locations with GPS coordinates in review step
@@ -32,6 +33,27 @@ This guide provides manual testing steps for the GPS Coordinates frontend UI imp
    - `formatCoordinate()` - Format single coordinate with degree symbol
    - `formatCoordinatePair()` - Format latitude/longitude pair
    - `validateCoordinates()` - Client-side coordinate validation
+
+---
+
+## Validation Rules
+
+**Location Name**:
+- ✅ **REQUIRED** - Cannot be empty
+- ❌ **Form will not advance** if any location name is empty
+- Error: "El nombre de la ubicación es obligatorio"
+
+**GPS Coordinates**:
+- ✅ **OPTIONAL** - Both latitude and longitude can be left empty
+- ✅ **Both filled** - Valid (latitude: -90 to 90, longitude: -180 to 180)
+- ❌ **Only latitude filled** - Invalid, shows error: "Debes proporcionar la longitud si ingresas latitud"
+- ❌ **Only longitude filled** - Invalid, shows error: "Debes proporcionar la latitud si ingresas longitud"
+
+**Key Behaviors**:
+1. **Location name is always required** to proceed to next step
+2. **Coordinates are optional** - you can create locations without GPS data
+3. **If you enter coordinates**, both latitude AND longitude must be provided
+4. **HTML5 validation** enforces coordinate ranges (-90/90, -180/180)
 
 ---
 
@@ -74,11 +96,13 @@ poetry run python scripts/create_verified_user.py
 
 ### Test Suite 1: Location Input Component
 
-#### T1.1 - Location Name Required
+#### T1.1 - Location Name Required ✅ BLOCKS ADVANCEMENT
 - [ ] **Navigate** to trip creation form (Step 1)
 - [ ] **Leave** location name field empty
 - [ ] **Attempt** to move to next step
-- [ ] **Verify** error message appears: "El nombre de la ubicación es obligatorio"
+- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [ ] **Expected**: Red error message appears below field: "El nombre de la ubicación es obligatorio"
+- [ ] **Expected**: Form does NOT advance to Step 2
 
 #### T1.2 - Add Location Button
 - [ ] **Click** "Añadir Ubicación" button
@@ -124,80 +148,125 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 3: Coordinate Validation
+### Test Suite 3: Multiple Locations Management
 
-#### T3.1 - Latitude Out of Range (Too High)
+#### T3.1 - Add Multiple Locations
+- [ ] **Add** 5 locations with different names
+- [ ] **Verify** each location numbered correctly (Ubicación 1, 2, 3, 4, 5)
+- [ ] **Verify** all "Eliminar" buttons visible (minimum is 1 location)
+- [ ] **Verify** locations maintain their data when adding new ones
+
+#### T3.2 - Remove Middle Location
+- [ ] **With** 5 locations present
+- [ ] **Click** "Eliminar" on location 3
+- [ ] **Verify** location 3 removed
+- [ ] **Verify** locations renumbered (former location 4 becomes location 3)
+- [ ] **Verify** remaining locations keep their data
+
+#### T3.3 - Cannot Remove Last Location
+- [ ] **Remove** locations until only 1 remains
+- [ ] **Verify** "Eliminar" button is hidden or disabled
+- [ ] **Note**: Minimum 1 location required per trip
+
+---
+
+### Test Suite 4: GPS Coordinate Validation
+
+#### T4.1 - Location Without GPS Coordinates ✅ ALLOWS ADVANCEMENT
+- [ ] **Enter** location name: "Camino de Santiago"
+- [ ] **Leave** latitude empty
+- [ ] **Leave** longitude empty
+- [ ] **Proceed** to Step 4
+- [ ] **Expected**: Form advances successfully (coordinates are OPTIONAL)
+- [ ] **Expected**: Step 4 shows location with: "Sin coordenadas GPS"
+
+#### T4.2 - Mix of Locations (With and Without GPS) ✅ ALLOWS ADVANCEMENT
+- [ ] **Create** trip with 3 locations:
+  1. Madrid (with GPS: 40.416775, -3.703790)
+  2. Camino de Santiago (no GPS - both fields empty)
+  3. Barcelona (with GPS: 41.385064, 2.173404)
+- [ ] **Proceed** to Step 4
+- [ ] **Expected**: Form advances successfully
+- [ ] **Expected**: Step 4 shows:
+  - Location 1: Madrid with coordinates "📍 Lat: 40.416775°, Lon: -3.703790°"
+  - Location 2: Camino de Santiago - "Sin coordenadas GPS"
+  - Location 3: Barcelona with coordinates "📍 Lat: 41.385064°, Lon: 2.173404°"
+
+#### T4.3 - Partial Coordinates - Only Latitude ❌ BLOCKS ADVANCEMENT
+- [ ] **Enter** location name: "Test Location"
+- [ ] **Enter** latitude: `40.0`
+- [ ] **Leave** longitude empty
+- [ ] **Attempt** to proceed to next step
+- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [ ] **Expected**: Red error message appears below longitude field: "Debes proporcionar la longitud si ingresas latitud"
+- [ ] **Expected**: Form does NOT advance to Step 2
+
+#### T4.4 - Partial Coordinates - Only Longitude ❌ BLOCKS ADVANCEMENT
+- [ ] **Clear** previous test
+- [ ] **Enter** location name: "Test Location"
+- [ ] **Leave** latitude empty
+- [ ] **Enter** longitude: `-3.0`
+- [ ] **Attempt** to proceed to next step
+- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [ ] **Expected**: Red error message appears below latitude field: "Debes proporcionar la latitud si ingresas longitud"
+- [ ] **Expected**: Form does NOT advance to Step 2
+
+---
+
+### Test Suite 5: Coordinate Range Validation (HTML5)
+
+#### T5.1 - Latitude Out of Range (Too High)
+
 - [ ] **Enter** location name: "Invalid North"
 - [ ] **Enter** latitude: `100`
 - [ ] **Enter** longitude: `0`
-- [ ] **Verify** browser validation prevents submission (min="-90" max="90" on input)
-- [ ] **Verify** form cannot proceed with invalid value
+- [ ] **Expected**: Browser HTML5 validation prevents submission (min="-90" max="90" on input)
+- [ ] **Expected**: Cannot proceed with invalid value
 
-#### T3.2 - Latitude Out of Range (Too Low)
+#### T5.2 - Latitude Out of Range (Too Low)
+
 - [ ] **Enter** latitude: `-100`
-- [ ] **Verify** browser validation blocks value below -90
+- [ ] **Expected**: Browser validation blocks value below -90
 
-#### T3.3 - Longitude Out of Range (Too High)
+#### T5.3 - Longitude Out of Range (Too High)
+
 - [ ] **Enter** longitude: `200`
-- [ ] **Verify** browser validation blocks value above 180
+- [ ] **Expected**: Browser validation blocks value above 180
 
-#### T3.4 - Longitude Out of Range (Too Low)
+#### T5.4 - Longitude Out of Range (Too Low)
+
 - [ ] **Enter** longitude: `-200`
-- [ ] **Verify** browser validation blocks value below -180
+- [ ] **Expected**: Browser validation blocks value below -180
 
-#### T3.5 - High Precision Coordinates
+#### T5.5 - High Precision Coordinates
+
 - [ ] **Enter** location name: "Jaca"
 - [ ] **Enter** latitude: `42.5700841234567` (13 decimals)
 - [ ] **Enter** longitude: `-0.5499411234567`
 - [ ] **Proceed** to Step 4
-- [ ] **Verify** coordinates displayed with 6 decimal precision:
+- [ ] **Expected**: Coordinates displayed with 6 decimal precision:
   - Lat: `42.570084°` (rounded)
   - Lon: `-0.549941°` (rounded)
 
 ---
 
-### Test Suite 4: Optional Coordinates
+### Test Suite 6: Step 4 Review Display
 
-#### T4.1 - Location Without GPS Coordinates
-- [ ] **Enter** location name: "Camino de Santiago"
-- [ ] **Leave** latitude empty
-- [ ] **Leave** longitude empty
-- [ ] **Proceed** to Step 4
-- [ ] **Verify** location shows: "Sin coordenadas GPS"
+#### T6.1 - Review Locations Section Exists
 
-#### T4.2 - Mix of Locations (With and Without GPS)
-- [ ] **Create** trip with 3 locations:
-  1. Madrid (with GPS: 40.416775, -3.703790)
-  2. Camino de Santiago (no GPS)
-  3. Barcelona (with GPS: 41.385064, 2.173404)
-- [ ] **Verify** Step 4 shows:
-  - Location 1: Madrid with coordinates
-  - Location 2: Camino de Santiago - "Sin coordenadas GPS"
-  - Location 3: Barcelona with coordinates
-
-#### T4.3 - Partial Coordinates (Should Not Submit)
-- [ ] **Enter** location name: "Test"
-- [ ] **Enter** latitude: `40.0`
-- [ ] **Leave** longitude empty
-- [ ] **Attempt** to proceed
-- [ ] **Verify** HTML5 validation requires longitude (or backend returns error)
-
----
-
-### Test Suite 5: Step 4 Review Display
-
-#### T5.1 - Review Locations Section Exists
 - [ ] **Create** trip with 2 locations (both with GPS)
 - [ ] **Navigate** to Step 4 (Review)
 - [ ] **Verify** "Ubicaciones" section appears after "Información Básica"
 - [ ] **Verify** section displays before "Descripción"
 
-#### T5.2 - Review Location Numbering
+#### T6.2 - Review Location Numbering
+
 - [ ] **Verify** locations numbered with blue circles (1, 2, 3...)
 - [ ] **Verify** location names displayed prominently
 - [ ] **Verify** coordinates in monospace font with 📍 icon
 
-#### T5.3 - Review Empty Locations
+#### T6.3 - Review Locations Without GPS
+
 - [ ] **Remove** all locations except one
 - [ ] **Enter** only name: "Test"
 - [ ] **Navigate** to Step 4
@@ -205,9 +274,10 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 6: End-to-End Trip Creation
+### Test Suite 7: End-to-End Trip Creation
 
-#### T6.1 - Create Trip with GPS Coordinates
+#### T7.1 - Create Trip with GPS Coordinates
+
 - [ ] **Login** as testuser
 - [ ] **Navigate** to "Crear Viaje"
 - [ ] **Step 1 - Basic Info**:
@@ -229,6 +299,7 @@ poetry run python scripts/create_verified_user.py
 - [ ] **Open** browser DevTools → Network tab
 - [ ] **Inspect** POST request to `/trips`
 - [ ] **Verify** payload includes:
+
   ```json
   {
     "locations": [
@@ -246,7 +317,8 @@ poetry run python scripts/create_verified_user.py
   }
   ```
 
-#### T6.2 - Create Trip Without GPS Coordinates
+#### T7.2 - Create Trip Without GPS Coordinates
+
 - [ ] **Create** new trip
 - [ ] **Add** 2 locations with names only (no coordinates)
 - [ ] **Complete** all steps
@@ -254,10 +326,12 @@ poetry run python scripts/create_verified_user.py
 - [ ] **Verify** trip created successfully
 - [ ] **Verify** locations saved with null coordinates
 
-#### T6.3 - Backend Response Validation
+#### T7.3 - Backend Response Validation
+
 - [ ] **After** creating trip with GPS
 - [ ] **Check** browser DevTools → Network → Response
 - [ ] **Verify** response includes locations with coordinates:
+
   ```json
   {
     "success": true,
@@ -278,23 +352,26 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 7: Accessibility
+### Test Suite 8: Accessibility
 
-#### T7.1 - Keyboard Navigation
+#### T8.1 - Keyboard Navigation
+
 - [ ] **Use** Tab key to navigate through location inputs
 - [ ] **Verify** focus indicators visible on all fields
 - [ ] **Tab** to "Añadir Ubicación" button
 - [ ] **Press** Enter to add location
 - [ ] **Verify** new location input receives focus
 
-#### T7.2 - Screen Reader Labels
+#### T8.2 - Screen Reader Labels
+
 - [ ] **Enable** screen reader (NVDA/JAWS on Windows, VoiceOver on Mac)
 - [ ] **Navigate** to latitude input
 - [ ] **Verify** reads: "Latitud de la ubicación 1, -90 a 90 grados"
 - [ ] **Navigate** to longitude input
 - [ ] **Verify** reads: "Longitud de la ubicación 1, -180 a 180 grados"
 
-#### T7.3 - Error Announcements
+#### T8.3 - Error Announcements
+
 - [ ] **Enter** invalid latitude: `100`
 - [ ] **Tab** away from field
 - [ ] **Verify** error message announced by screen reader
@@ -302,15 +379,17 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 8: Responsive Design
+### Test Suite 9: Responsive Design
 
-#### T8.1 - Mobile View (< 640px)
+#### T9.1 - Mobile View (< 640px)
+
 - [ ] **Resize** browser to 375px width (mobile phone)
 - [ ] **Verify** coordinate inputs stack vertically (not side-by-side)
 - [ ] **Verify** "Eliminar" button full width
 - [ ] **Verify** all text readable without horizontal scroll
 
-#### T8.2 - Tablet View (640px - 1024px)
+#### T9.2 - Tablet View (640px - 1024px)
+
 - [ ] **Resize** to 768px width (tablet)
 - [ ] **Verify** coordinate inputs side-by-side in grid
 - [ ] **Verify** proper spacing and alignment
@@ -322,26 +401,36 @@ poetry run python scripts/create_verified_user.py
 ### ✅ All Tests Passing Means:
 
 1. **Input Validation**:
-   - Location names required
-   - GPS coordinates optional
-   - Coordinates validated in range (-90/90, -180/180)
-   - High precision rounded to 6 decimals
+   - ✅ Location names **REQUIRED** - form blocks advancement if empty
+   - ✅ GPS coordinates **OPTIONAL** - can leave both empty
+   - ❌ **Partial coordinates blocked** - if latitude provided, longitude required (and vice versa)
+   - ✅ Coordinate range validation (-90/90 latitude, -180/180 longitude)
+   - ✅ High precision rounded to 6 decimals for display
 
-2. **User Experience**:
-   - Add/remove locations seamlessly
+2. **Validation Error Messages** (Spanish):
+   - "El nombre de la ubicación es obligatorio" - when name empty
+   - "Debes proporcionar la longitud si ingresas latitud" - when only latitude filled
+   - "Debes proporcionar la latitud si ingresas longitud" - when only longitude filled
+   - Toast: "Por favor completa el nombre de todas las ubicaciones" - when attempting to advance with errors
+
+3. **User Experience**:
+   - Add/remove locations seamlessly (minimum 1, maximum 50)
    - Clear error messages in Spanish
-   - Coordinates display properly in review
+   - Coordinates display properly in review step
    - Accessible keyboard navigation
+   - "Sin coordenadas GPS" shown for locations without coordinates
 
-3. **Backend Integration**:
-   - Coordinates sent in API payload
+4. **Backend Integration**:
+   - Coordinates sent in API payload as numbers (or null)
    - Backend accepts and stores coordinates
    - Response includes coordinates in locations array
+   - Partial coordinates rejected by validation before reaching backend
 
-4. **Visual Design**:
+5. **Visual Design**:
    - Clean, modern UI with ContraVento colors
    - Responsive on mobile/tablet/desktop
    - Consistent with existing form design
+   - Monospace font for coordinates with 📍 icon
 
 ---
 
