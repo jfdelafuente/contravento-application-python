@@ -555,31 +555,189 @@ With 2-3 developers:
 - tripHelpers.ts coordinate utilities (+97 lines)
 - Manual testing guide (TESTING_GUIDE.md - 8 test suites)
 
+---
+
+## Phase 5: Map Visualization Enhancements
+
+**Status**: ⏸️ PENDING
+**Branch**: `009-gps-coordinates-frontend` (or new branch `009-map-enhancements`)
+
+**Goal**: Enhance TripMap component with error handling, numbered markers, fullscreen mode, and comprehensive unit testing to complete the map visualization feature.
+
+**Independent Test**: Create a trip with GPS coordinates, view trip detail page, verify map displays numbered markers (1, 2, 3...), test fullscreen toggle, simulate network error to verify error handling with retry button.
+
+**Why Phase 5**: Completes the map visualization feature with production-ready error handling, improved UX (numbered markers), and comprehensive testing for reliability.
+
+**Related FRs**: FR-015 (error handling), FR-016 (numbered markers), FR-017 (network errors), FR-018 (preserve state), FR-019 (fullscreen), FR-020 (custom icons)
+
+**Related SCs**: SC-011 (numbered markers), SC-012 (error messages), SC-013 (retry), SC-014 (fullscreen), SC-015 (test coverage ≥90%)
+
+### Subphase 5.1: Numbered Markers
+
+**Purpose**: Replace generic Leaflet markers with custom numbered icons for better visual clarity
+
+- [ ] T080 [P] Create mapHelpers.ts utility file in frontend/src/utils/mapHelpers.ts
+- [ ] T081 [P] Implement createNumberedMarkerIcon() function in frontend/src/utils/mapHelpers.ts
+- [ ] T082 Update TripMap.tsx to use custom numbered markers instead of defaultIcon (line 154)
+- [ ] T083 Add CSS styles for numbered markers in frontend/src/components/trips/TripMap.css
+- [ ] T084 Add dark mode styles for numbered markers in frontend/src/components/trips/TripMap.css
+- [ ] T085 Add aria-labels to numbered markers for accessibility in frontend/src/components/trips/TripMap.tsx
+- [ ] T086 Manual test: Create trip with 5 locations, verify markers show numbers 1-5 in sequence order
+
+**Checkpoint**: Map displays numbered markers corresponding to location sequence
+
+### Subphase 5.2: Error Handling & Retry
+
+**Purpose**: Detect network errors when loading map tiles and provide user-friendly recovery mechanism
+
+- [ ] T087 Add error state management to TripMap component (useState for error tracking)
+- [ ] T088 Implement tile load error detection in TripMap.tsx (TileLayer error event handler)
+- [ ] T089 Create error UI component with retry button in frontend/src/components/trips/TripMap.tsx
+- [ ] T090 Implement retry mechanism that re-mounts MapContainer in frontend/src/components/trips/TripMap.tsx
+- [ ] T091 Preserve map state (zoom, center) across retry attempts using useState
+- [ ] T092 Add Spanish error messages for network failures ("Error al cargar el mapa. Verifica tu conexión.")
+- [ ] T093 Update TripMap.css with error state styles (error icon, retry button)
+- [ ] T094 Manual test: Disconnect network, load trip, verify error message and retry button appear
+- [ ] T095 Manual test: Click retry with network restored, verify map loads successfully
+
+**Checkpoint**: Network errors trigger error message with working retry button
+
+### Subphase 5.3: Fullscreen Mode
+
+**Purpose**: Provide fullscreen map visualization for better route viewing experience
+
+- [ ] T096 Add fullscreen state management to TripMap component (useState for isFullscreen)
+- [ ] T097 Implement fullscreen toggle button UI in frontend/src/components/trips/TripMap.tsx
+- [ ] T098 Add browser Fullscreen API handlers (requestFullscreen/exitFullscreen)
+- [ ] T099 Handle fullscreen change events (fullscreenchange, fullscreenerror)
+- [ ] T100 Add CSS styles for fullscreen mode in frontend/src/components/trips/TripMap.css
+- [ ] T101 Add CSS transitions for smooth fullscreen entry/exit
+- [ ] T102 Update map layout for fullscreen (remove location list, expand map container)
+- [ ] T103 Add keyboard shortcut (Escape) to exit fullscreen
+- [ ] T104 Manual test: Click fullscreen button, verify map fills viewport
+- [ ] T105 Manual test: Exit fullscreen, verify map returns to normal layout
+
+**Checkpoint**: Fullscreen mode expands map to viewport with smooth transitions
+
+### Subphase 5.4: Unit Testing (Deferred T020-T023)
+
+**Purpose**: Write comprehensive unit tests for TripMap component to achieve ≥90% code coverage
+
+**Note**: Uses Vitest + React Testing Library, mocks Leaflet components
+
+- [ ] T106 [P] Create TripMap.test.tsx in frontend/tests/unit/TripMap.test.tsx
+- [ ] T107 [P] Write test setup: Mock Leaflet components (MapContainer, Marker, Polyline, TileLayer)
+- [ ] T108 [P] [US1] T020 - Write unit test for TripMap filtering null coordinates
+- [ ] T109 [P] [US1] T021 - Write unit test for TripMap rendering numbered markers
+- [ ] T110 [P] [US1] T022 - Write unit test for TripMap polyline rendering
+- [ ] T111 [P] [US1] T023 - Write unit test for TripMap zoom calculation
+- [ ] T112 [P] Write unit test for error state display when tile loading fails
+- [ ] T113 [P] Write unit test for retry button functionality
+- [ ] T114 [P] Write unit test for fullscreen toggle behavior
+- [ ] T115 [P] Write unit test for empty state when no valid locations
+- [ ] T116 Run TripMap tests: npm test TripMap.test.tsx
+- [ ] T117 Verify test coverage ≥90% for TripMap.tsx: npm run test:coverage
+- [ ] T118 Fix any failing tests or coverage gaps
+
+**Checkpoint**: TripMap component has ≥90% test coverage, all tests passing
+
+### Subphase 5.5: Integration & Polish
+
+**Purpose**: Ensure all Phase 5 enhancements work together seamlessly
+
+- [ ] T119 End-to-end manual test: Create trip with 3 locations with GPS coordinates
+- [ ] T120 Verify numbered markers display correctly (1, 2, 3)
+- [ ] T121 Test fullscreen mode: Enter fullscreen, verify map expands, exit fullscreen
+- [ ] T122 Simulate network error: Disable network, verify error message appears
+- [ ] T123 Test retry functionality: Re-enable network, click retry, verify map loads
+- [ ] T124 Test map state preservation: Zoom in, trigger error, retry, verify zoom level maintained
+- [ ] T125 Test accessibility: Keyboard navigation, screen reader labels for markers
+- [ ] T126 Test responsive design: Mobile view (< 640px), tablet view (640-1024px), desktop (>1024px)
+- [ ] T127 Visual regression check: Compare map rendering before/after Phase 5 changes
+- [ ] T128 Performance test: Load trip with 20 locations, verify map renders in <2 seconds (SC-009)
+- [ ] T129 Update TESTING_GUIDE.md with Phase 5 test cases (error handling, fullscreen, numbered markers)
+- [ ] T130 Document known limitations (browser fullscreen API support, offline maps not supported)
+
+**Checkpoint**: Phase 5 complete - all enhancements working correctly with no regressions
+
+---
+
+## Implementation Summary
+
+### Completed Phases
+
+**Phase 1**: Setup ✅
+
+- Dependencies verified (Pydantic, Zod, react-leaflet)
+
+**Phase 2**: Foundational ✅
+
+- Backend: LocationInput schema with coordinate validation
+- Frontend: TypeScript types, Zod validation, form helpers
+- Zod validation for frontend
+- LocationInput schema with coordinate fields
+- TripService coordinate storage
+
+**Phase 3**: Backend TDD Tests ✅
+
+- 41 tests passing (32 unit + 9 integration)
+- Coverage: 83.24% for `backend/src/schemas/trip.py`
+- Contract tests deferred (see PHASE3_PLAN.md for future scenarios)
+
+**Phase 4**: Frontend UI Implementation ✅
+
+- LocationInput component (187 lines)
+- Step1BasicInfo updated (+114 lines)
+- Step4Review updated (+93 lines)
+- tripHelpers.ts coordinate utilities (+97 lines)
+- Manual testing guide (TESTING_GUIDE.md - 8 test suites)
+- 7 bugs fixed during testing (defensive checks, enum values, empty fields)
+
+### Pending Phases
+
+**Phase 5**: Map Visualization Enhancements ⏸️
+
+- Numbered markers with custom icons
+- Error handling with retry button
+- Fullscreen mode
+- Unit tests for TripMap (T020-T023 + new tests)
+- Target: ≥90% test coverage for TripMap.tsx
+
 ### Estimated Effort
 
-**Completed Work**: ~22 hours
+**Completed Work**: ~24 hours
+
 - Setup + Foundational: ~6 hours
 - Phase 3 (TDD Tests): ~8 hours
-- Phase 4 (Frontend UI): ~8 hours
+- Phase 4 (Frontend UI + Bug Fixes): ~10 hours
 
-**Remaining Work**: ~14-20 hours
-- Phase 5 (US3 - Edit Coordinates): ~4-6 hours
-- Phase 6 (Map Error Handling): ~4-6 hours
-- Phase 7 (Polish): ~6-8 hours
+**Remaining Work (Phase 5)**: ~10-14 hours
 
-**Total Estimated Effort**: ~36-42 hours (original estimate: 25-30 hours)
-- Difference due to comprehensive manual testing guide and deferred automated tests
+- Numbered Markers: ~2 hours (6 tasks)
+- Error Handling: ~3-4 hours (9 tasks)
+- Fullscreen Mode: ~2-3 hours (10 tasks)
+- Unit Testing: ~3-4 hours (13 tasks)
+- Integration & Polish: ~2-3 hours (12 tasks)
+
+**Total Estimated Effort**: ~34-38 hours (original estimate: 25-30 hours)
+
+- Actual effort higher due to comprehensive testing and bug fixes
 
 ### Next Steps
 
 **Immediate** (User Action):
+
 1. ✅ Phase 3 PR merged to develop
-2. ⏳ Phase 4 manual testing via TESTING_GUIDE.md
-3. ⏳ Phase 4 PR to develop
+2. ✅ Phase 4 completed (manual testing, 7 bugs fixed, MVP achieved)
+3. ✅ Phase 5 planned (plan.md and tasks.md updated)
+4. ⏸️ Phase 5 implementation ready to start
 
-**Future Enhancements**:
-- Phase 5: Edit coordinate functionality
-- Phase 6: Map error handling with retry
-- Phase 7: Documentation, test automation, polish
+**Recommended Approach for Phase 5**:
 
-**Ready for Implementation**: Tasks are specific, testable, and executable. TDD workflow followed for backend, manual testing for frontend (no test infrastructure yet).
+1. Start with Subphase 5.1 (Numbered Markers) - Quick win, visible improvement
+2. Then Subphase 5.2 (Error Handling) - Critical for production reliability
+3. Then Subphase 5.3 (Fullscreen Mode) - UX enhancement
+4. Finally Subphase 5.4 (Unit Testing) - Ensure quality and prevent regressions
+5. Finish with Subphase 5.5 (Integration & Polish) - Validate everything works together
+
+**Ready for Implementation**: Tasks are specific, testable, and executable. Phase 5 can be implemented incrementally with each subphase delivering independent value.
