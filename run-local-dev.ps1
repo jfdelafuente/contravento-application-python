@@ -288,6 +288,21 @@ try {
 
         Set-Location frontend
 
+        # Check if .env.development exists, create from example if not
+        if (!(Test-Path ".env.development")) {
+            if (Test-Path ".env.development.example") {
+                Write-Host "[WARNING] .env.development not found. Creating from .env.development.example..." -ForegroundColor Yellow
+                Copy-Item .env.development.example .env.development
+                Write-Host "[SUCCESS] Created .env.development with default values" -ForegroundColor Green
+            } else {
+                Write-Host "[ERROR] .env.development.example not found!" -ForegroundColor Red
+                Set-Location ..
+                Stop-Job $BackendJob
+                Remove-Job $BackendJob
+                exit 1
+            }
+        }
+
         # Check if node_modules exists
         if (!(Test-Path "node_modules")) {
             Write-Host "[WARNING] node_modules not found. Running npm install..." -ForegroundColor Yellow

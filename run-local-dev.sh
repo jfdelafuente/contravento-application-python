@@ -269,6 +269,20 @@ start_server() {
 
         cd frontend
 
+        # Check if .env.development exists, create from example if not
+        if [ ! -f ".env.development" ]; then
+            if [ -f ".env.development.example" ]; then
+                print_warning ".env.development not found. Creating from .env.development.example..."
+                cp .env.development.example .env.development
+                print_success "Created .env.development with default values"
+            else
+                print_error ".env.development.example not found!"
+                cd ..
+                kill $BACKEND_PID
+                exit 1
+            fi
+        fi
+
         # Check if node_modules exists
         if [ ! -d "node_modules" ]; then
             print_warning "node_modules not found. Running npm install..."

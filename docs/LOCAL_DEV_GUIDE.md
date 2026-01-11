@@ -186,7 +186,7 @@ Cuando visitas <http://localhost:5173> en el navegador, el frontend Vite actúa 
 
 **Configuración Frontend (Primera vez)**:
 
-El frontend ya viene con `.env.development` configurado para desarrollo local:
+El frontend usa `.env.development.example` como template. El script lo copia automáticamente:
 
 ```env
 VITE_API_URL=http://localhost:8000
@@ -195,7 +195,7 @@ VITE_ENV=development
 VITE_DEBUG=true
 ```
 
-✅ **No necesitas crear ni modificar nada** - funciona out-of-the-box.
+✅ **No necesitas crear ni modificar nada** - el script detecta si falta `.env.development` y lo crea automáticamente desde `.env.development.example`.
 
 **Flujo de trabajo**:
 
