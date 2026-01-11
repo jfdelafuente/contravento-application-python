@@ -1,6 +1,10 @@
-# Frontend Testing Guide - GPS Coordinates (Phase 4)
+# Frontend Testing Guide - GPS Coordinates (Phases 4 & 5)
 
-**Feature**: 009-gps-coordinates (Phase 4 - Frontend UI)
+**Feature**: 009-gps-coordinates
+
+- **Phase 4**: Frontend UI (LocationInput component)
+- **Phase 5**: Map Visualization Enhancements
+
 **Date**: 2026-01-11
 **Branch**: `009-gps-coordinates-frontend`
 
@@ -494,18 +498,400 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
+---
+
+## Phase 5: Map Visualization Enhancements Testing
+
+### Test Suite 10: Numbered Markers (Subphase 5.1)
+
+#### T10.1 - Marker Numbering Display
+
+- [ ] **Navigate** to trip detail page with 3+ GPS locations
+- [ ] **Verify** map displays with numbered markers (1, 2, 3...)
+- [ ] **Check** markers display in sequence order (not creation order)
+- [ ] **Verify** marker numbers match location list order below map
+
+#### T10.2 - Marker Popup Content
+
+- [ ] **Click** on marker #1
+- [ ] **Verify** popup shows: "1. [Location Name]"
+- [ ] **Click** on marker #2
+- [ ] **Verify** popup shows: "2. [Location Name]"
+- [ ] **Close** popup by clicking map background
+
+#### T10.3 - Single Location Marker
+
+- [ ] **Create** trip with only 1 GPS location
+- [ ] **View** trip detail page
+- [ ] **Verify** marker shows "1" (numbered even for single location)
+
+---
+
+### Test Suite 11: Error Handling (Subphase 5.2)
+
+#### T11.1 - Tile Loading Error Display
+
+- [ ] **Open** trip detail page with GPS coordinates
+- [ ] **Simulate** network failure (DevTools → Network → Offline mode)
+- [ ] **Reload** page
+- [ ] **Verify** error message displays: "Error al cargar el mapa"
+- [ ] **Verify** message shows: "No se pudieron cargar las imágenes del mapa. Verifica tu conexión a internet."
+- [ ] **Verify** "Reintentar" button visible
+
+#### T11.2 - Retry Functionality
+
+- [ ] **With** network still offline, click "Reintentar"
+- [ ] **Verify** error persists (network still unavailable)
+- [ ] **Enable** network (DevTools → Network → Online mode)
+- [ ] **Click** "Reintentar" button
+- [ ] **Verify** map loads successfully
+- [ ] **Verify** markers and polyline display correctly
+
+#### T11.3 - Fallback Location List
+
+- [ ] **When** map error displays
+- [ ] **Verify** location list still visible below error message
+- [ ] **Verify** list shows all locations with "Sin coordenadas GPS" for text-only entries
+- [ ] **Verify** locations with coordinates show formatted lat/lng
+
+#### T11.4 - Error State - No Fullscreen Button
+
+- [ ] **With** map in error state
+- [ ] **Verify** fullscreen toggle button NOT visible
+- [ ] **After** clicking "Reintentar" and map loads
+- [ ] **Verify** fullscreen button appears in top-right corner
+
+---
+
+### Test Suite 12: Fullscreen Mode (Subphase 5.3)
+
+#### T12.1 - Enter Fullscreen Mode
+
+- [ ] **Navigate** to trip detail page with GPS map
+- [ ] **Locate** fullscreen button (top-right corner, expand arrows icon)
+- [ ] **Verify** button tooltip: "Pantalla completa"
+- [ ] **Click** fullscreen button
+- [ ] **Verify** map expands to fill entire viewport
+- [ ] **Verify** location list hidden in fullscreen
+- [ ] **Verify** button icon changes to X (exit fullscreen)
+
+#### T12.2 - Exit Fullscreen Mode
+
+- [ ] **While** in fullscreen mode
+- [ ] **Verify** button tooltip now shows: "Salir de pantalla completa (Esc)"
+- [ ] **Click** exit fullscreen button (X icon)
+- [ ] **Verify** map returns to normal size
+- [ ] **Verify** location list reappears below map
+- [ ] **Verify** button icon returns to expand arrows
+
+#### T12.3 - Keyboard Shortcut (Escape)
+
+- [ ] **Enter** fullscreen mode
+- [ ] **Press** Escape key
+- [ ] **Verify** map exits fullscreen
+- [ ] **Verify** layout returns to normal
+
+#### T12.4 - Fullscreen State Persistence
+
+- [ ] **Enter** fullscreen mode
+- [ ] **Zoom** in on map (mouse wheel or +/- buttons)
+- [ ] **Pan** map to different area
+- [ ] **Exit** fullscreen
+- [ ] **Verify** zoom level maintained
+- [ ] **Verify** map center position preserved
+
+#### T12.5 - Dark Mode Support (if enabled)
+
+- [ ] **Enable** browser/OS dark mode
+- [ ] **Verify** fullscreen button adapts to dark theme
+- [ ] **Enter** fullscreen
+- [ ] **Verify** background color appropriate for dark mode
+
+---
+
+### Test Suite 13: Accessibility (Phase 5)
+
+#### T13.1 - Fullscreen Button Accessibility
+
+- [ ] **Use** Tab key to navigate page
+- [ ] **Verify** fullscreen button receives focus with visible outline
+- [ ] **Press** Enter or Space to activate button
+- [ ] **Verify** fullscreen mode toggles
+- [ ] **With** screen reader, verify button label announces correctly
+
+#### T13.2 - Marker Keyboard Navigation
+
+- [ ] **Tab** to map container
+- [ ] **Use** arrow keys to pan map
+- [ ] **Use** +/- keys to zoom
+- [ ] **Verify** keyboard navigation works in both normal and fullscreen modes
+
+#### T13.3 - ARIA Labels for Markers
+
+- [ ] **Enable** screen reader
+- [ ] **Navigate** to map markers
+- [ ] **Verify** each marker announces: "Marcador [number]: [Location Name]"
+- [ ] **Verify** popup content announced when opened
+
+#### T13.4 - Error Message Accessibility
+
+- [ ] **Trigger** map error state
+- [ ] **With** screen reader, verify error message announced
+- [ ] **Verify** "Reintentar" button has clear label
+- [ ] **Verify** error region has aria-live="polite" for dynamic updates
+
+---
+
+### Test Suite 14: Responsive Design (Phase 5)
+
+#### T14.1 - Mobile View (< 640px) - Map Display
+
+- [ ] **Resize** browser to 375px width
+- [ ] **View** trip with GPS map
+- [ ] **Verify** map container responsive (no horizontal scroll)
+- [ ] **Verify** fullscreen button sized appropriately (40x40px)
+- [ ] **Verify** location list stacks vertically below map
+
+#### T14.2 - Tablet View (640px - 1024px)
+
+- [ ] **Resize** to 768px width
+- [ ] **Verify** map displays with proper aspect ratio
+- [ ] **Enter** fullscreen mode
+- [ ] **Verify** map fills viewport correctly on tablet size
+
+#### T14.3 - Desktop View (>1024px)
+
+- [ ] **Resize** to 1920px width
+- [ ] **Verify** map container max-width appropriate
+- [ ] **Verify** markers and polylines render crisply
+- [ ] **Test** fullscreen on large monitor
+
+#### T14.4 - Touch Support (if available)
+
+- [ ] **On** touch device or DevTools device emulation
+- [ ] **Tap** fullscreen button
+- [ ] **Verify** button responds to touch
+- [ ] **Pinch** to zoom map (in fullscreen)
+- [ ] **Swipe** to pan map
+
+---
+
+### Test Suite 15: Performance (Phase 5)
+
+#### T15.1 - Map Load Time (SC-009)
+
+- [ ] **Open** trip detail page with 3 GPS locations
+- [ ] **Measure** time from page load to map fully rendered
+- [ ] **Verify** map renders in <2 seconds (SC-009 requirement)
+- [ ] **Check** browser DevTools → Network → Timing
+
+#### T15.2 - Map with Many Locations (20+)
+
+- [ ] **Create** trip with 20 GPS locations
+- [ ] **View** trip detail page
+- [ ] **Verify** map loads without lag
+- [ ] **Verify** all 20 numbered markers display
+- [ ] **Verify** polyline connects all locations smoothly
+- [ ] **Zoom/pan** map, verify smooth performance
+
+#### T15.3 - Fullscreen Transition Performance
+
+- [ ] **Toggle** fullscreen mode rapidly (5 times)
+- [ ] **Verify** no visual glitches or lag
+- [ ] **Verify** smooth CSS transitions (0.3s duration)
+- [ ] **Check** browser DevTools → Performance → no frame drops
+
+#### T15.4 - Memory Usage
+
+- [ ] **Open** trip with map
+- [ ] **Check** DevTools → Memory → Take heap snapshot
+- [ ] **Enter/exit** fullscreen 10 times
+- [ ] **Take** another heap snapshot
+- [ ] **Verify** no significant memory leaks (should be similar sizes)
+
+---
+
+### Test Suite 16: Integration (Phase 5)
+
+#### T16.1 - End-to-End: Create Trip with GPS → View Map
+
+- [ ] **Navigate** to Create Trip page (`/trips/create`)
+- [ ] **Fill** trip details (title, dates, distance, difficulty)
+- [ ] **Add** 3 locations with GPS coordinates:
+  - Location 1: "Madrid" (40.416775, -3.703790)
+  - Location 2: "Valencia" (39.469907, -0.376288)
+  - Location 3: "Barcelona" (41.385064, 2.173404)
+- [ ] **Submit** trip (publish or save as draft)
+- [ ] **Navigate** to trip detail page
+- [ ] **Verify** map displays with 3 numbered markers
+- [ ] **Verify** polyline connects markers in sequence order
+- [ ] **Test** fullscreen mode works
+- [ ] **Test** error handling (simulate offline, retry)
+
+#### T16.2 - Edit Trip: Add GPS to Existing Location
+
+- [ ] **Create** trip with location "Sevilla" (no coordinates)
+- [ ] **View** trip detail → no map shown
+- [ ] **Edit** trip
+- [ ] **Add** coordinates to "Sevilla" (37.389092, -5.984459)
+- [ ] **Save** trip
+- [ ] **Verify** map now displays on detail page
+- [ ] **Verify** marker shows "1. Sevilla"
+
+#### T16.3 - Mixed Locations (Some with GPS, Some without)
+
+- [ ] **Create** trip with:
+  - Location 1: "Granada" (37.177336, -3.598557) ✅ GPS
+  - Location 2: "Córdoba" (no coordinates) ❌ No GPS
+  - Location 3: "Málaga" (36.721261, -4.421408) ✅ GPS
+- [ ] **View** trip detail page
+- [ ] **Verify** map displays only locations 1 and 3
+- [ ] **Verify** markers numbered 1, 2 (skipping location without GPS)
+- [ ] **Verify** location list shows all 3 locations
+- [ ] **Verify** "Córdoba" shows "Sin coordenadas GPS"
+
+---
+
+### Test Suite 17: Edge Cases (Phase 5)
+
+#### T17.1 - Single Location (No Polyline)
+
+- [ ] **Create** trip with 1 GPS location
+- [ ] **View** trip detail
+- [ ] **Verify** map displays with single numbered marker
+- [ ] **Verify** NO polyline rendered (only 1 point)
+- [ ] **Verify** map centered on single location
+- [ ] **Verify** zoom level appropriate (12 for city-level)
+
+#### T17.2 - Two Locations (Single Polyline Segment)
+
+- [ ] **Create** trip with 2 GPS locations
+- [ ] **Verify** map shows 2 numbered markers
+- [ ] **Verify** single polyline segment connects them
+- [ ] **Verify** polyline style: blue (#2563eb), dashed (10, 10)
+
+#### T17.3 - Locations in Close Proximity
+
+- [ ] **Create** trip with 3 locations within 1km radius
+- [ ] **Verify** map auto-zooms to show all markers
+- [ ] **Verify** markers don't overlap (proper spacing)
+- [ ] **Verify** polyline visible between close points
+
+#### T17.4 - Locations Spanning Long Distance
+
+- [ ] **Create** trip with locations across Spain:
+  - "A Coruña" (43.362343, -8.411540)
+  - "Cádiz" (36.529461, -6.292337)
+- [ ] **Verify** map zoom level adjusts to fit both points
+- [ ] **Verify** polyline spans entire distance
+- [ ] **Enter** fullscreen for better view
+
+#### T17.5 - Zero Locations with GPS
+
+- [ ] **Create** trip with only text-based locations (no coordinates)
+- [ ] **View** trip detail page
+- [ ] **Verify** map section NOT displayed
+- [ ] **Verify** message shown: "No hay ubicaciones con coordenadas GPS en este viaje"
+- [ ] **Verify** location list still shows text-based locations
+
+---
+
+### Test Suite 18: Browser Compatibility (Phase 5)
+
+#### T18.1 - Fullscreen API Support
+
+- [ ] **Test** in Chrome/Edge (Chromium)
+  - Fullscreen API: ✅ Supported
+  - Verify fullscreen works
+- [ ] **Test** in Firefox
+  - Fullscreen API: ✅ Supported
+  - Verify fullscreen works
+- [ ] **Test** in Safari
+  - Fullscreen API: ✅ Supported (webkit prefix)
+  - Verify fullscreen works
+- [ ] **If** browser doesn't support Fullscreen API:
+  - Verify graceful degradation (button hidden or disabled)
+
+#### T18.2 - Leaflet Map Rendering
+
+- [ ] **Test** map tiles load in all browsers
+- [ ] **Verify** marker icons render correctly
+- [ ] **Verify** polyline renders smoothly
+- [ ] **Test** zoom/pan interactions
+
+---
+
+## Known Limitations (Phase 5)
+
+### Browser Support
+
+- **Fullscreen API**: Requires modern browser (Chrome 71+, Firefox 64+, Safari 16.4+, Edge 79+)
+  - Older browsers: Fullscreen button hidden or non-functional
+- **Offline Maps**: Not supported - requires internet connection for tile loading
+- **iOS Safari**: Fullscreen may behave differently due to Safari's unique fullscreen implementation
+
+### Performance
+
+- **Large Number of Locations**: Maps with >50 locations may experience slight lag
+  - Recommendation: Keep trips under 50 locations for optimal performance
+- **Slow Network**: Tile loading depends on network speed
+  - Users on slow connections may see tiles load progressively
+
+### Accessibility
+
+- **Map Navigation**: Keyboard navigation limited by Leaflet.js capabilities
+  - Tab navigation works for fullscreen button and retry button
+  - Arrow key map panning may not work in all screen readers
+- **Marker Click**: Screen reader support for map markers varies by browser
+
+### Known Issues
+
+- **Tile Loading Error**: Occasionally tiles fail to load due to OpenStreetMap rate limiting
+  - Workaround: Click "Reintentar" button
+- **Fullscreen Exit**: On some browsers, Escape key may not exit fullscreen consistently
+  - Workaround: Click exit fullscreen button (X icon)
+
+---
+
 ## Next Steps After Testing
 
 1. **Fix any bugs** found during manual testing
 2. **Update** this checklist with actual results
-3. **Commit** Phase 4 changes to `009-gps-coordinates-frontend` branch
-4. **Create PR** to merge to `develop`
-5. **Plan Phase 5** (Map Visualization - Future Enhancement)
+3. **Commit** Phase 5 changes to `009-gps-coordinates-frontend` branch
+4. **Create PR** to merge to `main`
+5. **Deploy** to production
+
+---
+
+## Success Criteria Summary
+
+### Phase 4 (Frontend UI)
+
+- [x] SC-F01: Coordinate input fields functional
+- [x] SC-F02: Add/remove locations working
+- [x] SC-F03: Validation displays Spanish errors
+- [x] SC-F04: Review step shows coordinates
+- [x] SC-F05: API payload includes coordinates
+- [x] SC-F06: Backend accepts and returns coordinates
+- [ ] SC-F07: Accessible keyboard navigation
+- [ ] SC-F08: Mobile responsive design
+
+### Phase 5 (Map Enhancements)
+
+- [x] SC-M01: Numbered markers display in sequence order
+- [x] SC-M02: Polyline connects locations with dashed line
+- [x] SC-M03: Error handling with retry functionality
+- [x] SC-M04: Fullscreen mode with smooth transitions
+- [x] SC-M05: Unit tests achieve ≥90% coverage (97.82%)
+- [ ] SC-M06: Map loads in <2 seconds (SC-009)
+- [ ] SC-M07: Accessible marker navigation
+- [ ] SC-M08: Responsive on mobile/tablet/desktop
 
 ---
 
 **Testing Completed By**: _______________
 **Date**: _______________
-**All Tests Passed**: ☐ Yes ☐ No (see notes below)
+**Phase 4 Tests Passed**: ☐ Yes ☐ No
+**Phase 5 Tests Passed**: ☐ Yes ☐ No
 
 **Notes**:
