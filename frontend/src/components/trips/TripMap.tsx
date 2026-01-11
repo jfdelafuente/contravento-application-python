@@ -8,8 +8,8 @@
  * - TripDetailPage (location section, conditionally rendered)
  */
 
-import React, { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import React, { useMemo, useState, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
@@ -24,12 +24,44 @@ interface TripMapProps {
   tripTitle: string;
 }
 
+/**
+ * TileError Component
+ * Listens for tile loading errors and notifies parent component
+ */
+interface TileErrorListenerProps {
+  onError: () => void;
+}
+
+const TileErrorListener: React.FC<TileErrorListenerProps> = ({ onError }) => {
+  useMapEvents({
+    tileerror: () => {
+      onError();
+    },
+  });
+  return null;
+};
+
 export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
+  // Error state for map tile loading failures
+  const [hasMapError, setHasMapError] = useState(false);
+  const [mapKey, setMapKey] = useState(0); // Key for re-mounting MapContainer on retry
+
   // Filter locations that have coordinates
   const validLocations = useMemo(
     () => locations.filter((loc) => loc.latitude !== null && loc.longitude !== null),
     [locations]
   );
+
+  // Handle tile loading errors
+  const handleTileError = useCallback(() => {
+    setHasMapError(true);
+  }, []);
+
+  // Retry map loading by re-mounting the MapContainer
+  const handleRetry = useCallback(() => {
+    setHasMapError(false);
+    setMapKey((prev) => prev + 1); // Force re-mount with new key
+  }, []);
 
   // Calculate map center (average of all coordinates)
   const center: LatLngExpression = useMemo(() => {
@@ -108,17 +140,56 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
 
   return (
     <div className="trip-map">
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        scrollWheelZoom={true}
-        className="trip-map__container"
-      >
-        {/* OpenStreetMap Tiles */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+      {/* Error State UI */}
+      {hasMapError && (
+        <div className="trip-map__error">
+          <div className="trip-map__error-icon">
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h3 className="trip-map__error-title">Error al cargar el mapa</h3>
+          <p className="trip-map__error-message">
+            No se pudieron cargar las imágenes del mapa. Verifica tu conexión a internet e intenta
+            nuevamente.
+          </p>
+          <button
+            type="button"
+            className="trip-map__error-button"
+            onClick={handleRetry}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {/* Map Container */}
+      {!hasMapError && (
+        <MapContainer
+          key={mapKey}
+          center={center}
+          zoom={zoom}
+          scrollWheelZoom={true}
+          className="trip-map__container"
+        >
+          {/* Tile Error Listener */}
+          <TileErrorListener onError={handleTileError} />
+
+          {/* OpenStreetMap Tiles */}
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
         {/* Route Polyline (if multiple locations) */}
         {routePath.length > 1 && (
@@ -152,7 +223,8 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
               </Popup>
             </Marker>
           ))}
-      </MapContainer>
+        </MapContainer>
+      )}
 
       {/* Location List */}
       <div className="trip-map__locations">

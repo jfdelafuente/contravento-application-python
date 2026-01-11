@@ -439,3 +439,133 @@
   border-color: #60a5fa;
   box-shadow: 0 4px 12px rgba(30, 64, 175, 0.5);
 }
+
+/* ============================================================================
+   Error State UI (Phase 5.2)
+   ============================================================================ */
+
+.trip-map__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 40px 24px;
+  background-color: var(--bg-tertiary, #fef2f2);
+  border-radius: 12px;
+  border: 2px solid #fecaca;
+  text-align: center;
+}
+
+.trip-map__error-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: #dc2626;
+}
+
+.trip-map__error-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.trip-map__error-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 8px 0;
+}
+
+.trip-map__error-message {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 20px 0;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.trip-map__error-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.trip-map__error-button:hover {
+  background-color: #1e40af;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.trip-map__error-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.trip-map__error-button:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Dark mode for error state */
+@media (prefers-color-scheme: dark) {
+  .trip-map__error {
+    background-color: #7f1d1d;
+    border-color: #991b1b;
+  }
+
+  .trip-map__error-icon {
+    color: #fca5a5;
+  }
+
+  .trip-map__error-title {
+    color: #fef2f2;
+  }
+
+  .trip-map__error-message {
+    color: #fecaca;
+  }
+
+  .trip-map__error-button {
+    background-color: #1e40af;
+  }
+
+  .trip-map__error-button:hover {
+    background-color: #1e3a8a;
+  }
+}
+
+/* Responsive error UI */
+@media (max-width: 767px) {
+  .trip-map__error {
+    min-height: 300px;
+    padding: 30px 20px;
+  }
+
+  .trip-map__error-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .trip-map__error-title {
+    font-size: 1.125rem;
+  }
+
+  .trip-map__error-message {
+    font-size: 0.875rem;
+  }
+
+  .trip-map__error-button {
+    padding: 10px 20px;
+    font-size: 0.875rem;
+  }
+}
