@@ -1,232 +1,204 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-09
-**Estado actual**: Feature 005 completada, listo para Feature 006
+**Última actualización**: 2026-01-11
+**Estado actual**: Feature 009 completada, listo para Feature 010
 
 ---
 
 ## Estado Actual ✅
 
-### Feature 005: Frontend User Authentication (COMPLETADA)
+### Feature 009: GPS Coordinates Frontend (COMPLETADA)
 
-**Branch**: `005-frontend-user-profile`
-**Status**: ✅ Listo para PR hacia `main`
-**Commits**: 10 commits con diseño rústico completo
+**Branch**: `009-gps-coordinates-frontend` → **MERGED to develop**
+**Status**: ✅ Completada y mergeada
+**Merge date**: 2026-01-11
 
 **Logros**:
-- ✅ Sistema de autenticación completo (login, register, verify, forgot/reset)
-- ✅ Diseño rústico de viajes aplicado a todas las páginas
-- ✅ Protección de rutas y gestión de sesiones
-- ✅ Dashboard y Profile (placeholders funcionales)
-- ✅ Sistema de diseño documentado en `frontend/docs/DESIGN_SYSTEM.md`
-- ✅ Flujos de navegación documentados en `specs/005-frontend-user-profile/NAVIGATION_FLOWS.md`
+- ✅ Frontend UI para GPS coordinates con LocationInput component
+- ✅ TripMap component con mapa interactivo (react-leaflet)
+- ✅ Numbered markers y polyline route display
+- ✅ Fullscreen mode para el mapa
+- ✅ Error handling y retry para tiles
+- ✅ Location list con indicador "Sin coordenadas GPS"
+- ✅ Unit tests (TripMap.test.tsx - 601 lines)
+- ✅ Integration tests para edición de coordenadas
+- ✅ Testing documentation y guides
 
-**Archivos clave**:
-- 259 archivos modificados/creados
-- 84,494 inserciones
-- Sistema completo React + TypeScript + Vite
+**Fases implementadas**:
+1. Phase 1-3: Backend integration tests
+2. Phase 4: Frontend UI (LocationInput component)
+3. Phase 5: Map Visualization (TripMap component)
+4. Phase 6: Edit GPS Coordinates
+
+**Commits**: 40 commits mergeados a develop
 
 ---
 
 ## Próximos Pasos Inmediatos 🎯
 
-### 1. Crear Pull Request de Feature 005
+### 1. Feature 010: Geocoding Reverso (SIGUIENTE)
 
-**Acción**: Crear PR en GitHub manualmente
+**Branch**: `010-reverse-geocoding` (a crear)
+**Base**: `develop`
+**Prioridad**: Alta
+**Estimación**: 3-4 días
 
-**URL del PR**: `https://github.com/{tu-repo}/pull/new/005-frontend-user-profile`
+**Objetivo**:
+Permitir a los usuarios hacer click en el mapa para seleccionar ubicaciones automáticamente, utilizando reverse geocoding para obtener el nombre del lugar desde las coordenadas GPS.
 
-**Título sugerido**:
-```
-feat: Frontend User Authentication and Profile System (Phase 8-9)
-```
+**Características principales**:
+- Click en mapa para agregar location con coordenadas
+- Reverse geocoding API para obtener nombre del lugar
+- Modo de edición del mapa en TripForm
+- Drag markers para ajustar coordenadas
+- Validación y feedback visual
 
-**Descripción**: Ver contenido preparado en este documento (sección PR Details)
-
-**Checklist antes de crear PR**:
-- [x] Branch pusheada a origin
-- [x] Commits limpios y descriptivos
-- [x] Documentación completa
-- [x] Testing manual realizado
-- [ ] Crear PR en GitHub UI
-- [ ] Asignar reviewers
-- [ ] Etiquetar como `feature`
-
----
-
-### 2. Iniciar Feature 006: Dashboard Dinámico
-
-**Branch**: `006-dashboard-dynamic`
-**Base**: `main` (después de merge de 005)
-**Estimación**: 2-3 días
-
-**Objetivos**:
-- Dashboard funcional con stats cards reales
-- Recent trips con fotos
-- Quick actions para navegación
-- Welcome banner personalizado
-
-**Spec completa**: `specs/006-dashboard-dynamic/spec.md`
-**Plan de implementación**: `specs/006-dashboard-dynamic/plan.md`
+**APIs a implementar**:
+- Backend: Endpoint para reverse geocoding (Nominatim OSM API)
+- Frontend: Hook `useMapClick` para captura de coordenadas
+- Frontend: Modal de confirmación para lugares seleccionados
 
 **Comandos para empezar**:
 ```bash
-# Después de merge de 005 a main
-git checkout main
-git pull origin main
-git checkout -b 006-dashboard-dynamic
+# Crear nueva branch desde develop
+git checkout develop
+git pull origin develop
+git checkout -b 010-reverse-geocoding
 
-# Iniciar desarrollo
-cd frontend
-npm run dev
+# Crear estructura de especificación
+mkdir -p specs/010-reverse-geocoding
 ```
 
 ---
 
 ## Roadmap de Features 🗺️
 
-### Feature 005: Frontend User Auth ✅ COMPLETADA
+### ✅ Features Completadas
+
+#### Feature 001: User Profiles Backend ✅
+- Sistema de autenticación backend
+- Perfiles de usuario
+- Stats tracking
+
+#### Feature 002: Travel Diary Backend ✅
+- Trips CRUD
+- Photos upload
+- Tags system
+- Draft workflow
+
+#### Feature 005: Frontend User Auth ✅
 - Sistema de autenticación completo
 - Diseño rústico aplicado
 - Dashboard y Profile placeholders
 
-### Feature 006: Dashboard Dinámico (SIGUIENTE)
-- **Prioridad**: Alta
-- **Estimación**: 2-3 días
-- **Entregables**:
-  - Stats cards con datos reales del backend
-  - Recent trips section con fotos
-  - Quick actions para navegación
-  - Welcome banner personalizado
-- **APIs a usar**:
-  - `GET /api/stats/me` (ya existe)
-  - `GET /api/users/{username}/trips` (ya existe)
+#### Feature 006: Dashboard Dinámico ✅
+- Stats cards con datos reales
+- Recent trips section
+- Quick actions
 
-### Feature 007: Gestión de Perfil Completa
-- **Prioridad**: Alta
-- **Estimación**: 3-4 días
-- **Entregables**:
-  - Editar perfil (bio, ubicación, tipo de ciclismo)
-  - Upload y crop de foto de perfil
-  - Cambiar contraseña
-  - Configuración de cuenta (privacidad, notificaciones)
-- **APIs a usar**:
-  - `PUT /api/profile/me` (ya existe)
-  - `POST /api/profile/me/photo` (ya existe)
+#### Feature 007: Gestión de Perfil Completa ✅
+- Editar perfil completo
+- Upload y crop de foto de perfil
+- Cambiar contraseña
+- Configuración de cuenta
 
-### Feature 008: Travel Diary Frontend
-- **Prioridad**: Alta
-- **Estimación**: 5-7 días
-- **Entregables**:
-  - Lista de viajes con filtros
-  - Crear viaje (multi-step form)
-  - Detalle de viaje completo
-  - Upload múltiple de fotos (drag & drop)
-  - Sistema de tags interactivo
-- **APIs a usar**:
-  - `POST /api/trips` (ya existe)
-  - `GET /api/trips/{id}` (ya existe)
-  - `POST /api/trips/{id}/photos` (ya existe)
+#### Feature 008: Travel Diary Frontend ✅
+- Lista de viajes con filtros
+- Crear/editar viaje (multi-step form)
+- Detalle de viaje completo
+- Upload múltiple de fotos
+- Sistema de tags interactivo
+- Photo gallery con lightbox
 
-### Feature 009: Social Features Frontend
+#### Feature 009: GPS Coordinates Frontend ✅
+- LocationInput component para coordenadas
+- TripMap component con react-leaflet
+- Numbered markers y route polyline
+- Fullscreen mode
+- Error handling y tile retry
+- Location list con estado "Sin coordenadas GPS"
+
+---
+
+### 🚧 Feature 010: Reverse Geocoding (SIGUIENTE)
+
+**Prioridad**: Alta
+**Estimación**: 3-4 días
+
+**User Stories**:
+1. Como usuario, quiero hacer click en el mapa para seleccionar ubicaciones automáticamente
+2. Como usuario, quiero que el sistema obtenga el nombre del lugar desde las coordenadas GPS
+3. Como usuario, quiero poder arrastrar markers para ajustar coordenadas
+4. Como usuario, quiero confirmar o editar el nombre sugerido antes de agregarlo
+
+**Entregables**:
+- Backend: Endpoint `/api/geocoding/reverse?lat={lat}&lon={lon}`
+- Frontend: `useMapClick` hook para captura de coordenadas
+- Frontend: Modal de confirmación con nombre sugerido
+- Frontend: Drag markers en modo edición
+- Tests: Unit + integration para reverse geocoding
+- Docs: Testing guide y troubleshooting
+
+**APIs a integrar**:
+- Nominatim OpenStreetMap API (https://nominatim.openstreetmap.org/)
+- Rate limiting: 1 req/sec máximo
+- Cache de resultados para evitar duplicados
+
+**Arquitectura**:
+```
+User clicks map
+    ↓
+Capture lat/lng
+    ↓
+Call /api/geocoding/reverse
+    ↓
+Backend calls Nominatim API
+    ↓
+Return place name + address
+    ↓
+Show confirmation modal
+    ↓
+User confirms → Add to locations list
+```
+
+---
+
+### ⏳ Features Futuras
+
+#### Feature 003: GPS Routes (Backend complejo)
+- **Prioridad**: Media-Alta
+- **Estimación**: 7-10 días
+- **Estado**: ❌ NO implementada (solo spec draft)
+- Upload y procesamiento de archivos GPX
+- Perfil de elevación interactivo
+- Estadísticas avanzadas (velocidad, tiempo, gradientes)
+- Puntos de interés en la ruta
+- Análisis de rendimiento
+
+#### Feature 011: Social Features Frontend (Completa Feature 004)
 - **Prioridad**: Media
-- **Estimación**: 4-5 días
-- **Entregables**:
-  - Follow/unfollow users
-  - Followers/following lists
-  - Activity feed
-  - Likes y comments en viajes
-- **APIs a usar**:
-  - `POST /api/social/follow/{username}` (ya existe)
-  - `GET /api/social/followers` (ya existe)
-  - `GET /api/social/activity` (a implementar)
+- **Estimación**: 6-8 días
+- **Backend status**: ⚠️ Parcialmente implementado (solo Follow/Unfollow)
+- **Frontend status**: ❌ No implementado
+- Feed personalizado de viajes
+- Likes y comentarios en viajes
+- Compartir viajes
+- Notificaciones de interacciones
+- **Nota**: Backend tiene Follow/Unfollow, falta Feed, Likes, Comments, Shares, Notifications
 
----
+#### Feature 012: Advanced Search & Filters
+- **Prioridad**: Media
+- **Estimación**: 3-4 días
+- Búsqueda global de viajes
+- Filtros avanzados (distancia, dificultad, tags)
+- Mapa global con clustering
 
-## Detalles del PR para Feature 005
-
-### Título
-```
-feat: Frontend User Authentication and Profile System (Phase 8-9)
-```
-
-### Descripción Completa
-
-```markdown
-## Resumen
-
-Implementación completa del sistema de autenticación frontend con React 18 + TypeScript 5 + Vite, incluyendo diseño rústico de viajes y gestión completa del flujo de usuario.
-
-## Características Principales
-
-### Sistema de Autenticación
-- ✅ Login con email/password y "remember me"
-- ✅ Registro con validación en tiempo real (username, email)
-- ✅ Verificación de email con tokens
-- ✅ Recuperación de contraseña (forgot/reset)
-- ✅ Protección anti-fuerza bruta (account lockout)
-- ✅ CAPTCHA con Cloudflare Turnstile
-- ✅ Gestión de sesiones con HttpOnly cookies
-
-### Diseño Rústico de Viajes
-- ✅ Paleta de colores tierra (oliva, marrón, crema)
-- ✅ Tipografía: Playfair Display, Merriweather, Inter
-- ✅ Gradientes diagonales en headers
-- ✅ Texturas sutiles con repeating-linear-gradient
-- ✅ Clip-path para efectos diagonales
-- ✅ Animaciones slideUp, slideDown, stroke
-- ✅ Diseño responsive mobile-first
-- ✅ Sistema de diseño documentado
-
-### Páginas Implementadas
-- WelcomePage, LoginPage, RegisterPage
-- ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage
-- DashboardPage, ProfilePage (protegidas)
-
-### Seguridad
-- HttpOnly cookies (no localStorage)
-- CSRF protection
-- Rate limiting visual
-- CAPTCHA en registro
-- Validación de tokens
-
-## Testing Manual
-
-### Setup
-\`\`\`bash
-# Backend
-cd backend
-./run-local-dev.sh --setup
-
-# Frontend
-cd frontend
-npm install
-npm run dev  # http://localhost:3001
-\`\`\`
-
-### Credenciales
-- Admin: admin / AdminPass123!
-- Usuario: testuser / TestPass123!
-
-## Checklist
-
-- [x] Todas las páginas implementadas
-- [x] Diseño rústico aplicado
-- [x] Validaciones funcionando
-- [x] Protección de rutas
-- [x] Error handling robusto
-- [x] Responsive design
-- [x] Documentación completa
-- [x] Testing manual
-
-## Próximos Pasos
-
-Feature 006: Dashboard Dinámico con stats cards, recent trips, y quick actions.
-
----
-
-🎨 Rustic Travel Aesthetic | 🔐 Security First | 📱 Mobile Ready | 📚 Well Documented
-```
+#### Feature 013: Route Export & Import
+- **Prioridad**: Baja
+- **Estimación**: 2-3 días
+- Export routes to GPX/KML
+- Import routes from Strava/Komoot
+- Route statistics and elevation
 
 ---
 
@@ -240,11 +212,13 @@ git status
 # Ver commits recientes
 git log --oneline -10
 
-# Crear nueva branch para feature 006
-git checkout -b 006-dashboard-dynamic
+# Crear nueva branch para feature 010
+git checkout develop
+git pull origin develop
+git checkout -b 010-reverse-geocoding
 
 # Push de branch
-git push -u origin 006-dashboard-dynamic
+git push -u origin 010-reverse-geocoding
 ```
 
 ### Frontend Development
@@ -254,13 +228,13 @@ cd frontend
 npm install
 
 # Dev server
-npm run dev  # http://localhost:3001
+npm run dev  # http://localhost:5173
+
+# Run tests
+npm run test
 
 # Build
 npm run build
-
-# Preview build
-npm run preview
 ```
 
 ### Backend Development
@@ -272,6 +246,9 @@ cd backend
 # Solo iniciar servidor
 ./run-local-dev.sh
 
+# Run tests
+poetry run pytest
+
 # Ver logs de API
 tail -f backend/logs/app.log
 ```
@@ -282,15 +259,18 @@ tail -f backend/logs/app.log
 
 ### Documentación del Proyecto
 - **CLAUDE.md**: Guía principal del proyecto
-- **QUICK_START.md**: Inicio rápido
-- **frontend/docs/DESIGN_SYSTEM.md**: Sistema de diseño completo
-- **specs/005-frontend-user-profile/NAVIGATION_FLOWS.md**: Flujos de navegación
+- **frontend/TESTING_GUIDE.md**: Testing guide para GPS coordinates
+- **specs/009-gps-coordinates/**: Especificación completa de Feature 009
 
 ### Especificaciones de Features
 - **specs/001-user-profiles/**: Backend auth & profiles (merged)
 - **specs/002-travel-diary/**: Backend travel diary (merged)
-- **specs/005-frontend-user-profile/**: Frontend auth (completada)
-- **specs/006-dashboard-dynamic/**: Dashboard dinámico (siguiente)
+- **specs/005-frontend-user-profile/**: Frontend auth (merged)
+- **specs/006-dashboard-dynamic/**: Dashboard dinámico (merged)
+- **specs/007-profile-management/**: Gestión de perfil (merged)
+- **specs/008-travel-diary-frontend/**: Travel Diary Frontend (merged)
+- **specs/009-gps-coordinates/**: GPS Coordinates Frontend (merged)
+- **specs/010-reverse-geocoding/**: Reverse Geocoding (a crear)
 
 ### APIs Backend
 - **Swagger Docs**: http://localhost:8000/docs
@@ -301,70 +281,56 @@ tail -f backend/logs/app.log
 
 ---
 
-## Decisiones Pendientes ❓
-
-### Feature 006 (Dashboard)
-- [ ] ¿Implementar activity feed ahora o en Feature 009?
-  - **Recomendación**: Dejarlo para Feature 009 (social)
-- [ ] ¿Mostrar badges/achievements en dashboard?
-  - **Recomendación**: Solo conteo de stats, UI detallada después
-- [ ] ¿Crear página "Nuevo Viaje" ahora o placeholder?
-  - **Recomendación**: Placeholder, Feature 008 es Travel Diary Frontend
-
-### General
-- [ ] ¿Configurar CI/CD para frontend?
-  - **Recomendación**: Después de merge de feature 006
-- [ ] ¿Tests unitarios para React components?
-  - **Recomendación**: Después de tener 2-3 features implementadas
-
----
-
 ## Métricas de Progreso 📊
 
-### Features Completadas
+### Features Completadas (9/13)
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
 - ✅ 005: Frontend User Auth
+- ✅ 006: Dashboard Dinámico
+- ✅ 007: Gestión de Perfil
+- ✅ 008: Travel Diary Frontend
+- ✅ 009: GPS Coordinates Frontend
 
-### Features En Progreso
-- 🚧 006: Dashboard Dinámico (siguiente)
+### Features En Progreso (0/13)
+- (Ninguna en progreso actualmente)
 
-### Features Pendientes
-- ⏳ 007: Gestión de Perfil
-- ⏳ 008: Travel Diary Frontend
-- ⏳ 009: Social Features Frontend
-- ⏳ 003: GPS Routes (backend)
-- ⏳ 004: Social Network (backend completo)
+### Features Pendientes (4/13)
+- 🎯 010: Reverse Geocoding (SIGUIENTE)
+- ⏳ 011: Social Features Frontend
+- ⏳ 012: Advanced Search & Filters
+- ⏳ 013: Route Export & Import
 
-### Líneas de Código
-- **Backend**: ~20,000 líneas (Python)
-- **Frontend**: ~15,000 líneas (TypeScript/React)
-- **Tests**: ~10,000 líneas
-- **Docs**: ~15,000 líneas
-
----
-
-## Contacto y Ayuda 💬
-
-### Recursos de Ayuda
-- **Issues**: Reportar en GitHub issues
-- **Docs**: Ver CLAUDE.md para guías completas
-- **Backend**: Ver backend/docs/ para APIs y arquitectura
-
-### Comandos de Ayuda
-```bash
-# Ver ayuda de scripts
-./run-local-dev.sh --help
-./deploy.sh --help
-
-# Ver estructura del proyecto
-tree -L 2 -I 'node_modules|__pycache__|*.egg-info'
-```
+### Líneas de Código (estimado)
+- **Backend**: ~25,000 líneas (Python)
+- **Frontend**: ~20,000 líneas (TypeScript/React)
+- **Tests**: ~15,000 líneas
+- **Docs**: ~20,000 líneas
 
 ---
 
-**¡Listo para continuar con Feature 006!** 🚀
+## Decisiones Técnicas Recientes 📋
 
-El sistema de autenticación está completo y documentado. Ahora podemos darle vida al dashboard con datos reales y crear una experiencia de usuario rica e informativa.
+### Feature 009 (GPS Coordinates)
+- ✅ Usar react-leaflet para mapa interactivo
+- ✅ OpenStreetMap tiles (gratis, sin API key)
+- ✅ Numbered markers con DivIcon
+- ✅ Fullscreen API nativo del navegador
+- ✅ Error handling con retry para tile loading
+- ✅ Precision de 6 decimales para coordenadas GPS
 
-**Siguiente acción**: Crear PR de Feature 005 en GitHub → Merge → Iniciar Feature 006
+### Feature 010 (Reverse Geocoding) - Pendientes
+- [ ] ¿Usar Nominatim OSM o Google Geocoding API?
+  - **Recomendación**: Nominatim (gratis, sin API key, rate limit 1 req/sec)
+- [ ] ¿Cache de resultados en backend o frontend?
+  - **Recomendación**: Backend cache con Redis (futuro) o SQLite
+- [ ] ¿Modal de confirmación o edición inline?
+  - **Recomendación**: Modal para mejor UX
+
+---
+
+**¡Listo para Feature 010: Reverse Geocoding!** 🚀
+
+El sistema de GPS coordinates está completo y mergeado. Ahora podemos agregar la funcionalidad de reverse geocoding para que los usuarios puedan seleccionar ubicaciones haciendo click en el mapa.
+
+**Siguiente acción**: Crear especificación de Feature 010 → Implementar → Testing → Merge

@@ -210,6 +210,32 @@
 }
 
 /* ============================================================================
+   Draggable Markers (Feature 010 - User Story 2)
+   ============================================================================ */
+
+/* Draggable marker cursor feedback */
+.trip-map__container .leaflet-marker-draggable {
+  cursor: move;
+  cursor: grab;
+}
+
+.trip-map__container .leaflet-marker-draggable:active {
+  cursor: grabbing;
+}
+
+/* Visual feedback during drag */
+.trip-map__container .leaflet-marker-draggable:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Reset transform after drag */
+.trip-map__container .leaflet-marker-draggable:not(:hover) {
+  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+}
+
+/* ============================================================================
    Responsive Design
    ============================================================================ */
 

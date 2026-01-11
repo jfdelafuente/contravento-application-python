@@ -692,6 +692,8 @@ See `.specify/` directory for templates and workflows.
 ## Active Technologies
 - Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, react-leaflet, Leaflet.js (frontend) (009-gps-coordinates)
 - PostgreSQL (production), SQLite (development) - TripLocation model already has latitude/longitude Float columns (009-gps-coordinates)
+- TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x (010-reverse-geocoding)
+- No new backend storage (uses existing TripLocation model) (010-reverse-geocoding)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
@@ -1116,10 +1118,389 @@ npm run dev
 # Access at http://localhost:5173
 ```
 
+## Reverse Geocoding Feature (Feature 010)
+
+The Reverse Geocoding feature enables users to add trip locations by clicking on a map, automatically retrieving place names from coordinates using the Nominatim API (OpenStreetMap).
+
+### Key Features
+
+**User Stories**:
+1. **US1 - Click to Add**: Click map → automatic geocoding → confirm location with suggested name
+2. **US2 - Drag to Adjust**: Drag existing markers → update coordinates → re-geocode automatically
+3. **US3 - Edit Names**: Modify suggested place names before saving
+
+### Core Components
+
+**[LocationConfirmModal.tsx](frontend/src/components/trips/LocationConfirmModal.tsx)**
+Modal component for confirming geocoded locations:
+- Displays suggested place name from reverse geocoding
+- Editable name input (max 200 chars, required)
+- Shows coordinates (latitude, longitude with 6 decimal precision)
+- Loading/error states with Spanish messages
+- Full ARIA accessibility support
+- Mobile-responsive design with touch optimizations
+
+**[useReverseGeocode.ts](frontend/src/hooks/useReverseGeocode.ts)**
+Custom hook for geocoding operations:
+```typescript
+const { geocode, debouncedGeocode, isLoading, error } = useReverseGeocode();
+
+// Immediate geocoding (for map clicks)
+const result = await geocode(lat, lng);
+
+// Debounced geocoding (for drag operations - 1000ms delay)
+debouncedGeocode(lat, lng);
+```
+
+**[geocodingService.ts](frontend/src/services/geocodingService.ts)**
+Service layer for Nominatim API:
+- Rate limit compliance (1 req/sec via debounce)
+- Coordinate validation (lat: -90 to 90, lng: -180 to 180)
+- Spanish place name extraction with fallbacks
+- Error handling with localized messages
+
+**[geocodingCache.ts](frontend/src/utils/geocodingCache.ts)**
+LRU cache for API responses:
+- 100-entry capacity with automatic eviction
+- ~111m precision (rounds to 3 decimal places)
+- Hit/miss tracking with development logging
+- Cache stats API for monitoring
+
+### Implementation Patterns
+
+#### 1. Debouncing Pattern
+
+Prevents rate limit violations during rapid interactions:
+
+```typescript
+// In TripDetailPage - handling marker drag
+const { debouncedGeocode } = useReverseGeocode();
+
+const handleMarkerDrag = (locationId: string, newLat: number, newLng: number) => {
+  // Update coordinates immediately (optimistic update)
+  updateLocationCoordinates(locationId, newLat, newLng);
+
+  // Geocode after 1000ms of no movement (debounced)
+  debouncedGeocode(newLat, newLng);
+};
+```
+
+**Important**: Use `geocode()` for single clicks, `debouncedGeocode()` for drag operations.
+
+#### 2. Cache-First Strategy
+
+Reduces API calls by ~70-80% in typical usage:
+
+```typescript
+// Automatic caching in geocodingService
+export async function reverseGeocode(lat: number, lng: number): Promise<GeocodingResponse> {
+  // Check cache first (O(1) lookup)
+  const cached = geocodingCache.get(lat, lng);
+  if (cached) {
+    console.log('[Cache HIT]', cached);
+    return cached;
+  }
+
+  // Cache miss - call API
+  const response = await callNominatimAPI(lat, lng);
+  geocodingCache.set(lat, lng, response);
+
+  return response;
+}
+```
+
+**Cache precision**: Coordinates are rounded to 3 decimal places (~111 meters at equator).
+
+#### 3. Modal Confirmation Pattern
+
+Two-step workflow for location selection:
+
+```typescript
+const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
+const { geocode } = useReverseGeocode();
+
+// Step 1: Map click → geocode → show modal
+const handleMapClick = async (lat: number, lng: number) => {
+  try {
+    const result = await geocode(lat, lng);
+    setPendingLocation(result); // Triggers modal
+  } catch (error) {
+    toast.error('Error al obtener ubicación');
+  }
+};
+
+// Step 2: User confirms → persist to database
+const handleConfirm = async (name: string, lat: number, lng: number) => {
+  await addLocationToTrip(tripId, { name, latitude: lat, longitude: lng });
+  setPendingLocation(null); // Close modal
+};
+
+<LocationConfirmModal
+  location={pendingLocation}
+  onConfirm={handleConfirm}
+  onCancel={() => setPendingLocation(null)}
+/>
+```
+
+### Accessibility Features (T044)
+
+Full WCAG 2.1 AA compliance:
+
+```typescript
+// Dialog structure
+<div
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="location-modal-title"
+  aria-describedby="location-modal-description"
+>
+  {/* Loading state */}
+  <div role="status" aria-live="polite">
+    <div className="spinner" aria-hidden="true" />
+    <p>Obteniendo nombre del lugar...</p>
+  </div>
+
+  {/* Error state */}
+  <div role="alert" aria-live="assertive">
+    <p>{errorMessage}</p>
+  </div>
+
+  {/* Buttons with context-aware labels */}
+  <button
+    aria-label={!isNameValid ?
+      "Confirmar ubicación (deshabilitado: nombre inválido)" :
+      "Confirmar y guardar la ubicación"
+    }
+    aria-disabled={!isNameValid}
+  >
+    Confirmar ubicación
+  </button>
+</div>
+```
+
+**Screen reader support**:
+- Live regions announce loading/error states
+- Dynamic aria-labels describe button state
+- Keyboard navigation (Tab, Enter, Esc)
+
+### Mobile Responsiveness (T045)
+
+Touch-optimized design for mobile devices:
+
+**Layout**:
+- Bottom-aligned modal on mobile (easier thumb reach)
+- Full-width buttons (stacked vertically)
+- 85vh max height (leaves space for mobile UI)
+
+**Touch Targets**:
+- Minimum 44×44px (iOS Human Interface Guidelines)
+- Confirm button: 48px height
+- Close button: 40×40px on mobile
+
+**Typography**:
+- 16px font size on inputs (prevents iOS zoom on focus)
+- Larger button text (1.0625rem / 17px)
+
+**Device Detection**:
+```css
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .location-confirm-modal-button {
+    min-height: 48px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .location-confirm-modal-button:hover {
+    transform: none;
+  }
+}
+```
+
+### Performance Optimizations
+
+**Cache Performance** (T047):
+- Development logging shows hit/miss rates
+- Enable via `geocodingCache.setLogging(true)`
+- Stats API: `geocodingCache.getStats()`
+
+**Rate Limit Compliance**:
+- 1000ms debounce on drag operations
+- Nominatim limit: 1 request/second
+- 429 error handling with Spanish message
+
+**Network Optimization**:
+- 10-second timeout on API calls
+- Retry logic with exponential backoff
+- Graceful degradation (manual name entry on failure)
+
+### Error Handling
+
+All errors use Spanish messages:
+
+```typescript
+// Validation errors
+throw new Error('Las coordenadas deben estar entre -90 y 90 (latitud), -180 y 180 (longitud)');
+
+// Rate limit (429)
+'Demasiadas solicitudes al servidor de mapas. Espera un momento e intenta de nuevo.'
+
+// Network timeout
+'El servidor de mapas no responde. Verifica tu conexión.'
+
+// Geocoding failure
+'No se pudo obtener el nombre del lugar. Puedes ingresar un nombre manualmente.'
+```
+
+### Testing
+
+**Unit Tests**: [LocationConfirmModal.test.tsx](frontend/tests/unit/LocationConfirmModal.test.tsx)
+- 23/23 tests passing (100% coverage)
+- Name validation, editing, trimming
+- Loading/error states
+- Accessibility features
+- Modal behavior (overlay click, ESC key)
+
+**Manual Testing**: See [TESTING_GUIDE.md](frontend/TESTING_GUIDE.md) - Reverse Geocoding section
+- User Story scenarios (click, drag, edit)
+- Accessibility testing (screen readers)
+- Mobile device testing
+- Performance validation (cache hit rates)
+
+### Common Pitfalls to Avoid
+
+1. **Don't skip debounce for drag**: Always use `debouncedGeocode()` for marker drag events to prevent rate limits
+2. **Don't ignore validation**: Validate coordinates before geocoding (lat: -90 to 90, lng: -180 to 180)
+3. **Don't forget loading states**: Show spinner during API calls to provide feedback
+4. **Don't use geocoding without cache**: Always use the `geocodingService` which includes caching
+5. **Don't hardcode English text**: All user-facing messages must be in Spanish
+6. **Don't assume geocoding always succeeds**: Handle errors gracefully with manual name entry fallback
+7. **Don't skip accessibility attributes**: ARIA labels are required for screen reader support
+8. **Don't ignore mobile UX**: Use touch-friendly targets (44px minimum) and prevent iOS zoom (16px font)
+
+### Integration Example
+
+Complete integration in TripDetailPage:
+
+```typescript
+export const TripDetailPage: React.FC = () => {
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [isMapEditMode, setIsMapEditMode] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
+  const { geocode, debouncedGeocode } = useReverseGeocode();
+
+  // Handle map click (User Story 1)
+  const handleMapClick = async (lat: number, lng: number) => {
+    try {
+      const result = await geocode(lat, lng);
+      setPendingLocation(result);
+    } catch (error: any) {
+      toast.error(error.message || 'Error al geocodificar ubicación');
+    }
+  };
+
+  // Handle marker drag (User Story 2)
+  const handleMarkerDrag = (locationId: string, newLat: number, newLng: number) => {
+    // Optimistic update
+    setTrip(prev => ({
+      ...prev!,
+      locations: prev!.locations.map(loc =>
+        loc.location_id === locationId
+          ? { ...loc, latitude: newLat, longitude: newLng }
+          : loc
+      ),
+    }));
+
+    // Debounced geocoding
+    debouncedGeocode(newLat, newLng);
+  };
+
+  // Handle location confirmation (User Story 3)
+  const handleLocationConfirm = async (name: string, lat: number, lng: number) => {
+    if (pendingLocation?.locationId) {
+      // Update existing location
+      await updateTripLocation(trip!.trip_id, pendingLocation.locationId, {
+        name,
+        latitude: lat,
+        longitude: lng,
+      });
+    } else {
+      // Add new location
+      await addTripLocation(trip!.trip_id, { name, latitude: lat, longitude: lng });
+    }
+
+    setPendingLocation(null);
+    refetchTrip();
+  };
+
+  return (
+    <div>
+      <TripMap
+        locations={trip?.locations || []}
+        tripTitle={trip?.title || ''}
+        isEditMode={isMapEditMode}
+        onMapClick={handleMapClick}
+        onMarkerDrag={handleMarkerDrag}
+      />
+
+      <LocationConfirmModal
+        location={pendingLocation}
+        onConfirm={handleLocationConfirm}
+        onCancel={() => setPendingLocation(null)}
+      />
+    </div>
+  );
+};
+```
+
+### API Reference
+
+**Nominatim API** (OpenStreetMap):
+- Endpoint: `https://nominatim.openstreetmap.org/reverse`
+- Format: `json`
+- Accept-Language: `es` (Spanish names preferred)
+- User-Agent: `ContraVento/1.0` (required by Nominatim)
+- Rate limit: 1 request/second
+
+**Response Structure**:
+```typescript
+interface GeocodingResponse {
+  place_id: number;
+  display_name: string; // Full address
+  address: {
+    leisure?: string;    // Park, garden
+    amenity?: string;    // Restaurant, hospital
+    road?: string;       // Street name
+    city?: string;       // City name
+    country?: string;    // Country name
+    // ... more fields
+  };
+}
+```
+
+### Configuration
+
+**Cache Settings** (in `geocodingCache.ts`):
+```typescript
+const geocodingCache = new GeocodingCache(
+  100,              // maxSize: 100 entries
+  isDevelopment     // enableLogging: true in dev mode
+);
+```
+
+**Debounce Delay** (in `useReverseGeocode.ts`):
+```typescript
+const DEBOUNCE_DELAY_MS = 1000; // 1 second
+```
+
+**Coordinate Precision** (in `geocodingCache.ts`):
+```typescript
+const PRECISION_DECIMALS = 3; // ~111m at equator
+```
+
 ## Recent Changes
+- 010-reverse-geocoding: Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x
 - 009-gps-coordinates: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, react-leaflet, Leaflet.js (frontend)
 
 - 008-travel-diary-frontend: Added full CRUD UI for trips with photos, multi-step wizard, and owner controls
-- 005-frontend-user-profile: Added React 18 + TypeScript 5 + Vite frontend with authentication
 
 **Last updated**: 2026-01-11

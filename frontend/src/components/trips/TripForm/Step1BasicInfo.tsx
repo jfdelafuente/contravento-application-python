@@ -8,11 +8,20 @@
  * - TripFormWizard (step 1/4)
  */
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { TripCreateInput, DIFFICULTY_LABELS } from '../../../types/trip';
 import { LocationInput, LocationInputData, LocationValidationErrors } from './LocationInput';
+import { LocationConfirmModal } from '../LocationConfirmModal';
+import { useReverseGeocode } from '../../../hooks/useReverseGeocode';
+import type { LocationSelection } from '../../../types/geocoding';
+import toast from 'react-hot-toast';
 import './Step1BasicInfo.css';
+
+// Lazy load TripMap
+const TripMap = lazy(() =>
+  import('../TripMap').then((module) => ({ default: module.TripMap }))
+);
 
 export const Step1BasicInfo: React.FC = () => {
   const {
@@ -39,6 +48,11 @@ export const Step1BasicInfo: React.FC = () => {
   });
 
   const [locationErrors, setLocationErrors] = useState<Record<number, LocationValidationErrors>>({});
+
+  // Geocoding state (Feature 010)
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
+  const { geocode } = useReverseGeocode();
 
   // Update form value when locations change
   React.useEffect(() => {
@@ -153,6 +167,79 @@ export const Step1BasicInfo: React.FC = () => {
       });
       return reindexed;
     });
+  };
+
+  // Geocoding handlers (Feature 010)
+  const handleMapClick = async (lat: number, lng: number) => {
+    setPendingLocation({
+      latitude: lat,
+      longitude: lng,
+      suggestedName: '',
+      fullAddress: '',
+      isLoading: true,
+      hasError: false,
+    });
+
+    try {
+      const { name, fullAddress } = await geocode(lat, lng);
+      setPendingLocation({
+        latitude: lat,
+        longitude: lng,
+        suggestedName: name,
+        fullAddress,
+        isLoading: false,
+        hasError: false,
+      });
+    } catch (err: any) {
+      console.error('Error geocoding location:', err);
+      setPendingLocation({
+        latitude: lat,
+        longitude: lng,
+        suggestedName: '',
+        fullAddress: '',
+        isLoading: false,
+        hasError: true,
+        errorMessage: err.message || 'Error al obtener el nombre del lugar',
+      });
+    }
+  };
+
+  const handleConfirmLocation = (name: string, lat: number, lng: number) => {
+    if (locations.length >= 50) {
+      toast.error('Máximo 50 ubicaciones permitidas');
+      setPendingLocation(null);
+      setShowMapPicker(false);
+      return;
+    }
+
+    // Add new location to the list
+    setLocations((prev) => [
+      ...prev,
+      {
+        name,
+        latitude: lat,
+        longitude: lng,
+      },
+    ]);
+
+    setPendingLocation(null);
+    setShowMapPicker(false);
+
+    toast.success(`Ubicación "${name}" añadida`, {
+      duration: 3000,
+      position: 'top-center',
+    });
+  };
+
+  const handleCancelLocation = () => {
+    setPendingLocation(null);
+  };
+
+  const handleToggleMapPicker = () => {
+    setShowMapPicker(!showMapPicker);
+    if (showMapPicker) {
+      setPendingLocation(null);
+    }
   };
 
   return (
@@ -353,22 +440,112 @@ export const Step1BasicInfo: React.FC = () => {
             ))}
           </div>
 
-          <button
-            type="button"
-            className="add-location-btn"
-            onClick={handleAddLocation}
-            disabled={locations.length >= 50}
-            aria-label="Añadir otra ubicación"
-          >
-            + Añadir Ubicación
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="add-location-btn"
+              onClick={handleAddLocation}
+              disabled={locations.length >= 50}
+              aria-label="Añadir otra ubicación"
+            >
+              + Añadir Ubicación
+            </button>
+
+            <button
+              type="button"
+              className="add-location-btn add-location-btn--map"
+              onClick={handleToggleMapPicker}
+              disabled={locations.length >= 50}
+              aria-label="Añadir ubicación desde mapa"
+              style={{
+                background: showMapPicker ? '#ef4444' : '#10b981',
+                borderColor: showMapPicker ? '#dc2626' : '#059669',
+              }}
+            >
+              {showMapPicker ? (
+                <>
+                  <svg
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    style={{ display: 'inline', marginRight: '0.5rem' }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Cerrar Mapa
+                </>
+              ) : (
+                <>
+                  <svg
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    style={{ display: 'inline', marginRight: '0.5rem' }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Añadir desde Mapa
+                </>
+              )}
+            </button>
+          </div>
 
           {locations.length >= 50 && (
             <span className="form-field__hint" style={{ color: '#dc3545' }}>
               Máximo 50 ubicaciones alcanzado
             </span>
           )}
+
+          {/* Map Picker (Feature 010) */}
+          {showMapPicker && (
+            <div style={{ marginTop: '1.5rem' }}>
+              <p className="form-field__hint" style={{ marginBottom: '1rem' }}>
+                Haz click en el mapa para seleccionar una ubicación. Se obtendrá automáticamente el nombre del lugar.
+              </p>
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Cargando mapa...</div>}>
+                <TripMap
+                  locations={locations.filter((loc) => loc.latitude !== null && loc.longitude !== null).map((loc, idx) => ({
+                    location_id: `temp-${idx}`,
+                    name: loc.name,
+                    latitude: loc.latitude,
+                    longitude: loc.longitude,
+                    sequence: idx,
+                  }))}
+                  tripTitle="Selecciona ubicación"
+                  isEditMode={true}
+                  onMapClick={handleMapClick}
+                />
+              </Suspense>
+            </div>
+          )}
         </div>
+
+        {/* Location Confirmation Modal (Feature 010) */}
+        <LocationConfirmModal
+          location={pendingLocation}
+          onConfirm={handleConfirmLocation}
+          onCancel={handleCancelLocation}
+        />
       </div>
     </div>
   );

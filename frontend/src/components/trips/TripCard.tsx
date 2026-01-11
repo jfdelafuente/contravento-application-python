@@ -40,10 +40,6 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, showStatus = false }) 
     thumbnail_url,
   } = trip;
 
-  // Debug logging
-  console.log('TripCard trip_id:', trip_id);
-  console.log('TripCard full trip:', trip);
-
   return (
     <Link to={`/trips/${trip_id}`} className="trip-card">
       {/* Thumbnail */}
