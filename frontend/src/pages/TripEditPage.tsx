@@ -90,6 +90,11 @@ export const TripEditPage: React.FC = () => {
       distance_km: trip.distance_km || undefined,
       difficulty: trip.difficulty || undefined,
       tags: trip.tags?.map((tag) => tag.name) || [],
+      locations: trip.locations?.map((loc) => ({
+        name: loc.name,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      })) || [],
     };
   };
 
