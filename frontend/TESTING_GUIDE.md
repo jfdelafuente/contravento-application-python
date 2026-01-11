@@ -94,79 +94,79 @@ poetry run python scripts/create_verified_user.py
 
 ## Manual Testing Checklist
 
-### Test Suite 1: Location Input Component
+### Test Suite 1: Location Input Component ✅ COMPLETED
 
 #### T1.1 - Location Name Required ✅ BLOCKS ADVANCEMENT
-- [ ] **Navigate** to trip creation form (Step 1)
-- [ ] **Leave** location name field empty
-- [ ] **Attempt** to move to next step
-- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
-- [ ] **Expected**: Red error message appears below field: "El nombre de la ubicación es obligatorio"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Navigate** to trip creation form (Step 1)
+- [x] **Leave** location name field empty
+- [x] **Attempt** to move to next step
+- [x] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [x] **Expected**: Red error message appears below field: "El nombre de la ubicación es obligatorio"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 #### T1.2 - Add Location Button
-- [ ] **Click** "Añadir Ubicación" button
-- [ ] **Verify** new location input appears
-- [ ] **Verify** each location has a number (Ubicación 1, Ubicación 2, etc.)
-- [ ] **Add** locations until you reach 10
-- [ ] **Verify** "Añadir Ubicación" button still enabled (max is 50)
+- [x] **Click** "Añadir Ubicación" button
+- [x] **Verify** new location input appears
+- [x] **Verify** each location has a number (Ubicación 1, Ubicación 2, etc.)
+- [x] **Add** locations until you reach 10
+- [x] **Verify** "Añadir Ubicación" button still enabled (max is 50)
 
 #### T1.3 - Remove Location Button
-- [ ] **Add** 3 locations
-- [ ] **Click** "Eliminar" on the 2nd location
-- [ ] **Verify** location is removed
-- [ ] **Verify** remaining locations renumbered (Ubicación 1, Ubicación 2)
-- [ ] **Reduce** to 1 location
-- [ ] **Verify** "Eliminar" button is hidden (minimum 1 location required)
+- [x] **Add** 3 locations
+- [x] **Click** "Eliminar" on the 2nd location
+- [x] **Verify** location is removed
+- [x] **Verify** remaining locations renumbered (Ubicación 1, Ubicación 2)
+- [x] **Reduce** to 1 location
+- [x] **Verify** "Eliminar" button is hidden (minimum 1 location required)
 
 ---
 
-### Test Suite 2: GPS Coordinate Input
+### Test Suite 2: GPS Coordinate Input ✅ COMPLETED
 
 #### T2.1 - Valid Coordinates (Madrid)
-- [ ] **Enter** location name: "Madrid"
-- [ ] **Enter** latitude: `40.416775`
-- [ ] **Enter** longitude: `-3.703790`
-- [ ] **Verify** no error messages appear
-- [ ] **Proceed** to Step 4 (Review)
-- [ ] **Verify** coordinates display: "📍 Lat: 40.416775°, Lon: -3.703790°"
+- [x] **Enter** location name: "Madrid"
+- [x] **Enter** latitude: `40.416775`
+- [x] **Enter** longitude: `-3.703790`
+- [x] **Verify** no error messages appear
+- [x] **Proceed** to Step 4 (Review)
+- [x] **Verify** coordinates display: "📍 Lat: 40.416775°, Lon: -3.703790°"
 
 #### T2.2 - Valid Coordinates (Barcelona)
-- [ ] **Enter** location name: "Barcelona"
-- [ ] **Enter** latitude: `41.385064`
-- [ ] **Enter** longitude: `2.173404`
-- [ ] **Verify** coordinates accepted
-- [ ] **Check** Step 4 shows both Madrid and Barcelona with coordinates
+- [x] **Enter** location name: "Barcelona"
+- [x] **Enter** latitude: `41.385064`
+- [x] **Enter** longitude: `2.173404`
+- [x] **Verify** coordinates accepted
+- [x] **Check** Step 4 shows both Madrid and Barcelona with coordinates
 
 #### T2.3 - Coordinates Without Name (Should Fail)
-- [ ] **Add** new location
-- [ ] **Leave** name empty
-- [ ] **Enter** latitude: `40.0`
-- [ ] **Enter** longitude: `-3.0`
-- [ ] **Attempt** to proceed
-- [ ] **Verify** error: "El nombre de la ubicación es obligatorio"
+- [x] **Add** new location
+- [x] **Leave** name empty
+- [x] **Enter** latitude: `40.0`
+- [x] **Enter** longitude: `-3.0`
+- [x] **Attempt** to proceed
+- [x] **Verify** error: "El nombre de la ubicación es obligatorio"
 
 ---
 
-### Test Suite 3: Multiple Locations Management
+### Test Suite 3: Multiple Locations Management ✅ COMPLETED
 
 #### T3.1 - Add Multiple Locations
-- [ ] **Add** 5 locations with different names
-- [ ] **Verify** each location numbered correctly (Ubicación 1, 2, 3, 4, 5)
-- [ ] **Verify** all "Eliminar" buttons visible (minimum is 1 location)
-- [ ] **Verify** locations maintain their data when adding new ones
+- [x] **Add** 5 locations with different names
+- [x] **Verify** each location numbered correctly (Ubicación 1, 2, 3, 4, 5)
+- [x] **Verify** all "Eliminar" buttons visible (minimum is 1 location)
+- [x] **Verify** locations maintain their data when adding new ones
 
 #### T3.2 - Remove Middle Location
-- [ ] **With** 5 locations present
-- [ ] **Click** "Eliminar" on location 3
-- [ ] **Verify** location 3 removed
-- [ ] **Verify** locations renumbered (former location 4 becomes location 3)
-- [ ] **Verify** remaining locations keep their data
+- [x] **With** 5 locations present
+- [x] **Click** "Eliminar" on location 3
+- [x] **Verify** location 3 removed
+- [x] **Verify** locations renumbered (former location 4 becomes location 3)
+- [x] **Verify** remaining locations keep their data
 
 #### T3.3 - Cannot Remove Last Location
-- [ ] **Remove** locations until only 1 remains
-- [ ] **Verify** "Eliminar" button is hidden or disabled
-- [ ] **Note**: Minimum 1 location required per trip
+- [x] **Remove** locations until only 1 remains
+- [x] **Verify** "Eliminar" button is hidden or disabled
+- [x] **Note**: Minimum 1 location required per trip
 
 ---
 
