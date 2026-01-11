@@ -220,44 +220,44 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 5: Coordinate Range Validation ❌ BLOCKS ADVANCEMENT
+### Test Suite 5: Coordinate Range Validation ✅ COMPLETED
 
 #### T5.1 - Latitude Out of Range (Too High)
 
-- [ ] **Enter** location name: "Invalid North"
-- [ ] **Enter** latitude: `100`
-- [ ] **Enter** longitude: `0`
-- [ ] **Attempt** to proceed to next step
-- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
-- [ ] **Expected**: Red error message appears below latitude field: "La latitud debe estar entre -90 y 90 grados"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Enter** location name: "Invalid North"
+- [x] **Enter** latitude: `100`
+- [x] **Enter** longitude: `0`
+- [x] **Attempt** to proceed to next step
+- [x] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [x] **Expected**: Red error message appears below latitude field: "La latitud debe estar entre -90 y 90 grados"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 #### T5.2 - Latitude Out of Range (Too Low)
 
-- [ ] **Enter** location name: "Invalid South"
-- [ ] **Enter** latitude: `-100`
-- [ ] **Enter** longitude: `0`
-- [ ] **Attempt** to proceed to next step
-- [ ] **Expected**: Error message: "La latitud debe estar entre -90 y 90 grados"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Enter** location name: "Invalid South"
+- [x] **Enter** latitude: `-100`
+- [x] **Enter** longitude: `0`
+- [x] **Attempt** to proceed to next step
+- [x] **Expected**: Error message: "La latitud debe estar entre -90 y 90 grados"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 #### T5.3 - Longitude Out of Range (Too High)
 
-- [ ] **Enter** location name: "Invalid East"
-- [ ] **Enter** latitude: `0`
-- [ ] **Enter** longitude: `200`
-- [ ] **Attempt** to proceed to next step
-- [ ] **Expected**: Error message: "La longitud debe estar entre -180 y 180 grados"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Enter** location name: "Invalid East"
+- [x] **Enter** latitude: `0`
+- [x] **Enter** longitude: `200`
+- [x] **Attempt** to proceed to next step
+- [x] **Expected**: Error message: "La longitud debe estar entre -180 y 180 grados"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 #### T5.4 - Longitude Out of Range (Too Low)
 
-- [ ] **Enter** location name: "Invalid West"
-- [ ] **Enter** latitude: `0`
-- [ ] **Enter** longitude: `-200`
-- [ ] **Attempt** to proceed to next step
-- [ ] **Expected**: Error message: "La longitud debe estar entre -180 y 180 grados"
-- [ ] **Expected**: Form does NOT advance to Step 2
+- [x] **Enter** location name: "Invalid West"
+- [x] **Enter** latitude: `0`
+- [x] **Enter** longitude: `-200`
+- [x] **Attempt** to proceed to next step
+- [x] **Expected**: Error message: "La longitud debe estar entre -180 y 180 grados"
+- [x] **Expected**: Form does NOT advance to Step 2
 
 #### T5.5 - High Precision Coordinates
 
