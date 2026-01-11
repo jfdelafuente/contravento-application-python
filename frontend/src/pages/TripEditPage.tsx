@@ -154,6 +154,9 @@ export const TripEditPage: React.FC = () => {
       </div>
 
       <div className="trip-edit-page__main">
+        {/* Debug: Log trip photos */}
+        {console.log('TripEditPage - trip.photos:', trip.photos)}
+        {console.log('TripEditPage - passing existingPhotos:', trip.photos || [])}
         <TripFormWizard
           tripId={tripId}
           initialData={getInitialFormData()}
