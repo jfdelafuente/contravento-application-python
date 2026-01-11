@@ -93,6 +93,25 @@ export const Step1BasicInfo: React.FC = () => {
         errors[index].latitude = 'Debes proporcionar la latitud si ingresas longitud';
         hasErrors = true;
       }
+
+      // Validate coordinate ranges
+      if (hasLatitude) {
+        const lat = Number(location.latitude);
+        if (isNaN(lat) || lat < -90 || lat > 90) {
+          if (!errors[index]) errors[index] = {};
+          errors[index].latitude = 'La latitud debe estar entre -90 y 90 grados';
+          hasErrors = true;
+        }
+      }
+
+      if (hasLongitude) {
+        const lon = Number(location.longitude);
+        if (isNaN(lon) || lon < -180 || lon > 180) {
+          if (!errors[index]) errors[index] = {};
+          errors[index].longitude = 'La longitud debe estar entre -180 y 180 grados';
+          hasErrors = true;
+        }
+      }
     });
 
     setLocationErrors(errors);
