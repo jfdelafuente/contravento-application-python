@@ -2,15 +2,16 @@
  * Step1BasicInfo Component
  *
  * First step of trip creation wizard - collects basic trip information.
- * Fields: title, start_date, end_date (optional), distance_km (optional), difficulty (optional)
+ * Fields: title, start_date, end_date (optional), distance_km (optional), difficulty (optional), locations (with GPS)
  *
  * Used in:
  * - TripFormWizard (step 1/4)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { TripCreateInput, DIFFICULTY_LABELS } from '../../../types/trip';
+import { LocationInput, LocationInputData, LocationValidationErrors } from './LocationInput';
 import './Step1BasicInfo.css';
 
 export const Step1BasicInfo: React.FC = () => {
@@ -18,10 +19,79 @@ export const Step1BasicInfo: React.FC = () => {
     register,
     formState: { errors },
     watch,
+    setValue,
+    getValues,
   } = useFormContext<TripCreateInput>();
 
   // Watch start_date to validate end_date
   const startDate = watch('start_date');
+
+  // Locations state management
+  const [locations, setLocations] = useState<LocationInputData[]>(() => {
+    const existingLocations = getValues('locations');
+    return existingLocations && existingLocations.length > 0
+      ? existingLocations.map((loc) => ({
+          name: loc.name,
+          latitude: loc.latitude ?? null,
+          longitude: loc.longitude ?? null,
+        }))
+      : [{ name: '', latitude: null, longitude: null }];
+  });
+
+  const [locationErrors, setLocationErrors] = useState<Record<number, LocationValidationErrors>>({});
+
+  // Update form value when locations change
+  React.useEffect(() => {
+    setValue('locations', locations);
+  }, [locations, setValue]);
+
+  const handleLocationChange = (index: number, field: string, value: string | number | null) => {
+    setLocations((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+
+    // Clear error for this field
+    setLocationErrors((prev) => {
+      const updated = { ...prev };
+      if (updated[index]) {
+        delete updated[index][field as keyof LocationValidationErrors];
+        if (Object.keys(updated[index]).length === 0) {
+          delete updated[index];
+        }
+      }
+      return updated;
+    });
+  };
+
+  const handleAddLocation = () => {
+    if (locations.length >= 50) {
+      alert('Máximo 50 ubicaciones permitidas');
+      return;
+    }
+    setLocations((prev) => [...prev, { name: '', latitude: null, longitude: null }]);
+  };
+
+  const handleRemoveLocation = (index: number) => {
+    if (locations.length === 1) {
+      alert('Debe haber al menos una ubicación');
+      return;
+    }
+    setLocations((prev) => prev.filter((_, i) => i !== index));
+    setLocationErrors((prev) => {
+      const updated = { ...prev };
+      delete updated[index];
+      // Re-index errors after removal
+      const reindexed: Record<number, LocationValidationErrors> = {};
+      Object.keys(updated).forEach((key) => {
+        const oldIndex = parseInt(key);
+        const newIndex = oldIndex > index ? oldIndex - 1 : oldIndex;
+        reindexed[newIndex] = updated[oldIndex];
+      });
+      return reindexed;
+    });
+  };
 
   return (
     <div className="step1-basic-info">
@@ -196,6 +266,46 @@ export const Step1BasicInfo: React.FC = () => {
           <span id="difficulty-hint" className="form-field__hint">
             Califica la dificultad técnica y física del viaje
           </span>
+        </div>
+
+        {/* Locations Section with GPS Coordinates */}
+        <div className="form-section">
+          <div className="form-section__header">
+            <h3 className="form-section__title">Ubicaciones del Viaje</h3>
+            <p className="form-section__description">
+              Añade las ubicaciones de tu ruta. Las coordenadas GPS son opcionales y permiten visualizar la ruta en el mapa.
+            </p>
+          </div>
+
+          <div className="locations-container">
+            {locations.map((location, index) => (
+              <LocationInput
+                key={index}
+                location={location}
+                index={index}
+                onChange={handleLocationChange}
+                onRemove={handleRemoveLocation}
+                errors={locationErrors[index]}
+                showRemove={locations.length > 1}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="add-location-btn"
+            onClick={handleAddLocation}
+            disabled={locations.length >= 50}
+            aria-label="Añadir otra ubicación"
+          >
+            + Añadir Ubicación
+          </button>
+
+          {locations.length >= 50 && (
+            <span className="form-field__hint" style={{ color: '#dc3545' }}>
+              Máximo 50 ubicaciones alcanzado
+            </span>
+          )}
         </div>
       </div>
     </div>
