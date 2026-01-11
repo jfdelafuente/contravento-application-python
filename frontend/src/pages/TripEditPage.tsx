@@ -157,6 +157,7 @@ export const TripEditPage: React.FC = () => {
         <TripFormWizard
           tripId={tripId}
           initialData={getInitialFormData()}
+          existingPhotos={trip.photos || []}
           onSubmit={handleSubmit}
           isEditMode={true}
         />

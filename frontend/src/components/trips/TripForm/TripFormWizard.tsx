@@ -18,7 +18,7 @@ import { Step1BasicInfo } from './Step1BasicInfo';
 import { Step2StoryTags } from './Step2StoryTags';
 import { Step3Photos } from './Step3Photos';
 import { Step4Review } from './Step4Review';
-import { TripCreateInput } from '../../../types/trip';
+import { TripCreateInput, TripPhoto } from '../../../types/trip';
 import toast from 'react-hot-toast';
 import './TripFormWizard.css';
 
@@ -28,6 +28,9 @@ interface TripFormWizardProps {
 
   /** Trip ID (only for editing) */
   tripId?: string;
+
+  /** Existing photos from server (for edit mode) */
+  existingPhotos?: TripPhoto[];
 
   /** Callback when form is submitted */
   onSubmit: (data: TripCreateInput, isDraft: boolean) => Promise<void>;
@@ -47,6 +50,7 @@ const STEP_LABELS = [
 export const TripFormWizard: React.FC<TripFormWizardProps> = ({
   initialData,
   tripId,
+  existingPhotos = [],
   onSubmit,
   isEditMode = false,
 }) => {
@@ -241,7 +245,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
 
           {currentStep === 3 && (
             <div className="trip-form-wizard__step">
-              <Step3Photos />
+              <Step3Photos tripId={tripId} existingPhotos={existingPhotos} />
             </div>
           )}
 
