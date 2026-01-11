@@ -559,8 +559,8 @@ With 2-3 developers:
 
 ## Phase 5: Map Visualization Enhancements
 
-**Status**: ⏸️ PENDING
-**Branch**: `009-gps-coordinates-frontend` (or new branch `009-map-enhancements`)
+**Status**: 🔄 IN PROGRESS (Subphases 5.1-5.2 COMPLETE, 5.3-5.5 PENDING)
+**Branch**: `009-gps-coordinates-frontend`
 
 **Goal**: Enhance TripMap component with error handling, numbered markers, fullscreen mode, and comprehensive unit testing to complete the map visualization feature.
 
@@ -572,35 +572,37 @@ With 2-3 developers:
 
 **Related SCs**: SC-011 (numbered markers), SC-012 (error messages), SC-013 (retry), SC-014 (fullscreen), SC-015 (test coverage ≥90%)
 
-### Subphase 5.1: Numbered Markers
+### Subphase 5.1: Numbered Markers ✅ COMPLETE
 
 **Purpose**: Replace generic Leaflet markers with custom numbered icons for better visual clarity
 
-- [ ] T080 [P] Create mapHelpers.ts utility file in frontend/src/utils/mapHelpers.ts
-- [ ] T081 [P] Implement createNumberedMarkerIcon() function in frontend/src/utils/mapHelpers.ts
-- [ ] T082 Update TripMap.tsx to use custom numbered markers instead of defaultIcon (line 154)
-- [ ] T083 Add CSS styles for numbered markers in frontend/src/components/trips/TripMap.css
-- [ ] T084 Add dark mode styles for numbered markers in frontend/src/components/trips/TripMap.css
-- [ ] T085 Add aria-labels to numbered markers for accessibility in frontend/src/components/trips/TripMap.tsx
-- [ ] T086 Manual test: Create trip with 5 locations, verify markers show numbers 1-5 in sequence order
+- [x] T080 [P] Create mapHelpers.ts utility file in frontend/src/utils/mapHelpers.ts
+- [x] T081 [P] Implement createNumberedMarkerIcon() function in frontend/src/utils/mapHelpers.ts
+- [x] T082 Update TripMap.tsx to use custom numbered markers instead of defaultIcon (line 154)
+- [x] T083 Add CSS styles for numbered markers in frontend/src/components/trips/TripMap.css
+- [x] T084 Add dark mode styles for numbered markers in frontend/src/components/trips/TripMap.css
+- [x] T085 Add aria-labels to numbered markers for accessibility in frontend/src/components/trips/TripMap.tsx
+- [x] T086 Manual test: Create trip with 5 locations, verify markers show numbers 1-5 in sequence order
 
-**Checkpoint**: Map displays numbered markers corresponding to location sequence
+**Checkpoint**: ✅ Map displays numbered markers corresponding to location sequence
+**Commit**: 7a12267 - feat: implement numbered markers on trip map (Phase 5.1)
 
-### Subphase 5.2: Error Handling & Retry
+### Subphase 5.2: Error Handling & Retry ✅ COMPLETE
 
 **Purpose**: Detect network errors when loading map tiles and provide user-friendly recovery mechanism
 
-- [ ] T087 Add error state management to TripMap component (useState for error tracking)
-- [ ] T088 Implement tile load error detection in TripMap.tsx (TileLayer error event handler)
-- [ ] T089 Create error UI component with retry button in frontend/src/components/trips/TripMap.tsx
-- [ ] T090 Implement retry mechanism that re-mounts MapContainer in frontend/src/components/trips/TripMap.tsx
-- [ ] T091 Preserve map state (zoom, center) across retry attempts using useState
-- [ ] T092 Add Spanish error messages for network failures ("Error al cargar el mapa. Verifica tu conexión.")
-- [ ] T093 Update TripMap.css with error state styles (error icon, retry button)
-- [ ] T094 Manual test: Disconnect network, load trip, verify error message and retry button appear
-- [ ] T095 Manual test: Click retry with network restored, verify map loads successfully
+- [x] T087 Add error state management to TripMap component (useState for error tracking)
+- [x] T088 Implement tile load error detection in TripMap.tsx (TileLayer error event handler)
+- [x] T089 Create error UI component with retry button in frontend/src/components/trips/TripMap.tsx
+- [x] T090 Implement retry mechanism that re-mounts MapContainer in frontend/src/components/trips/TripMap.tsx
+- [x] T091 Preserve map state (zoom, center) across retry attempts using useState
+- [x] T092 Add Spanish error messages for network failures ("Error al cargar el mapa. Verifica tu conexión.")
+- [x] T093 Update TripMap.css with error state styles (error icon, retry button)
+- [x] T094 Manual test: Disconnect network, load trip, verify error message and retry button appear
+- [x] T095 Manual test: Click retry with network restored, verify map loads successfully
 
-**Checkpoint**: Network errors trigger error message with working retry button
+**Checkpoint**: ✅ Network errors trigger error message with working retry button
+**Commit**: 672c601 - feat: add error handling and retry for map tile loading (Phase 5.2)
 
 ### Subphase 5.3: Fullscreen Mode
 
