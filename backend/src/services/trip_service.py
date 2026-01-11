@@ -273,11 +273,21 @@ class TripService:
             locations: List of location inputs with optional GPS coordinates
         """
         for sequence, location_data in enumerate(locations):
+            # Handle both Pydantic objects and dicts
+            if isinstance(location_data, dict):
+                name = location_data.get("name")
+                latitude = location_data.get("latitude")
+                longitude = location_data.get("longitude")
+            else:
+                name = location_data.name
+                latitude = location_data.latitude
+                longitude = location_data.longitude
+
             location = TripLocation(
                 trip_id=trip.trip_id,
-                name=location_data.name,
-                latitude=location_data.latitude,  # Store latitude (nullable)
-                longitude=location_data.longitude,  # Store longitude (nullable)
+                name=name,
+                latitude=latitude,  # Store latitude (nullable)
+                longitude=longitude,  # Store longitude (nullable)
                 # Note: country field is not in TripLocation model (only name)
                 # Geocoding will be added in future phases
                 sequence=sequence,
