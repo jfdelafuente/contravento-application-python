@@ -86,6 +86,11 @@ Cyclists want to add or update GPS coordinates for locations in their existing t
 - **FR-013**: System MUST persist decimal precision up to 6 decimal places for coordinates (approximately 0.11 meter accuracy)
 - **FR-014**: System MUST NOT show map section when trip has no locations with GPS coordinates
 - **FR-015**: System MUST display user-friendly error message with "Retry" button when map fails to load, and show location data in text format as fallback
+- **FR-016**: System MUST show numbered markers on map (1, 2, 3...) corresponding to location sequence for better visual clarity
+- **FR-017**: System MUST detect network errors when loading map tiles and display specific error message explaining the issue
+- **FR-018**: System MUST preserve map state (zoom, center) when user clicks "Retry" after map loading failure
+- **FR-019**: System MUST provide fullscreen mode for map visualization with toggle button
+- **FR-020**: System MUST render map markers with custom numbered icons showing location sequence (replacing generic pins)
 
 ### Key Entities
 
@@ -109,6 +114,11 @@ Cyclists want to add or update GPS coordinates for locations in their existing t
 - **SC-008**: Route line connects markers in correct sequence order when trip has multiple locations
 - **SC-009**: Map loads and becomes interactive within 2 seconds for trips with up to 20 markers
 - **SC-010**: Backwards compatibility maintained - existing trips without GPS coordinates continue to function normally (no map shown, no errors)
+- **SC-011**: Map displays numbered markers (1, 2, 3...) corresponding to location sequence order
+- **SC-012**: When map tiles fail to load due to network issues, user sees clear error message with "Retry" button
+- **SC-013**: Clicking "Retry" button successfully reloads map tiles without page refresh
+- **SC-014**: Fullscreen mode expands map to fill viewport and provides better route visualization
+- **SC-015**: Map component unit tests achieve ≥90% code coverage for error handling and rendering logic
 
 ## Clarifications
 
