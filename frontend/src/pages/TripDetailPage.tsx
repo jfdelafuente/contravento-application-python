@@ -403,17 +403,52 @@ export const TripDetailPage: React.FC = () => {
           </section>
         )}
 
-        {/* Map (T038: conditional rendering only if locations exist) */}
-        {hasValidLocations && (
+        {/* Locations Section (T7.2: show locations even without GPS coordinates) */}
+        {trip.locations && trip.locations.length > 0 && (
           <section className="trip-detail-page__section">
-            <h2 className="trip-detail-page__section-title">Ruta y Ubicaciones</h2>
-            <Suspense
-              fallback={
-                <div className="trip-detail-page__map-loading">Cargando mapa...</div>
-              }
-            >
-              <TripMap locations={trip.locations} tripTitle={trip.title} />
-            </Suspense>
+            <h2 className="trip-detail-page__section-title">Ubicaciones</h2>
+
+            {/* Locations List */}
+            <div className="trip-detail-page__locations">
+              {trip.locations.map((location, index) => (
+                <div key={location.location_id} className="trip-detail-page__location">
+                  <div className="trip-detail-page__location-header">
+                    <span className="trip-detail-page__location-number">{index + 1}</span>
+                    <span className="trip-detail-page__location-name">
+                      {location.name || 'Sin nombre'}
+                    </span>
+                  </div>
+                  {location.latitude !== null && location.longitude !== null ? (
+                    <div className="trip-detail-page__location-coords">
+                      <span className="trip-detail-page__location-coord">
+                        📍 Lat: {location.latitude.toFixed(6)}°
+                      </span>
+                      <span className="trip-detail-page__location-coord">
+                        Lon: {location.longitude.toFixed(6)}°
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="trip-detail-page__location-no-coords">
+                      Sin coordenadas GPS
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Map (only if at least one location has coordinates) */}
+            {hasValidLocations && (
+              <div className="trip-detail-page__map-container">
+                <h3 className="trip-detail-page__subsection-title">Ruta en el Mapa</h3>
+                <Suspense
+                  fallback={
+                    <div className="trip-detail-page__map-loading">Cargando mapa...</div>
+                  }
+                >
+                  <TripMap locations={trip.locations} tripTitle={trip.title} />
+                </Suspense>
+              </div>
+            )}
           </section>
         )}
 
