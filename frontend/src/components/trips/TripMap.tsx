@@ -145,8 +145,8 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
     [validLocations]
   );
 
-  // Empty state
-  if (validLocations.length === 0) {
+  // No locations at all - show empty state
+  if (locations.length === 0) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
@@ -207,8 +207,8 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
         </div>
       )}
 
-      {/* Map Container */}
-      {!hasMapError && (
+      {/* Map Container - Only show if there are valid GPS coordinates */}
+      {!hasMapError && validLocations.length > 0 && (
         <MapContainer
           key={mapKey}
           center={center}
@@ -260,8 +260,8 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
         </MapContainer>
       )}
 
-      {/* Fullscreen Toggle Button */}
-      {!hasMapError && (
+      {/* Fullscreen Toggle Button - Only show if map is visible */}
+      {!hasMapError && validLocations.length > 0 && (
         <button
           type="button"
           className="trip-map__fullscreen-button"
@@ -303,16 +303,21 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
         </button>
       )}
 
-      {/* Location List */}
+      {/* Location List - Show ALL locations (with or without GPS) */}
       <div className="trip-map__locations">
-        <h4 className="trip-map__locations-title">Ubicaciones ({validLocations.length})</h4>
+        <h4 className="trip-map__locations-title">Ubicaciones ({locations.length})</h4>
         <ul className="trip-map__locations-list">
-          {validLocations
+          {locations
             .sort((a, b) => a.sequence - b.sequence)
             .map((location, index) => (
               <li key={location.location_id} className="trip-map__location-item">
                 <span className="trip-map__location-number">{index + 1}</span>
-                <span className="trip-map__location-name">{location.name}</span>
+                <div className="trip-map__location-details">
+                  <span className="trip-map__location-name">{location.name}</span>
+                  {location.latitude === null || location.longitude === null ? (
+                    <span className="trip-map__location-no-gps">Sin coordenadas GPS</span>
+                  ) : null}
+                </div>
               </li>
             ))}
         </ul>

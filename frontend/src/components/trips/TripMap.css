@@ -99,10 +99,22 @@
   flex-shrink: 0;
 }
 
+.trip-map__location-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .trip-map__location-name {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary, #111827);
+}
+
+.trip-map__location-no-gps {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary, #9ca3af);
+  font-style: italic;
 }
 
 /* ============================================================================
