@@ -44,10 +44,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 Update `frontend/vite.config.ts` to add server.proxy configuration for /api/* → http://localhost:8000
-- [ ] T010 [P] Update `frontend/package.json` to add build:staging script (vite build --mode staging)
-- [ ] T011 [P] Update `frontend/package.json` to add build:prod script (vite build --mode production)
-- [ ] T012 Verify Vite HMR works with proxy configuration by testing local dev server startup
+- [x] T009 Update `frontend/vite.config.ts` to add server.proxy configuration for /api/* → http://localhost:8000
+- [x] T010 [P] Update `frontend/package.json` to add build:staging script (vite build --mode staging)
+- [x] T011 [P] Update `frontend/package.json` to add build:prod script (vite build --mode production)
+- [x] T012 Verify Vite HMR works with proxy configuration by testing local dev server startup
 
 **Checkpoint**: Frontend configuration ready - deployment scripts can now be implemented in parallel per environment
 
