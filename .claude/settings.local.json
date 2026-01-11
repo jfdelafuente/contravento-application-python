@@ -4,7 +4,8 @@
       "Bash(poetry install:*)",
       "Bash(poetry run pytest:*)",
       "Bash(git add:*)",
-      "Bash(poetry show:*)"
+      "Bash(poetry show:*)",
+      "Bash(powershell.exe:*)"
     ]
   }
 }
