@@ -95,6 +95,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           placeholder="Ej: Madrid, Pirineos, Camino de Santiago"
           value={location.name}
           onChange={handleNameChange}
+          required
           aria-label={`Nombre de la ubicación ${index + 1}`}
           aria-required="true"
           aria-invalid={!!errors?.name}

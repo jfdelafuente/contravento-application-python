@@ -105,6 +105,18 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
       return;
     }
 
+    // Additional validation for Step 1 locations
+    if (currentStep === 1) {
+      const validateStep1Locations = (window as any).__validateStep1Locations;
+      if (validateStep1Locations && !validateStep1Locations()) {
+        toast.error('Por favor completa el nombre de todas las ubicaciones', {
+          duration: 3000,
+          position: 'top-center',
+        });
+        return;
+      }
+    }
+
     setCurrentStep((prev) => Math.min(prev + 1, 4));
   };
 

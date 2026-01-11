@@ -65,6 +65,31 @@ export const Step1BasicInfo: React.FC = () => {
     });
   };
 
+  // Validate locations before allowing next step
+  const validateLocations = (): boolean => {
+    const errors: Record<number, LocationValidationErrors> = {};
+    let hasErrors = false;
+
+    locations.forEach((location, index) => {
+      if (!location.name || location.name.trim() === '') {
+        errors[index] = { name: 'El nombre de la ubicación es obligatorio' };
+        hasErrors = true;
+      }
+    });
+
+    setLocationErrors(errors);
+    return !hasErrors;
+  };
+
+  // Expose validation function to parent (TripFormWizard)
+  React.useEffect(() => {
+    // Store validation function in window for TripFormWizard to call
+    (window as any).__validateStep1Locations = validateLocations;
+    return () => {
+      delete (window as any).__validateStep1Locations;
+    };
+  }, [locations]);
+
   const handleAddLocation = () => {
     if (locations.length >= 50) {
       alert('Máximo 50 ubicaciones permitidas');
