@@ -384,6 +384,327 @@ Phase 3 Status: ✅ **COMPLETED**
 
 ---
 
+## Tareas No Ejecutadas y Escenarios Futuros
+
+### Contract Tests - OpenAPI Schema (T018-T019) ⚠️ DEFERRED
+
+**Causa de Diferimiento**:
+1. **Complejidad vs Valor**: Los tests de contrato requieren configurar validación OpenAPI adicional
+2. **Cobertura Existente**: Los tests de integración ya validan la estructura de request/response
+3. **Priorización**: El tiempo se invirtió en tests unitarios e integración más críticos
+4. **Falta de Infraestructura**: No hay sistema de contract testing configurado actualmente
+
+**Impacto en Calidad**:
+- **Bajo impacto inmediato**: Los integration tests cubren los mismos escenarios de forma funcional
+- **Validación de esquema**: Pydantic ya valida los schemas en runtime
+- **Documentación**: OpenAPI schema existe pero no se valida automáticamente
+
+**Escenarios para Ejecución Futura**:
+
+#### Escenario 1: Contract Testing Framework Setup
+**Cuándo**: Cuando el proyecto crezca a múltiples servicios o equipos
+
+**Implementación**:
+```bash
+# Instalar herramienta de contract testing
+cd backend
+poetry add --dev schemathesis  # o pactman
+
+# Crear tests de contrato
+# backend/tests/contract/test_trips_contract.py
+import schemathesis
+
+schema = schemathesis.from_path("specs/009-gps-coordinates/contracts/trips-api.yaml")
+
+@schema.parametrize()
+def test_api_contract(case):
+    response = case.call()
+    case.validate_response(response)
+```
+
+**Beneficios**:
+- Garantiza que API cumple exactamente con la especificación OpenAPI
+- Detecta drift entre documentación y implementación
+- Genera tests automáticamente desde el schema
+
+**Esfuerzo estimado**: 2-3 horas (setup + tests)
+
+#### Escenario 2: API Versioning Implementation
+**Cuándo**: Cuando se necesite mantener múltiples versiones de la API
+
+**Razón**: Contract tests aseguran compatibilidad entre versiones
+```python
+# Test versión v1 del API
+@pytest.mark.parametrize("api_version", ["v1", "v2"])
+def test_trips_api_contract_compatibility(api_version):
+    schema = load_openapi_schema(f"contracts/trips-api-{api_version}.yaml")
+    # Validar que ambas versiones cumplen el contrato
+```
+
+**Beneficios**:
+- Previene breaking changes accidentales
+- Documenta cambios entre versiones
+- Facilita deprecación gradual de endpoints
+
+**Esfuerzo estimado**: 4-5 horas
+
+#### Escenario 3: Integration con CI/CD Pipeline
+**Cuándo**: Cuando se automatice el deployment
+
+**Implementación**:
+```yaml
+# .github/workflows/contract-tests.yml
+name: Contract Tests
+on: [pull_request]
+
+jobs:
+  contract-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Contract Tests
+        run: |
+          poetry run pytest tests/contract/ -v
+          # Fail PR if contract broken
+```
+
+**Beneficios**:
+- Bloquea merges que rompan el contrato API
+- Documentación siempre sincronizada
+- Confianza en cambios de API
+
+**Esfuerzo estimado**: 1-2 horas (configuración CI)
+
+---
+
+### Frontend TripMap Tests (T020-T023) ⚠️ DEFERRED TO PHASE 5
+
+**Causa de Diferimiento**:
+1. **Cambio de Prioridad**: Phase 4 se enfocó en el formulario de entrada GPS, no en visualización
+2. **Componente No Existente**: TripMap.tsx no está implementado aún
+3. **Dependencia de Librería**: Requiere react-leaflet o similar (no instalada)
+4. **Secuencia Lógica**: Primero input de datos (Phase 4), luego visualización (Phase 5)
+
+**Impacto en Calidad**:
+- **Ningún impacto actual**: El componente TripMap no existe, no hay código que testear
+- **Funcionalidad diferida**: La visualización de mapas es una mejora futura (Phase 5)
+- **Input validado**: Phase 3 y 4 aseguran que los datos GPS son correctos
+
+**Escenarios para Ejecución Futura**:
+
+#### Escenario 1: Phase 5 - Map Visualization Implementation
+**Cuándo**: Después de completar y mergear Phase 3 y 4
+
+**Plan de Implementación**:
+
+**Paso 1: Setup de dependencias**
+```bash
+cd frontend
+npm install react-leaflet leaflet
+npm install --save-dev @testing-library/react vitest
+```
+
+**Paso 2: Implementar TripMap Component**
+```typescript
+// frontend/src/components/trips/TripMap.tsx
+import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
+
+export const TripMap: React.FC<TripMapProps> = ({ locations }) => {
+  // Filtrar locations con coordenadas válidas
+  const validLocations = locations.filter(
+    loc => loc.latitude !== null && loc.longitude !== null
+  );
+
+  // Calcular bounds para zoom automático
+  const bounds = calculateBounds(validLocations);
+
+  return (
+    <MapContainer bounds={bounds}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {validLocations.map((loc, idx) => (
+        <Marker key={idx} position={[loc.latitude!, loc.longitude!]} />
+      ))}
+      <Polyline positions={validLocations.map(l => [l.latitude!, l.longitude!])} />
+    </MapContainer>
+  );
+};
+```
+
+**Paso 3: Escribir tests (TDD)**
+```typescript
+// frontend/tests/unit/TripMap.test.tsx
+import { render, screen } from '@testing-library/react';
+import { TripMap } from '@/components/trips/TripMap';
+
+describe('TripMap - T020: Filter null coordinates', () => {
+  test('filters out locations without coordinates', () => {
+    const locations = [
+      { name: 'Madrid', latitude: 40.416775, longitude: -3.703790 },
+      { name: 'Sin GPS', latitude: null, longitude: null },
+      { name: 'Barcelona', latitude: 41.385064, longitude: 2.173404 },
+    ];
+
+    const { container } = render(<TripMap locations={locations} />);
+
+    // Solo debe renderizar 2 marcadores (Madrid + Barcelona)
+    const markers = container.querySelectorAll('.leaflet-marker-icon');
+    expect(markers.length).toBe(2);
+  });
+});
+
+describe('TripMap - T021: Render markers', () => {
+  test('renders marker for each location with coordinates', () => {
+    const locations = [
+      { name: 'Madrid', latitude: 40.416775, longitude: -3.703790 },
+      { name: 'Toledo', latitude: 39.862832, longitude: -4.027323 },
+      { name: 'Barcelona', latitude: 41.385064, longitude: 2.173404 },
+    ];
+
+    const { container } = render(<TripMap locations={locations} />);
+
+    const markers = container.querySelectorAll('.leaflet-marker-icon');
+    expect(markers.length).toBe(3);
+  });
+});
+
+describe('TripMap - T022: Render polyline', () => {
+  test('renders polyline connecting locations in sequence', () => {
+    const locations = [
+      { name: 'Start', latitude: 40.0, longitude: -3.0 },
+      { name: 'Middle', latitude: 41.0, longitude: -2.0 },
+      { name: 'End', latitude: 42.0, longitude: -1.0 },
+    ];
+
+    const { container } = render(<TripMap locations={locations} />);
+
+    const polyline = container.querySelector('.leaflet-interactive');
+    expect(polyline).toBeInTheDocument();
+    // Verificar que conecta 3 puntos
+    const path = polyline?.getAttribute('d');
+    expect(path).toContain('L'); // Line commands
+  });
+});
+
+describe('TripMap - T023: Calculate zoom', () => {
+  test('calculates zoom to fit all markers', () => {
+    const locations = [
+      { name: 'North', latitude: 50.0, longitude: 0.0 },
+      { name: 'South', latitude: 30.0, longitude: 0.0 },
+    ];
+
+    const { container } = render(<TripMap locations={locations} />);
+
+    // Verificar que el mapa se ajusta a los bounds
+    const map = container.querySelector('.leaflet-container');
+    const zoom = map?.getAttribute('data-zoom');
+    // Zoom debe ser menor para mostrar ambos puntos distantes
+    expect(parseInt(zoom || '0')).toBeLessThan(10);
+  });
+});
+```
+
+**Paso 4: Ejecutar tests**
+```bash
+cd frontend
+npm test TripMap.test.tsx
+# Esperar: 4 tests passing
+```
+
+**Beneficios**:
+- Visualización de rutas en mapa interactivo
+- UX mejorada para planificación de viajes
+- Validación de coordenadas mediante visualización
+
+**Esfuerzo estimado**: 8-10 horas
+- 2h: Setup dependencias y configuración
+- 3h: Implementación TripMap component
+- 2h: Tests unitarios (4 test suites)
+- 2h: Styling y responsive design
+- 1h: Integración con TripDetailPage
+
+#### Escenario 2: Interactive Map Features
+**Cuándo**: Después de TripMap básico (Phase 5 extendida)
+
+**Features adicionales**:
+```typescript
+// Tests para features interactivas
+describe('TripMap - Interactive Features', () => {
+  test('shows popup on marker click with location details', () => {
+    // Clic en marker muestra nombre + coordenadas
+  });
+
+  test('allows drag-drop to reorder route waypoints', () => {
+    // Arrastrar markers cambia el orden de locations
+  });
+
+  test('calculates and displays route distance', () => {
+    // Suma de distancias entre waypoints
+  });
+
+  test('shows elevation profile if available', () => {
+    // Gráfico de elevación del terreno
+  });
+});
+```
+
+**Beneficios**:
+- Edición visual de rutas
+- Mejor experiencia de usuario
+- Datos enriquecidos (distancia, elevación)
+
+**Esfuerzo estimado**: 12-15 horas
+
+#### Escenario 3: Map Provider Options
+**Cuándo**: Cuando se necesiten features premium de mapas
+
+**Opciones**:
+1. **OpenStreetMap** (actual, gratuito)
+2. **Google Maps** (mejor routing, geocoding - requiere API key)
+3. **Mapbox** (mejor styling, offline maps - requiere cuenta)
+
+**Tests adicionales**:
+```typescript
+describe('TripMap - Provider Switching', () => {
+  test('renders with OpenStreetMap tiles', () => {
+    render(<TripMap provider="osm" locations={locations} />);
+    // Verificar URL de tiles
+  });
+
+  test('renders with Google Maps tiles', () => {
+    render(<TripMap provider="google" locations={locations} />);
+    // Verificar integración Google Maps API
+  });
+
+  test('handles provider errors gracefully', () => {
+    render(<TripMap provider="invalid" locations={locations} />);
+    // Fallback a OSM
+  });
+});
+```
+
+**Beneficios**:
+- Flexibilidad en costos
+- Mejores features según proveedor
+- Resiliencia ante caídas de servicio
+
+**Esfuerzo estimado**: 4-6 horas
+
+---
+
+## Resumen de Tareas Diferidas
+
+| Tarea | Tipo | Causa Principal | Escenario Recomendado | Esfuerzo |
+|-------|------|-----------------|----------------------|----------|
+| T018-T019 | Contract Tests | Baja prioridad, cobertura existente | Escenario 3: CI/CD Integration | 1-2h |
+| T020-T023 | Frontend TripMap | Componente no existe aún | Escenario 1: Phase 5 Implementation | 8-10h |
+
+**Prioridad Recomendada**:
+1. **Inmediata** (antes de production): Ninguna - todas las tareas críticas completadas
+2. **Corto plazo** (1-2 sprints): Phase 5 - TripMap Implementation (T020-T023)
+3. **Medio plazo** (3-6 meses): Contract Tests en CI/CD (T018-T019)
+4. **Largo plazo** (6+ meses): Interactive Map Features, Map Provider Options
+
+---
+
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-11
 **Completed**: 2026-01-11
