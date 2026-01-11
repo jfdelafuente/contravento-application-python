@@ -53,7 +53,14 @@ This guide provides manual testing steps for the GPS Coordinates frontend UI imp
 1. **Location name is always required** to proceed to next step
 2. **Coordinates are optional** - you can create locations without GPS data
 3. **If you enter coordinates**, both latitude AND longitude must be provided
-4. **HTML5 validation** enforces coordinate ranges (-90/90, -180/180)
+4. **Custom JavaScript validation** enforces coordinate ranges (-90/90, -180/180)
+
+**Note on Validation Approach**:
+
+- The form uses React Hook Form with custom validation functions
+- HTML5 attributes (`min`, `max`) are present but not actively enforced
+- Custom JavaScript validation in `validateLocations()` checks ranges before form advancement
+- This approach provides consistent validation across all browsers and better error messages
 
 ---
 
@@ -213,30 +220,44 @@ poetry run python scripts/create_verified_user.py
 
 ---
 
-### Test Suite 5: Coordinate Range Validation (HTML5)
+### Test Suite 5: Coordinate Range Validation ❌ BLOCKS ADVANCEMENT
 
 #### T5.1 - Latitude Out of Range (Too High)
 
 - [ ] **Enter** location name: "Invalid North"
 - [ ] **Enter** latitude: `100`
 - [ ] **Enter** longitude: `0`
-- [ ] **Expected**: Browser HTML5 validation prevents submission (min="-90" max="90" on input)
-- [ ] **Expected**: Cannot proceed with invalid value
+- [ ] **Attempt** to proceed to next step
+- [ ] **Expected**: Toast error appears: "Por favor completa el nombre de todas las ubicaciones"
+- [ ] **Expected**: Red error message appears below latitude field: "La latitud debe estar entre -90 y 90 grados"
+- [ ] **Expected**: Form does NOT advance to Step 2
 
 #### T5.2 - Latitude Out of Range (Too Low)
 
+- [ ] **Enter** location name: "Invalid South"
 - [ ] **Enter** latitude: `-100`
-- [ ] **Expected**: Browser validation blocks value below -90
+- [ ] **Enter** longitude: `0`
+- [ ] **Attempt** to proceed to next step
+- [ ] **Expected**: Error message: "La latitud debe estar entre -90 y 90 grados"
+- [ ] **Expected**: Form does NOT advance to Step 2
 
 #### T5.3 - Longitude Out of Range (Too High)
 
+- [ ] **Enter** location name: "Invalid East"
+- [ ] **Enter** latitude: `0`
 - [ ] **Enter** longitude: `200`
-- [ ] **Expected**: Browser validation blocks value above 180
+- [ ] **Attempt** to proceed to next step
+- [ ] **Expected**: Error message: "La longitud debe estar entre -180 y 180 grados"
+- [ ] **Expected**: Form does NOT advance to Step 2
 
 #### T5.4 - Longitude Out of Range (Too Low)
 
+- [ ] **Enter** location name: "Invalid West"
+- [ ] **Enter** latitude: `0`
 - [ ] **Enter** longitude: `-200`
-- [ ] **Expected**: Browser validation blocks value below -180
+- [ ] **Attempt** to proceed to next step
+- [ ] **Expected**: Error message: "La longitud debe estar entre -180 y 180 grados"
+- [ ] **Expected**: Form does NOT advance to Step 2
 
 #### T5.5 - High Precision Coordinates
 
@@ -411,6 +432,8 @@ poetry run python scripts/create_verified_user.py
    - "El nombre de la ubicación es obligatorio" - when name empty
    - "Debes proporcionar la longitud si ingresas latitud" - when only latitude filled
    - "Debes proporcionar la latitud si ingresas longitud" - when only longitude filled
+   - "La latitud debe estar entre -90 y 90 grados" - when latitude out of range
+   - "La longitud debe estar entre -180 y 180 grados" - when longitude out of range
    - Toast: "Por favor completa el nombre de todas las ubicaciones" - when attempting to advance with errors
 
 3. **User Experience**:
