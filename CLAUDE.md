@@ -690,6 +690,8 @@ This project uses `/speckit.*` commands for specification-driven development:
 See `.specify/` directory for templates and workflows.
 
 ## Active Technologies
+- Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, react-leaflet, Leaflet.js (frontend) (009-gps-coordinates)
+- PostgreSQL (production), SQLite (development) - TripLocation model already has latitude/longitude Float columns (009-gps-coordinates)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
@@ -1115,10 +1117,9 @@ npm run dev
 ```
 
 ## Recent Changes
+- 009-gps-coordinates: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, react-leaflet, Leaflet.js (frontend)
 
 - 008-travel-diary-frontend: Added full CRUD UI for trips with photos, multi-step wizard, and owner controls
 - 005-frontend-user-profile: Added React 18 + TypeScript 5 + Vite frontend with authentication
-- 002-travel-diary: Added travel diary feature with trips, photos, tags, and draft workflow
-- 001-user-profiles: Added user authentication, profiles, and statistics
 
-**Last updated**: 2026-01-10
+**Last updated**: 2026-01-11

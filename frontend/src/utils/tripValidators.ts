@@ -128,6 +128,59 @@ const tagsSchema = z
   .optional()
   .default([]);
 
+/**
+ * Location Input validation schema
+ * - name: Required, 1-200 characters
+ * - country: Optional, max 100 characters
+ * - latitude: Optional, -90 to 90 degrees, max 6 decimals
+ * - longitude: Optional, -180 to 180 degrees, max 6 decimals
+ */
+export const locationInputSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Nombre de ubicación requerido')
+    .max(200, 'Nombre debe tener máximo 200 caracteres'),
+
+  country: z.string().max(100, 'País debe tener máximo 100 caracteres').optional(),
+
+  latitude: z
+    .number()
+    .min(-90, 'Latitud debe estar entre -90 y 90 grados')
+    .max(90, 'Latitud debe estar entre -90 y 90 grados')
+    .nullable()
+    .optional()
+    .refine(
+      (val) => {
+        if (val === null || val === undefined) return true;
+        // Check max 6 decimal places
+        const decimals = val.toString().split('.')[1];
+        return !decimals || decimals.length <= 6;
+      },
+      { message: 'Latitud debe tener máximo 6 decimales' }
+    ),
+
+  longitude: z
+    .number()
+    .min(-180, 'Longitud debe estar entre -180 y 180 grados')
+    .max(180, 'Longitud debe estar entre -180 y 180 grados')
+    .nullable()
+    .optional()
+    .refine(
+      (val) => {
+        if (val === null || val === undefined) return true;
+        // Check max 6 decimal places
+        const decimals = val.toString().split('.')[1];
+        return !decimals || decimals.length <= 6;
+      },
+      { message: 'Longitud debe tener máximo 6 decimales' }
+    ),
+});
+
+/**
+ * Inferred TypeScript type from locationInputSchema
+ */
+export type LocationInputFormData = z.infer<typeof locationInputSchema>;
+
 // ============================================================================
 // Form Schemas
 // ============================================================================

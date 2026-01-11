@@ -1,0 +1,608 @@
+openapi: 3.1.0
+info:
+  title: ContraVento Trips API - GPS Coordinates Extension
+  description: |
+    API contract for trip locations with optional GPS coordinates.
+    This extension adds latitude/longitude support to the existing Trips API.
+  version: 1.1.0
+  contact:
+    name: ContraVento Development Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.contravento.com
+    description: Production server
+
+paths:
+  /trips:
+    post:
+      summary: Create new trip with optional GPS coordinates
+      operationId: createTrip
+      tags:
+        - Trips
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripCreateRequest'
+            examples:
+              tripWithCoordinates:
+                summary: Trip with GPS coordinates
+                value:
+                  title: "Ruta Bikepacking Pirineos"
+                  description: "Viaje de 5 días por los Pirineos con paisajes increíbles"
+                  start_date: "2024-06-01"
+                  end_date: "2024-06-05"
+                  distance_km: 320.5
+                  difficulty: "hard"
+                  status: "draft"
+                  locations:
+                    - name: "Jaca"
+                      latitude: 42.570084
+                      longitude: -0.549941
+                    - name: "Somport"
+                      latitude: 42.791667
+                      longitude: -0.526944
+                    - name: "Gavarnie"
+                      latitude: 42.739722
+                      longitude: -0.012778
+                  tags:
+                    - "bikepacking"
+                    - "montaña"
+              tripWithoutCoordinates:
+                summary: Trip without GPS coordinates (backwards compatible)
+                value:
+                  title: "Camino de Santiago"
+                  description: "Peregrinación en bici desde Roncesvalles a Santiago"
+                  start_date: "2024-07-10"
+                  end_date: "2024-07-20"
+                  distance_km: 750.0
+                  difficulty: "medium"
+                  status: "draft"
+                  locations:
+                    - name: "Roncesvalles"
+                    - name: "Pamplona"
+                    - name: "Logroño"
+                    - name: "Santiago de Compostela"
+                  tags:
+                    - "camino"
+                    - "turismo"
+      responses:
+        '201':
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripResponse'
+        '400':
+          description: Validation error (invalid coordinates)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidLatitude:
+                  summary: Latitude out of range
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Latitud debe estar entre -90 y 90 grados"
+                      field: "locations[0].latitude"
+                invalidLongitude:
+                  summary: Longitude out of range
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Longitud debe estar entre -180 y 180 grados"
+                      field: "locations[1].longitude"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          description: Unprocessable entity (Pydantic validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trips/{trip_id}:
+    get:
+      summary: Get trip by ID (includes location coordinates)
+      operationId: getTripById
+      tags:
+        - Trips
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Trip retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripResponse'
+              examples:
+                tripWithCoordinates:
+                  summary: Trip with GPS coordinates displayed on map
+                  value:
+                    success: true
+                    data:
+                      trip_id: "550e8400-e29b-41d4-a716-446655440000"
+                      title: "Ruta Bikepacking Pirineos"
+                      description: "Viaje de 5 días..."
+                      start_date: "2024-06-01"
+                      end_date: "2024-06-05"
+                      distance_km: 320.5
+                      difficulty: "hard"
+                      status: "published"
+                      locations:
+                        - location_id: "660e8400-e29b-41d4-a716-446655440001"
+                          name: "Jaca"
+                          latitude: 42.570084
+                          longitude: -0.549941
+                          sequence: 0
+                        - location_id: "660e8400-e29b-41d4-a716-446655440002"
+                          name: "Somport"
+                          latitude: 42.791667
+                          longitude: -0.526944
+                          sequence: 1
+                      tags: ["bikepacking", "montaña"]
+                      photos: []
+                      created_at: "2024-06-01T10:00:00Z"
+                      updated_at: "2024-06-01T10:00:00Z"
+                      published_at: "2024-06-01T12:00:00Z"
+                tripWithoutCoordinates:
+                  summary: Trip without GPS coordinates (no map shown)
+                  value:
+                    success: true
+                    data:
+                      trip_id: "770e8400-e29b-41d4-a716-446655440003"
+                      title: "Camino de Santiago"
+                      description: "Peregrinación..."
+                      start_date: "2024-07-10"
+                      end_date: "2024-07-20"
+                      distance_km: 750.0
+                      difficulty: "medium"
+                      status: "published"
+                      locations:
+                        - location_id: "880e8400-e29b-41d4-a716-446655440004"
+                          name: "Roncesvalles"
+                          latitude: null
+                          longitude: null
+                          sequence: 0
+                        - location_id: "880e8400-e29b-41d4-a716-446655440005"
+                          name: "Pamplona"
+                          latitude: null
+                          longitude: null
+                          sequence: 1
+                      tags: ["camino"]
+                      photos: []
+                      created_at: "2024-07-10T08:00:00Z"
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Update trip (can add/update coordinates)
+      operationId: updateTrip
+      tags:
+        - Trips
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripUpdateRequest'
+            examples:
+              addCoordinates:
+                summary: Add GPS coordinates to existing trip
+                value:
+                  locations:
+                    - name: "Roncesvalles"
+                      latitude: 43.010833
+                      longitude: -1.319722
+                    - name: "Pamplona"
+                      latitude: 42.812500
+                      longitude: -1.645833
+              updateCoordinates:
+                summary: Update existing coordinates
+                value:
+                  locations:
+                    - name: "Jaca"
+                      latitude: 42.570100  # Updated precision
+                      longitude: -0.549900
+      responses:
+        '200':
+          description: Trip updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TripId:
+      name: trip_id
+      in: path
+      required: true
+      description: UUID of the trip
+      schema:
+        type: string
+        format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+  schemas:
+    LocationInput:
+      type: object
+      description: Location input with optional GPS coordinates
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Location name (e.g., "Madrid", "Barcelona")
+          example: "Jaca"
+        country:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Country name (optional, NOT stored in database)
+          example: "España"
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude in decimal degrees (optional, -90 to 90)
+          example: 42.570084
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude in decimal degrees (optional, -180 to 180)
+          example: -0.549941
+      additionalProperties: false
+
+    TripLocationResponse:
+      type: object
+      description: Location data in trip response
+      required:
+        - location_id
+        - name
+        - sequence
+      properties:
+        location_id:
+          type: string
+          format: uuid
+          description: Unique location identifier
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        name:
+          type: string
+          description: Location name
+          example: "Jaca"
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          description: Latitude in decimal degrees (null if not provided)
+          example: 42.570084
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          description: Longitude in decimal degrees (null if not provided)
+          example: -0.549941
+        sequence:
+          type: integer
+          minimum: 0
+          description: Order along route (0-based indexing)
+          example: 0
+      additionalProperties: false
+
+    TripCreateRequest:
+      type: object
+      required:
+        - title
+        - description
+        - start_date
+        - end_date
+        - distance_km
+        - difficulty
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Trip title
+          example: "Ruta Bikepacking Pirineos"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: Trip description (HTML sanitized)
+          example: "Viaje de 5 días por los Pirineos..."
+        start_date:
+          type: string
+          format: date
+          description: Trip start date (YYYY-MM-DD)
+          example: "2024-06-01"
+        end_date:
+          type: string
+          format: date
+          description: Trip end date (YYYY-MM-DD)
+          example: "2024-06-05"
+        distance_km:
+          type: number
+          format: float
+          minimum: 0.1
+          maximum: 10000
+          description: Total distance in kilometers
+          example: 320.5
+        difficulty:
+          type: string
+          enum: ["easy", "medium", "hard"]
+          description: Trip difficulty level
+          example: "hard"
+        status:
+          type: string
+          enum: ["draft", "published"]
+          default: "draft"
+          description: Trip publication status
+          example: "draft"
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationInput'
+          maxItems: 50
+          description: List of locations visited (max 50, coordinates optional)
+          example:
+            - name: "Jaca"
+              latitude: 42.570084
+              longitude: -0.549941
+            - name: "Somport"
+              latitude: 42.791667
+              longitude: -0.526944
+        tags:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          maxItems: 10
+          description: Trip tags for categorization
+          example: ["bikepacking", "montaña"]
+      additionalProperties: false
+
+    TripUpdateRequest:
+      type: object
+      description: Trip update request (all fields optional)
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        distance_km:
+          type: number
+          format: float
+          minimum: 0.1
+          maximum: 10000
+        difficulty:
+          type: string
+          enum: ["easy", "medium", "hard"]
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationInput'
+          maxItems: 50
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+      additionalProperties: false
+
+    TripResponse:
+      type: object
+      description: Complete trip response with locations and coordinates
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required:
+            - trip_id
+            - title
+            - description
+            - start_date
+            - end_date
+            - distance_km
+            - difficulty
+            - status
+            - locations
+            - tags
+            - photos
+            - created_at
+          properties:
+            trip_id:
+              type: string
+              format: uuid
+            title:
+              type: string
+            description:
+              type: string
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+            distance_km:
+              type: number
+              format: float
+            difficulty:
+              type: string
+              enum: ["easy", "medium", "hard"]
+            status:
+              type: string
+              enum: ["draft", "published"]
+            locations:
+              type: array
+              items:
+                $ref: '#/components/schemas/TripLocationResponse'
+            tags:
+              type: array
+              items:
+                type: string
+            photos:
+              type: array
+              items:
+                type: object
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+              nullable: true
+            published_at:
+              type: string
+              format: date-time
+              nullable: true
+        error:
+          type: 'null'
+          nullable: true
+      additionalProperties: false
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - data
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: 'null'
+          nullable: true
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: User-friendly error message in Spanish
+              example: "Latitud debe estar entre -90 y 90 grados"
+            field:
+              type: string
+              nullable: true
+              description: Field that caused the error (if applicable)
+              example: "locations[0].latitude"
+      additionalProperties: false
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token de autenticación inválido"
+
+    ForbiddenError:
+      description: User not authorized to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "FORBIDDEN"
+              message: "No tienes permisos para editar este viaje"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "NOT_FOUND"
+              message: "Viaje no encontrado"
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Latitud debe estar entre -90 y 90 grados"
+              field: "locations[0].latitude"
+
+tags:
+  - name: Trips
+    description: Trip management with GPS coordinates

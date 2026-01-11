@@ -22,20 +22,65 @@ except ImportError:
 
 class LocationInput(BaseModel):
     """
-    Location input for trip creation/update.
+    Location input for trip creation/update with optional GPS coordinates.
 
     Attributes:
         name: Location name (e.g., "Baeza", "Camino de Santiago")
         country: Country name (optional, e.g., "España")
+        latitude: Latitude in decimal degrees (optional, -90 to 90)
+        longitude: Longitude in decimal degrees (optional, -180 to 180)
     """
 
     name: str = Field(..., min_length=1, max_length=200, description="Location name")
     country: Optional[str] = Field(None, max_length=100, description="Country name (optional)")
+    latitude: Optional[float] = Field(
+        None,
+        ge=-90.0,
+        le=90.0,
+        description="Latitud en grados decimales (opcional, -90 a 90)",
+    )
+    longitude: Optional[float] = Field(
+        None,
+        ge=-180.0,
+        le=180.0,
+        description="Longitud en grados decimales (opcional, -180 a 180)",
+    )
+
+    @field_validator("latitude", "longitude")
+    @classmethod
+    def round_coordinates(cls, v: Optional[float]) -> Optional[float]:
+        """Enforce 6 decimal places precision for coordinates."""
+        if v is None:
+            return v
+        return round(v, 6)
+
+    @field_validator("latitude")
+    @classmethod
+    def validate_latitude_range(cls, v: Optional[float]) -> Optional[float]:
+        """Validate latitude range with Spanish error message."""
+        if v is not None and not -90 <= v <= 90:
+            raise ValueError("Latitud debe estar entre -90 y 90 grados")
+        return v
+
+    @field_validator("longitude")
+    @classmethod
+    def validate_longitude_range(cls, v: Optional[float]) -> Optional[float]:
+        """Validate longitude range with Spanish error message."""
+        if v is not None and not -180 <= v <= 180:
+            raise ValueError("Longitud debe estar entre -180 y 180 grados")
+        return v
 
     class Config:
         """Pydantic config."""
 
-        json_schema_extra = {"example": {"name": "Baeza", "country": "España"}}
+        json_schema_extra = {
+            "example": {
+                "name": "Baeza",
+                "country": "España",
+                "latitude": 37.993664,
+                "longitude": -3.467208,
+            }
+        }
 
 
 class TripCreateRequest(BaseModel):

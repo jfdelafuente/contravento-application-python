@@ -274,6 +274,12 @@ export interface LocationInput {
 
   /** Country name (max 100 characters, optional) */
   country?: string;
+
+  /** Latitude in decimal degrees (-90 to 90, optional) */
+  latitude?: number | null;
+
+  /** Longitude in decimal degrees (-180 to 180, optional) */
+  longitude?: number | null;
 }
 
 // ============================================================================
