@@ -315,6 +315,12 @@ export const formDataToApiPayload = (formData: {
   difficulty: TripDifficulty | '';
   description: string;
   tags: string[];
+  locations?: Array<{
+    name: string;
+    country?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }>;
 }): {
   title: string;
   description: string;
@@ -322,7 +328,12 @@ export const formDataToApiPayload = (formData: {
   end_date: string | null;
   distance_km: number | null;
   difficulty: TripDifficulty | null;
-  locations: { name: string; country?: string }[];
+  locations: Array<{
+    name: string;
+    country?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }>;
   tags: string[];
 } => {
   return {
@@ -332,7 +343,7 @@ export const formDataToApiPayload = (formData: {
     end_date: formData.end_date || null,
     distance_km: formData.distance_km ? parseFloat(formData.distance_km) : null,
     difficulty: formData.difficulty || null,
-    locations: [], // Phase 1 MVP: no location input
+    locations: formData.locations || [], // Include locations with coordinates if provided
     tags: formData.tags,
   };
 };

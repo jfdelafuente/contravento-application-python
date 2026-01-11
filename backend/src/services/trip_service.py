@@ -264,18 +264,20 @@ class TripService:
 
     async def _process_locations(self, trip: Trip, locations: list[LocationInput]) -> None:
         """
-        Process locations for trip.
+        Process locations for trip with optional GPS coordinates.
 
-        Creates TripLocation entities with sequence ordering.
+        Creates TripLocation entities with sequence ordering and coordinates.
 
         Args:
             trip: Trip instance
-            locations: List of location inputs
+            locations: List of location inputs with optional GPS coordinates
         """
         for sequence, location_data in enumerate(locations):
             location = TripLocation(
                 trip_id=trip.trip_id,
                 name=location_data.name,
+                latitude=location_data.latitude,  # Store latitude (nullable)
+                longitude=location_data.longitude,  # Store longitude (nullable)
                 # Note: country field is not in TripLocation model (only name)
                 # Geocoding will be added in future phases
                 sequence=sequence,
