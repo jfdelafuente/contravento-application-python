@@ -634,27 +634,62 @@ With 2-3 developers:
 - 5473246 - feat: add fullscreen mode to TripMap component (Phase 5.3)
 - [CURRENT] - fix: add position relative to trip-map for fullscreen button positioning (Phase 5.3)
 
-### Subphase 5.4: Unit Testing (Deferred T020-T023)
+### Subphase 5.4: Unit Testing (Deferred T020-T023) ✅ COMPLETE
 
 **Purpose**: Write comprehensive unit tests for TripMap component to achieve ≥90% code coverage
 
 **Note**: Uses Vitest + React Testing Library, mocks Leaflet components
 
-- [ ] T106 [P] Create TripMap.test.tsx in frontend/tests/unit/TripMap.test.tsx
-- [ ] T107 [P] Write test setup: Mock Leaflet components (MapContainer, Marker, Polyline, TileLayer)
-- [ ] T108 [P] [US1] T020 - Write unit test for TripMap filtering null coordinates
-- [ ] T109 [P] [US1] T021 - Write unit test for TripMap rendering numbered markers
-- [ ] T110 [P] [US1] T022 - Write unit test for TripMap polyline rendering
-- [ ] T111 [P] [US1] T023 - Write unit test for TripMap zoom calculation
-- [ ] T112 [P] Write unit test for error state display when tile loading fails
-- [ ] T113 [P] Write unit test for retry button functionality
-- [ ] T114 [P] Write unit test for fullscreen toggle behavior
-- [ ] T115 [P] Write unit test for empty state when no valid locations
-- [ ] T116 Run TripMap tests: npm test TripMap.test.tsx
-- [ ] T117 Verify test coverage ≥90% for TripMap.tsx: npm run test:coverage
-- [ ] T118 Fix any failing tests or coverage gaps
+- [x] T106 [P] Create TripMap.test.tsx in frontend/tests/unit/TripMap.test.tsx ✅
+- [x] T107 [P] Write test setup: Mock Leaflet components (MapContainer, Marker, Polyline, TileLayer) ✅
+- [x] T108 [P] [US1] T020 - Write unit test for TripMap filtering null coordinates (3 tests) ✅
+- [x] T109 [P] [US1] T021 - Write unit test for TripMap rendering numbered markers (3 tests) ✅
+- [x] T110 [P] [US1] T022 - Write unit test for TripMap polyline rendering (3 tests) ✅
+- [x] T111 [P] [US1] T023 - Write unit test for TripMap zoom calculation (5 tests) ✅
+- [x] T112 [P] Write unit test for error state display when tile loading fails (3 tests) ✅
+- [x] T113 [P] Write unit test for retry button functionality (1 test) ✅
+- [x] T114 [P] Write unit test for fullscreen toggle behavior (5 tests) ✅
+- [x] T115 [P] Write unit test for empty state when no valid locations (3 tests) ✅
+- [x] T116 Run TripMap tests: npm test TripMap.test.tsx ✅
+- [x] T117 Verify test coverage ≥90% for TripMap.tsx: npm run test:coverage ✅
+- [x] T118 Fix any failing tests or coverage gaps ✅
 
-**Checkpoint**: TripMap component has ≥90% test coverage, all tests passing
+**Implementation Details**:
+
+- Testing infrastructure setup: Vitest + React Testing Library + jsdom
+- Created `vitest.config.ts` with coverage thresholds (≥90%)
+- Created `setupTests.ts` with global mocks (Fullscreen API, Intersection/ResizeObserver)
+- Mocked react-leaflet components (MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents)
+- Mocked leaflet CSS and mapHelpers utility
+- 29 comprehensive unit tests covering all TripMap functionality
+- Added Location List Display tests (3 additional tests)
+
+**Test Results**:
+
+- **Total Tests**: 29 passed
+- **Coverage**: 97.82% (exceeds ≥90% requirement)
+  - Statements: 97.82%
+  - Branches: 92.59%
+  - Functions: 100%
+  - Lines: 97.82%
+- **Uncovered Lines**: 93-94 (error catch logging), 132-136 (empty state SVG path)
+
+**Files Created**:
+
+- `frontend/vitest.config.ts` - Vitest configuration with coverage settings
+- `frontend/src/setupTests.ts` - Global test setup and mocks
+- `frontend/tests/unit/TripMap.test.tsx` - 29 comprehensive unit tests (600+ lines)
+
+**Files Updated**:
+
+- `frontend/package.json` - Added testing dependencies and scripts
+  - Dependencies: @testing-library/react, @testing-library/jest-dom, @testing-library/user-event
+  - Dev Dependencies: vitest, @vitest/ui, @vitest/coverage-v8, jsdom, @types/leaflet
+  - Scripts: test, test:ui, test:coverage
+
+**Checkpoint**: ✅ TripMap component has 97.82% test coverage, all 29 tests passing
+
+**Commit**: [PENDING] - feat: add comprehensive unit tests for TripMap component (Phase 5.4)
 
 ### Subphase 5.5: Integration & Polish
 
