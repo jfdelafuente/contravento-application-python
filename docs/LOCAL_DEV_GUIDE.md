@@ -162,9 +162,27 @@ Abre http://localhost:8000/docs y verifica que la documentación de la API carga
 
 **Qué se inicia**:
 - Backend (FastAPI) en http://localhost:8000
-- Frontend (Vite) en http://localhost:5173
+- Frontend (Vite) en http://localhost:5173 (puerto por defecto de Vite)
 - Hot Module Replacement (HMR) en frontend
 - Hot reload en backend
+
+**¿Por qué puerto 5173?**
+
+El puerto 5173 es el puerto por defecto de Vite (el servidor de desarrollo del frontend). Este puerto está configurado en `frontend/vite.config.ts`:
+
+```typescript
+server: {
+  port: 5173, // Vite default port
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8000',  // Redirige llamadas API al backend
+      changeOrigin: true,
+    }
+  }
+}
+```
+
+Cuando visitas <http://localhost:5173> en el navegador, el frontend Vite actúa como proxy: todas las peticiones a `/api/*` se redirigen automáticamente al backend en puerto 8000. Esto elimina problemas de CORS durante el desarrollo.
 
 **Configuración Frontend (Primera vez)**:
 
