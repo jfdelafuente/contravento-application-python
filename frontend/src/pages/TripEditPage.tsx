@@ -165,6 +165,7 @@ export const TripEditPage: React.FC = () => {
           existingPhotos={trip.photos || []}
           onSubmit={handleSubmit}
           isEditMode={true}
+          currentStatus={trip.status}
         />
       </div>
     </div>
