@@ -150,8 +150,11 @@ Ver [DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) para detalles completos.
 # Setup inicial (primera vez)
 .\run-local-dev.ps1 -Setup
 
-# Iniciar servidor
+# Iniciar servidor (backend solo)
 .\run-local-dev.ps1
+
+# Iniciar servidor con frontend React
+.\run-local-dev.ps1 -WithFrontend
 
 # Resetear base de datos
 .\run-local-dev.ps1 -Reset
@@ -166,8 +169,11 @@ Ver [DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) para detalles completos.
 # Setup inicial (primera vez)
 ./run-local-dev.sh --setup
 
-# Iniciar servidor
+# Iniciar servidor (backend solo)
 ./run-local-dev.sh
+
+# Iniciar servidor con frontend React
+./run-local-dev.sh --with-frontend
 
 # Resetear base de datos
 ./run-local-dev.sh --reset
@@ -175,6 +181,14 @@ Ver [DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) para detalles completos.
 # Ver ayuda
 ./run-local-dev.sh --help
 ```
+
+> **📖 Para documentación completa**: Ver [docs/LOCAL_DEV_GUIDE.md](docs/LOCAL_DEV_GUIDE.md) que incluye:
+>
+> - Detalles del flag `--with-frontend` y cuándo usarlo
+> - Configuración de variables de entorno del frontend
+> - Troubleshooting de puertos (5173, 8000)
+> - Comandos para gestionar procesos backend/frontend
+> - Flujo de trabajo con Hot Module Replacement (HMR)
 
 ### ¿Qué hace el setup automáticamente?
 
@@ -487,14 +501,16 @@ pip install poetry
 pipx install poetry
 ```
 
-### Error: "Port 8000 already in use"
+### Error: "Port 8000 already in use" o "Port 5173 already in use"
 
 ```bash
 # Windows - Ver qué proceso usa el puerto
 netstat -ano | findstr :8000
+netstat -ano | findstr :5173
 
 # Linux/Mac - Ver qué proceso usa el puerto
 lsof -i :8000
+lsof -i :5173
 
 # Matar el proceso (cambia PID por el número que te aparece)
 # Windows
@@ -503,6 +519,8 @@ taskkill /PID <PID> /F
 # Linux/Mac
 kill -9 <PID>
 ```
+
+> **💡 Troubleshooting detallado**: Ver [docs/LOCAL_DEV_GUIDE.md - Comandos Útiles](docs/LOCAL_DEV_GUIDE.md#comandos-útiles-para-gestión-de-procesos) para comandos específicos de gestión de procesos frontend/backend.
 
 ### Error: "Docker daemon not running"
 
