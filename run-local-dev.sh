@@ -6,9 +6,10 @@
 # No Docker required - instant startup!
 #
 # Usage:
-#   ./run-local-dev.sh           # Start server
-#   ./run-local-dev.sh --setup   # First-time setup
-#   ./run-local-dev.sh --reset   # Reset database
+#   ./run-local-dev.sh                    # Start backend only
+#   ./run-local-dev.sh --with-frontend    # Start backend + frontend
+#   ./run-local-dev.sh --setup            # First-time setup
+#   ./run-local-dev.sh --reset            # Reset database
 # ============================================================================
 
 set -e
@@ -183,9 +184,25 @@ reset_db() {
     print_info "  User:   testuser / TestPass123!"
 }
 
+# Check if port is in use
+check_port() {
+    local port=$1
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+        return 0  # Port is in use
+    else
+        return 1  # Port is free
+    fi
+}
+
 # Start server
 start_server() {
-    print_header "Starting Local Development Server"
+    local with_frontend=$1
+
+    if [ "$with_frontend" = "true" ]; then
+        print_header "Starting Backend + Frontend (SQLite Local)"
+    else
+        print_header "Starting Backend Only (SQLite Local)"
+    fi
 
     cd backend
 
@@ -204,13 +221,100 @@ start_server() {
         print_success "Database created!"
     fi
 
-    print_success "Starting server at http://localhost:8000"
-    print_info "API Docs: http://localhost:8000/docs"
-    print_info "Press Ctrl+C to stop"
-    echo ""
+    # Check if backend port is in use
+    if check_port 8000; then
+        print_error "Port 8000 is already in use!"
+        print_info "Kill the process using port 8000:"
+        print_info "  lsof -ti:8000 | xargs kill -9"
+        cd ..
+        exit 1
+    fi
 
-    # Start uvicorn with hot reload
-    poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+    print_success "Starting backend at http://localhost:8000"
+    print_info "API Docs: http://localhost:8000/docs"
+
+    # Start uvicorn with hot reload in background
+    poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000 &
+    BACKEND_PID=$!
+
+    cd ..
+
+    # Start frontend if requested
+    if [ "$with_frontend" = "true" ]; then
+        # Check if frontend port is in use
+        if check_port 5173; then
+            print_error "Port 5173 is already in use!"
+            print_info "Kill the process using port 5173:"
+            print_info "  lsof -ti:5173 | xargs kill -9"
+            print_info "Stopping backend..."
+            kill $BACKEND_PID
+            exit 1
+        fi
+
+        # Check if Node.js is installed
+        if ! command -v node &> /dev/null; then
+            print_error "Node.js not found. Install from: https://nodejs.org/"
+            print_info "Stopping backend..."
+            kill $BACKEND_PID
+            exit 1
+        fi
+
+        # Check if npm is installed
+        if ! command -v npm &> /dev/null; then
+            print_error "npm not found. Install Node.js from: https://nodejs.org/"
+            print_info "Stopping backend..."
+            kill $BACKEND_PID
+            exit 1
+        fi
+
+        cd frontend
+
+        # Check if node_modules exists
+        if [ ! -d "node_modules" ]; then
+            print_warning "node_modules not found. Running npm install..."
+            npm install
+            print_success "Dependencies installed!"
+        fi
+
+        print_success "Starting frontend at http://localhost:5173"
+        print_info "Press Ctrl+C to stop both services"
+        echo ""
+
+        # Start Vite dev server
+        npm run dev &
+        FRONTEND_PID=$!
+
+        cd ..
+
+        # Setup cleanup trap to kill both processes on exit
+        cleanup() {
+            echo ""
+            print_info "Stopping services..."
+            kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+            print_success "Services stopped"
+            exit 0
+        }
+        trap cleanup EXIT INT TERM
+
+        # Wait for both processes
+        wait
+    else
+        print_info "Press Ctrl+C to stop"
+        echo ""
+
+        # Setup cleanup trap for backend only
+        cleanup() {
+            echo ""
+            print_info "Stopping backend..."
+            kill $BACKEND_PID 2>/dev/null || true
+            print_success "Backend stopped"
+            exit 0
+        }
+        trap cleanup EXIT INT TERM
+
+        # Wait for backend process
+        wait $BACKEND_PID
+    fi
 }
 
 # Main
@@ -218,29 +322,55 @@ main() {
     check_directory
     check_poetry
 
-    case "${1:-start}" in
-        --setup|setup)
+    # Parse arguments
+    WITH_FRONTEND=false
+    COMMAND="start"
+
+    for arg in "$@"; do
+        case "$arg" in
+            --with-frontend)
+                WITH_FRONTEND=true
+                ;;
+            --setup|setup)
+                COMMAND="setup"
+                ;;
+            --reset|reset)
+                COMMAND="reset"
+                ;;
+            --help|help|-h)
+                COMMAND="help"
+                ;;
+            start)
+                COMMAND="start"
+                ;;
+        esac
+    done
+
+    case "$COMMAND" in
+        setup)
             setup
             ;;
-        --reset|reset)
+        reset)
             reset_db
             ;;
-        --help|help|-h)
-            echo "Usage: $0 [command]"
+        help)
+            echo "Usage: $0 [command] [options]"
             echo ""
             echo "Commands:"
-            echo "  (none)     Start development server (default)"
-            echo "  --setup    First-time setup (install deps, create .env, run migrations)"
-            echo "  --reset    Reset database (delete and recreate)"
-            echo "  --help     Show this help"
+            echo "  (none)           Start backend only (default)"
+            echo "  --with-frontend  Start backend + frontend together"
+            echo "  --setup          First-time setup (install deps, create .env, run migrations)"
+            echo "  --reset          Reset database (delete and recreate)"
+            echo "  --help           Show this help"
             echo ""
             echo "Examples:"
-            echo "  $0              # Start server"
-            echo "  $0 --setup      # Initial setup"
-            echo "  $0 --reset      # Reset DB"
+            echo "  $0                        # Start backend only"
+            echo "  $0 --with-frontend        # Start backend + frontend"
+            echo "  $0 --setup                # Initial setup"
+            echo "  $0 --reset                # Reset DB"
             ;;
         start|*)
-            start_server
+            start_server "$WITH_FRONTEND"
             ;;
     esac
 }

@@ -5,33 +5,37 @@
 # No Docker required - instant startup!
 #
 # Usage:
-#   .\run-local-dev.ps1           # Start server
-#   .\run-local-dev.ps1 -Setup    # First-time setup
-#   .\run-local-dev.ps1 -Reset    # Reset database
+#   .\run-local-dev.ps1                     # Start backend only
+#   .\run-local-dev.ps1 -WithFrontend       # Start backend + frontend
+#   .\run-local-dev.ps1 -Setup              # First-time setup
+#   .\run-local-dev.ps1 -Reset              # Reset database
 # ============================================================================
 
 param(
     [switch]$Setup,
     [switch]$Reset,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$WithFrontend
 )
 
 # ============================================================================
 # SHOW HELP
 # ============================================================================
 if ($Help) {
-    Write-Host "Usage: .\run-local-dev.ps1 [command]"
+    Write-Host "Usage: .\run-local-dev.ps1 [command] [options]"
     Write-Host ""
     Write-Host "Commands:"
-    Write-Host "  (none)     Start development server (default)"
-    Write-Host "  -Setup     First-time setup (install deps, create .env, run migrations)"
-    Write-Host "  -Reset     Reset database (delete and recreate)"
-    Write-Host "  -Help      Show this help"
+    Write-Host "  (none)           Start backend only (default)"
+    Write-Host "  -WithFrontend    Start backend + frontend together"
+    Write-Host "  -Setup           First-time setup (install deps, create .env, run migrations)"
+    Write-Host "  -Reset           Reset database (delete and recreate)"
+    Write-Host "  -Help            Show this help"
     Write-Host ""
     Write-Host "Examples:"
-    Write-Host "  .\run-local-dev.ps1           # Start server"
-    Write-Host "  .\run-local-dev.ps1 -Setup    # Initial setup"
-    Write-Host "  .\run-local-dev.ps1 -Reset    # Reset DB"
+    Write-Host "  .\run-local-dev.ps1                  # Start backend only"
+    Write-Host "  .\run-local-dev.ps1 -WithFrontend    # Start backend + frontend"
+    Write-Host "  .\run-local-dev.ps1 -Setup           # Initial setup"
+    Write-Host "  .\run-local-dev.ps1 -Reset           # Reset DB"
     exit 0
 }
 
@@ -193,9 +197,22 @@ if ($Reset) {
 # ============================================================================
 # START SERVER (default)
 # ============================================================================
+
+# Function to check if port is in use
+function Test-Port {
+    param([int]$Port)
+    $connection = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+    return $null -ne $connection
+}
+
+# Header
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Blue
-Write-Host "  Starting Local Development Server" -ForegroundColor Blue
+if ($WithFrontend) {
+    Write-Host "  Starting Backend + Frontend (SQLite Local)" -ForegroundColor Blue
+} else {
+    Write-Host "  Starting Backend Only (SQLite Local)" -ForegroundColor Blue
+}
 Write-Host "============================================" -ForegroundColor Blue
 Write-Host ""
 
@@ -217,13 +234,149 @@ try {
         Write-Host "[SUCCESS] Database created!" -ForegroundColor Green
     }
 
-    Write-Host "[SUCCESS] Starting server at http://localhost:8000" -ForegroundColor Green
-    Write-Host "[INFO] API Docs: http://localhost:8000/docs" -ForegroundColor Blue
-    Write-Host "[INFO] Press Ctrl+C to stop" -ForegroundColor Blue
-    Write-Host ""
+    # Check if backend port is in use
+    if (Test-Port -Port 8000) {
+        Write-Host "[ERROR] Port 8000 is already in use!" -ForegroundColor Red
+        Write-Host "[INFO] Kill the process using port 8000:" -ForegroundColor Blue
+        Write-Host "  Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process" -ForegroundColor Blue
+        Set-Location ..
+        exit 1
+    }
 
-    # Start uvicorn with hot reload
-    poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+    Write-Host "[SUCCESS] Starting backend at http://localhost:8000" -ForegroundColor Green
+    Write-Host "[INFO] API Docs: http://localhost:8000/docs" -ForegroundColor Blue
+
+    # Start uvicorn with hot reload in background
+    $BackendJob = Start-Job -ScriptBlock {
+        param($BackendPath)
+        Set-Location $BackendPath
+        poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+    } -ArgumentList (Get-Location).Path
+
+    Set-Location ..
+
+    # Start frontend if requested
+    if ($WithFrontend) {
+        # Check if frontend port is in use
+        if (Test-Port -Port 5173) {
+            Write-Host "[ERROR] Port 5173 is already in use!" -ForegroundColor Red
+            Write-Host "[INFO] Kill the process using port 5173:" -ForegroundColor Blue
+            Write-Host "  Get-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess | Stop-Process" -ForegroundColor Blue
+            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
+            Stop-Job $BackendJob
+            Remove-Job $BackendJob
+            exit 1
+        }
+
+        # Check if Node.js is installed
+        if (!(Get-Command node -ErrorAction SilentlyContinue)) {
+            Write-Host "[ERROR] Node.js not found. Install from: https://nodejs.org/" -ForegroundColor Red
+            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
+            Stop-Job $BackendJob
+            Remove-Job $BackendJob
+            exit 1
+        }
+
+        # Check if npm is installed
+        if (!(Get-Command npm -ErrorAction SilentlyContinue)) {
+            Write-Host "[ERROR] npm not found. Install Node.js from: https://nodejs.org/" -ForegroundColor Red
+            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
+            Stop-Job $BackendJob
+            Remove-Job $BackendJob
+            exit 1
+        }
+
+        Set-Location frontend
+
+        # Check if node_modules exists
+        if (!(Test-Path "node_modules")) {
+            Write-Host "[WARNING] node_modules not found. Running npm install..." -ForegroundColor Yellow
+            npm install
+            Write-Host "[SUCCESS] Dependencies installed!" -ForegroundColor Green
+        }
+
+        Write-Host "[SUCCESS] Starting frontend at http://localhost:5173" -ForegroundColor Green
+        Write-Host "[INFO] Press Ctrl+C to stop both services" -ForegroundColor Blue
+        Write-Host ""
+
+        # Start Vite dev server in background
+        $FrontendJob = Start-Job -ScriptBlock {
+            param($FrontendPath)
+            Set-Location $FrontendPath
+            npm run dev
+        } -ArgumentList (Get-Location).Path
+
+        Set-Location ..
+
+        # Setup cleanup handler
+        Register-EngineEvent PowerShell.Exiting -Action {
+            Write-Host ""
+            Write-Host "[INFO] Stopping services..." -ForegroundColor Blue
+            Stop-Job $BackendJob -ErrorAction SilentlyContinue
+            Stop-Job $FrontendJob -ErrorAction SilentlyContinue
+            Remove-Job $BackendJob -ErrorAction SilentlyContinue
+            Remove-Job $FrontendJob -ErrorAction SilentlyContinue
+            Write-Host "[SUCCESS] Services stopped" -ForegroundColor Green
+        }
+
+        # Wait for both jobs and show their output
+        try {
+            while ($true) {
+                Receive-Job $BackendJob
+                Receive-Job $FrontendJob
+                Start-Sleep -Milliseconds 100
+
+                # Check if jobs are still running
+                if ($BackendJob.State -eq 'Completed' -or $FrontendJob.State -eq 'Completed') {
+                    break
+                }
+            }
+        }
+        catch {
+            Write-Host ""
+            Write-Host "[INFO] Stopping services..." -ForegroundColor Blue
+        }
+        finally {
+            Stop-Job $BackendJob -ErrorAction SilentlyContinue
+            Stop-Job $FrontendJob -ErrorAction SilentlyContinue
+            Remove-Job $BackendJob -ErrorAction SilentlyContinue
+            Remove-Job $FrontendJob -ErrorAction SilentlyContinue
+            Write-Host "[SUCCESS] Services stopped" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "[INFO] Press Ctrl+C to stop" -ForegroundColor Blue
+        Write-Host ""
+
+        # Setup cleanup handler for backend only
+        Register-EngineEvent PowerShell.Exiting -Action {
+            Write-Host ""
+            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
+            Stop-Job $BackendJob -ErrorAction SilentlyContinue
+            Remove-Job $BackendJob -ErrorAction SilentlyContinue
+            Write-Host "[SUCCESS] Backend stopped" -ForegroundColor Green
+        }
+
+        # Wait for backend job and show its output
+        try {
+            while ($true) {
+                Receive-Job $BackendJob
+                Start-Sleep -Milliseconds 100
+
+                if ($BackendJob.State -eq 'Completed') {
+                    break
+                }
+            }
+        }
+        catch {
+            Write-Host ""
+            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
+        }
+        finally {
+            Stop-Job $BackendJob -ErrorAction SilentlyContinue
+            Remove-Job $BackendJob -ErrorAction SilentlyContinue
+            Write-Host "[SUCCESS] Backend stopped" -ForegroundColor Green
+        }
+    }
 }
 finally {
     Set-Location ..

@@ -65,14 +65,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Update `run-local-dev.sh` to add --with-frontend flag that starts both backend and frontend processes
-- [ ] T014 [US1] Update `run-local-dev.ps1` to add -WithFrontend parameter that starts both backend and frontend processes
-- [ ] T015 [US1] Add process management to `run-local-dev.sh` to handle cleanup when script exits (trap signals)
-- [ ] T016 [US1] Add process management to `run-local-dev.ps1` to handle cleanup when script exits (Register-EngineEvent)
-- [ ] T017 [US1] Add logging to `run-local-dev.sh` showing frontend and backend URLs when services start
-- [ ] T018 [US1] Add logging to `run-local-dev.ps1` showing frontend and backend URLs when services start
-- [ ] T019 [US1] Add error handling to `run-local-dev.sh` to detect if port 5173 is already in use
-- [ ] T020 [US1] Add error handling to `run-local-dev.ps1` to detect if port 5173 is already in use
+- [x] T013 [US1] Update `run-local-dev.sh` to add --with-frontend flag that starts both backend and frontend processes
+- [x] T014 [US1] Update `run-local-dev.ps1` to add -WithFrontend parameter that starts both backend and frontend processes
+- [x] T015 [US1] Add process management to `run-local-dev.sh` to handle cleanup when script exits (trap signals)
+- [x] T016 [US1] Add process management to `run-local-dev.ps1` to handle cleanup when script exits (Register-EngineEvent)
+- [x] T017 [US1] Add logging to `run-local-dev.sh` showing frontend and backend URLs when services start
+- [x] T018 [US1] Add logging to `run-local-dev.ps1` showing frontend and backend URLs when services start
+- [x] T019 [US1] Add error handling to `run-local-dev.sh` to detect if port 5173 is already in use
+- [x] T020 [US1] Add error handling to `run-local-dev.ps1` to detect if port 5173 is already in use
 - [ ] T021 [US1] Update `QUICK_START.md` section "SQLite Local" to document --with-frontend flag with examples
 - [ ] T022 [US1] Create troubleshooting section in `QUICK_START.md` for "Port 5173 Already in Use" with Windows/Linux commands
 
