@@ -286,7 +286,7 @@ export const Step3Photos: React.FC<Step3PhotosProps> = ({
         <p className="step3-photos__note">
           <strong>Nota:</strong> {tripId
             ? 'Las fotos marcadas para eliminar se eliminarán al guardar los cambios.'
-            : 'Las fotos seleccionadas se subirán automáticamente después de crear el viaje. Si guardas como borrador, las fotos no se subirán hasta que publiques el viaje.'}
+            : 'Las fotos seleccionadas se subirán automáticamente después de crear el viaje, tanto si lo guardas como borrador o si lo publicas.'}
         </p>
       </div>
 
