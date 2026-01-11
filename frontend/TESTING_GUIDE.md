@@ -261,11 +261,11 @@ poetry run python scripts/create_verified_user.py
 
 #### T5.5 - High Precision Coordinates
 
-- [ ] **Enter** location name: "Jaca"
-- [ ] **Enter** latitude: `42.5700841234567` (13 decimals)
-- [ ] **Enter** longitude: `-0.5499411234567`
-- [ ] **Proceed** to Step 4
-- [ ] **Expected**: Coordinates displayed with 6 decimal precision:
+- [x] **Enter** location name: "Jaca"
+- [x] **Enter** latitude: `42.5700841234567` (13 decimals)
+- [x] **Enter** longitude: `-0.5499411234567`
+- [x] **Proceed** to Step 4
+- [x] **Expected**: Coordinates displayed with 6 decimal precision:
   - Lat: `42.570084°` (rounded)
   - Lon: `-0.549941°` (rounded)
 
