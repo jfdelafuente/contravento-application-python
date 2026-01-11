@@ -25,14 +25,14 @@
 
 **Purpose**: Project initialization and environment configuration files
 
-- [ ] T001 [P] Create frontend environment file templates: `frontend/.env.example` with VITE_API_URL and VITE_TURNSTILE_SITE_KEY
-- [ ] T002 [P] Create `frontend/.env.development` with VITE_API_URL=http://localhost:8000
-- [ ] T003 [P] Create `frontend/.env.staging` template with placeholder for staging API URL
-- [ ] T004 [P] Create `frontend/.env.production` template with placeholder for production API URL
-- [ ] T005 [P] Update `frontend/.gitignore` to exclude `.env.staging` and `.env.production` (security)
-- [ ] T006 [P] Create `frontend/Dockerfile.dev` for Vite dev server with volume mounts
-- [ ] T007 [P] Create `frontend/Dockerfile.prod` multi-stage build (Node builder + Nginx server)
-- [ ] T008 [P] Create `frontend/nginx.conf` with SPA routing (try_files) and cache headers
+- [x] T001 [P] Create frontend environment file templates: `frontend/.env.example` with VITE_API_URL and VITE_TURNSTILE_SITE_KEY
+- [x] T002 [P] Create `frontend/.env.development` with VITE_API_URL=http://localhost:8000
+- [x] T003 [P] Create `frontend/.env.staging` template with placeholder for staging API URL
+- [x] T004 [P] Create `frontend/.env.production` template with placeholder for production API URL
+- [x] T005 [P] Update `frontend/.gitignore` to exclude `.env.staging` and `.env.production` (security)
+- [x] T006 [P] Create `frontend/Dockerfile.dev` for Vite dev server with volume mounts
+- [x] T007 [P] Create `frontend/Dockerfile.prod` multi-stage build (Node builder + Nginx server)
+- [x] T008 [P] Create `frontend/nginx.conf` with SPA routing (try_files) and cache headers
 
 **Checkpoint**: Environment files and Dockerfiles ready for all deployment modes
 

@@ -21,6 +21,9 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+# Security: Never commit staging/production environment files
+.env.staging
+.env.production
 
 # Editor directories and files
 .vscode/*
