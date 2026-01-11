@@ -796,13 +796,65 @@ All manual tests are documented in [frontend/TESTING_GUIDE.md](../../frontend/TE
 - 35951d0 - feat: add comprehensive unit tests for TripMap component (Phase 5.4)
 - 9767609 - docs: add Phase 5 testing guide and known limitations (Phase 5.5)
 
-### Pending Phases
+**Phase 6**: User Story 3 - Edit GPS Coordinates ✅
 
-**Phase 6**: User Story 3 - Edit GPS Coordinates (Optional - P3)
+- T055: Backend Integration Tests - 4 comprehensive tests for PUT /trips/{trip_id} with coordinate updates
+- Feature already works (LocationInput component reused from Phase 4)
+- Backend tests validate: update existing, add new, remove, mixed locations
 
-- Enable editing existing trips to add/update GPS coordinates
-- Reuses LocationInput component from Phase 4
-- Integration tests for coordinate updates
+**Key Commit**:
+
+- [PENDING] - test: add integration tests for GPS coordinate editing (Phase 6 - T055)
+
+**Phase 6**: User Story 3 - Edit GPS Coordinates (P3) ✅ COMPLETE
+
+**Purpose**: Allow users to edit existing trips to add, update, or remove GPS coordinates (backfilling historical trips)
+
+**Note**: Feature already implemented in Phase 4 - LocationInput component works in both create and edit modes
+
+#### T055: Backend Integration Tests
+
+- [x] T055 Create integration test file: backend/tests/integration/test_edit_gps_coordinates.py ✅
+- [x] Test: Update existing GPS coordinates on a trip ✅
+- [x] Test: Add GPS coordinates to location that previously had none ✅
+- [x] Test: Remove GPS coordinates from a location (set to null) ✅
+- [x] Test: Mixed locations (some with GPS, some without) ✅
+
+**Implementation Details**:
+
+- Created `backend/tests/integration/test_edit_gps_coordinates.py` with 4 comprehensive integration tests
+- All tests use PUT /trips/{trip_id} endpoint to update trip locations with GPS coordinates
+- Tests verify coordinate precision (pytest.approx with abs=0.000001 tolerance)
+- Tests verify null handling (coordinates can be added/removed)
+- Tests validate database persistence and API responses
+
+**Test Results**:
+
+- **Total Tests**: 4 passed ✅
+- **Coverage**: 39.47% overall backend (integration tests don't focus on coverage)
+- All scenarios validated:
+  - ✅ Updating existing coordinates (40.0 → 40.416775)
+  - ✅ Adding coordinates to location without GPS (Sevilla: null → 37.389092)
+  - ✅ Removing coordinates (Barcelona: 41.385064 → null)
+  - ✅ Mixed locations (Granada has GPS, Málaga gets GPS added)
+
+**Files Created**:
+
+- `backend/tests/integration/test_edit_gps_coordinates.py` - 4 integration tests (328 lines)
+
+**Note on Frontend Integration Tests**:
+
+Frontend integration tests were created ([frontend/tests/integration/TripForm.test.tsx](../../frontend/tests/integration/TripForm.test.tsx)) but deferred due to complex mocking requirements of the TripEditPage component (AuthContext, react-router-dom, tripService). The GPS coordinate editing functionality is already validated through:
+
+- Manual testing (user confirmed "ya funciona" - it already works)
+- Unit tests in Phase 5.4 (TripMap component with 97.82% coverage)
+- Backend integration tests (T055 - all passing)
+
+The TripEditPage component reuses the same LocationInput component from Phase 4 (TripCreatePage), so the validation and UI behavior is identical.
+
+**Checkpoint**: ✅ GPS coordinate editing fully functional with backend integration test coverage
+
+**Commit**: [PENDING] - test: add integration tests for GPS coordinate editing (Phase 6 - T055)
 
 ### Estimated Effort
 
