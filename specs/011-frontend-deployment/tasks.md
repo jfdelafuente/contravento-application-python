@@ -73,8 +73,8 @@
 - [x] T018 [US1] Add logging to `run-local-dev.ps1` showing frontend and backend URLs when services start
 - [x] T019 [US1] Add error handling to `run-local-dev.sh` to detect if port 5173 is already in use
 - [x] T020 [US1] Add error handling to `run-local-dev.ps1` to detect if port 5173 is already in use
-- [ ] T021 [US1] Update `QUICK_START.md` section "SQLite Local" to document --with-frontend flag with examples
-- [ ] T022 [US1] Create troubleshooting section in `QUICK_START.md` for "Port 5173 Already in Use" with Windows/Linux commands
+- [x] T021 [US1] Update `QUICK_START.md` section "SQLite Local" to document --with-frontend flag with examples
+- [x] T022 [US1] Create troubleshooting section in `QUICK_START.md` for "Port 5173 Already in Use" with Windows/Linux commands
 
 **Checkpoint**: SQLite Local mode with frontend should be fully functional - developers can start both services with one command
 
