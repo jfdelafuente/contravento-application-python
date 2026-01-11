@@ -716,6 +716,125 @@
 }
 
 /* ============================================================================
+   Locations Section (T7.2: Show locations with or without GPS coordinates)
+   ============================================================================ */
+
+.trip-detail-page__locations {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.trip-detail-page__location {
+  padding: 16px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.15s ease-in-out;
+}
+
+.trip-detail-page__location:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.trip-detail-page__location-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.trip-detail-page__location-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-color, #2563eb);
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.trip-detail-page__location-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.trip-detail-page__location-coords {
+  display: flex;
+  gap: 20px;
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #6b7280);
+  font-family: 'Courier New', monospace;
+  margin-left: 44px; /* Align with location name (32px circle + 12px gap) */
+}
+
+.trip-detail-page__location-coord {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trip-detail-page__location-no-coords {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #6b7280);
+  font-style: italic;
+  margin-left: 44px; /* Align with location name */
+}
+
+.trip-detail-page__map-container {
+  margin-top: 32px;
+}
+
+.trip-detail-page__subsection-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .trip-detail-page__location {
+    padding: 12px;
+  }
+
+  .trip-detail-page__location-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8125rem;
+  }
+
+  .trip-detail-page__location-name {
+    font-size: 0.9375rem;
+  }
+
+  .trip-detail-page__location-coords {
+    flex-direction: column;
+    gap: 4px;
+    margin-left: 40px; /* 28px circle + 12px gap */
+    font-size: 0.875rem;
+  }
+
+  .trip-detail-page__location-no-coords {
+    margin-left: 40px;
+    font-size: 0.875rem;
+  }
+
+  .trip-detail-page__subsection-title {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================================================
    Dark Mode Support
    ============================================================================ */
 
@@ -781,5 +900,33 @@
 
   .trip-detail-page__error-title {
     color: #f9fafb;
+  }
+
+  /* Locations Section Dark Mode */
+  .trip-detail-page__location {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-detail-page__location:hover {
+    background-color: #111827;
+    border-color: #4b5563;
+  }
+
+  .trip-detail-page__location-name {
+    color: #f9fafb;
+  }
+
+  .trip-detail-page__location-coords {
+    color: #d1d5db;
+  }
+
+  .trip-detail-page__location-no-coords {
+    color: #9ca3af;
+  }
+
+  .trip-detail-page__subsection-title {
+    color: #f9fafb;
+    border-bottom-color: #374151;
   }
 }

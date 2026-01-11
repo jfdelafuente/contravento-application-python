@@ -2,15 +2,16 @@
  * Step1BasicInfo Component
  *
  * First step of trip creation wizard - collects basic trip information.
- * Fields: title, start_date, end_date (optional), distance_km (optional), difficulty (optional)
+ * Fields: title, start_date, end_date (optional), distance_km (optional), difficulty (optional), locations (with GPS)
  *
  * Used in:
  * - TripFormWizard (step 1/4)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { TripCreateInput, DIFFICULTY_LABELS } from '../../../types/trip';
+import { LocationInput, LocationInputData, LocationValidationErrors } from './LocationInput';
 import './Step1BasicInfo.css';
 
 export const Step1BasicInfo: React.FC = () => {
@@ -18,10 +19,141 @@ export const Step1BasicInfo: React.FC = () => {
     register,
     formState: { errors },
     watch,
+    setValue,
+    getValues,
   } = useFormContext<TripCreateInput>();
 
   // Watch start_date to validate end_date
   const startDate = watch('start_date');
+
+  // Locations state management
+  const [locations, setLocations] = useState<LocationInputData[]>(() => {
+    const existingLocations = getValues('locations');
+    return existingLocations && existingLocations.length > 0
+      ? existingLocations.map((loc) => ({
+          name: loc.name,
+          latitude: loc.latitude ?? null,
+          longitude: loc.longitude ?? null,
+        }))
+      : [{ name: '', latitude: null, longitude: null }];
+  });
+
+  const [locationErrors, setLocationErrors] = useState<Record<number, LocationValidationErrors>>({});
+
+  // Update form value when locations change
+  React.useEffect(() => {
+    setValue('locations', locations);
+  }, [locations, setValue]);
+
+  const handleLocationChange = (index: number, field: string, value: string | number | null) => {
+    setLocations((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+
+    // Clear error for this field
+    setLocationErrors((prev) => {
+      const updated = { ...prev };
+      if (updated[index]) {
+        delete updated[index][field as keyof LocationValidationErrors];
+        if (Object.keys(updated[index]).length === 0) {
+          delete updated[index];
+        }
+      }
+      return updated;
+    });
+  };
+
+  // Validate locations before allowing next step
+  const validateLocations = (): boolean => {
+    const errors: Record<number, LocationValidationErrors> = {};
+    let hasErrors = false;
+
+    locations.forEach((location, index) => {
+      // Validate location name
+      if (!location.name || location.name.trim() === '') {
+        if (!errors[index]) errors[index] = {};
+        errors[index].name = 'El nombre de la ubicación es obligatorio';
+        hasErrors = true;
+      }
+
+      // Validate partial coordinates (both or none)
+      const hasLatitude = location.latitude !== null && location.latitude !== undefined && location.latitude !== '';
+      const hasLongitude = location.longitude !== null && location.longitude !== undefined && location.longitude !== '';
+
+      if (hasLatitude && !hasLongitude) {
+        if (!errors[index]) errors[index] = {};
+        errors[index].longitude = 'Debes proporcionar la longitud si ingresas latitud';
+        hasErrors = true;
+      }
+
+      if (!hasLatitude && hasLongitude) {
+        if (!errors[index]) errors[index] = {};
+        errors[index].latitude = 'Debes proporcionar la latitud si ingresas longitud';
+        hasErrors = true;
+      }
+
+      // Validate coordinate ranges
+      if (hasLatitude) {
+        const lat = Number(location.latitude);
+        if (isNaN(lat) || lat < -90 || lat > 90) {
+          if (!errors[index]) errors[index] = {};
+          errors[index].latitude = 'La latitud debe estar entre -90 y 90 grados';
+          hasErrors = true;
+        }
+      }
+
+      if (hasLongitude) {
+        const lon = Number(location.longitude);
+        if (isNaN(lon) || lon < -180 || lon > 180) {
+          if (!errors[index]) errors[index] = {};
+          errors[index].longitude = 'La longitud debe estar entre -180 y 180 grados';
+          hasErrors = true;
+        }
+      }
+    });
+
+    setLocationErrors(errors);
+    return !hasErrors;
+  };
+
+  // Expose validation function to parent (TripFormWizard)
+  React.useEffect(() => {
+    // Store validation function in window for TripFormWizard to call
+    (window as any).__validateStep1Locations = validateLocations;
+    return () => {
+      delete (window as any).__validateStep1Locations;
+    };
+  }, [locations]);
+
+  const handleAddLocation = () => {
+    if (locations.length >= 50) {
+      alert('Máximo 50 ubicaciones permitidas');
+      return;
+    }
+    setLocations((prev) => [...prev, { name: '', latitude: null, longitude: null }]);
+  };
+
+  const handleRemoveLocation = (index: number) => {
+    if (locations.length === 1) {
+      alert('Debe haber al menos una ubicación');
+      return;
+    }
+    setLocations((prev) => prev.filter((_, i) => i !== index));
+    setLocationErrors((prev) => {
+      const updated = { ...prev };
+      delete updated[index];
+      // Re-index errors after removal
+      const reindexed: Record<number, LocationValidationErrors> = {};
+      Object.keys(updated).forEach((key) => {
+        const oldIndex = parseInt(key);
+        const newIndex = oldIndex > index ? oldIndex - 1 : oldIndex;
+        reindexed[newIndex] = updated[oldIndex];
+      });
+      return reindexed;
+    });
+  };
 
   return (
     <div className="step1-basic-info">
@@ -186,7 +318,7 @@ export const Step1BasicInfo: React.FC = () => {
             <option value="easy">{DIFFICULTY_LABELS.easy}</option>
             <option value="moderate">{DIFFICULTY_LABELS.moderate}</option>
             <option value="difficult">{DIFFICULTY_LABELS.difficult}</option>
-            <option value="extreme">{DIFFICULTY_LABELS.extreme}</option>
+            <option value="very_difficult">{DIFFICULTY_LABELS.very_difficult}</option>
           </select>
           {errors.difficulty && (
             <span id="difficulty-error" className="form-field__error" role="alert">
@@ -196,6 +328,46 @@ export const Step1BasicInfo: React.FC = () => {
           <span id="difficulty-hint" className="form-field__hint">
             Califica la dificultad técnica y física del viaje
           </span>
+        </div>
+
+        {/* Locations Section with GPS Coordinates */}
+        <div className="form-section">
+          <div className="form-section__header">
+            <h3 className="form-section__title">Ubicaciones del Viaje</h3>
+            <p className="form-section__description">
+              Añade las ubicaciones de tu ruta. Las coordenadas GPS son opcionales y permiten visualizar la ruta en el mapa.
+            </p>
+          </div>
+
+          <div className="locations-container">
+            {locations.map((location, index) => (
+              <LocationInput
+                key={index}
+                location={location}
+                index={index}
+                onChange={handleLocationChange}
+                onRemove={handleRemoveLocation}
+                errors={locationErrors[index]}
+                showRemove={locations.length > 1}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="add-location-btn"
+            onClick={handleAddLocation}
+            disabled={locations.length >= 50}
+            aria-label="Añadir otra ubicación"
+          >
+            + Añadir Ubicación
+          </button>
+
+          {locations.length >= 50 && (
+            <span className="form-field__hint" style={{ color: '#dc3545' }}>
+              Máximo 50 ubicaciones alcanzado
+            </span>
+          )}
         </div>
       </div>
     </div>

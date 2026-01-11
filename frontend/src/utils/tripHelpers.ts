@@ -421,3 +421,100 @@ export const formatFileSize = (bytes: number): string => {
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
+
+// ============================================================================
+// Location and Coordinate Helpers
+// ============================================================================
+
+/**
+ * Format GPS coordinate for display
+ *
+ * @param coordinate - Latitude or longitude value
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Formatted coordinate string with degree symbol
+ *
+ * @example
+ * formatCoordinate(40.416775) // '40.416775°'
+ * formatCoordinate(-3.703790, 4) // '-3.7038°'
+ */
+export const formatCoordinate = (coordinate: number | null, decimals: number = 6): string => {
+  if (coordinate === null || coordinate === undefined) {
+    return 'N/A';
+  }
+
+  return `${coordinate.toFixed(decimals)}°`;
+};
+
+/**
+ * Format GPS coordinates as a pair (latitude, longitude)
+ *
+ * @param latitude - Latitude value (-90 to 90)
+ * @param longitude - Longitude value (-180 to 180)
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Formatted coordinate pair
+ *
+ * @example
+ * formatCoordinatePair(40.416775, -3.703790)
+ * // 'Lat: 40.416775°, Lon: -3.703790°'
+ *
+ * formatCoordinatePair(null, null)
+ * // 'Sin coordenadas GPS'
+ */
+export const formatCoordinatePair = (
+  latitude: number | null,
+  longitude: number | null,
+  decimals: number = 6
+): string => {
+  if (latitude === null || longitude === null) {
+    return 'Sin coordenadas GPS';
+  }
+
+  return `Lat: ${latitude.toFixed(decimals)}°, Lon: ${longitude.toFixed(decimals)}°`;
+};
+
+/**
+ * Validate GPS coordinates
+ *
+ * @param latitude - Latitude value
+ * @param longitude - Longitude value
+ * @returns Object with valid flag and error message if invalid
+ *
+ * @example
+ * validateCoordinates(40.416775, -3.703790) // { valid: true }
+ * validateCoordinates(100, 0) // { valid: false, error: 'Latitud debe estar entre -90 y 90 grados' }
+ */
+export const validateCoordinates = (
+  latitude: number | null,
+  longitude: number | null
+): { valid: boolean; error?: string } => {
+  // If both are null, it's valid (optional coordinates)
+  if (latitude === null && longitude === null) {
+    return { valid: true };
+  }
+
+  // If only one is provided, it's invalid
+  if (latitude === null || longitude === null) {
+    return {
+      valid: false,
+      error: 'Debes proporcionar tanto latitud como longitud, o dejar ambas vacías',
+    };
+  }
+
+  // Validate latitude range (-90 to 90)
+  if (latitude < -90 || latitude > 90) {
+    return {
+      valid: false,
+      error: 'Latitud debe estar entre -90 y 90 grados',
+    };
+  }
+
+  // Validate longitude range (-180 to 180)
+  if (longitude < -180 || longitude > 180) {
+    return {
+      valid: false,
+      error: 'Longitud debe estar entre -180 y 180 grados',
+    };
+  }
+
+  return { valid: true };
+};

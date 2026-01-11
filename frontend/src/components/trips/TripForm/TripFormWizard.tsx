@@ -37,6 +37,9 @@ interface TripFormWizardProps {
 
   /** Whether we're in edit mode */
   isEditMode?: boolean;
+
+  /** Current trip status (for edit mode - determines if "Save Draft" button is shown) */
+  currentStatus?: 'draft' | 'published';
 }
 
 // Step labels for the indicator
@@ -53,6 +56,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
   existingPhotos = [],
   onSubmit,
   isEditMode = false,
+  currentStatus,
 }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -103,6 +107,18 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
         position: 'top-center',
       });
       return;
+    }
+
+    // Additional validation for Step 1 locations
+    if (currentStep === 1) {
+      const validateStep1Locations = (window as any).__validateStep1Locations;
+      if (validateStep1Locations && !validateStep1Locations()) {
+        toast.error('Por favor completa el nombre de todas las ubicaciones', {
+          duration: 3000,
+          position: 'top-center',
+        });
+        return;
+      }
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, 4));
@@ -295,15 +311,17 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
           {/* Final Step Actions (step 4) */}
           {currentStep === 4 && (
             <>
-              {/* Save Draft Button */}
-              <button
-                type="button"
-                className="trip-form-wizard__button trip-form-wizard__button--secondary"
-                onClick={handleSaveDraft}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Guardando...' : 'Guardar Borrador'}
-              </button>
+              {/* Save Draft Button - Only show if creating new trip OR editing a draft */}
+              {(!isEditMode || currentStatus === 'draft') && (
+                <button
+                  type="button"
+                  className="trip-form-wizard__button trip-form-wizard__button--secondary"
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Guardando...' : 'Guardar Borrador'}
+                </button>
+              )}
 
               {/* Publish Button */}
               <button

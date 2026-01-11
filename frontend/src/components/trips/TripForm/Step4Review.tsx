@@ -27,6 +27,7 @@ export const Step4Review: React.FC = () => {
     distance_km,
     difficulty,
     tags = [],
+    locations = [],
   } = formData;
 
   // Get selected photos from custom field
@@ -90,6 +91,39 @@ export const Step4Review: React.FC = () => {
               <span className="review-item__label">Dificultad:</span>
               <span className="review-item__value">{formattedDifficulty}</span>
             </div>
+          </div>
+        </div>
+
+        {/* Locations Section */}
+        <div className="review-section">
+          <h3 className="review-section__title">Ubicaciones</h3>
+          <div className="review-section__content">
+            {locations.length > 0 ? (
+              <div className="review-locations">
+                {locations.map((location, index) => (
+                  <div key={index} className="review-location">
+                    <div className="review-location__header">
+                      <span className="review-location__number">{index + 1}</span>
+                      <span className="review-location__name">{location.name || 'Sin nombre'}</span>
+                    </div>
+                    {location.latitude !== null && location.longitude !== null ? (
+                      <div className="review-location__coords">
+                        <span className="review-location__coord">
+                          📍 Lat: {location.latitude.toFixed(6)}°
+                        </span>
+                        <span className="review-location__coord">
+                          Lon: {location.longitude.toFixed(6)}°
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="review-location__no-coords">Sin coordenadas GPS</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="review-empty">Sin ubicaciones</p>
+            )}
           </div>
         </div>
 
@@ -301,6 +335,65 @@ export const Step4Review: React.FC = () => {
           color: var(--text-secondary, #6b7280);
           font-style: italic;
           margin: 0;
+        }
+
+        .review-locations {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .review-location {
+          padding: 12px;
+          background-color: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+        }
+
+        .review-location__header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+
+        .review-location__number {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          background-color: var(--primary-color, #2563eb);
+          color: #ffffff;
+          border-radius: 50%;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .review-location__name {
+          font-size: 0.9375rem;
+          font-weight: 600;
+          color: var(--text-primary, #111827);
+        }
+
+        .review-location__coords {
+          display: flex;
+          gap: 16px;
+          font-size: 0.875rem;
+          color: var(--text-secondary, #6b7280);
+          font-family: 'Courier New', monospace;
+        }
+
+        .review-location__coord {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .review-location__no-coords {
+          font-size: 0.875rem;
+          color: var(--text-secondary, #6b7280);
+          font-style: italic;
         }
 
         .review-photos-grid {
