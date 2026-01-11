@@ -166,7 +166,21 @@ Abre http://localhost:8000/docs y verifica que la documentación de la API carga
 - Hot Module Replacement (HMR) en frontend
 - Hot reload en backend
 
+**Configuración Frontend (Primera vez)**:
+
+El frontend ya viene con `.env.development` configurado para desarrollo local:
+
+```env
+VITE_API_URL=http://localhost:8000
+VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA  # Test key
+VITE_ENV=development
+VITE_DEBUG=true
+```
+
+✅ **No necesitas crear ni modificar nada** - funciona out-of-the-box.
+
 **Flujo de trabajo**:
+
 1. Edita archivos en `backend/src/` o `frontend/src/`
 2. Guarda el archivo
 3. **Frontend**: El navegador actualiza en <2 segundos sin recargar la página
@@ -174,7 +188,9 @@ Abre http://localhost:8000/docs y verifica que la documentación de la API carga
 5. Prueba en http://localhost:5173
 
 **Primera vez con frontend**:
-El script detecta si faltan dependencias y ejecuta `npm install` automáticamente.
+
+- El script detecta si faltan dependencias y ejecuta `npm install` automáticamente
+- `.env.development` ya está configurado (no requiere acción)
 
 **Presiona Ctrl+C para detener ambos servicios**
 
