@@ -10,25 +10,11 @@
 
 import React, { useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import { Icon, LatLngExpression } from 'leaflet';
+import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
+import { createNumberedMarkerIcon } from '../../utils/mapHelpers';
 import './TripMap.css';
-
-// Fix for default marker icons in react-leaflet
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-const defaultIcon = new Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 interface TripMapProps {
   /** Array of trip locations */
@@ -147,23 +133,25 @@ export const TripMap: React.FC<TripMapProps> = ({ locations, tripTitle }) => {
           />
         )}
 
-        {/* Location Markers */}
-        {validLocations.map((location, index) => (
-          <Marker
-            key={location.location_id}
-            position={[location.latitude!, location.longitude!]}
-            icon={defaultIcon}
-          >
-            <Popup>
-              <div className="trip-map__popup">
-                <strong className="trip-map__popup-title">
-                  {index + 1}. {location.name}
-                </strong>
-                <p className="trip-map__popup-subtitle">{tripTitle}</p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        {/* Location Markers with Numbered Icons */}
+        {validLocations
+          .sort((a, b) => a.sequence - b.sequence)
+          .map((location, index) => (
+            <Marker
+              key={location.location_id}
+              position={[location.latitude!, location.longitude!]}
+              icon={createNumberedMarkerIcon(index + 1)}
+            >
+              <Popup>
+                <div className="trip-map__popup">
+                  <strong className="trip-map__popup-title">
+                    {index + 1}. {location.name}
+                  </strong>
+                  <p className="trip-map__popup-subtitle">{tripTitle}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
 
       {/* Location List */}

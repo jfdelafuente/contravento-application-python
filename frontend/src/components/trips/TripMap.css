@@ -356,4 +356,86 @@
   .trip-map__container .leaflet-control-attribution a {
     color: #93c5fd;
   }
+
+  /* Dark mode for custom numbered markers */
+  .custom-numbered-marker .numbered-marker-badge {
+    background-color: #1e40af;
+    border-color: #1e3a8a;
+    color: #ffffff;
+  }
+
+  .custom-numbered-marker .numbered-marker-pin {
+    background-color: #1e40af;
+  }
+
+  .custom-numbered-marker .numbered-marker-pin::after {
+    border-top-color: #1e40af;
+  }
+}
+
+/* ============================================================================
+   Custom Numbered Markers (Phase 5.1)
+   ============================================================================ */
+
+/* Hide default Leaflet marker icon class */
+.custom-numbered-marker {
+  background: none !important;
+  border: none !important;
+}
+
+/* Marker wrapper container */
+.numbered-marker-wrapper {
+  position: relative;
+  width: 32px;
+  height: 42px;
+}
+
+/* Numbered badge (circle with number) */
+.numbered-marker-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+/* Pin/pointer below badge */
+.numbered-marker-pin {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 10px solid var(--primary-color, #2563eb);
+  z-index: 1;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
+}
+
+/* Hover effect for markers */
+.numbered-marker-wrapper:hover .numbered-marker-badge {
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+/* Active/selected marker state */
+.numbered-marker-wrapper.marker-active .numbered-marker-badge {
+  background-color: #1e40af;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.5);
 }
