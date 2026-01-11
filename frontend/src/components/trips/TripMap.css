@@ -10,6 +10,7 @@
    ============================================================================ */
 
 .trip-map {
+  position: relative; /* Required for absolute positioned fullscreen button */
   display: flex;
   flex-direction: column;
   gap: 16px;
