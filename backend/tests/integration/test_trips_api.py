@@ -1385,3 +1385,402 @@ class TestDraftToPublishedTransition:
         assert data["status"].lower() == "published"
         assert data.get("distance_km") == 150.0
         assert "Updated draft" in data["description"]
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestGPSCoordinatesIntegration:
+    """
+    Integration tests for GPS coordinates feature (009-gps-coordinates).
+
+    Tests the complete workflow for creating and retrieving trips with GPS coordinates.
+    Covers User Story 1: View Trip Route on Map.
+
+    Test Coverage:
+    - T016: POST /trips with GPS coordinates
+    - T017: GET /trips/{trip_id} retrieves coordinates correctly
+    """
+
+    async def test_create_trip_with_gps_coordinates(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T016: Test creating a trip with GPS coordinates.
+
+        Validates that GPS coordinates are accepted, stored correctly,
+        and precision is enforced to 6 decimal places.
+        """
+        payload = {
+            "title": "Ruta GPS Test - Madrid a Toledo",
+            "description": "Test trip with GPS coordinates for integration testing",
+            "start_date": "2024-06-01",
+            "end_date": "2024-06-03",
+            "distance_km": 128.5,
+            "difficulty": "moderate",
+            "locations": [
+                {
+                    "name": "Madrid",
+                    "country": "España",
+                    "latitude": 40.416775,
+                    "longitude": -3.703790,
+                },
+                {
+                    "name": "Toledo",
+                    "country": "España",
+                    "latitude": 39.862832,
+                    "longitude": -4.027323,
+                },
+            ],
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Assert successful creation
+        assert response.status_code == 201
+        data = response.json()["data"]
+
+        # Verify trip fields
+        assert data["title"] == payload["title"]
+        assert data["distance_km"] == payload["distance_km"]
+        assert data["difficulty"] == payload["difficulty"]
+
+        # Verify locations with coordinates
+        assert len(data["locations"]) == 2
+
+        # First location (Madrid)
+        loc1 = data["locations"][0]
+        assert loc1["name"] == "Madrid"
+        # Country field is optional and may not be in response if stored as None
+        assert loc1["latitude"] == 40.416775
+        assert loc1["longitude"] == -3.70379  # Rounded to 6 decimals
+
+        # Second location (Toledo)
+        loc2 = data["locations"][1]
+        assert loc2["name"] == "Toledo"
+        # Country field is optional and may not be in response if stored as None
+        assert loc2["latitude"] == 39.862832
+        assert loc2["longitude"] == -4.027323
+
+    async def test_create_trip_with_high_precision_coordinates(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T016: Test that coordinates with >6 decimals are rounded to 6 decimals.
+
+        Validates precision enforcement for GPS coordinates.
+        """
+        payload = {
+            "title": "High Precision GPS Test",
+            "description": "Testing coordinate precision rounding",
+            "start_date": "2024-07-01",
+            "locations": [
+                {
+                    "name": "Jaca",
+                    "latitude": 42.5700841234567,  # 13 decimals
+                    "longitude": -0.5499411234567,  # 13 decimals
+                }
+            ],
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        assert response.status_code == 201
+        data = response.json()["data"]
+
+        # Verify coordinates rounded to 6 decimals
+        loc = data["locations"][0]
+        assert loc["latitude"] == 42.570084  # Rounded to 6 decimals
+        assert loc["longitude"] == -0.549941  # Rounded to 6 decimals
+
+    async def test_create_trip_without_gps_coordinates(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T016: Test creating trip without GPS coordinates (backwards compatibility).
+
+        Validates that trips can still be created without coordinates,
+        maintaining backwards compatibility with pre-GPS feature trips.
+        """
+        payload = {
+            "title": "Trip Without GPS",
+            "description": "Test backwards compatibility - no GPS coordinates",
+            "start_date": "2024-08-01",
+            "locations": [
+                {
+                    "name": "Camino de Santiago",
+                    "country": "España",
+                    # No latitude/longitude
+                }
+            ],
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        assert response.status_code == 201
+        data = response.json()["data"]
+
+        # Verify location exists but without coordinates
+        assert len(data["locations"]) == 1
+        loc = data["locations"][0]
+        assert loc["name"] == "Camino de Santiago"
+        # Country field is optional and may not be in response if stored as None
+        assert loc["latitude"] is None
+        assert loc["longitude"] is None
+
+    async def test_create_trip_with_mixed_locations(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T016: Test creating trip with some locations having GPS, others without.
+
+        Validates that mixed locations (some with coordinates, some without)
+        are handled correctly.
+        """
+        payload = {
+            "title": "Mixed GPS Locations",
+            "description": "Some locations have GPS, others don't",
+            "start_date": "2024-09-01",
+            "locations": [
+                {
+                    "name": "Jaca",
+                    "latitude": 42.570084,
+                    "longitude": -0.549941,
+                },
+                {
+                    "name": "Somport",
+                    # No coordinates
+                },
+                {
+                    "name": "Candanchú",
+                    "latitude": 42.774444,
+                    "longitude": -0.527778,
+                },
+            ],
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        assert response.status_code == 201
+        data = response.json()["data"]
+
+        # Verify all 3 locations
+        assert len(data["locations"]) == 3
+
+        # First location has coordinates
+        assert data["locations"][0]["latitude"] == 42.570084
+        assert data["locations"][0]["longitude"] == -0.549941
+
+        # Second location has no coordinates
+        assert data["locations"][1]["latitude"] is None
+        assert data["locations"][1]["longitude"] is None
+
+        # Third location has coordinates
+        assert data["locations"][2]["latitude"] == 42.774444
+        assert data["locations"][2]["longitude"] == -0.527778
+
+    async def test_create_trip_with_invalid_latitude(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T016: Test that invalid latitude (>90 or <-90) is rejected.
+
+        Validates Spanish error message for invalid latitude.
+        """
+        payload = {
+            "title": "Invalid Latitude Test",
+            "description": "Testing latitude validation",
+            "start_date": "2024-10-01",
+            "locations": [
+                {
+                    "name": "Invalid Location",
+                    "latitude": 100.0,  # Invalid: > 90
+                    "longitude": 0.0,
+                }
+            ],
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Should return 400 Bad Request for validation error
+        assert response.status_code == 400
+        error_data = response.json()
+
+        # Verify error response structure
+        assert error_data.get("success") is False
+        assert "error" in error_data
+
+    async def test_create_trip_with_invalid_longitude(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T016: Test that invalid longitude (>180 or <-180) is rejected.
+
+        Validates Spanish error message for invalid longitude.
+        """
+        payload = {
+            "title": "Invalid Longitude Test",
+            "description": "Testing longitude validation",
+            "start_date": "2024-11-01",
+            "locations": [
+                {
+                    "name": "Invalid Location",
+                    "latitude": 0.0,
+                    "longitude": 200.0,  # Invalid: > 180
+                }
+            ],
+        }
+
+        response = await client.post("/trips", json=payload, headers=auth_headers)
+
+        # Should return 400 Bad Request for validation error
+        assert response.status_code == 400
+        error_data = response.json()
+
+        # Verify error response structure
+        assert error_data.get("success") is False
+        assert "error" in error_data
+
+    async def test_retrieve_trip_with_gps_coordinates(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T017: Test retrieving a trip with GPS coordinates.
+
+        Validates that GET /trips/{trip_id} returns coordinates correctly.
+        """
+        # First create a trip with GPS coordinates
+        create_payload = {
+            "title": "Retrieve GPS Test",
+            "description": "Testing GPS coordinate retrieval",
+            "start_date": "2024-12-01",
+            "locations": [
+                {
+                    "name": "Barcelona",
+                    "latitude": 41.385064,
+                    "longitude": 2.173404,
+                },
+                {
+                    "name": "Girona",
+                    "latitude": 41.979516,
+                    "longitude": 2.821426,
+                },
+            ],
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Retrieve the trip
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+
+        assert get_response.status_code == 200
+        data = get_response.json()["data"]
+
+        # Verify trip fields
+        assert data["trip_id"] == trip_id
+        assert data["title"] == "Retrieve GPS Test"
+
+        # Verify locations with coordinates
+        assert len(data["locations"]) == 2
+
+        # First location (Barcelona)
+        loc1 = data["locations"][0]
+        assert loc1["name"] == "Barcelona"
+        assert loc1["latitude"] == 41.385064
+        assert loc1["longitude"] == 2.173404
+
+        # Second location (Girona)
+        loc2 = data["locations"][1]
+        assert loc2["name"] == "Girona"
+        assert loc2["latitude"] == 41.979516
+        assert loc2["longitude"] == 2.821426
+
+    async def test_retrieve_trip_without_gps_coordinates(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T017: Test retrieving a trip without GPS coordinates.
+
+        Validates backwards compatibility for trips created without coordinates.
+        """
+        # Create trip without GPS
+        create_payload = {
+            "title": "No GPS Trip",
+            "description": "Trip without GPS coordinates",
+            "start_date": "2025-01-01",
+            "locations": [{"name": "Vía Verde del Aceite"}],
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Retrieve the trip
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+
+        assert get_response.status_code == 200
+        data = get_response.json()["data"]
+
+        # Verify location exists but without coordinates
+        assert len(data["locations"]) == 1
+        loc = data["locations"][0]
+        assert loc["name"] == "Vía Verde del Aceite"
+        assert loc["latitude"] is None
+        assert loc["longitude"] is None
+
+    async def test_update_trip_coordinates(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """
+        T017: Test updating trip coordinates via PUT /trips/{trip_id}.
+
+        Validates that coordinates can be updated in existing trips.
+        """
+        # Create trip without GPS first
+        create_payload = {
+            "title": "Update GPS Test",
+            "description": "Testing GPS update functionality",
+            "start_date": "2025-02-01",
+            "locations": [
+                {
+                    "name": "Valencia",
+                }
+            ],
+        }
+
+        create_response = await client.post(
+            "/trips", json=create_payload, headers=auth_headers
+        )
+        assert create_response.status_code == 201
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Update with GPS coordinates
+        update_payload = {
+            "locations": [
+                {
+                    "name": "Valencia",
+                    "latitude": 39.469907,
+                    "longitude": -0.376288,
+                }
+            ],
+        }
+
+        update_response = await client.put(
+            f"/trips/{trip_id}", json=update_payload, headers=auth_headers
+        )
+        assert update_response.status_code == 200
+
+        # Verify coordinates were added
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
+        data = get_response.json()["data"]
+
+        assert len(data["locations"]) == 1
+        loc = data["locations"][0]
+        assert loc["name"] == "Valencia"
+        assert loc["latitude"] == 39.469907
+        assert loc["longitude"] == -0.376288
