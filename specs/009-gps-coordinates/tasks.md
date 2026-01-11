@@ -779,15 +779,30 @@ All manual tests are documented in [frontend/TESTING_GUIDE.md](../../frontend/TE
 - Manual testing guide (TESTING_GUIDE.md - 8 test suites)
 - 7 bugs fixed during testing (defensive checks, enum values, empty fields)
 
+**Phase 5**: Map Visualization Enhancements ✅
+
+- Subphase 5.1: Numbered Markers (T088-T091) - Custom marker icons with sequence numbers
+- Subphase 5.2: Error Handling (T092-T095) - Tile loading errors with retry functionality
+- Subphase 5.3: Fullscreen Mode (T096-T105) - Browser Fullscreen API integration
+- Subphase 5.4: Unit Testing (T106-T118) - 29 comprehensive tests, 97.82% coverage
+- Subphase 5.5: Integration & Polish (T119-T130) - Testing documentation and limitations
+
+**Key Commits**:
+
+- 0e4ffad - feat: add numbered markers to TripMap component (Phase 5.1)
+- 672c601 - feat: add error handling and retry for map tile loading (Phase 5.2)
+- 5473246 - feat: add fullscreen mode to TripMap component (Phase 5.3)
+- f94f51e - fix: add position relative to trip-map for fullscreen button positioning (Phase 5.3)
+- 35951d0 - feat: add comprehensive unit tests for TripMap component (Phase 5.4)
+- 9767609 - docs: add Phase 5 testing guide and known limitations (Phase 5.5)
+
 ### Pending Phases
 
-**Phase 5**: Map Visualization Enhancements ⏸️
+**Phase 6**: User Story 3 - Edit GPS Coordinates (Optional - P3)
 
-- Numbered markers with custom icons
-- Error handling with retry button
-- Fullscreen mode
-- Unit tests for TripMap (T020-T023 + new tests)
-- Target: ≥90% test coverage for TripMap.tsx
+- Enable editing existing trips to add/update GPS coordinates
+- Reuses LocationInput component from Phase 4
+- Integration tests for coordinate updates
 
 ### Estimated Effort
 
