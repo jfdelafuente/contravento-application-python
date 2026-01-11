@@ -295,6 +295,111 @@ VITE_DEBUG=true
 
 ---
 
+## Comandos Útiles para Gestión de Procesos
+
+### Verificar si Backend/Frontend está Ejecutándose
+
+**Linux/Mac**:
+
+```bash
+# Verificar si backend está corriendo (puerto 8000)
+lsof -i:8000
+
+# Verificar si frontend está corriendo (puerto 5173)
+lsof -i:5173
+
+# Ver todos los procesos Python (backend)
+ps aux | grep uvicorn
+
+# Ver todos los procesos Node (frontend)
+ps aux | grep node
+```
+
+**Windows PowerShell**:
+
+```powershell
+# Verificar si backend está corriendo (puerto 8000)
+Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
+
+# Verificar si frontend está corriendo (puerto 5173)
+Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue
+
+# Ver todos los procesos Python (backend)
+Get-Process | Where-Object {$_.ProcessName -like "*python*"}
+
+# Ver todos los procesos Node (frontend)
+Get-Process | Where-Object {$_.ProcessName -like "*node*"}
+```
+
+### Detener Backend/Frontend Manualmente
+
+**Linux/Mac**:
+
+```bash
+# Matar proceso en puerto 8000 (backend)
+lsof -ti:8000 | xargs kill -9
+
+# Matar proceso en puerto 5173 (frontend)
+lsof -ti:5173 | xargs kill -9
+
+# Matar todos los procesos uvicorn (backend)
+pkill -f uvicorn
+
+# Matar todos los procesos node (frontend)
+pkill -f node
+```
+
+**Windows PowerShell**:
+
+```powershell
+# Matar proceso en puerto 8000 (backend)
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process
+
+# Matar proceso en puerto 5173 (frontend)
+Get-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess | Stop-Process
+
+# Matar todos los procesos Python (backend)
+Get-Process | Where-Object {$_.ProcessName -like "*python*"} | Stop-Process
+
+# Matar todos los procesos Node (frontend)
+Get-Process | Where-Object {$_.ProcessName -like "*node*"} | Stop-Process
+```
+
+### Ver Logs en Tiempo Real
+
+**Linux/Mac**:
+
+```bash
+# Los logs se muestran directamente en la terminal donde ejecutaste el script
+# Si ejecutaste en background, busca el proceso:
+ps aux | grep uvicorn
+tail -f /path/to/logfile  # Si configuraste logging a archivo
+```
+
+**Windows PowerShell**:
+
+```powershell
+# Los logs se muestran en la ventana de PowerShell
+# Para Jobs en background:
+Get-Job
+Receive-Job -Id <job_id>
+```
+
+### Verificar Conectividad
+
+```bash
+# Verificar que backend responde
+curl http://localhost:8000/docs
+
+# Verificar que frontend responde
+curl http://localhost:5173
+
+# Probar endpoint API específico
+curl http://localhost:8000/api/health
+```
+
+---
+
 ## Solución de Problemas
 
 ### Error: "Port 8000 is already in use"
