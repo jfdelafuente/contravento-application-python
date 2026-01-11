@@ -199,11 +199,17 @@ VITE_DEBUG=true
 
 **Flujo de trabajo**:
 
-1. Edita archivos en `backend/src/` o `frontend/src/`
-2. Guarda el archivo
-3. **Frontend**: El navegador actualiza en <2 segundos sin recargar la página
-4. **Backend**: El servidor se recarga automáticamente
-5. Prueba en http://localhost:5173
+1. **Abre tu navegador** en <http://localhost:5173> (frontend)
+2. **Edita código** según lo que necesites modificar:
+   - **Cambios en frontend** (`frontend/src/*.tsx`, `.css`):
+     - Guarda el archivo
+     - El navegador se actualiza **automáticamente** en <2 segundos **sin recargar** (HMR)
+     - Ves los cambios inmediatamente en <http://localhost:5173>
+   - **Cambios en backend** (`backend/src/*.py`):
+     - Guarda el archivo
+     - uvicorn detecta el cambio y **reinicia el servidor** automáticamente (5-10 segundos)
+     - Recarga el frontend en el navegador para ver los cambios en la API
+3. **Prueba tu funcionalidad** completa en <http://localhost:5173>
 
 **Primera vez con frontend**:
 
