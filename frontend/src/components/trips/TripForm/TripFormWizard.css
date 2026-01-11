@@ -1,0 +1,240 @@
+/**
+ * TripFormWizard Styles
+ *
+ * Styles for multi-step trip creation/editing wizard.
+ * Responsive layout with mobile-first design.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.trip-form-wizard {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  position: relative;
+}
+
+/* ============================================================================
+   Loading Overlay (T079)
+   ============================================================================ */
+
+.trip-form-wizard__loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.trip-form-wizard__loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background-color: #ffffff;
+  padding: 32px 48px;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.trip-form-wizard__loading-spinner .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: var(--primary-color, #2563eb);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.trip-form-wizard__loading-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0;
+}
+
+/* ============================================================================
+   Content Area
+   ============================================================================ */
+
+.trip-form-wizard__content {
+  margin: 32px 0;
+  min-height: 400px;
+}
+
+.trip-form-wizard__step {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Placeholder (temporary, until steps are implemented)
+   ============================================================================ */
+
+.trip-form-wizard__placeholder {
+  padding: 48px 24px;
+  text-align: center;
+  background-color: #f9fafb;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+}
+
+.trip-form-wizard__placeholder h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 8px 0;
+}
+
+.trip-form-wizard__placeholder p {
+  font-size: 1rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Action Buttons
+   ============================================================================ */
+
+.trip-form-wizard__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.trip-form-wizard__button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.trip-form-wizard__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary Button (Next) */
+.trip-form-wizard__button--primary {
+  background-color: var(--primary-color, #2563eb);
+  color: #ffffff;
+}
+
+.trip-form-wizard__button--primary:hover:not(:disabled) {
+  background-color: var(--primary-dark, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.trip-form-wizard__button--primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Secondary Button (Previous, Cancel, Save Draft) */
+.trip-form-wizard__button--secondary {
+  background-color: #ffffff;
+  color: var(--text-primary, #111827);
+  border: 1px solid #e5e7eb;
+}
+
+.trip-form-wizard__button--secondary:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: var(--primary-color, #2563eb);
+  color: var(--primary-color, #2563eb);
+}
+
+/* Success Button (Publish) */
+.trip-form-wizard__button--success {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.trip-form-wizard__button--success:hover:not(:disabled) {
+  background-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.trip-form-wizard__button--success:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Mobile: Stack buttons vertically */
+@media (max-width: 640px) {
+  .trip-form-wizard {
+    padding: 16px;
+  }
+
+  .trip-form-wizard__content {
+    margin: 24px 0;
+    min-height: 300px;
+  }
+
+  .trip-form-wizard__actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .trip-form-wizard__button {
+    width: 100%;
+    padding: 14px 20px;
+  }
+}
+
+/* Tablet and up: Horizontal button layout */
+@media (min-width: 641px) {
+  .trip-form-wizard__actions {
+    justify-content: space-between;
+  }
+
+  .trip-form-wizard__actions > button:first-child {
+    margin-right: auto;
+  }
+}
+
+/* Desktop: Larger content area */
+@media (min-width: 1024px) {
+  .trip-form-wizard {
+    padding: 32px;
+  }
+
+  .trip-form-wizard__content {
+    min-height: 500px;
+  }
+}

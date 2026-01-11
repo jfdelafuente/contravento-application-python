@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.deps import get_current_user, get_db
 from src.models.trip import TripStatus
 from src.models.user import User
-from src.schemas.trip import TripCreateRequest, TripResponse
+from src.schemas.trip import TripCreateRequest, TripResponse, TripUpdateRequest
 from src.services.trip_service import TripService
 
 logger = logging.getLogger(__name__)
@@ -598,14 +598,16 @@ async def reorder_photos(
 )
 async def update_trip(
     trip_id: str,
-    data: dict,
+    data: TripUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Update trip (FR-016, FR-020)."""
     try:
         service = TripService(db)
-        trip = await service.update_trip(trip_id=trip_id, user_id=current_user.id, update_data=data)
+        # Convert Pydantic model to dict, excluding None values
+        update_data = data.model_dump(exclude_none=True)
+        trip = await service.update_trip(trip_id=trip_id, user_id=current_user.id, update_data=update_data)
         trip_response = TripResponse.model_validate(trip)
         return {"success": True, "data": trip_response.model_dump(), "error": None}
     except PermissionError as e:

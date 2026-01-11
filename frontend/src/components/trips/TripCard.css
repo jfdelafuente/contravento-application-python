@@ -1,0 +1,353 @@
+/**
+ * TripCard Component Styles
+ *
+ * Responsive card design for trip summaries in grid views.
+ * Supports thumbnail images, difficulty badges, tags, and metadata.
+ */
+
+/* ============================================================================
+   Card Container
+   ============================================================================ */
+
+.trip-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  height: 100%;
+}
+
+.trip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary-color, #2563eb);
+}
+
+.trip-card:focus {
+  outline: 2px solid var(--primary-color, #2563eb);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Thumbnail Section
+   ============================================================================ */
+
+.trip-card__thumbnail {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background-color: var(--bg-tertiary, #f9fafb);
+}
+
+.trip-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease-in-out;
+}
+
+.trip-card:hover .trip-card__image {
+  transform: scale(1.05);
+}
+
+/* Placeholder for trips without photos */
+.trip-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--bg-tertiary, #f9fafb) 0%, var(--bg-secondary, #e5e7eb) 100%);
+}
+
+.trip-card__placeholder-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--text-tertiary, #9ca3af);
+  opacity: 0.5;
+}
+
+/* Photo count badge */
+.trip-card__photo-count {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.trip-card__photo-count-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.trip-card__photo-count-text {
+  line-height: 1;
+}
+
+/* Status badge (draft/published) */
+.trip-card__status {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.status-badge--draft {
+  background-color: rgba(251, 191, 36, 0.9); /* Amber */
+  color: #78350f;
+}
+
+.status-badge--published {
+  background-color: rgba(34, 197, 94, 0.9); /* Green */
+  color: #14532d;
+}
+
+/* ============================================================================
+   Content Section
+   ============================================================================ */
+
+.trip-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  flex: 1;
+}
+
+/* Title */
+.trip-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-primary, #111827);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Metadata (date, distance) */
+.trip-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trip-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.trip-card__meta-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+.trip-card__meta-text {
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   Tags Section
+   ============================================================================ */
+
+.trip-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.trip-card__tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: var(--bg-tertiary, #f3f4f6);
+  color: var(--text-secondary, #4b5563);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.trip-card__tag:hover {
+  background-color: var(--primary-light, #dbeafe);
+  color: var(--primary-color, #2563eb);
+}
+
+.trip-card__tag--more {
+  background-color: transparent;
+  border: 1px solid var(--border-color, #e5e7eb);
+  color: var(--text-tertiary, #9ca3af);
+}
+
+/* ============================================================================
+   Difficulty Badge (if needed in future)
+   ============================================================================ */
+
+.difficulty-badge {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+}
+
+.difficulty-badge--easy {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.difficulty-badge--moderate {
+  background-color: #fed7aa;
+  color: #92400e;
+}
+
+.difficulty-badge--difficult {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.difficulty-badge--very_difficult {
+  background-color: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #991b1b;
+}
+
+.difficulty-badge--default {
+  background-color: var(--bg-tertiary, #f3f4f6);
+  color: var(--text-secondary, #6b7280);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) {
+  .trip-card__thumbnail {
+    height: 200px;
+  }
+
+  .trip-card__title {
+    font-size: 1rem;
+  }
+
+  .trip-card__content {
+    padding: 14px;
+  }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  .trip-card__thumbnail {
+    height: 180px;
+  }
+
+  .trip-card__title {
+    font-size: 0.9375rem;
+    -webkit-line-clamp: 3; /* Allow 3 lines on mobile */
+  }
+
+  .trip-card__content {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .trip-card__meta {
+    gap: 6px;
+  }
+
+  .trip-card__meta-item {
+    font-size: 0.8125rem;
+  }
+
+  .trip-card__tags {
+    gap: 4px;
+  }
+
+  .trip-card__tag {
+    font-size: 0.6875rem;
+    padding: 3px 8px;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (if needed in future)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .trip-card {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-card:hover {
+    border-color: #3b82f6;
+  }
+
+  .trip-card__title {
+    color: #f9fafb;
+  }
+
+  .trip-card__meta-item {
+    color: #d1d5db;
+  }
+
+  .trip-card__meta-icon {
+    color: #9ca3af;
+  }
+
+  .trip-card__placeholder {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+
+  .trip-card__placeholder-icon {
+    color: #6b7280;
+  }
+
+  .trip-card__tag {
+    background-color: #374151;
+    color: #d1d5db;
+  }
+
+  .trip-card__tag:hover {
+    background-color: #1e3a8a;
+    color: #93c5fd;
+  }
+
+  .trip-card__tag--more {
+    background-color: transparent;
+    border-color: #4b5563;
+    color: #9ca3af;
+  }
+}

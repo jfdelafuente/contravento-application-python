@@ -1,0 +1,530 @@
+/**
+ * TripsListPage Styles
+ *
+ * Main layout for trips list page with responsive grid.
+ * Supports 3-column desktop, 2-column tablet, 1-column mobile.
+ */
+
+/* ============================================================================
+   Page Container
+   ============================================================================ */
+
+.trips-list-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ============================================================================
+   Header Section
+   ============================================================================ */
+
+.trips-list-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.trips-list-page__back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  background-color: transparent;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: fit-content;
+}
+
+.trips-list-page__back-button:hover {
+  color: var(--primary-color, #2563eb);
+  border-color: var(--primary-color, #2563eb);
+  background-color: var(--primary-light, #eff6ff);
+}
+
+.trips-list-page__back-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.trips-list-page__header-content {
+  flex: 1;
+}
+
+.trips-list-page__title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-primary, #111827);
+  margin: 0 0 8px 0;
+}
+
+.trips-list-page__subtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+.trips-list-page__create-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: none;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.trips-list-page__create-button:hover {
+  background-color: var(--primary-dark, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.trips-list-page__create-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================================================
+   Results Summary
+   ============================================================================ */
+
+.trips-list-page__results-summary {
+  margin-bottom: 20px;
+}
+
+.trips-list-page__results-text {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Trips Grid
+   ============================================================================ */
+
+.trips-list-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+/* ============================================================================
+   Loading Skeleton
+   ============================================================================ */
+
+.trip-card-skeleton {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.trip-card-skeleton__thumbnail {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.trip-card-skeleton__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.trip-card-skeleton__title {
+  width: 80%;
+  height: 24px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.trip-card-skeleton__meta {
+  width: 60%;
+  height: 16px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.trip-card-skeleton__tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.trip-card-skeleton__tag {
+  width: 60px;
+  height: 24px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 12px;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.trips-list-page__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.trips-list-page__empty-illustration {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+  padding: 24px;
+  background-color: var(--bg-tertiary, #f9fafb);
+  border-radius: 50%;
+}
+
+.trips-list-page__empty-icon {
+  width: 100%;
+  height: 100%;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+.trips-list-page__empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px 0;
+}
+
+.trips-list-page__empty-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 24px 0;
+  max-width: 400px;
+}
+
+.trips-list-page__empty-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: none;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.trips-list-page__empty-button:hover {
+  background-color: var(--primary-dark, #1d4ed8);
+  transform: translateY(-2px);
+}
+
+/* ============================================================================
+   Pagination
+   ============================================================================ */
+
+.trips-list-page__pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.trips-list-page__pagination-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  background-color: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.trips-list-page__pagination-button:hover:not(:disabled) {
+  background-color: var(--bg-tertiary, #f9fafb);
+  border-color: var(--primary-color, #2563eb);
+  color: var(--primary-color, #2563eb);
+}
+
+.trips-list-page__pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trips-list-page__pagination-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.trips-list-page__pagination-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.trips-list-page__pagination-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+}
+
+.trips-list-page__pagination-numbers {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.trips-list-page__pagination-number {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  background-color: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.trips-list-page__pagination-number:hover {
+  background-color: var(--primary-light, #dbeafe);
+  border-color: var(--primary-color, #2563eb);
+  color: var(--primary-color, #2563eb);
+}
+
+.trips-list-page__pagination-number--active {
+  background-color: var(--primary-color, #2563eb);
+  border-color: var(--primary-color, #2563eb);
+  color: #ffffff;
+}
+
+.trips-list-page__pagination-ellipsis {
+  padding: 0 8px;
+  font-size: 0.875rem;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Tablet (768px - 1023px) - 2 columns */
+@media (max-width: 1023px) {
+  .trips-list-page {
+    padding: 24px 20px;
+  }
+
+  .trips-list-page__header {
+    margin-bottom: 24px;
+  }
+
+  .trips-list-page__title {
+    font-size: 1.875rem;
+  }
+
+  .trips-list-page__subtitle {
+    font-size: 1rem;
+  }
+
+  .trips-list-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .trip-card-skeleton__thumbnail {
+    height: 200px;
+  }
+}
+
+/* Mobile (< 768px) - 1 column */
+@media (max-width: 767px) {
+  .trips-list-page {
+    padding: 20px 16px;
+  }
+
+  .trips-list-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .trips-list-page__title {
+    font-size: 1.5rem;
+  }
+
+  .trips-list-page__subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .trips-list-page__create-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trips-list-page__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .trip-card-skeleton__thumbnail {
+    height: 180px;
+  }
+
+  .trips-list-page__empty-state {
+    padding: 60px 16px;
+  }
+
+  .trips-list-page__empty-illustration {
+    width: 100px;
+    height: 100px;
+  }
+
+  .trips-list-page__empty-title {
+    font-size: 1.25rem;
+  }
+
+  .trips-list-page__empty-description {
+    font-size: 0.9375rem;
+  }
+
+  .trips-list-page__pagination {
+    flex-direction: column;
+  }
+
+  .trips-list-page__pagination-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trips-list-page__pagination-numbers {
+    display: none; /* Hide page numbers on mobile, show only prev/next */
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (if needed in future)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .trips-list-page__title {
+    color: #f9fafb;
+  }
+
+  .trips-list-page__subtitle,
+  .trips-list-page__results-text {
+    color: #d1d5db;
+  }
+
+  .trip-card-skeleton {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trips-list-page__empty-illustration {
+    background-color: #1f2937;
+  }
+
+  .trips-list-page__empty-icon {
+    color: #6b7280;
+  }
+
+  .trips-list-page__empty-title {
+    color: #f9fafb;
+  }
+
+  .trips-list-page__empty-description {
+    color: #d1d5db;
+  }
+
+  .trips-list-page__pagination-button {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .trips-list-page__pagination-button:hover:not(:disabled) {
+    background-color: #111827;
+    border-color: #3b82f6;
+    color: #93c5fd;
+  }
+
+  .trips-list-page__pagination-number {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #d1d5db;
+  }
+
+  .trips-list-page__pagination-number:hover {
+    background-color: #1e3a8a;
+    border-color: #3b82f6;
+    color: #93c5fd;
+  }
+
+  .trips-list-page__pagination-number--active {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+  }
+}

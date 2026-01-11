@@ -1,0 +1,136 @@
+/**
+ * TripCreatePage Styles
+ *
+ * Styles for trip creation page with wizard layout.
+ * Responsive design with centered content area.
+ */
+
+/* ============================================================================
+   Page Container
+   ============================================================================ */
+
+.trip-create-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 24px 16px;
+}
+
+/* ============================================================================
+   Page Header
+   ============================================================================ */
+
+.trip-create-page__header {
+  max-width: 800px;
+  margin: 0 auto 32px;
+}
+
+.trip-create-page__header-content {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.trip-create-page__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.trip-create-page__subtitle {
+  font-size: 1.0625rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   Main Content
+   ============================================================================ */
+
+.trip-create-page__main {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Mobile: Smaller padding and font sizes */
+@media (max-width: 640px) {
+  .trip-create-page {
+    padding: 16px 8px;
+  }
+
+  .trip-create-page__header {
+    margin: 0 auto 24px;
+  }
+
+  .trip-create-page__header-content {
+    padding: 16px 0;
+  }
+
+  .trip-create-page__title {
+    font-size: 1.5rem;
+    margin: 0 0 8px 0;
+  }
+
+  .trip-create-page__subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .trip-create-page__main {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+}
+
+/* Tablet: Medium layout */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .trip-create-page {
+    padding: 20px 12px;
+  }
+
+  .trip-create-page__title {
+    font-size: 1.75rem;
+  }
+
+  .trip-create-page__main {
+    padding: 28px 24px;
+  }
+}
+
+/* Desktop: Larger content area */
+@media (min-width: 1024px) {
+  .trip-create-page {
+    padding: 32px 24px;
+  }
+
+  .trip-create-page__header {
+    margin: 0 auto 40px;
+  }
+
+  .trip-create-page__header-content {
+    padding: 32px 0;
+  }
+
+  .trip-create-page__title {
+    font-size: 2.25rem;
+  }
+
+  .trip-create-page__subtitle {
+    font-size: 1.125rem;
+  }
+
+  .trip-create-page__main {
+    padding: 40px;
+    border-radius: 20px;
+  }
+}

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import BinaryIO, Optional
 
 from PIL import Image
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -648,14 +648,14 @@ class TripService:
         # Update tags if provided
         if "tags" in update_data:
             # Remove old tag associations
-            await self.db.execute(select(TripTag).where(TripTag.trip_id == trip_id))
+            await self.db.execute(delete(TripTag).where(TripTag.trip_id == trip_id))
             # Process new tags
             await self._process_tags(trip, update_data["tags"])
 
         # Update locations if provided
         if "locations" in update_data:
             # Remove old locations
-            await self.db.execute(select(TripLocation).where(TripLocation.trip_id == trip_id))
+            await self.db.execute(delete(TripLocation).where(TripLocation.trip_id == trip_id))
             # Process new locations
             await self._process_locations(trip, update_data["locations"])
 

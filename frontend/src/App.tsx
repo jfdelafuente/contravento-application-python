@@ -16,6 +16,12 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => 
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
 const ProfileEditPage = lazy(() => import('./pages/ProfileEditPage').then(module => ({ default: module.ProfileEditPage })));
 
+// Travel Diary routes (Feature 008)
+const TripsListPage = lazy(() => import('./pages/TripsListPage').then(module => ({ default: module.TripsListPage })));
+const TripDetailPage = lazy(() => import('./pages/TripDetailPage').then(module => ({ default: module.TripDetailPage })));
+const TripCreatePage = lazy(() => import('./pages/TripCreatePage').then(module => ({ default: module.TripCreatePage })));
+const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({ default: module.TripEditPage })));
+
 // Placeholder components
 const HomePage: React.FC = () => (
   <div className="app">
@@ -80,6 +86,41 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ProfileEditPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Travel Diary routes (Feature 008) */}
+              <Route
+                path="/trips"
+                element={
+                  <ProtectedRoute>
+                    <TripsListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/trips/new"
+                element={
+                  <ProtectedRoute>
+                    <TripCreatePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/trips/:tripId"
+                element={
+                  <ProtectedRoute>
+                    <TripDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Phase 7: Edit trip route */}
+              <Route
+                path="/trips/:tripId/edit"
+                element={
+                  <ProtectedRoute>
+                    <TripEditPage />
                   </ProtectedRoute>
                 }
               />

@@ -1,0 +1,359 @@
+/**
+ * TripMap Component Styles
+ *
+ * Styles for interactive map component with OpenStreetMap.
+ * Responsive design with mobile-friendly controls.
+ */
+
+/* ============================================================================
+   Map Container
+   ============================================================================ */
+
+.trip-map {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trip-map__container {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e5e7eb);
+  z-index: 0; /* Ensure map doesn't overlap other content */
+}
+
+/* ============================================================================
+   Popup Customization
+   ============================================================================ */
+
+.trip-map__popup {
+  padding: 4px;
+  min-width: 150px;
+}
+
+.trip-map__popup-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin-bottom: 4px;
+}
+
+.trip-map__popup-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Location List
+   ============================================================================ */
+
+.trip-map__locations {
+  padding: 16px;
+  background-color: var(--bg-secondary, #f9fafb);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.trip-map__locations-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px 0;
+}
+
+.trip-map__locations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trip-map__location-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background-color: var(--bg-primary, #ffffff);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.trip-map__location-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.trip-map__location-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.trip-map--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  padding: 40px 24px;
+  background-color: var(--bg-tertiary, #f9fafb);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color, #e5e7eb);
+}
+
+.trip-map__empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+.trip-map__empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.trip-map__empty-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Leaflet Map Customization
+   ============================================================================ */
+
+/* Override Leaflet styles for better integration */
+.trip-map__container .leaflet-control-zoom {
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.trip-map__container .leaflet-control-zoom a {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 18px;
+  color: var(--text-primary, #111827);
+  background-color: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.trip-map__container .leaflet-control-zoom a:hover {
+  background-color: var(--bg-secondary, #f9fafb);
+  color: var(--primary-color, #2563eb);
+}
+
+.trip-map__container .leaflet-control-zoom a:last-child {
+  border-bottom: none;
+}
+
+/* Attribution styling */
+.trip-map__container .leaflet-control-attribution {
+  background-color: rgba(255, 255, 255, 0.9);
+  font-size: 0.6875rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.trip-map__container .leaflet-control-attribution a {
+  color: var(--primary-color, #2563eb);
+  text-decoration: none;
+}
+
+.trip-map__container .leaflet-control-attribution a:hover {
+  text-decoration: underline;
+}
+
+/* Popup styling */
+.trip-map__container .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.trip-map__container .leaflet-popup-tip {
+  background-color: #ffffff;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) {
+  .trip-map__container {
+    height: 350px;
+    border-radius: 10px;
+  }
+
+  .trip-map__locations {
+    padding: 14px;
+  }
+
+  .trip-map__location-item {
+    padding: 6px 10px;
+  }
+
+  .trip-map__location-number {
+    width: 22px;
+    height: 22px;
+    font-size: 0.6875rem;
+  }
+
+  .trip-map__location-name {
+    font-size: 0.875rem;
+  }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  .trip-map__container {
+    height: 300px;
+    border-radius: 8px;
+  }
+
+  .trip-map__locations {
+    padding: 12px;
+  }
+
+  .trip-map__locations-title {
+    font-size: 0.9375rem;
+  }
+
+  .trip-map__location-item {
+    padding: 6px 8px;
+    gap: 10px;
+  }
+
+  .trip-map__location-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.625rem;
+  }
+
+  .trip-map__location-name {
+    font-size: 0.8125rem;
+  }
+
+  .trip-map--empty {
+    height: 250px;
+    padding: 30px 20px;
+  }
+
+  .trip-map__empty-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .trip-map__empty-text {
+    font-size: 0.9375rem;
+  }
+
+  /* Adjust Leaflet controls for mobile */
+  .trip-map__container .leaflet-control-zoom a {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    font-size: 16px;
+  }
+
+  .trip-map__container .leaflet-control-attribution {
+    font-size: 0.625rem;
+    padding: 1px 4px;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .trip-map__container {
+    border-color: #374151;
+  }
+
+  .trip-map__popup-title {
+    color: #111827;
+  }
+
+  .trip-map__popup-subtitle {
+    color: #6b7280;
+  }
+
+  .trip-map__locations {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-map__locations-title {
+    color: #f9fafb;
+  }
+
+  .trip-map__location-item {
+    background-color: #111827;
+    border-color: #374151;
+  }
+
+  .trip-map__location-name {
+    color: #f9fafb;
+  }
+
+  .trip-map--empty {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-map__empty-icon {
+    color: #6b7280;
+  }
+
+  .trip-map__empty-text {
+    color: #d1d5db;
+  }
+
+  /* Dark mode for Leaflet controls */
+  .trip-map__container .leaflet-control-zoom {
+    border-color: #374151;
+  }
+
+  .trip-map__container .leaflet-control-zoom a {
+    background-color: #1f2937;
+    color: #f9fafb;
+    border-bottom-color: #374151;
+  }
+
+  .trip-map__container .leaflet-control-zoom a:hover {
+    background-color: #111827;
+    color: #93c5fd;
+  }
+
+  .trip-map__container .leaflet-control-attribution {
+    background-color: rgba(31, 41, 55, 0.9);
+    color: #d1d5db;
+  }
+
+  .trip-map__container .leaflet-control-attribution a {
+    color: #93c5fd;
+  }
+}
