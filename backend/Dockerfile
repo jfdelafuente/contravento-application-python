@@ -56,6 +56,7 @@ RUN poetry lock --no-update && poetry install --no-interaction --no-ansi
 COPY src/ ./src/
 COPY alembic.ini ./
 COPY scripts/ ./scripts/
+COPY config/ ./config/
 
 # Make entrypoint script executable
 RUN chmod +x scripts/docker-entrypoint.sh
@@ -93,6 +94,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY src/ ./src/
 COPY alembic.ini ./
 COPY scripts/ ./scripts/
+COPY config/ ./config/
 
 # Make entrypoint script executable
 RUN chmod +x scripts/docker-entrypoint.sh
