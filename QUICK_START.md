@@ -822,6 +822,249 @@ El build de producción incluye:
 
 ---
 
+## Environment Variables Reference
+
+### Backend Environment Variables
+
+Las variables del backend se configuran en archivos `.env.*` dentro del directorio `backend/`:
+
+| Variable | Desarrollo | Staging | Production | Descripción |
+|----------|------------|---------|------------|-------------|
+| `APP_NAME` | ContraVento-Local | ContraVento-Staging | ContraVento | Nombre de la aplicación |
+| `APP_ENV` | local | staging | production | Entorno de ejecución |
+| `DEBUG` | true | false | false | Modo debug (logs verbosos) |
+| `LOG_LEVEL` | DEBUG | INFO | WARNING | Nivel de logging |
+| `SECRET_KEY` | (generar 64 chars) | (generar 64 chars) | (generar 64 chars) | Clave secreta para JWT |
+| `DATABASE_URL` | sqlite+aiosqlite:///... | postgresql+asyncpg://... | postgresql+asyncpg://... | URL de conexión a BD |
+| `REDIS_URL` | N/A | redis://:password@... | redis://:password@... | URL de conexión a Redis |
+| `BCRYPT_ROUNDS` | 4 | 12 | 12 | Rondas de hash bcrypt |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | 15 | 15 | 15 | Duración token acceso |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | 30 | 30 | 30 | Duración token refresh |
+| `SMTP_HOST` | localhost / mailhog | smtp.sendgrid.net | smtp.sendgrid.net | Servidor SMTP |
+| `SMTP_PORT` | 1025 / 25 | 587 | 587 | Puerto SMTP |
+| `SMTP_TLS` | false | true | true | Usar TLS para SMTP |
+| `CORS_ORIGINS` | http://localhost:5173,... | https://staging.contravento.com | https://contravento.com | Orígenes CORS permitidos |
+| `UPLOAD_MAX_SIZE_MB` | 10 | 5 | 5 | Tamaño máx. archivos |
+
+**Generar SECRET_KEY:**
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+### Frontend Environment Variables (VITE_*)
+
+Las variables del frontend se configuran en archivos `.env.*` dentro del directorio `frontend/`:
+
+| Variable | Desarrollo | Staging | Production | Descripción |
+|----------|------------|---------|------------|-------------|
+| `VITE_API_URL` | http://localhost:8000 | https://staging.contravento.com | https://api.contravento.com | URL del backend API |
+| `VITE_ENV` | development | staging | production | Entorno de ejecución |
+| `VITE_DEBUG` | true | false | false | Modo debug (logs en consola) |
+| `VITE_TURNSTILE_SITE_KEY` | 1x00000000000000000000AA | (clave real) | (clave real) | Clave pública Cloudflare Turnstile |
+
+**Archivos de configuración:**
+- `.env.development` - Variables por defecto para desarrollo (versionado en Git)
+- `.env.staging` - Variables específicas de staging (crear manualmente)
+- `.env.production` - Variables específicas de producción (crear manualmente)
+- `.env.local` - Sobrescribe variables localmente (NO versionado, opcional)
+
+**Cómo funcionan:**
+- Vite carga automáticamente `.env.{mode}` según el comando ejecutado
+- Variables con prefijo `VITE_*` se exponen al código frontend
+- Variables sin `VITE_*` NO son accesibles desde el código (seguridad)
+
+**Ejemplo de uso en código:**
+```typescript
+// Acceder a variables de entorno
+const apiUrl = import.meta.env.VITE_API_URL;
+const isProduction = import.meta.env.VITE_ENV === 'production';
+
+// Verificar si variable está definida
+if (!import.meta.env.VITE_TURNSTILE_SITE_KEY) {
+  console.error('VITE_TURNSTILE_SITE_KEY no configurada');
+}
+```
+
+**Validación de variables:**
+```bash
+# Ver variables cargadas durante el build
+cd frontend
+npm run build:staging 2>&1 | grep VITE_
+
+# Verificar variables en el bundle
+grep -r "VITE_API_URL" dist/assets/*.js
+# Debería mostrar el valor configurado
+```
+
+---
+
+## Common Commands
+
+### Backend Commands
+
+```bash
+# Desarrollo local (SQLite)
+./run-local-dev.sh --setup              # Primera vez: setup completo
+./run-local-dev.sh                      # Arrancar backend
+./run-local-dev.sh --reset              # Reset DB (borra datos)
+
+# Migraciones de base de datos
+cd backend
+poetry run alembic upgrade head        # Aplicar migraciones
+poetry run alembic revision --autogenerate -m "mensaje"  # Nueva migración
+poetry run alembic downgrade -1        # Revertir última migración
+
+# Testing
+poetry run pytest                       # Todos los tests
+poetry run pytest --cov=src             # Con cobertura
+poetry run pytest tests/unit/ -v       # Solo tests unitarios
+
+# Code quality
+poetry run black src/ tests/            # Formatear código
+poetry run ruff check src/ tests/       # Linter
+poetry run mypy src/                    # Type checking
+
+# Gestión de usuarios
+poetry run python scripts/create_admin.py                    # Crear admin
+poetry run python scripts/create_verified_user.py            # Crear usuario test
+poetry run python scripts/promote_to_admin.py --username X   # Promover a admin
+```
+
+### Frontend Commands
+
+```bash
+# Desarrollo
+cd frontend
+npm install                             # Instalar dependencias (primera vez)
+npm run dev                             # Dev server standalone
+npm run dev -- --host                   # Dev server accesible desde red local
+
+# Production builds
+npm run build:staging                   # Build staging (con source maps)
+npm run build:prod                      # Build production (sin source maps)
+npm run preview                         # Preview build localmente
+
+# Análisis y debugging
+npm run lint                            # ESLint
+npm run type-check                      # TypeScript check
+npm run build -- --analyze              # Analizar tamaño del bundle
+
+# Limpieza
+rm -rf dist/ node_modules/              # Limpiar archivos generados
+npm install                             # Re-instalar dependencias
+```
+
+### Docker Commands
+
+```bash
+# Deployment scripts (recomendado)
+./deploy.sh local                       # Docker Full
+./deploy.sh local --with-frontend       # Docker Full + Frontend
+./deploy.sh local-minimal               # Docker Minimal
+./deploy.sh staging                     # Staging
+./deploy.sh prod                        # Production
+./deploy.sh <env> down                  # Apagar entorno
+
+# Docker Compose directo (alternativa)
+docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
+docker-compose -f docker-compose.yml -f docker-compose.local.yml down
+docker-compose -f docker-compose.yml -f docker-compose.local.yml logs -f backend
+
+# Gestión de contenedores
+docker ps                               # Ver contenedores corriendo
+docker logs contravento-backend-local   # Ver logs del backend
+docker exec -it contravento-backend-local bash  # Entrar al contenedor
+docker restart contravento-backend-local        # Reiniciar servicio
+docker system prune -a                  # Limpiar imágenes/volúmenes no usados
+
+# Database (PostgreSQL en Docker)
+docker exec -it contravento-db-local psql -U contravento -d contravento
+# Dentro de psql:
+# \dt          - Listar tablas
+# \d users     - Describir tabla users
+# \q           - Salir
+```
+
+### Git Workflow Commands
+
+```bash
+# Crear nueva feature
+git checkout develop
+git pull origin develop
+git checkout -b feature/mi-feature
+# Hacer commits...
+git push -u origin feature/mi-feature
+
+# Merge a develop
+git checkout develop
+git merge feature/mi-feature --no-ff
+git push origin develop
+
+# Deploy a staging (desde develop)
+git checkout develop
+git pull origin develop
+./deploy.sh staging
+
+# Deploy a producción (desde main)
+git checkout main
+git merge develop --no-ff -m "Release vX.Y.Z"
+git tag vX.Y.Z
+git push origin main --tags
+./deploy.sh prod
+```
+
+### Quick Reference Table
+
+| Tarea | Comando Rápido |
+|-------|----------------|
+| **Desarrollo diario** | `./run-local-dev.sh` (backend) + `npm run dev` (frontend) |
+| **Reset DB local** | `./run-local-dev.sh --reset` |
+| **Docker Full + Frontend** | `./deploy.sh local --with-frontend` |
+| **Ver logs backend (Docker)** | `docker logs -f contravento-backend-local` |
+| **Ver emails enviados** | Abrir <http://localhost:8025> (MailHog) |
+| **DB UI (Docker Full)** | Abrir <http://localhost:5050> (pgAdmin) |
+| **Correr tests** | `cd backend && poetry run pytest` |
+| **Nueva migración** | `cd backend && poetry run alembic revision --autogenerate -m "X"` |
+| **Build producción** | `cd frontend && npm run build:prod` |
+| **Limpiar Docker** | `docker system prune -a` |
+| **Deploy staging** | `./deploy.sh staging` |
+| **Deploy producción** | `./deploy.sh prod` |
+
+### Shortcuts (Scripts de utilidad)
+
+**Backend:**
+```bash
+# Windows
+cd backend
+.\restart-backend.bat               # Reinicia backend (mata proceso y arranca)
+
+# Linux/Mac
+cd backend
+./restart-backend.sh
+```
+
+**Frontend:**
+```bash
+# Windows
+cd frontend
+.\restart-frontend.bat              # Reinicia Vite dev server
+
+# Linux/Mac
+cd frontend
+./restart-frontend.sh
+```
+
+**Accesos rápidos (alias recomendados para .bashrc / .zshrc):**
+```bash
+alias cv-backend="cd ~/contravento/backend && ./run-local-dev.sh"
+alias cv-frontend="cd ~/contravento/frontend && npm run dev"
+alias cv-test="cd ~/contravento/backend && poetry run pytest"
+alias cv-docker="cd ~/contravento && ./deploy.sh local --with-frontend"
+alias cv-logs="docker logs -f contravento-backend-local"
+```
+
+---
+
 ## Recomendaciones
 
 ### Para desarrollo diario
@@ -851,4 +1094,4 @@ El build de producción incluye:
 
 ---
 
-**Última actualización**: 2026-01-07
+**Última actualización**: 2026-01-13

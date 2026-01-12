@@ -43,6 +43,8 @@ poetry run alembic history
 
 ### Frontend Development
 
+**Development Server (SQLite Local - No Docker):**
+
 ```bash
 # Install dependencies (first time only)
 cd frontend
@@ -50,6 +52,9 @@ npm install
 
 # Start development server
 npm run dev
+
+# Access: http://localhost:5173
+# Backend must be running separately at http://localhost:8000
 
 # Quick restart (kills all Node.js processes and starts fresh)
 # Windows CMD:
@@ -61,6 +66,46 @@ restart-frontend.bat
 # Linux/Mac:
 ./restart-frontend.sh
 ```
+
+**Docker Full (with Backend + Database):**
+
+```bash
+# Start with frontend enabled
+./deploy.sh local --with-frontend        # Linux/Mac
+.\deploy.ps1 local -WithFrontend         # Windows PowerShell
+
+# Access:
+# - Frontend: http://localhost:5173
+# - Backend API: http://localhost:8000
+# - MailHog UI: http://localhost:8025
+# - pgAdmin: http://localhost:5050
+```
+
+**Production Builds:**
+
+```bash
+# Build for staging (with source maps)
+cd frontend
+npm run build:staging
+
+# Build for production (no source maps, max optimization)
+npm run build:prod
+
+# Output: frontend/dist/ (~1 MB uncompressed, ~350 KB gzipped)
+
+# Deploy with automated build
+./deploy.sh staging                      # Builds automatically before deployment
+./deploy.sh prod                         # Builds automatically before deployment
+```
+
+**Environment-Specific Commands:**
+
+| Environment | Command | Frontend Server | Access |
+|-------------|---------|-----------------|--------|
+| **SQLite Local** | `npm run dev` | Vite dev (standalone) | http://localhost:5173 |
+| **Docker Full** | `./deploy.sh local --with-frontend` | Vite dev (container) | http://localhost:5173 |
+| **Staging** | `./deploy.sh staging` | Nginx (static build) | https://staging.contravento.com |
+| **Production** | `./deploy.sh prod` | Nginx (static build) | https://contravento.com |
 
 ### Local Development Options
 

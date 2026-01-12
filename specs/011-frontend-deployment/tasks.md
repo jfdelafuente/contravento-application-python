@@ -171,11 +171,11 @@
 
 **Purpose**: Documentation, validation, and improvements that affect multiple user stories
 
-- [ ] T058 [P] Update `backend/docs/DEPLOYMENT.md` to reference frontend deployment instructions in QUICK_START.md
-- [ ] T059 [P] Update `CLAUDE.md` section "Frontend Development" with deployment commands for all 4 environments
-- [ ] T060 [P] Create `frontend/DEPLOYMENT_TESTING.md` with smoke test checklist for each environment
-- [ ] T061 [P] Add "Environment Variables Reference" section to `QUICK_START.md` documenting all VITE_* variables
-- [ ] T062 [P] Add "Common Commands" quick reference table to `QUICK_START.md` with npm/docker commands
+- [x] T058 [P] Update `backend/docs/DEPLOYMENT.md` to reference frontend deployment instructions in QUICK_START.md
+- [x] T059 [P] Update `CLAUDE.md` section "Frontend Development" with deployment commands for all 4 environments
+- [x] T060 [P] Create `frontend/DEPLOYMENT_TESTING.md` with smoke test checklist for each environment
+- [x] T061 [P] Add "Environment Variables Reference" section to `QUICK_START.md` documenting all VITE_* variables
+- [x] T062 [P] Add "Common Commands" quick reference table to `QUICK_START.md` with npm/docker commands
 - [ ] T063 Validate all 4 deployment modes work end-to-end following `specs/011-frontend-deployment/quickstart.md`
 - [ ] T064 Run quickstart validation: SQLite Local startup completes in <30 seconds (SC-001)
 - [ ] T065 Run quickstart validation: Docker Minimal startup completes in <60 seconds (SC-002)
