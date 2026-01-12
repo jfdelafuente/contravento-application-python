@@ -81,8 +81,8 @@ services:
       # Prevent node_modules from being overwritten by host
       - /app/node_modules
     environment:
-      # Backend API URL (internal Docker network)
-      VITE_API_URL: http://backend:8000
+      # Backend API URL (accessible from browser on host machine)
+      VITE_API_URL: http://localhost:8000
       VITE_ENV: development
       VITE_DEBUG: "true"
       # Use test Turnstile key for development
