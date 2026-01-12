@@ -93,8 +93,8 @@ export const Step1BasicInfo: React.FC = () => {
       }
 
       // Validate partial coordinates (both or none)
-      const hasLatitude = location.latitude !== null && location.latitude !== undefined && location.latitude !== '';
-      const hasLongitude = location.longitude !== null && location.longitude !== undefined && location.longitude !== '';
+      const hasLatitude = location.latitude !== null && location.latitude !== undefined;
+      const hasLongitude = location.longitude !== null && location.longitude !== undefined;
 
       if (hasLatitude && !hasLongitude) {
         if (!errors[index]) errors[index] = {};
