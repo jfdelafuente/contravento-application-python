@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../../services/authService';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
-import type { APIError } from '../../types/api';
+import type { ApiError } from '../../types/api';
 import './ResetPasswordForm.css';
 
 // Validation schema
@@ -73,7 +73,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
       await authService.resetPassword(token, data.newPassword);
       onSuccess();
     } catch (error) {
-      const apiError = error as APIError;
+      const apiError = error as ApiError;
 
       // Handle token errors
       if (apiError.response?.status === 400) {

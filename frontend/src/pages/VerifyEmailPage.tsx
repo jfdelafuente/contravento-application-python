@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authService } from '../services/authService';
-import type { APIError } from '../types/api';
+import type { ApiError } from '../types/api';
 import './VerifyEmailPage.css';
 
 /**
@@ -58,7 +58,7 @@ export const VerifyEmailPage: React.FC = () => {
         navigate('/login');
       }, 3000);
     } catch (error) {
-      const apiError = error as APIError;
+      const apiError = error as ApiError;
 
       // Handle token expired
       if (
@@ -118,7 +118,7 @@ export const VerifyEmailPage: React.FC = () => {
       setResentEmail(emailSentTo);
       setTokenError(null);
     } catch (error) {
-      const apiError = error as APIError;
+      const apiError = error as ApiError;
 
       // Handle rate limiting (max 1 per 5 minutes)
       if (apiError.response?.status === 429) {

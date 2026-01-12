@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../../services/authService';
 import { TurnstileWidget } from './TurnstileWidget';
-import type { APIError } from '../../types/api';
+import type { ApiError } from '../../types/api';
 import './ForgotPasswordForm.css';
 
 // Validation schema
@@ -62,7 +62,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
 
       onSuccess(emailSentTo);
     } catch (error) {
-      const apiError = error as APIError;
+      const apiError = error as ApiError;
 
       // Handle rate limiting
       if (apiError.response?.status === 429) {
