@@ -320,7 +320,7 @@ pgAdmin está disponible como contenedor pero deshabilitado por defecto para man
    ```
 
 4. Accede a <http://localhost:5050>
-   - Email: `admin@contravento.local`
+   - Email: `admin@example.com` (ver `.env.local-minimal.example`)
    - Password: `admin`
 
 **Alternativas a pgAdmin**: DBeaver, TablePlus, psql, VS Code PostgreSQL extension

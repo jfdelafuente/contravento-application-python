@@ -266,7 +266,7 @@ Access:
 
 1. Open pgAdmin: http://localhost:5050
 2. Login with credentials from `.env.local`:
-   - Email: `${PGADMIN_EMAIL}` (default: `admin@contravento.local`)
+   - Email: `${PGADMIN_EMAIL}` (default: `admin@example.com`)
    - Password: `${PGADMIN_PASSWORD}`
 3. Add server:
    - Host: `db` (Docker network name)
