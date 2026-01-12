@@ -119,16 +119,16 @@
 
 ### Implementation for User Story 3
 
-- [ ] T033 [US3] Add frontend-dev service definition to `docker-compose.local.yml` (copy from local-minimal with same config)
-- [ ] T034 [US3] Configure volume mounts in `docker-compose.local.yml` frontend service: ./frontend:/app and /app/node_modules
-- [ ] T035 [US3] Add depends_on with service_healthy condition for backend in `docker-compose.local.yml` frontend service
-- [ ] T036 [US3] Add environment variable VITE_API_URL=http://backend:8000 to `docker-compose.local.yml` frontend service
-- [ ] T037 [US3] Add healthcheck to `docker-compose.local.yml` frontend service (curl http://localhost:5173)
-- [ ] T038 [US3] Add port mapping 5173:5173 to `docker-compose.local.yml` frontend service
-- [ ] T039 [US3] Update `deploy.sh` local mode to include frontend service when --with-frontend flag is used
-- [ ] T040 [US3] Update `deploy.ps1` local mode to include frontend service when -WithFrontend parameter is used
-- [ ] T041 [US3] Update `QUICK_START.md` section "Docker Full" to document all 6 services with access URLs
-- [ ] T042 [US3] Update `QUICK_START.md` to add example testing email functionality with MailHog integration
+- [x] T033 [US3] Add frontend-dev service definition to `docker-compose.local.yml` (copy from local-minimal with same config)
+- [x] T034 [US3] Configure volume mounts in `docker-compose.local.yml` frontend service: ./frontend:/app and /app/node_modules
+- [x] T035 [US3] Add depends_on with service_healthy condition for backend in `docker-compose.local.yml` frontend service
+- [x] T036 [US3] Add environment variable VITE_API_URL=http://backend:8000 to `docker-compose.local.yml` frontend service
+- [x] T037 [US3] Add healthcheck to `docker-compose.local.yml` frontend service (curl http://localhost:5173)
+- [x] T038 [US3] Add port mapping 5173:5173 to `docker-compose.local.yml` frontend service
+- [x] T039 [US3] Update `deploy.sh` local mode to include frontend service when --with-frontend flag is used
+- [x] T040 [US3] Update `deploy.ps1` local mode to include frontend service when -WithFrontend parameter is used
+- [x] T041 [US3] Update `QUICK_START.md` section "Docker Full" to document all 6 services with access URLs
+- [x] T042 [US3] Update `QUICK_START.md` to add example testing email functionality with MailHog integration
 
 **Checkpoint**: Docker Full mode should provide complete development environment with all services operational
 

@@ -3,10 +3,11 @@
 # ContraVento - Multi-Environment Deployment Script
 # ============================================================================
 # Simplified deployment for all environments:
-#   ./deploy.sh local       - Start local development
-#   ./deploy.sh dev         - Start development/integration
-#   ./deploy.sh staging     - Start staging/pre-production
-#   ./deploy.sh prod        - Start production
+#   ./deploy.sh local                   - Start local development
+#   ./deploy.sh local --with-frontend   - Start local + frontend
+#   ./deploy.sh dev                     - Start development/integration
+#   ./deploy.sh staging                 - Start staging/pre-production
+#   ./deploy.sh prod                    - Start production
 #
 # Additional commands:
 #   ./deploy.sh <env> down  - Stop environment
@@ -172,11 +173,20 @@ start_env() {
             print_info "Access your full local environment:"
             echo "  Backend API:     http://localhost:8000"
             echo "  API Docs:        http://localhost:8000/docs"
+            if [ "$with_frontend" = "true" ]; then
+                echo "  Frontend:        http://localhost:5173"
+            fi
             echo "  MailHog UI:      http://localhost:8025"
             echo "  pgAdmin:         http://localhost:5050"
             echo "  PostgreSQL:      localhost:5432"
             echo "  Redis:           localhost:6379"
             echo ""
+            if [ "$with_frontend" = "true" ]; then
+                print_info "Frontend + Backend + All Services running"
+            else
+                print_warning "ℹ️  Full setup without frontend"
+                print_info "Add frontend with: ./deploy.sh local --with-frontend"
+            fi
             print_info "For lighter setup → use: ./deploy.sh local-minimal"
             ;;
         dev)

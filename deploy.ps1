@@ -2,10 +2,11 @@
 # ContraVento - Multi-Environment Deployment Script (PowerShell)
 # ============================================================================
 # Simplified deployment for all environments:
-#   .\deploy.ps1 local       - Start local development
-#   .\deploy.ps1 dev         - Start development/integration
-#   .\deploy.ps1 staging     - Start staging/pre-production
-#   .\deploy.ps1 prod        - Start production
+#   .\deploy.ps1 local                  - Start local development
+#   .\deploy.ps1 local -WithFrontend    - Start local + frontend
+#   .\deploy.ps1 dev                    - Start development/integration
+#   .\deploy.ps1 staging                - Start staging/pre-production
+#   .\deploy.ps1 prod                   - Start production
 #
 # Additional commands:
 #   .\deploy.ps1 <env> down  - Stop environment
@@ -180,11 +181,20 @@ function Start-Env {
             Print-Info "Access your full local environment:"
             Write-Host "  Backend API:     http://localhost:8000"
             Write-Host "  API Docs:        http://localhost:8000/docs"
+            if ($WithFrontend) {
+                Write-Host "  Frontend:        http://localhost:5173"
+            }
             Write-Host "  MailHog UI:      http://localhost:8025"
             Write-Host "  pgAdmin:         http://localhost:5050"
             Write-Host "  PostgreSQL:      localhost:5432"
             Write-Host "  Redis:           localhost:6379"
             Write-Host ""
+            if ($WithFrontend) {
+                Print-Info "Frontend + Backend + All Services running"
+            } else {
+                Print-Warning "Full setup without frontend"
+                Print-Info "Add frontend with: .\deploy.ps1 local -WithFrontend"
+            }
             Print-Info "For lighter setup use: .\deploy.ps1 local-minimal"
         }
         "dev" {

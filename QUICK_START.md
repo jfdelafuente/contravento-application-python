@@ -335,19 +335,23 @@ pgAdmin está disponible como contenedor pero deshabilitado por defecto para man
 
 ```bash
 # Windows
-.\deploy.ps1 local        # Iniciar
-.\deploy.ps1 local logs   # Ver logs
-.\deploy.ps1 local down   # Detener
-.\deploy.ps1 local restart # Reiniciar
+.\deploy.ps1 local                  # Iniciar (backend solo)
+.\deploy.ps1 local -WithFrontend    # Iniciar con frontend
+.\deploy.ps1 local logs             # Ver logs
+.\deploy.ps1 local down             # Detener
+.\deploy.ps1 local restart          # Reiniciar
 
 # Linux/Mac
-./deploy.sh local         # Iniciar
-./deploy.sh local logs    # Ver logs
-./deploy.sh local down    # Detener
-./deploy.sh local restart # Reiniciar
+./deploy.sh local                   # Iniciar (backend solo)
+./deploy.sh local --with-frontend   # Iniciar con frontend
+./deploy.sh local logs              # Ver logs
+./deploy.sh local down              # Detener
+./deploy.sh local restart           # Reiniciar
 ```
 
 ### Servicios incluidos
+
+**Backend (siempre):**
 
 - ✅ PostgreSQL 16 (base de datos)
 - ✅ Redis 7 (cache/sesiones)
@@ -356,8 +360,14 @@ pgAdmin está disponible como contenedor pero deshabilitado por defecto para man
 - ✅ MailHog (para probar emails)
 - ✅ pgAdmin 4 (interfaz web para PostgreSQL)
 
+**Frontend (opcional con `--with-frontend`):**
+
+- ✅ React + TypeScript + Vite (con hot reload)
+- ✅ Configuración automática para conectar al backend
+
 ### Acceso
 
+- **Frontend**: <http://localhost:5173> *(solo con `--with-frontend`)*
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 - **MailHog UI**: http://localhost:8025 (ver emails de prueba)
@@ -370,6 +380,59 @@ pgAdmin está disponible como contenedor pero deshabilitado por defecto para man
 ### Usuarios de prueba (creados automáticamente)
 
 Los mismos que en Docker Minimal - ver sección anterior.
+
+### Probando funcionalidad de Email con MailHog
+
+Docker Full incluye **MailHog**, un servidor SMTP de prueba que captura todos los emails enviados por la aplicación. Ideal para probar registro de usuarios, verificación de email, y recuperación de contraseña.
+
+**Cómo funciona**:
+
+1. **Inicia Docker Full** con el backend:
+
+   ```bash
+   # Windows
+   .\deploy.ps1 local
+
+   # Linux/Mac
+   ./deploy.sh local
+   ```
+
+2. **Registra un nuevo usuario** desde el frontend o API:
+
+   ```bash
+   curl -X POST http://localhost:8000/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "username": "testuser",
+       "email": "test@example.com",
+       "password": "SecurePass123!"
+     }'
+   ```
+
+3. **Abre MailHog UI** en tu navegador:
+
+   - URL: <http://localhost:8025>
+   - Verás el email de verificación que la aplicación "envió"
+   - Click en el email para ver el token de verificación
+
+4. **Verifica el email** usando el token recibido:
+
+   ```bash
+   curl -X POST http://localhost:8000/auth/verify-email \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "test@example.com",
+       "token": "TOKEN_FROM_EMAIL"
+     }'
+   ```
+
+**Ventajas de MailHog**:
+
+- ✅ Sin configuración SMTP real necesaria
+- ✅ Ver emails en tiempo real
+- ✅ Probar templates de email
+- ✅ Verificar contenido HTML y texto plano
+- ✅ No se envían emails reales (seguro para testing)
 
 ### Configuración requerida
 
@@ -390,6 +453,7 @@ Primera vez: Edita `.env.local` y configura:
 | **Memoria RAM** | 💚 ~200 MB | 💛 ~500 MB | 🔶 ~1 GB |
 | **Docker necesario** | ❌ No | ✅ Sí | ✅ Sí |
 | **Base de datos** | SQLite | PostgreSQL | PostgreSQL |
+| **Frontend React** | ✅ Opcional | ✅ Opcional | ✅ Opcional |
 | **Probar emails** | ❌ Console | ❌ Console | ✅ MailHog |
 | **Redis cache** | ❌ No | ❌ No | ✅ Sí |
 | **UI para DB** | 🔧 Externo | 🔧 Externo | ✅ pgAdmin |
