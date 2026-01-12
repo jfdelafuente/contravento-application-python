@@ -29,7 +29,8 @@ ENV/
 env.bak/
 venv.bak/
 .venv/
-poetry.lock
+# NOTE: poetry.lock should be committed for applications (not for libraries)
+# See: https://python-poetry.org/docs/basic-usage/#committing-your-poetrylock-file-to-version-control
 
 # PyCharm
 .idea/
