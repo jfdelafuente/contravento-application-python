@@ -222,19 +222,23 @@ Ver [DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) para detalles completos.
 
 ```bash
 # Windows
-.\deploy.ps1 local-minimal        # Iniciar
-.\deploy.ps1 local-minimal logs   # Ver logs
-.\deploy.ps1 local-minimal down   # Detener
-.\deploy.ps1 local-minimal restart # Reiniciar
+.\deploy.ps1 local-minimal                  # Iniciar (backend solo)
+.\deploy.ps1 local-minimal -WithFrontend    # Iniciar con frontend
+.\deploy.ps1 local-minimal logs             # Ver logs
+.\deploy.ps1 local-minimal down             # Detener
+.\deploy.ps1 local-minimal restart          # Reiniciar
 
 # Linux/Mac
-./deploy.sh local-minimal         # Iniciar
-./deploy.sh local-minimal logs    # Ver logs
-./deploy.sh local-minimal down    # Detener
-./deploy.sh local-minimal restart # Reiniciar
+./deploy.sh local-minimal                   # Iniciar (backend solo)
+./deploy.sh local-minimal --with-frontend   # Iniciar con frontend
+./deploy.sh local-minimal logs              # Ver logs
+./deploy.sh local-minimal down              # Detener
+./deploy.sh local-minimal restart           # Reiniciar
 ```
 
 ### Servicios incluidos
+
+**Backend solo** (por defecto):
 
 - ✅ PostgreSQL 16 (base de datos)
 - ✅ Backend FastAPI (con hot reload)
@@ -243,10 +247,24 @@ Ver [DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) para detalles completos.
 - ❌ MailHog (emails se logean en consola)
 - 🔧 pgAdmin (disponible pero deshabilitado - ver abajo cómo habilitarlo)
 
+**Con flag `--with-frontend`**:
+
+- ✅ Frontend React (Vite dev server con HMR)
+- ✅ Todo lo anterior
+
 ### Acceso
 
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
+**Backend solo**:
+
+- **Backend API**: <http://localhost:8000>
+- **API Docs**: <http://localhost:8000/docs>
+- **PostgreSQL**: localhost:5432
+
+**Con frontend**:
+
+- **Frontend**: <http://localhost:5173> (Vite dev server)
+- **Backend API**: <http://localhost:8000>
+- **API Docs**: <http://localhost:8000/docs>
 - **PostgreSQL**: localhost:5432
   - User: `${POSTGRES_USER}` (ver `.env.local-minimal`)
   - Password: `${POSTGRES_PASSWORD}`
@@ -521,6 +539,67 @@ kill -9 <PID>
 ```
 
 > **💡 Troubleshooting detallado**: Ver [docs/LOCAL_DEV_GUIDE.md - Comandos Útiles](docs/LOCAL_DEV_GUIDE.md#comandos-útiles-para-gestión-de-procesos) para comandos específicos de gestión de procesos frontend/backend.
+
+### Hot Reload Not Working (Docker)
+
+**Problema**: El frontend no se actualiza automáticamente cuando cambias archivos `.tsx` o `.css` en Docker Minimal/Full.
+
+**Causa**: Los volúmenes montados no están sincronizando correctamente los cambios.
+
+**Solución**:
+
+1. **Verificar que el servicio frontend está ejecutándose**:
+
+   ```bash
+   # Ver contenedores activos
+   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml ps
+
+   # Debería mostrar "frontend" con estado "Up"
+   ```
+
+2. **Verificar volúmenes montados**:
+
+   ```bash
+   # Inspeccionar el contenedor frontend
+   docker inspect contravento-frontend-dev | grep -A 10 "Mounts"
+
+   # Deberías ver:
+   # - ./frontend:/app (source code)
+   # - /app/node_modules (anonymous volume)
+   ```
+
+3. **Verificar logs del frontend**:
+
+   ```bash
+   # Ver logs en tiempo real
+   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml logs -f frontend
+
+   # Deberías ver: "VITE vX.X.X  ready in XXX ms"
+   # Al guardar un archivo, debería aparecer: "hmr update /src/..."
+   ```
+
+4. **Reiniciar el servicio frontend**:
+
+   ```bash
+   # Detener y reiniciar solo el frontend
+   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml restart frontend
+   ```
+
+5. **Si persiste el problema, reconstruir el contenedor**:
+
+   ```bash
+   # Detener todo
+   ./deploy.sh local-minimal down  # o .\deploy.ps1 local-minimal down
+
+   # Eliminar volúmenes y reconstruir
+   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml down -v
+   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml build --no-cache frontend
+
+   # Iniciar de nuevo con frontend
+   ./deploy.sh local-minimal --with-frontend
+   ```
+
+**Nota para Windows**: Si usas WSL2, asegúrate de que los archivos están en el sistema de archivos de WSL, no en `/mnt/c/`. Los volúmenes montados desde Windows pueden tener problemas de sincronización.
 
 ### Error: "Docker daemon not running"
 

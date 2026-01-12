@@ -18,7 +18,10 @@ param(
     [string]$Environment,
 
     [Parameter(Mandatory=$false)]
-    [string]$Command = "up"
+    [string]$Command = "up",
+
+    [Parameter(Mandatory=$false)]
+    [switch]$WithFrontend
 )
 
 # Functions
@@ -96,7 +99,10 @@ function Check-EnvFile {
 
 # Start environment
 function Start-Env {
-    param([string]$Env)
+    param(
+        [string]$Env,
+        [bool]$WithFrontend
+    )
 
     $composeFile = "docker-compose.$Env.yml"
 
@@ -108,6 +114,9 @@ function Start-Env {
     Write-Host "  - Base: docker-compose.yml"
     Write-Host "  - Overlay: $composeFile"
     Write-Host "  - Env file: .env.$Env"
+    if ($WithFrontend) {
+        Write-Host "  - Frontend: ENABLED (Vite dev server)"
+    }
     Write-Host ""
 
     # Confirmation for production
@@ -128,9 +137,14 @@ function Start-Env {
     Print-Info "Building services..."
     docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" build
 
-    # Start services
+    # Start services (enable frontend if flag is set)
     Print-Info "Starting services..."
-    docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" up -d
+    if ($WithFrontend) {
+        # Scale frontend to 1 replica to enable it
+        docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" up -d --scale frontend=1
+    } else {
+        docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" up -d
+    }
 
     # Wait for services to be healthy
     Print-Info "Waiting for services to be healthy..."
@@ -148,9 +162,17 @@ function Start-Env {
             Print-Info "Access your minimal local environment:"
             Write-Host "  Backend API:     http://localhost:8000"
             Write-Host "  API Docs:        http://localhost:8000/docs"
+            if ($WithFrontend) {
+                Write-Host "  Frontend:        http://localhost:5173"
+            }
             Write-Host "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
             Write-Host ""
-            Print-Warning "Minimal setup (PostgreSQL + Backend only)"
+            if ($WithFrontend) {
+                Print-Info "Frontend + Backend + PostgreSQL running"
+            } else {
+                Print-Warning "Minimal setup (PostgreSQL + Backend only)"
+                Print-Info "Add frontend with: .\deploy.ps1 local-minimal -WithFrontend"
+            }
             Print-Info "For MailHog, Redis, pgAdmin use: .\deploy.ps1 local"
         }
         "local" {
@@ -223,13 +245,16 @@ function Show-Ps {
 
 # Restart environment
 function Restart-Env {
-    param([string]$Env)
+    param(
+        [string]$Env,
+        [bool]$WithFrontend
+    )
 
     Print-Header "Restarting $Env environment"
 
     Stop-Env $Env
     Start-Sleep -Seconds 2
-    Start-Env $Env
+    Start-Env $Env $WithFrontend
 }
 
 # Main
@@ -238,7 +263,7 @@ Validate-Env $Environment
 
 switch ($Command.ToLower()) {
     {$_ -in "up", "start"} {
-        Start-Env $Environment
+        Start-Env $Environment $WithFrontend.IsPresent
     }
     {$_ -in "down", "stop"} {
         Stop-Env $Environment

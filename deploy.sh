@@ -95,6 +95,7 @@ check_env_file() {
 # Start environment
 start_env() {
     local env=$1
+    local with_frontend=$2  # --with-frontend flag
     local compose_file="docker-compose.${env}.yml"
 
     print_header "Starting $env environment"
@@ -105,6 +106,9 @@ start_env() {
     echo "  - Base: docker-compose.yml"
     echo "  - Overlay: $compose_file"
     echo "  - Env file: .env.${env}"
+    if [ "$with_frontend" = "true" ]; then
+        echo "  - Frontend: ENABLED (Vite dev server)"
+    fi
     echo ""
 
     # Confirmation for production
@@ -125,9 +129,14 @@ start_env() {
     print_info "Building services..."
     docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build
 
-    # Start services
+    # Start services (enable frontend if flag is set)
     print_info "Starting services..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d
+    if [ "$with_frontend" = "true" ]; then
+        # Scale frontend to 1 replica to enable it
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d --scale frontend=1
+    else
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d
+    fi
 
     # Wait for services to be healthy
     print_info "Waiting for services to be healthy..."
@@ -145,9 +154,17 @@ start_env() {
             print_info "Access your minimal local environment:"
             echo "  Backend API:     http://localhost:8000"
             echo "  API Docs:        http://localhost:8000/docs"
+            if [ "$with_frontend" = "true" ]; then
+                echo "  Frontend:        http://localhost:5173"
+            fi
             echo "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
             echo ""
-            print_warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+            if [ "$with_frontend" = "true" ]; then
+                print_info "Frontend + Backend + PostgreSQL running"
+            else
+                print_warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+                print_info "Add frontend with: ./deploy.sh local-minimal --with-frontend"
+            fi
             print_info "For MailHog, Redis, pgAdmin → use: ./deploy.sh local"
             ;;
         local)
@@ -241,28 +258,45 @@ main() {
         echo "  prod           - Production (maximum security)"
         echo ""
         echo "Commands:"
-        echo "  (default)  - Start environment"
-        echo "  down       - Stop environment"
-        echo "  logs       - View logs (follow mode)"
-        echo "  ps         - Show running containers"
-        echo "  restart    - Restart environment"
+        echo "  (default)      - Start environment"
+        echo "  --with-frontend - Start with frontend (local-minimal and local only)"
+        echo "  down           - Stop environment"
+        echo "  logs           - View logs (follow mode)"
+        echo "  ps             - Show running containers"
+        echo "  restart        - Restart environment"
         echo ""
         echo "Examples:"
-        echo "  $0 local-minimal       # Start minimal local (recommended for dev)"
-        echo "  $0 local               # Start full local with all tools"
-        echo "  $0 local-minimal logs  # View logs"
-        echo "  $0 prod down           # Stop production"
+        echo "  $0 local-minimal                   # Start minimal local (backend only)"
+        echo "  $0 local-minimal --with-frontend   # Start minimal local + frontend"
+        echo "  $0 local                           # Start full local with all tools"
+        echo "  $0 local-minimal logs              # View logs"
+        echo "  $0 prod down                       # Stop production"
         exit 1
     fi
 
+    # Parse arguments
     local env=$1
-    local command=${2:-up}
+    local with_frontend=false
+    local command="up"
+
+    # Check for --with-frontend flag in any position
+    shift  # Remove first argument (env)
+    for arg in "$@"; do
+        case "$arg" in
+            --with-frontend)
+                with_frontend=true
+                ;;
+            up|start|down|stop|logs|ps|status|restart)
+                command="$arg"
+                ;;
+        esac
+    done
 
     validate_env "$env"
 
     case $command in
         up|start)
-            start_env "$env"
+            start_env "$env" "$with_frontend"
             ;;
         down|stop)
             stop_env "$env"
