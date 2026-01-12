@@ -88,9 +88,37 @@ function Check-EnvFile {
         $exampleFile = "$envFile.example"
         if (Test-Path $exampleFile) {
             Copy-Item $exampleFile $envFile
-            Print-Warning "IMPORTANT: Edit $envFile and configure all variables!"
-            Print-Warning "Generate strong SECRET_KEY with: python -c `"import secrets; print(secrets.token_urlsafe(64))`""
-            Read-Host "Press Enter after configuring $envFile to continue..."
+
+            # Auto-generate SECRET_KEY for local/local-minimal environments only
+            if ($Env -eq "local" -or $Env -eq "local-minimal") {
+                Print-Info "Auto-generating SECRET_KEY for local development..."
+
+                # Generate a random SECRET_KEY using Python
+                $secretKey = $null
+                try {
+                    if (Get-Command python3 -ErrorAction SilentlyContinue) {
+                        $secretKey = python3 -c "import secrets; print(secrets.token_urlsafe(64))" 2>$null
+                    } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+                        $secretKey = python -c "import secrets; print(secrets.token_urlsafe(64))" 2>$null
+                    }
+                } catch {
+                    Print-Warning "Python not found, using default SECRET_KEY"
+                }
+
+                # Replace SECRET_KEY in .env file if generated successfully
+                if ($secretKey) {
+                    (Get-Content $envFile) -replace "SECRET_KEY=.*", "SECRET_KEY=$secretKey" | Set-Content $envFile
+                    Print-Success "Auto-generated SECRET_KEY for local development"
+                }
+
+                Print-Success "Created $envFile with auto-generated SECRET_KEY"
+            } else {
+                # For staging/prod, require manual configuration
+                Print-Warning "IMPORTANT: Edit $envFile and configure all variables!"
+                Print-Warning "Generate strong SECRET_KEY with: python -c `"import secrets; print(secrets.token_urlsafe(64))`""
+                Print-Warning "Press Ctrl+C to abort, or Enter to continue with example values (NOT RECOMMENDED)"
+                Read-Host ""
+            }
         } else {
             Print-Error "Example file not found: $exampleFile"
             exit 1

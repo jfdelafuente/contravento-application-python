@@ -83,9 +83,41 @@ check_env_file() {
 
         if [ -f "${env_file}.example" ]; then
             cp "${env_file}.example" "$env_file"
-            print_warning "⚠️  IMPORTANT: Edit $env_file and configure all variables!"
-            print_warning "⚠️  Generate strong SECRET_KEY with: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
-            read -p "Press Enter after configuring $env_file to continue..."
+
+            # Auto-generate SECRET_KEY for local/local-minimal environments only
+            if [ "$env" = "local" ] || [ "$env" = "local-minimal" ]; then
+                print_info "Auto-generating SECRET_KEY for local development..."
+
+                # Generate a random SECRET_KEY using Python
+                if command -v python3 &> /dev/null; then
+                    local secret_key=$(python3 -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || echo "")
+                elif command -v python &> /dev/null; then
+                    local secret_key=$(python -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || echo "")
+                else
+                    print_warning "Python not found, using default SECRET_KEY"
+                    local secret_key=""
+                fi
+
+                # Replace SECRET_KEY in .env file if generated successfully
+                if [ -n "$secret_key" ]; then
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        # macOS
+                        sed -i '' "s/SECRET_KEY=.*/SECRET_KEY=${secret_key}/" "$env_file"
+                    else
+                        # Linux
+                        sed -i "s/SECRET_KEY=.*/SECRET_KEY=${secret_key}/" "$env_file"
+                    fi
+                    print_success "Auto-generated SECRET_KEY for local development"
+                fi
+
+                print_success "Created $env_file with auto-generated SECRET_KEY"
+            else
+                # For staging/prod, require manual configuration
+                print_warning "⚠️  IMPORTANT: Edit $env_file and configure all variables!"
+                print_warning "⚠️  Generate strong SECRET_KEY with: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
+                print_warning "⚠️  Press Ctrl+C to abort, or Enter to continue with example values (NOT RECOMMENDED)"
+                read -p ""
+            fi
         else
             print_error "Example file not found: ${env_file}.example"
             exit 1
