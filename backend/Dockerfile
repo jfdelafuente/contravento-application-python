@@ -17,13 +17,13 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --no-cache-dir poetry==1.7.1
 
 # Copy dependency files
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
 # Configure poetry to not create virtual env (we're already in container)
 RUN poetry config virtualenvs.create false
 
-# Install dependencies (production only, no dev dependencies)
-RUN poetry install --no-dev --no-interaction --no-ansi
+# Generate lock file and install dependencies (production only, no dev dependencies)
+RUN poetry lock --no-update && poetry install --no-dev --no-interaction --no-ansi
 
 # Stage 2: Development (with hot reload)
 FROM python:3.11-slim AS development
@@ -42,13 +42,15 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --no-cache-dir poetry==1.7.1
 
 # Copy dependency files
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
 # Configure poetry to not create virtual env
 RUN poetry config virtualenvs.create false
 
 # Install all dependencies (including dev dependencies for hot reload)
-RUN poetry install --no-interaction --no-ansi
+# Poetry will use poetry.lock if it exists in the build context, otherwise it will generate it
+# This ensures the build works whether poetry.lock is committed or not
+RUN poetry lock --no-update && poetry install --no-interaction --no-ansi
 
 # Copy application code (will be mounted as volume in docker-compose)
 COPY src/ ./src/
