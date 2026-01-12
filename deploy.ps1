@@ -2,10 +2,11 @@
 # ContraVento - Multi-Environment Deployment Script (PowerShell)
 # ============================================================================
 # Simplified deployment for all environments:
-#   .\deploy.ps1 local       - Start local development
-#   .\deploy.ps1 dev         - Start development/integration
-#   .\deploy.ps1 staging     - Start staging/pre-production
-#   .\deploy.ps1 prod        - Start production
+#   .\deploy.ps1 local                  - Start local development
+#   .\deploy.ps1 local -WithFrontend    - Start local + frontend
+#   .\deploy.ps1 dev                    - Start development/integration
+#   .\deploy.ps1 staging                - Start staging/pre-production
+#   .\deploy.ps1 prod                   - Start production
 #
 # Additional commands:
 #   .\deploy.ps1 <env> down  - Stop environment
@@ -18,7 +19,10 @@ param(
     [string]$Environment,
 
     [Parameter(Mandatory=$false)]
-    [string]$Command = "up"
+    [string]$Command = "up",
+
+    [Parameter(Mandatory=$false)]
+    [switch]$WithFrontend
 )
 
 # Functions
@@ -84,9 +88,37 @@ function Check-EnvFile {
         $exampleFile = "$envFile.example"
         if (Test-Path $exampleFile) {
             Copy-Item $exampleFile $envFile
-            Print-Warning "IMPORTANT: Edit $envFile and configure all variables!"
-            Print-Warning "Generate strong SECRET_KEY with: python -c `"import secrets; print(secrets.token_urlsafe(64))`""
-            Read-Host "Press Enter after configuring $envFile to continue..."
+
+            # Auto-generate SECRET_KEY for local/local-minimal environments only
+            if ($Env -eq "local" -or $Env -eq "local-minimal") {
+                Print-Info "Auto-generating SECRET_KEY for local development..."
+
+                # Generate a random SECRET_KEY using Python
+                $secretKey = $null
+                try {
+                    if (Get-Command python3 -ErrorAction SilentlyContinue) {
+                        $secretKey = python3 -c "import secrets; print(secrets.token_urlsafe(64))" 2>$null
+                    } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+                        $secretKey = python -c "import secrets; print(secrets.token_urlsafe(64))" 2>$null
+                    }
+                } catch {
+                    Print-Warning "Python not found, using default SECRET_KEY"
+                }
+
+                # Replace SECRET_KEY in .env file if generated successfully
+                if ($secretKey) {
+                    (Get-Content $envFile) -replace "SECRET_KEY=.*", "SECRET_KEY=$secretKey" | Set-Content $envFile
+                    Print-Success "Auto-generated SECRET_KEY for local development"
+                }
+
+                Print-Success "Created $envFile with auto-generated SECRET_KEY"
+            } else {
+                # For staging/prod, require manual configuration
+                Print-Warning "IMPORTANT: Edit $envFile and configure all variables!"
+                Print-Warning "Generate strong SECRET_KEY with: python -c `"import secrets; print(secrets.token_urlsafe(64))`""
+                Print-Warning "Press Ctrl+C to abort, or Enter to continue with example values (NOT RECOMMENDED)"
+                Read-Host ""
+            }
         } else {
             Print-Error "Example file not found: $exampleFile"
             exit 1
@@ -96,7 +128,10 @@ function Check-EnvFile {
 
 # Start environment
 function Start-Env {
-    param([string]$Env)
+    param(
+        [string]$Env,
+        [bool]$WithFrontend
+    )
 
     $composeFile = "docker-compose.$Env.yml"
 
@@ -108,6 +143,9 @@ function Start-Env {
     Write-Host "  - Base: docker-compose.yml"
     Write-Host "  - Overlay: $composeFile"
     Write-Host "  - Env file: .env.$Env"
+    if ($WithFrontend) {
+        Write-Host "  - Frontend: ENABLED (Vite dev server)"
+    }
     Write-Host ""
 
     # Confirmation for production
@@ -120,6 +158,28 @@ function Start-Env {
         }
     }
 
+    # Build frontend for staging/prod environments
+    if ($Env -eq "staging" -or $Env -eq "prod") {
+        Print-Info "Building frontend for $Env..."
+        Set-Location frontend
+
+        # Install dependencies if needed
+        if (!(Test-Path "node_modules")) {
+            Print-Warning "node_modules not found, running npm install..."
+            npm install
+        }
+
+        # Run production build
+        if ($Env -eq "staging") {
+            npm run build:staging
+        } else {
+            npm run build:prod
+        }
+
+        Set-Location ..
+        Print-Success "Frontend build complete!"
+    }
+
     # Pull latest images
     Print-Info "Pulling latest images..."
     docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" pull
@@ -128,9 +188,14 @@ function Start-Env {
     Print-Info "Building services..."
     docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" build
 
-    # Start services
+    # Start services (enable frontend if flag is set)
     Print-Info "Starting services..."
-    docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" up -d
+    if ($WithFrontend) {
+        # Scale frontend to 1 replica to enable it
+        docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" up -d --scale frontend=1
+    } else {
+        docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" up -d
+    }
 
     # Wait for services to be healthy
     Print-Info "Waiting for services to be healthy..."
@@ -148,9 +213,17 @@ function Start-Env {
             Print-Info "Access your minimal local environment:"
             Write-Host "  Backend API:     http://localhost:8000"
             Write-Host "  API Docs:        http://localhost:8000/docs"
+            if ($WithFrontend) {
+                Write-Host "  Frontend:        http://localhost:5173"
+            }
             Write-Host "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
             Write-Host ""
-            Print-Warning "Minimal setup (PostgreSQL + Backend only)"
+            if ($WithFrontend) {
+                Print-Info "Frontend + Backend + PostgreSQL running"
+            } else {
+                Print-Warning "Minimal setup (PostgreSQL + Backend only)"
+                Print-Info "Add frontend with: .\deploy.ps1 local-minimal -WithFrontend"
+            }
             Print-Info "For MailHog, Redis, pgAdmin use: .\deploy.ps1 local"
         }
         "local" {
@@ -158,11 +231,20 @@ function Start-Env {
             Print-Info "Access your full local environment:"
             Write-Host "  Backend API:     http://localhost:8000"
             Write-Host "  API Docs:        http://localhost:8000/docs"
+            if ($WithFrontend) {
+                Write-Host "  Frontend:        http://localhost:5173"
+            }
             Write-Host "  MailHog UI:      http://localhost:8025"
             Write-Host "  pgAdmin:         http://localhost:5050"
             Write-Host "  PostgreSQL:      localhost:5432"
             Write-Host "  Redis:           localhost:6379"
             Write-Host ""
+            if ($WithFrontend) {
+                Print-Info "Frontend + Backend + All Services running"
+            } else {
+                Print-Warning "Full setup without frontend"
+                Print-Info "Add frontend with: .\deploy.ps1 local -WithFrontend"
+            }
             Print-Info "For lighter setup use: .\deploy.ps1 local-minimal"
         }
         "dev" {
@@ -223,13 +305,16 @@ function Show-Ps {
 
 # Restart environment
 function Restart-Env {
-    param([string]$Env)
+    param(
+        [string]$Env,
+        [bool]$WithFrontend
+    )
 
     Print-Header "Restarting $Env environment"
 
     Stop-Env $Env
     Start-Sleep -Seconds 2
-    Start-Env $Env
+    Start-Env $Env $WithFrontend
 }
 
 # Main
@@ -238,7 +323,7 @@ Validate-Env $Environment
 
 switch ($Command.ToLower()) {
     {$_ -in "up", "start"} {
-        Start-Env $Environment
+        Start-Env $Environment $WithFrontend.IsPresent
     }
     {$_ -in "down", "stop"} {
         Stop-Env $Environment

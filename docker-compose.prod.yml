@@ -141,6 +141,54 @@ services:
         labels: "production"
 
   # ==========================================================================
+  # Frontend - React Production Build (Production)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.contravento.com}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
+        VITE_ENV: production
+        VITE_DEBUG: "false"
+    # No direct port exposure - only via Nginx
+    deploy:
+      replicas: 3  # Run 3 instances for high availability (matches backend)
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+    restart: always
+    networks:
+      - contravento-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        labels: "production"
+
+  # ==========================================================================
   # Nginx - Reverse Proxy & Load Balancer (Production)
   # ==========================================================================
   nginx:

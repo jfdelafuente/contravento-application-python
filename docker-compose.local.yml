@@ -5,6 +5,7 @@
 #   - PostgreSQL (database)
 #   - Redis (cache/sessions) - Optional, not currently used in app
 #   - Backend API (FastAPI with hot reload)
+#   - Frontend (React + Vite dev server) - Optional, disabled by default
 #   - MailHog (email testing) - Use when developing auth/email features
 #   - pgAdmin (database UI) - Use when you need visual DB management
 #
@@ -12,16 +13,17 @@
 #   - Working on authentication/email features (needs MailHog)
 #   - Implementing cache/sessions (needs Redis)
 #   - Prefer visual database tools (needs pgAdmin)
-#   - Testing full-stack integration
+#   - Testing full-stack integration with all services
 #
 # For lighter/faster setup use:
-#   ./deploy.sh local-minimal (only PostgreSQL + Backend)
+#   ./deploy.sh local-minimal (only PostgreSQL + Backend + optionally Frontend)
 #
 # Usage:
-#   docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
-#   OR use script: ./deploy.sh local
+#   ./deploy.sh local                   # Start without frontend (5 services)
+#   ./deploy.sh local --with-frontend   # Start with frontend (6 services)
 #
 # Access:
+#   Frontend:           http://localhost:5173 (when enabled with --with-frontend)
 #   Backend API:        http://localhost:8000
 #   API Docs:           http://localhost:8000/docs
 #   MailHog UI:         http://localhost:8025 (email testing)
@@ -55,6 +57,8 @@ services:
   # ==========================================================================
   backend:
     build:
+      context: ./backend
+      dockerfile: Dockerfile
       target: development  # Use development stage from Dockerfile
     ports:
       - "8000:8000"
@@ -87,6 +91,41 @@ services:
     restart: unless-stopped
     networks:
       - contravento-network
+
+  # ==========================================================================
+  # Frontend - React Vite Dev Server (Disabled by default)
+  # ==========================================================================
+  # Frontend service is disabled by default in full setup
+  # Enable with: ./deploy.sh local --with-frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"  # Vite dev server
+    volumes:
+      # Mount source code for hot reload (HMR)
+      - ./frontend:/app
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+    environment:
+      # Backend API URL (accessible from browser on host machine)
+      VITE_API_URL: http://localhost:8000
+      VITE_ENV: development
+      VITE_DEBUG: "true"
+      # Use test Turnstile key for development
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      replicas: 0  # Disabled by default - use --with-frontend flag to enable
 
   # ==========================================================================
   # pgAdmin - Database UI (Optional - Use if you prefer visual DB tools)

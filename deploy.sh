@@ -3,10 +3,11 @@
 # ContraVento - Multi-Environment Deployment Script
 # ============================================================================
 # Simplified deployment for all environments:
-#   ./deploy.sh local       - Start local development
-#   ./deploy.sh dev         - Start development/integration
-#   ./deploy.sh staging     - Start staging/pre-production
-#   ./deploy.sh prod        - Start production
+#   ./deploy.sh local                   - Start local development
+#   ./deploy.sh local --with-frontend   - Start local + frontend
+#   ./deploy.sh dev                     - Start development/integration
+#   ./deploy.sh staging                 - Start staging/pre-production
+#   ./deploy.sh prod                    - Start production
 #
 # Additional commands:
 #   ./deploy.sh <env> down  - Stop environment
@@ -82,9 +83,41 @@ check_env_file() {
 
         if [ -f "${env_file}.example" ]; then
             cp "${env_file}.example" "$env_file"
-            print_warning "⚠️  IMPORTANT: Edit $env_file and configure all variables!"
-            print_warning "⚠️  Generate strong SECRET_KEY with: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
-            read -p "Press Enter after configuring $env_file to continue..."
+
+            # Auto-generate SECRET_KEY for local/local-minimal environments only
+            if [ "$env" = "local" ] || [ "$env" = "local-minimal" ]; then
+                print_info "Auto-generating SECRET_KEY for local development..."
+
+                # Generate a random SECRET_KEY using Python
+                if command -v python3 &> /dev/null; then
+                    local secret_key=$(python3 -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || echo "")
+                elif command -v python &> /dev/null; then
+                    local secret_key=$(python -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || echo "")
+                else
+                    print_warning "Python not found, using default SECRET_KEY"
+                    local secret_key=""
+                fi
+
+                # Replace SECRET_KEY in .env file if generated successfully
+                if [ -n "$secret_key" ]; then
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        # macOS
+                        sed -i '' "s/SECRET_KEY=.*/SECRET_KEY=${secret_key}/" "$env_file"
+                    else
+                        # Linux
+                        sed -i "s/SECRET_KEY=.*/SECRET_KEY=${secret_key}/" "$env_file"
+                    fi
+                    print_success "Auto-generated SECRET_KEY for local development"
+                fi
+
+                print_success "Created $env_file with auto-generated SECRET_KEY"
+            else
+                # For staging/prod, require manual configuration
+                print_warning "⚠️  IMPORTANT: Edit $env_file and configure all variables!"
+                print_warning "⚠️  Generate strong SECRET_KEY with: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
+                print_warning "⚠️  Press Ctrl+C to abort, or Enter to continue with example values (NOT RECOMMENDED)"
+                read -p ""
+            fi
         else
             print_error "Example file not found: ${env_file}.example"
             exit 1
@@ -95,6 +128,7 @@ check_env_file() {
 # Start environment
 start_env() {
     local env=$1
+    local with_frontend=$2  # --with-frontend flag
     local compose_file="docker-compose.${env}.yml"
 
     print_header "Starting $env environment"
@@ -105,6 +139,9 @@ start_env() {
     echo "  - Base: docker-compose.yml"
     echo "  - Overlay: $compose_file"
     echo "  - Env file: .env.${env}"
+    if [ "$with_frontend" = "true" ]; then
+        echo "  - Frontend: ENABLED (Vite dev server)"
+    fi
     echo ""
 
     # Confirmation for production
@@ -117,6 +154,28 @@ start_env() {
         fi
     fi
 
+    # Build frontend for staging/prod environments
+    if [ "$env" = "staging" ] || [ "$env" = "prod" ]; then
+        print_info "Building frontend for $env..."
+        cd frontend
+
+        # Install dependencies if needed
+        if [ ! -d "node_modules" ]; then
+            print_warning "node_modules not found, running npm install..."
+            npm install
+        fi
+
+        # Run production build
+        if [ "$env" = "staging" ]; then
+            npm run build:staging
+        else
+            npm run build:prod
+        fi
+
+        cd ..
+        print_success "Frontend build complete!"
+    fi
+
     # Pull latest images
     print_info "Pulling latest images..."
     docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" pull
@@ -125,9 +184,14 @@ start_env() {
     print_info "Building services..."
     docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build
 
-    # Start services
+    # Start services (enable frontend if flag is set)
     print_info "Starting services..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d
+    if [ "$with_frontend" = "true" ]; then
+        # Scale frontend to 1 replica to enable it
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d --scale frontend=1
+    else
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d
+    fi
 
     # Wait for services to be healthy
     print_info "Waiting for services to be healthy..."
@@ -145,9 +209,17 @@ start_env() {
             print_info "Access your minimal local environment:"
             echo "  Backend API:     http://localhost:8000"
             echo "  API Docs:        http://localhost:8000/docs"
+            if [ "$with_frontend" = "true" ]; then
+                echo "  Frontend:        http://localhost:5173"
+            fi
             echo "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
             echo ""
-            print_warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+            if [ "$with_frontend" = "true" ]; then
+                print_info "Frontend + Backend + PostgreSQL running"
+            else
+                print_warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+                print_info "Add frontend with: ./deploy.sh local-minimal --with-frontend"
+            fi
             print_info "For MailHog, Redis, pgAdmin → use: ./deploy.sh local"
             ;;
         local)
@@ -155,11 +227,20 @@ start_env() {
             print_info "Access your full local environment:"
             echo "  Backend API:     http://localhost:8000"
             echo "  API Docs:        http://localhost:8000/docs"
+            if [ "$with_frontend" = "true" ]; then
+                echo "  Frontend:        http://localhost:5173"
+            fi
             echo "  MailHog UI:      http://localhost:8025"
             echo "  pgAdmin:         http://localhost:5050"
             echo "  PostgreSQL:      localhost:5432"
             echo "  Redis:           localhost:6379"
             echo ""
+            if [ "$with_frontend" = "true" ]; then
+                print_info "Frontend + Backend + All Services running"
+            else
+                print_warning "ℹ️  Full setup without frontend"
+                print_info "Add frontend with: ./deploy.sh local --with-frontend"
+            fi
             print_info "For lighter setup → use: ./deploy.sh local-minimal"
             ;;
         dev)
@@ -241,28 +322,45 @@ main() {
         echo "  prod           - Production (maximum security)"
         echo ""
         echo "Commands:"
-        echo "  (default)  - Start environment"
-        echo "  down       - Stop environment"
-        echo "  logs       - View logs (follow mode)"
-        echo "  ps         - Show running containers"
-        echo "  restart    - Restart environment"
+        echo "  (default)      - Start environment"
+        echo "  --with-frontend - Start with frontend (local-minimal and local only)"
+        echo "  down           - Stop environment"
+        echo "  logs           - View logs (follow mode)"
+        echo "  ps             - Show running containers"
+        echo "  restart        - Restart environment"
         echo ""
         echo "Examples:"
-        echo "  $0 local-minimal       # Start minimal local (recommended for dev)"
-        echo "  $0 local               # Start full local with all tools"
-        echo "  $0 local-minimal logs  # View logs"
-        echo "  $0 prod down           # Stop production"
+        echo "  $0 local-minimal                   # Start minimal local (backend only)"
+        echo "  $0 local-minimal --with-frontend   # Start minimal local + frontend"
+        echo "  $0 local                           # Start full local with all tools"
+        echo "  $0 local-minimal logs              # View logs"
+        echo "  $0 prod down                       # Stop production"
         exit 1
     fi
 
+    # Parse arguments
     local env=$1
-    local command=${2:-up}
+    local with_frontend=false
+    local command="up"
+
+    # Check for --with-frontend flag in any position
+    shift  # Remove first argument (env)
+    for arg in "$@"; do
+        case "$arg" in
+            --with-frontend)
+                with_frontend=true
+                ;;
+            up|start|down|stop|logs|ps|status|restart)
+                command="$arg"
+                ;;
+        esac
+    done
 
     validate_env "$env"
 
     case $command in
         up|start)
-            start_env "$env"
+            start_env "$env" "$with_frontend"
             ;;
         down|stop)
             stop_env "$env"

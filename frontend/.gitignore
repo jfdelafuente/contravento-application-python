@@ -16,10 +16,14 @@ dist-ssr
 # Vite cache and build artifacts
 .vite
 
-# Environment variables
+# Environment variables (commit only .example files, never actual environment files)
 .env.local
+.env.development
 .env.development.local
 .env.test.local
+.env.staging
+.env.staging.local
+.env.production
 .env.production.local
 
 # Editor directories and files

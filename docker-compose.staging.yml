@@ -85,6 +85,37 @@ services:
       BCRYPT_ROUNDS: "12"  # Production-level security
 
   # ==========================================================================
+  # Frontend - React Production Build (Staging)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://staging.contravento.com}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
+        VITE_ENV: staging
+        VITE_DEBUG: "false"
+    container_name: contravento-frontend-staging
+    restart: unless-stopped
+    networks:
+      - contravento-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Note: Frontend is served via Nginx reverse proxy, no direct port exposure
+
+  # ==========================================================================
   # Nginx - Reverse Proxy (Staging)
   # ==========================================================================
   nginx:
