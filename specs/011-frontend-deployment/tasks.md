@@ -92,16 +92,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Add frontend-dev service definition to `docker-compose.local-minimal.yml` with Dockerfile.dev
-- [ ] T024 [US2] Configure volume mounts in `docker-compose.local-minimal.yml` frontend service: ./frontend:/app and /app/node_modules
-- [ ] T025 [US2] Add depends_on with service_healthy condition for backend in `docker-compose.local-minimal.yml` frontend service
-- [ ] T026 [US2] Add environment variable VITE_API_URL=http://backend:8000 to `docker-compose.local-minimal.yml` frontend service
-- [ ] T027 [US2] Add healthcheck to `docker-compose.local-minimal.yml` frontend service (curl http://localhost:5173)
-- [ ] T028 [US2] Add port mapping 5173:5173 to `docker-compose.local-minimal.yml` frontend service
-- [ ] T029 [US2] Update `deploy.sh` to add --with-frontend flag that includes frontend service in local-minimal deployment
-- [ ] T030 [US2] Update `deploy.ps1` to add -WithFrontend parameter that includes frontend service in local-minimal deployment
-- [ ] T031 [US2] Update `QUICK_START.md` section "Docker Minimal" to document --with-frontend flag with docker-compose logs examples
-- [ ] T032 [US2] Create troubleshooting section in `QUICK_START.md` for "Hot Reload Not Working (Docker)" with volume mount verification
+- [x] T023 [US2] Add frontend-dev service definition to `docker-compose.local-minimal.yml` with Dockerfile.dev
+- [x] T024 [US2] Configure volume mounts in `docker-compose.local-minimal.yml` frontend service: ./frontend:/app and /app/node_modules
+- [x] T025 [US2] Add depends_on with service_healthy condition for backend in `docker-compose.local-minimal.yml` frontend service
+- [x] T026 [US2] Add environment variable VITE_API_URL=http://backend:8000 to `docker-compose.local-minimal.yml` frontend service
+- [x] T027 [US2] Add healthcheck to `docker-compose.local-minimal.yml` frontend service (curl http://localhost:5173)
+- [x] T028 [US2] Add port mapping 5173:5173 to `docker-compose.local-minimal.yml` frontend service
+- [x] T029 [US2] Update `deploy.sh` to add --with-frontend flag that includes frontend service in local-minimal deployment
+- [x] T030 [US2] Update `deploy.ps1` to add -WithFrontend parameter that includes frontend service in local-minimal deployment
+- [x] T031 [US2] Update `QUICK_START.md` section "Docker Minimal" to document --with-frontend flag with docker-compose logs examples
+- [x] T032 [US2] Create troubleshooting section in `QUICK_START.md` for "Hot Reload Not Working (Docker)" with volume mount verification
 
 **Checkpoint**: Docker Minimal mode should work end-to-end with frontend, backend, and PostgreSQL communicating correctly
 
