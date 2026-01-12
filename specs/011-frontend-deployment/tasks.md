@@ -177,13 +177,13 @@
 - [x] T061 [P] Add "Environment Variables Reference" section to `QUICK_START.md` documenting all VITE_* variables
 - [x] T062 [P] Add "Common Commands" quick reference table to `QUICK_START.md` with npm/docker commands
 - [ ] T063 Validate all 4 deployment modes work end-to-end following `specs/011-frontend-deployment/quickstart.md`
-- [ ] T064 Run quickstart validation: SQLite Local startup completes in <30 seconds (SC-001)
-- [ ] T065 Run quickstart validation: Docker Minimal startup completes in <60 seconds (SC-002)
-- [ ] T066 Run quickstart validation: HMR updates complete in <2 seconds (SC-003)
-- [ ] T067 Run quickstart validation: Production build reduces size by ≥60% (SC-004)
-- [ ] T068 Run quickstart validation: No CORS errors in browser console (SC-006)
-- [ ] T069 Code cleanup: Remove any debug logging or commented code from deployment scripts
-- [ ] T070 Security review: Verify no secrets in `.env.example` files and .gitignore is correct
+- [x] T064 Run quickstart validation: SQLite Local startup completes in <30 seconds (SC-001) ✅
+- [x] T065 Run quickstart validation: Docker Minimal startup completes in <60 seconds (SC-002) ✅
+- [x] T066 Run quickstart validation: HMR updates complete in <2 seconds (SC-003) ✅
+- [ ] T067 Run quickstart validation: Production build reduces size by ≥60% (SC-004) ⏸️ BLOCKED: ~50 TypeScript errors - See Issue #012
+- [x] T068 Run quickstart validation: No CORS errors in browser console (SC-006) ✅
+- [x] T069 Code cleanup: Remove any debug logging or commented code from deployment scripts ✅
+- [x] T070 Security review: Verify no secrets in `.env.example` files and .gitignore is correct ✅
 
 ---
 
