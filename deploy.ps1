@@ -130,6 +130,28 @@ function Start-Env {
         }
     }
 
+    # Build frontend for staging/prod environments
+    if ($Env -eq "staging" -or $Env -eq "prod") {
+        Print-Info "Building frontend for $Env..."
+        Set-Location frontend
+
+        # Install dependencies if needed
+        if (!(Test-Path "node_modules")) {
+            Print-Warning "node_modules not found, running npm install..."
+            npm install
+        }
+
+        # Run production build
+        if ($Env -eq "staging") {
+            npm run build:staging
+        } else {
+            npm run build:prod
+        }
+
+        Set-Location ..
+        Print-Success "Frontend build complete!"
+    }
+
     # Pull latest images
     Print-Info "Pulling latest images..."
     docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" pull

@@ -147,21 +147,21 @@
 
 ### Implementation for User Story 4
 
-- [ ] T043 [US4] Update `frontend/vite.config.ts` to configure build.rollupOptions for chunking vendor libraries separately
-- [ ] T044 [US4] Update `frontend/vite.config.ts` to configure build.sourcemap based on mode (true for staging, false for production)
-- [ ] T045 [US4] Update `frontend/vite.config.ts` to configure build.minify='terser' for production builds
-- [ ] T046 [US4] Update `frontend/vite.config.ts` to configure build.cssMinify=true for production builds
-- [ ] T047 [US4] Verify `frontend/nginx.conf` has correct cache headers (1 year for hashed assets, no-cache for index.html)
-- [ ] T048 [US4] Verify `frontend/nginx.conf` has security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
-- [ ] T049 [US4] Verify `frontend/nginx.conf` has gzip compression enabled for text/css, application/javascript
-- [ ] T050 [US4] Update `deploy.sh` staging mode to run `npm run build:staging` before building Docker image
-- [ ] T051 [US4] Update `deploy.sh` prod mode to run `npm run build:prod` before building Docker image
-- [ ] T052 [US4] Update `deploy.ps1` staging mode to run `npm run build:staging` before building Docker image
-- [ ] T053 [US4] Update `deploy.ps1` prod mode to run `npm run build:prod` before building Docker image
-- [ ] T054 [US4] Add frontend service definition to `docker-compose.staging.yml` using Dockerfile.prod
-- [ ] T055 [US4] Add frontend service definition to `docker-compose.prod.yml` using Dockerfile.prod with HA configuration
-- [ ] T056 [US4] Update `QUICK_START.md` section "Production Builds" to document build:staging and build:prod scripts
-- [ ] T057 [US4] Update `QUICK_START.md` to add verification steps for checking dist/ output and file sizes
+- [x] T043 [US4] Update `frontend/vite.config.ts` to configure build.rollupOptions for chunking vendor libraries separately
+- [x] T044 [US4] Update `frontend/vite.config.ts` to configure build.sourcemap based on mode (true for staging, false for production)
+- [x] T045 [US4] Update `frontend/vite.config.ts` to configure build.minify='terser' for production builds
+- [x] T046 [US4] Update `frontend/vite.config.ts` to configure build.cssMinify=true for production builds
+- [x] T047 [US4] Verify `frontend/nginx.conf` has correct cache headers (1 year for hashed assets, no-cache for index.html)
+- [x] T048 [US4] Verify `frontend/nginx.conf` has security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+- [x] T049 [US4] Verify `frontend/nginx.conf` has gzip compression enabled for text/css, application/javascript
+- [x] T050 [US4] Update `deploy.sh` staging mode to run `npm run build:staging` before building Docker image
+- [x] T051 [US4] Update `deploy.sh` prod mode to run `npm run build:prod` before building Docker image
+- [x] T052 [US4] Update `deploy.ps1` staging mode to run `npm run build:staging` before building Docker image
+- [x] T053 [US4] Update `deploy.ps1` prod mode to run `npm run build:prod` before building Docker image
+- [x] T054 [US4] Add frontend service definition to `docker-compose.staging.yml` using Dockerfile.prod
+- [x] T055 [US4] Add frontend service definition to `docker-compose.prod.yml` using Dockerfile.prod with HA configuration
+- [x] T056 [US4] Update `QUICK_START.md` section "Production Builds" to document build:staging and build:prod scripts
+- [x] T057 [US4] Update `QUICK_START.md` to add verification steps for checking dist/ output and file sizes
 
 **Checkpoint**: Production builds should generate optimized static files ready for staging/production deployment with Nginx
 

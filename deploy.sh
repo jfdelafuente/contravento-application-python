@@ -122,6 +122,28 @@ start_env() {
         fi
     fi
 
+    # Build frontend for staging/prod environments
+    if [ "$env" = "staging" ] || [ "$env" = "prod" ]; then
+        print_info "Building frontend for $env..."
+        cd frontend
+
+        # Install dependencies if needed
+        if [ ! -d "node_modules" ]; then
+            print_warning "node_modules not found, running npm install..."
+            npm install
+        fi
+
+        # Run production build
+        if [ "$env" = "staging" ]; then
+            npm run build:staging
+        else
+            npm run build:prod
+        fi
+
+        cd ..
+        print_success "Frontend build complete!"
+    fi
+
     # Pull latest images
     print_info "Pulling latest images..."
     docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" pull

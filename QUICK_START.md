@@ -696,6 +696,132 @@ cat .env.local-minimal
 
 ---
 
+## Production Builds
+
+**¿Cuándo usar?**: Cuando necesitas generar builds optimizados para staging o producción.
+
+### Comandos de Build
+
+```bash
+# Staging build (incluye source maps para debugging)
+cd frontend
+npm run build:staging
+
+# Production build (sin source maps, máxima optimización)
+cd frontend
+npm run build:prod
+```
+
+### ¿Qué genera el build?
+
+El proceso de build crea un directorio `frontend/dist/` con:
+
+1. **HTML/CSS/JS minificados**: Archivos optimizados y comprimidos
+2. **Content hashes**: Nombres de archivo con hash (e.g., `index-abc123.js`) para cache busting
+3. **Vendor chunks**: Librerías separadas para mejor caching:
+   - `react-vendor`: React, React DOM, React Router
+   - `form-vendor`: React Hook Form, Zod
+   - `map-vendor`: Leaflet, React-Leaflet
+4. **Source maps** (solo staging): Para debugging en staging
+
+### Verificar el build
+
+**1. Verificar que dist/ fue creado**:
+
+```bash
+cd frontend
+ls -lh dist/
+
+# Deberías ver:
+# - index.html
+# - assets/index-[hash].js
+# - assets/index-[hash].css
+# - assets/[vendor]-[hash].js
+```
+
+**2. Verificar tamaño de archivos**:
+
+```bash
+# Linux/Mac
+du -sh dist/
+du -h dist/assets/*.js | sort -h
+
+# Windows PowerShell
+Get-ChildItem dist -Recurse | Measure-Object -Property Length -Sum
+Get-ChildItem dist/assets/*.js | Select-Object Name, @{Name="SizeKB";Expression={[math]::Round($_.Length/1KB,2)}} | Sort-Object SizeKB
+```
+
+**Tamaños esperados** (aproximados):
+
+- **Total dist/**: ~800KB - 1.2MB (sin gzip)
+- **index-[hash].js**: ~50-100KB (código de la app)
+- **react-vendor-[hash].js**: ~150-200KB (React core)
+- **form-vendor-[hash].js**: ~80-120KB (formularios)
+- **map-vendor-[hash].js**: ~100-150KB (mapas)
+
+**3. Verificar optimizaciones**:
+
+```bash
+# Verificar que archivos están minificados (no deberían tener espacios)
+head -c 200 dist/assets/index-*.js
+
+# Verificar source maps (solo en staging)
+ls dist/assets/*.map   # Deberían existir en staging, no en prod
+```
+
+**4. Verificar que el build es ≥60% más pequeño** que dev:
+
+```bash
+# Comparar tamaño de node_modules vs dist
+du -sh frontend/node_modules frontend/dist
+
+# El build (dist/) debería ser al menos 60% más pequeño que node_modules
+```
+
+### Servir el build localmente con Nginx
+
+**Usando Docker**:
+
+```bash
+# Staging
+./deploy.sh staging    # Ejecuta build:staging automáticamente
+
+# Production
+./deploy.sh prod       # Ejecuta build:prod automáticamente
+```
+
+**El script de deployment**:
+
+1. Ejecuta `npm run build:staging` o `npm run build:prod`
+2. Construye la imagen Docker con Dockerfile.prod
+3. Copia dist/ al contenedor Nginx
+4. Sirve los archivos estáticos con Nginx
+
+### Optimizaciones aplicadas
+
+El build de producción incluye:
+
+- ✅ **Minificación con Terser**: JS reducido al mínimo
+- ✅ **CSS minificado**: Estilos comprimidos
+- ✅ **Tree shaking**: Código no usado eliminado
+- ✅ **Code splitting**: Chunks separados por vendor
+- ✅ **Content hashing**: Cache busting automático
+- ✅ **Gzip compression**: Nginx comprime en tiempo real
+- ✅ **Cache headers**: 1 año para assets, no-cache para index.html
+- ✅ **Security headers**: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+
+### Diferencias entre staging y production
+
+| Característica | Staging | Production |
+|----------------|---------|------------|
+| Source maps | ✅ Incluidos | ❌ Excluidos |
+| Debug mode | ❌ Disabled | ❌ Disabled |
+| Minificación | ✅ Terser | ✅ Terser |
+| VITE_ENV | `staging` | `production` |
+| Réplicas Docker | 1 | 3 (HA) |
+
+---
+
 ## Recomendaciones
 
 ### Para desarrollo diario
