@@ -41,6 +41,8 @@ services:
   # ==========================================================================
   backend:
     build:
+      context: ./backend
+      dockerfile: Dockerfile
       target: development  # Use development stage from Dockerfile
     ports:
       - "8000:8000"
