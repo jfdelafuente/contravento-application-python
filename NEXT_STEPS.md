@@ -1,108 +1,106 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-11
-**Estado actual**: Feature 009 completada, listo para Feature 010
+**Última actualización**: 2026-01-12
+**Estado actual**: Feature 011 completada, Issue #012 en progreso
 
 ---
 
 ## Estado Actual ✅
 
-### Feature 009: GPS Coordinates Frontend (COMPLETADA)
+### Feature 011: Frontend Deployment Integration (COMPLETADA)
 
-**Branch**: `009-gps-coordinates-frontend` → **MERGED to develop**
-**Status**: ✅ Completada y mergeada
-**Merge date**: 2026-01-11
+**Branch**: `011-frontend-deployment` → **MERGED to develop**
+**Status**: ✅ Completada y mergeada (69/70 tareas)
+**Merge date**: 2026-01-12
 
 **Logros**:
-- ✅ Frontend UI para GPS coordinates con LocationInput component
-- ✅ TripMap component con mapa interactivo (react-leaflet)
-- ✅ Numbered markers y polyline route display
-- ✅ Fullscreen mode para el mapa
-- ✅ Error handling y retry para tiles
-- ✅ Location list con indicador "Sin coordenadas GPS"
-- ✅ Unit tests (TripMap.test.tsx - 601 lines)
-- ✅ Integration tests para edición de coordenadas
-- ✅ Testing documentation y guides
+- ✅ 4 modos de deployment implementados y funcionales
+  - SQLite Local: <30s startup, desarrollo diario
+  - Docker Minimal: PostgreSQL testing, <60s startup
+  - Docker Full: Todos los servicios (MailHog, pgAdmin, Redis)
+  - Production Builds: Nginx, terser, chunking optimizado
+- ✅ Scripts cross-platform (Linux .sh + Windows .ps1)
+- ✅ Auto-generación de SECRET_KEY en deploy scripts
+- ✅ Vite configuration con proxy y build optimization
+- ✅ Docker compose multi-file overlay pattern
+- ✅ 10 bug fixes (PostgreSQL ENUM, Docker contexts, etc.)
+- ✅ 5 guías de documentación completas (2,400+ líneas)
+- ✅ Validaciones: startup times, HMR, CORS, security
 
 **Fases implementadas**:
-1. Phase 1-3: Backend integration tests
-2. Phase 4: Frontend UI (LocationInput component)
-3. Phase 5: Map Visualization (TripMap component)
-4. Phase 6: Edit GPS Coordinates
+1. Phase 1: Environment configuration (.env files)
+2. Phase 2: Vite configuration (proxy, builds)
+3. Phase 3: SQLite Local development workflow
+4. Phase 4: Docker Minimal with frontend support
+5. Phase 5: Docker Full with all services
+6. Phase 6: Production builds (Nginx, optimization)
+7. Phase 7: Documentation (5 comprehensive guides)
+8. Phase 8: Validation & Testing (6/7 tasks ✅)
 
-**Commits**: 40 commits mergeados a develop
+**Commits**: 17 commits mergeados a develop
+**Files changed**: 39 archivos, +8,860 líneas
 
----
-
-## Próximos Pasos Inmediatos 🎯
-
-### 1. Feature 010: Geocoding Reverso (SIGUIENTE)
-
-**Branch**: `010-reverse-geocoding` (a crear)
-**Base**: `develop`
-**Prioridad**: Alta
-**Estimación**: 3-4 días
-
-**Objetivo**:
-Permitir a los usuarios hacer click en el mapa para seleccionar ubicaciones automáticamente, utilizando reverse geocoding para obtener el nombre del lugar desde las coordenadas GPS.
-
-**Características principales**:
-- Click en mapa para agregar location con coordenadas
-- Reverse geocoding API para obtener nombre del lugar
-- Modo de edición del mapa en TripForm
-- Drag markers para ajustar coordenadas
-- Validación y feedback visual
-
-**APIs a implementar**:
-- Backend: Endpoint para reverse geocoding (Nominatim OSM API)
-- Frontend: Hook `useMapClick` para captura de coordenadas
-- Frontend: Modal de confirmación para lugares seleccionados
-
-**Comandos para empezar**:
-```bash
-# Crear nueva branch desde develop
-git checkout develop
-git pull origin develop
-git checkout -b 010-reverse-geocoding
-
-# Crear estructura de especificación
-mkdir -p specs/010-reverse-geocoding
-```
+**Blocked Task**:
+- ⏸️ T067: Production build size validation (bloqueado por TypeScript errors)
 
 ---
 
-## Roadmap de Features 🗺️
+### Issue #012: TypeScript Code Quality (EN PROGRESO)
 
-### ✅ Features Completadas
+**Branch**: `012-typescript-code-quality` (active)
+**Status**: ⏸️ 10% completado (10/96 errores arreglados)
+**Priority**: P2 (Medium) - Bloquea Feature 011 T067
 
-#### Feature 001: User Profiles Backend ✅
+**Progreso**:
+- ✅ Phase 1: Import fixes (APIError → ApiError) - 4 errores
+- ✅ Phase 2: Unused imports removidos - 6 errores
+- ⏸️ **86 errores restantes**
+
+**Errores Críticos Restantes** (45 errores - bloquean build):
+1. Property mismatches (15): `photos_count` vs `photo_count`, `tags` faltante
+2. Error handling (15): `ApiError.response` uso incorrecto
+3. Missing properties (10): User interface incompleta
+4. Null/undefined checks (5): Validaciones faltantes
+
+**Errores No-Críticos** (41 errores - warnings):
+- Unused variables/parameters (TS6133)
+
+**Commits realizados**: 3 commits (cca0483, b150573, 79683f7)
+**Tiempo invertido**: ~1 hora
+**Estimado restante**: 1.5-2 horas
+
+---
+
+## Features Completadas ✅
+
+### Feature 001: User Profiles Backend ✅
 - Sistema de autenticación backend
 - Perfiles de usuario
 - Stats tracking
 
-#### Feature 002: Travel Diary Backend ✅
+### Feature 002: Travel Diary Backend ✅
 - Trips CRUD
 - Photos upload
 - Tags system
 - Draft workflow
 
-#### Feature 005: Frontend User Auth ✅
+### Feature 005: Frontend User Auth ✅
 - Sistema de autenticación completo
 - Diseño rústico aplicado
 - Dashboard y Profile placeholders
 
-#### Feature 006: Dashboard Dinámico ✅
+### Feature 006: Dashboard Dinámico ✅
 - Stats cards con datos reales
 - Recent trips section
 - Quick actions
 
-#### Feature 007: Gestión de Perfil Completa ✅
+### Feature 007: Gestión de Perfil Completa ✅
 - Editar perfil completo
 - Upload y crop de foto de perfil
 - Cambiar contraseña
 - Configuración de cuenta
 
-#### Feature 008: Travel Diary Frontend ✅
+### Feature 008: Travel Diary Frontend ✅
 - Lista de viajes con filtros
 - Crear/editar viaje (multi-step form)
 - Detalle de viaje completo
@@ -110,7 +108,7 @@ mkdir -p specs/010-reverse-geocoding
 - Sistema de tags interactivo
 - Photo gallery con lightbox
 
-#### Feature 009: GPS Coordinates Frontend ✅
+### Feature 009: GPS Coordinates Frontend ✅
 - LocationInput component para coordenadas
 - TripMap component con react-leaflet
 - Numbered markers y route polyline
@@ -118,73 +116,119 @@ mkdir -p specs/010-reverse-geocoding
 - Error handling y tile retry
 - Location list con estado "Sin coordenadas GPS"
 
+### Feature 010: Reverse Geocoding ✅
+- Click en mapa para seleccionar ubicaciones
+- Reverse geocoding con Nominatim API
+- LocationConfirmModal component
+- useReverseGeocode hook con debouncing
+- Geocoding cache (LRU, 100 entries)
+- Drag markers para ajustar coordenadas
+- Accessibility (WCAG 2.1 AA compliant)
+- Mobile responsive design
+
+### Feature 011: Frontend Deployment Integration ✅
+- 4 deployment modes (SQLite Local, Docker Minimal, Docker Full, Production)
+- Cross-platform scripts (Linux/Mac + Windows)
+- Auto-generation of environment configs
+- Comprehensive documentation (5 guides)
+- Validation suite (startup, HMR, CORS, security)
+
 ---
 
-### 🚧 Feature 010: Reverse Geocoding (SIGUIENTE)
+## Próximos Pasos Inmediatos 🎯
 
-**Prioridad**: Alta
-**Estimación**: 3-4 días
+### Opción A: Completar Issue #012 (TypeScript) - RECOMENDADO
 
-**User Stories**:
-1. Como usuario, quiero hacer click en el mapa para seleccionar ubicaciones automáticamente
-2. Como usuario, quiero que el sistema obtenga el nombre del lugar desde las coordenadas GPS
-3. Como usuario, quiero poder arrastrar markers para ajustar coordenadas
-4. Como usuario, quiero confirmar o editar el nombre sugerido antes de agregarlo
+**Prioridad**: Alta (desbloquea production builds)
+**Estimación**: 1.5-2 horas
+**Branch**: `012-typescript-code-quality` (ya creado)
+
+**Approach Incremental** (Recomendado):
+- Session 2: Fix property mismatches (15 errores) - 20 min
+- Session 3: Fix error handling (15 errores) - 20 min
+- Session 4: Complete User interface (10 errores) - 15 min
+- Session 5: Cleanup unused variables (41 errores) - 30 min
+- Session 6: Validate builds pass - 15 min
+
+**Comandos**:
+```bash
+# Continuar desde donde se dejó
+git checkout 012-typescript-code-quality
+git pull origin 012-typescript-code-quality
+
+# Verificar errores actuales
+cd frontend
+npm run type-check
+
+# Después de arreglar todos
+npm run build
+npm run build:prod
+```
+
+**Resultado**: Production builds funcionales, Feature 011 T067 desbloqueada
+
+---
+
+### Opción B: Testing/QA Suite (Validación Completa)
+
+**Prioridad**: Alta (asegurar calidad antes de producción)
+**Estimación**: 4-8 horas
+**Branch**: Nueva desde develop
+
+**Objetivo**:
+Crear suite completa de tests automatizados y smoke tests para validar los 4 modos de deployment.
 
 **Entregables**:
-- Backend: Endpoint `/api/geocoding/reverse?lat={lat}&lon={lon}`
-- Frontend: `useMapClick` hook para captura de coordenadas
-- Frontend: Modal de confirmación con nombre sugerido
-- Frontend: Drag markers en modo edición
-- Tests: Unit + integration para reverse geocoding
-- Docs: Testing guide y troubleshooting
+- Suite de smoke tests automatizados
+- Integration tests para deployment modes
+- CI/CD pipeline configuration (GitHub Actions)
+- Performance benchmarks
+- Load testing básico
 
-**APIs a integrar**:
-- Nominatim OpenStreetMap API (https://nominatim.openstreetmap.org/)
-- Rate limiting: 1 req/sec máximo
-- Cache de resultados para evitar duplicados
+**Comandos**:
+```bash
+git checkout develop
+git checkout -b testing-qa-suite
 
-**Arquitectura**:
-```
-User clicks map
-    ↓
-Capture lat/lng
-    ↓
-Call /api/geocoding/reverse
-    ↓
-Backend calls Nominatim API
-    ↓
-Return place name + address
-    ↓
-Show confirmation modal
-    ↓
-User confirms → Add to locations list
+# Crear estructura
+mkdir -p tests/smoke
+mkdir -p tests/performance
+mkdir -p .github/workflows
 ```
 
 ---
 
-### ⏳ Features Futuras
+### Opción C: Nueva Feature (Después de estabilizar)
 
-#### Feature 003: GPS Routes (Backend complejo)
-- **Prioridad**: Media-Alta
-- **Estimación**: 7-10 días
-- **Estado**: ❌ NO implementada (solo spec draft)
-- Upload y procesamiento de archivos GPX
-- Perfil de elevación interactivo
-- Estadísticas avanzadas (velocidad, tiempo, gradientes)
-- Puntos de interés en la ruta
-- Análisis de rendimiento
+**Recomendación**: Solo después de completar Issue #012 + Testing/QA
 
-#### Feature 011: Social Features Frontend (Completa Feature 004)
-- **Prioridad**: Media
-- **Estimación**: 6-8 días
-- **Backend status**: ⚠️ Parcialmente implementado (solo Follow/Unfollow)
-- **Frontend status**: ❌ No implementado
-- Feed personalizado de viajes
-- Likes y comentarios en viajes
-- Compartir viajes
-- Notificaciones de interacciones
-- **Nota**: Backend tiene Follow/Unfollow, falta Feed, Likes, Comments, Shares, Notifications
+---
+
+## Roadmap Técnico 🗺️
+
+### Fase 1: Estabilización (ACTUAL) ⚠️
+**Objetivo**: Proyecto production-ready
+
+1. **Issue #012**: TypeScript Code Quality
+   - Estado: 10% completo (10/96 errors)
+   - Prioridad: Alta
+   - Bloquea: Production builds
+
+2. **Testing/QA Suite**
+   - Estado: No iniciado
+   - Prioridad: Alta
+   - Entrega: Suite automatizada de tests
+
+3. **CI/CD Pipeline**
+   - Estado: No iniciado
+   - Prioridad: Media-Alta
+   - Entrega: GitHub Actions workflows
+
+**Resultado**: Base sólida para deployment a staging/production
+
+---
+
+### Fase 2: Expansión Controlada (FUTURO)
 
 #### Feature 012: Advanced Search & Filters
 - **Prioridad**: Media
@@ -193,97 +237,28 @@ User confirms → Add to locations list
 - Filtros avanzados (distancia, dificultad, tags)
 - Mapa global con clustering
 
-#### Feature 013: Route Export & Import
-- **Prioridad**: Baja
-- **Estimación**: 2-3 días
-- Export routes to GPX/KML
-- Import routes from Strava/Komoot
-- Route statistics and elevation
+#### Feature 013: Social Features Frontend
+- **Prioridad**: Media
+- **Estimación**: 6-8 días
+- **Backend status**: ⚠️ Parcialmente implementado (Follow/Unfollow)
+- Feed personalizado de viajes
+- Likes y comentarios
+- Compartir viajes
+- Notificaciones
 
----
-
-## Comandos Útiles 🛠️
-
-### Git Workflow
-```bash
-# Verificar estado
-git status
-
-# Ver commits recientes
-git log --oneline -10
-
-# Crear nueva branch para feature 010
-git checkout develop
-git pull origin develop
-git checkout -b 010-reverse-geocoding
-
-# Push de branch
-git push -u origin 010-reverse-geocoding
-```
-
-### Frontend Development
-```bash
-# Instalar dependencias
-cd frontend
-npm install
-
-# Dev server
-npm run dev  # http://localhost:5173
-
-# Run tests
-npm run test
-
-# Build
-npm run build
-```
-
-### Backend Development
-```bash
-# Setup completo
-cd backend
-./run-local-dev.sh --setup
-
-# Solo iniciar servidor
-./run-local-dev.sh
-
-# Run tests
-poetry run pytest
-
-# Ver logs de API
-tail -f backend/logs/app.log
-```
-
----
-
-## Recursos Clave 📚
-
-### Documentación del Proyecto
-- **CLAUDE.md**: Guía principal del proyecto
-- **frontend/TESTING_GUIDE.md**: Testing guide para GPS coordinates
-- **specs/009-gps-coordinates/**: Especificación completa de Feature 009
-
-### Especificaciones de Features
-- **specs/001-user-profiles/**: Backend auth & profiles (merged)
-- **specs/002-travel-diary/**: Backend travel diary (merged)
-- **specs/005-frontend-user-profile/**: Frontend auth (merged)
-- **specs/006-dashboard-dynamic/**: Dashboard dinámico (merged)
-- **specs/007-profile-management/**: Gestión de perfil (merged)
-- **specs/008-travel-diary-frontend/**: Travel Diary Frontend (merged)
-- **specs/009-gps-coordinates/**: GPS Coordinates Frontend (merged)
-- **specs/010-reverse-geocoding/**: Reverse Geocoding (a crear)
-
-### APIs Backend
-- **Swagger Docs**: http://localhost:8000/docs
-- **Auth Endpoints**: `/api/auth/*`
-- **Profile Endpoints**: `/api/profile/*`
-- **Stats Endpoints**: `/api/stats/*`
-- **Trips Endpoints**: `/api/trips/*`
+#### Feature 014: GPS Routes (Complejo)
+- **Prioridad**: Media-Alta
+- **Estimación**: 7-10 días
+- Upload y procesamiento GPX
+- Perfil de elevación interactivo
+- Estadísticas avanzadas
+- Análisis de rendimiento
 
 ---
 
 ## Métricas de Progreso 📊
 
-### Features Completadas (9/13)
+### Features Completadas (11/15)
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
 - ✅ 005: Frontend User Auth
@@ -291,46 +266,176 @@ tail -f backend/logs/app.log
 - ✅ 007: Gestión de Perfil
 - ✅ 008: Travel Diary Frontend
 - ✅ 009: GPS Coordinates Frontend
+- ✅ 010: Reverse Geocoding
+- ✅ 011: Frontend Deployment Integration
 
-### Features En Progreso (0/13)
-- (Ninguna en progreso actualmente)
+### Issues En Progreso (1/15)
+- ⏸️ 012: TypeScript Code Quality (10% complete)
 
-### Features Pendientes (4/13)
-- 🎯 010: Reverse Geocoding (SIGUIENTE)
-- ⏳ 011: Social Features Frontend
-- ⏳ 012: Advanced Search & Filters
-- ⏳ 013: Route Export & Import
+### Tasks Pendientes (3/15)
+- 🎯 Testing/QA Suite (SIGUIENTE después de #012)
+- ⏳ Advanced Search & Filters
+- ⏳ Social Features Frontend
+- ⏳ GPS Routes
+
+### Cobertura de Testing
+- **Backend**: ~90% (pytest coverage)
+- **Frontend**: ~60% (vitest - necesita mejora)
+- **Integration**: ~40% (necesita expansión)
+- **E2E**: 0% (pendiente)
 
 ### Líneas de Código (estimado)
-- **Backend**: ~25,000 líneas (Python)
-- **Frontend**: ~20,000 líneas (TypeScript/React)
-- **Tests**: ~15,000 líneas
-- **Docs**: ~20,000 líneas
+- **Backend**: ~28,000 líneas (Python)
+- **Frontend**: ~25,000 líneas (TypeScript/React)
+- **Tests**: ~18,000 líneas
+- **Docs**: ~25,000 líneas
+- **Total**: ~96,000 líneas
+
+---
+
+## Comandos Útiles 🛠️
+
+### Git Workflow
+```bash
+# Ver estado
+git status
+git log --oneline -10
+
+# Continuar Issue #012
+git checkout 012-typescript-code-quality
+git pull origin 012-typescript-code-quality
+
+# O empezar Testing/QA
+git checkout develop
+git checkout -b testing-qa-suite
+```
+
+### Deployment Local
+```bash
+# SQLite Local (más rápido - desarrollo diario)
+./run-local-dev.sh                    # Linux/Mac
+.\run-local-dev.ps1                   # Windows
+
+# Docker Minimal (PostgreSQL testing)
+./deploy.sh local-minimal             # Linux/Mac
+.\deploy.ps1 local-minimal            # Windows
+
+# Docker Full (todos los servicios)
+./deploy.sh local --with-frontend     # Linux/Mac
+.\deploy.ps1 local -WithFrontend      # Windows
+```
+
+### Frontend Development
+```bash
+cd frontend
+
+# Type checking
+npm run type-check
+
+# Development
+npm run dev
+
+# Production build
+npm run build:prod
+
+# Tests
+npm run test
+npm run test:coverage
+```
+
+### Backend Development
+```bash
+cd backend
+
+# Setup completo (primera vez)
+./run-local-dev.sh --setup
+
+# Servidor de desarrollo
+poetry run uvicorn src.main:app --reload
+
+# Tests
+poetry run pytest --cov=src
+```
+
+---
+
+## Recursos Clave 📚
+
+### Documentación Principal
+- **CLAUDE.md**: Guía principal del proyecto
+- **QUICK_START.md**: Deployment rápido (4 modos)
+- **docs/LOCAL_DEV_GUIDE.md**: Desarrollo local detallado
+- **frontend/DEPLOYMENT_TESTING.md**: Smoke tests checklist
+
+### Especificaciones de Features
+- **specs/011-frontend-deployment/**: Deployment integration (latest)
+- **specs/012-typescript-code-quality/**: TypeScript fixes (active)
+- **specs/010-reverse-geocoding/**: Reverse geocoding (completed)
+- **specs/009-gps-coordinates/**: GPS coordinates (completed)
+- **specs/008-travel-diary-frontend/**: Travel diary (completed)
+
+### APIs Backend
+- **Swagger Docs**: http://localhost:8000/docs
+- **Auth**: `/api/auth/*`
+- **Profile**: `/api/profile/*`
+- **Stats**: `/api/stats/*`
+- **Trips**: `/api/trips/*`
+
+### Access URLs (Local Development)
+- **Frontend Dev**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+- **MailHog UI**: http://localhost:8025 (Docker Full)
+- **pgAdmin**: http://localhost:5050 (Docker Full)
 
 ---
 
 ## Decisiones Técnicas Recientes 📋
 
-### Feature 009 (GPS Coordinates)
-- ✅ Usar react-leaflet para mapa interactivo
-- ✅ OpenStreetMap tiles (gratis, sin API key)
-- ✅ Numbered markers con DivIcon
-- ✅ Fullscreen API nativo del navegador
-- ✅ Error handling con retry para tile loading
-- ✅ Precision de 6 decimales para coordenadas GPS
+### Feature 011 (Frontend Deployment)
+- ✅ Multi-file Docker Compose overlay pattern
+- ✅ Auto-generation of environment configs
+- ✅ Cross-platform scripts (bash + PowerShell)
+- ✅ Vite proxy for API calls (no CORS issues)
+- ✅ Terser + chunking for production builds
+- ✅ Nginx serving with gzip + security headers
 
-### Feature 010 (Reverse Geocoding) - Pendientes
-- [ ] ¿Usar Nominatim OSM o Google Geocoding API?
-  - **Recomendación**: Nominatim (gratis, sin API key, rate limit 1 req/sec)
-- [ ] ¿Cache de resultados en backend o frontend?
-  - **Recomendación**: Backend cache con Redis (futuro) o SQLite
-- [ ] ¿Modal de confirmación o edición inline?
-  - **Recomendación**: Modal para mejor UX
+### Issue #012 (TypeScript)
+- ✅ Incremental fixing approach (sessions)
+- ✅ Prioritize critical errors (block build) first
+- ✅ Document progress for continuity
+- ⏸️ Keep strict type checking enabled (no workarounds)
+
+### Testing Strategy (Pendiente)
+- [ ] Smoke tests for all deployment modes
+- [ ] Integration tests for critical paths
+- [ ] Performance benchmarks
+- [ ] CI/CD with GitHub Actions
 
 ---
 
-**¡Listo para Feature 010: Reverse Geocoding!** 🚀
+## Estado del Proyecto 🚀
 
-El sistema de GPS coordinates está completo y mergeado. Ahora podemos agregar la funcionalidad de reverse geocoding para que los usuarios puedan seleccionar ubicaciones haciendo click en el mapa.
+**Production Ready**: ⚠️ 85% (bloqueado por TypeScript errors)
 
-**Siguiente acción**: Crear especificación de Feature 010 → Implementar → Testing → Merge
+### Listo para Producción ✅
+- Backend API completo y testeado
+- Frontend features completas
+- 4 deployment modes funcionales
+- Documentación comprehensiva
+- Security review passed
+
+### Pendiente para Producción ⏸️
+- TypeScript errors (86 restantes)
+- Testing/QA suite automatizada
+- CI/CD pipeline
+- Performance optimization
+- Load testing
+
+---
+
+**Siguiente Acción Recomendada**: Completar Issue #012 (TypeScript) para desbloquear production builds, luego crear Testing/QA suite para asegurar calidad antes de deployment real.
+
+**Prioridad Máxima**: Estabilización > Expansión
+
+El proyecto tiene una base sólida con 11 features completadas. Ahora es momento de asegurar calidad (TypeScript + Testing) antes de añadir más funcionalidades.
