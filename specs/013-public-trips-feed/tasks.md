@@ -108,21 +108,21 @@ Each increment is independently deployable and testable.
 - [x] T020 [US1] Implement count_public_trips() method in backend/src/services/trip_service.py
 - [x] T021 [US1] Add GET /trips/public endpoint to backend/src/api/trips.py with pagination parameters
 - [x] T022 [US1] Write unit tests for get_public_trips() privacy filters in backend/tests/unit/test_trip_service_public.py
-- [ ] T023 [US1] Write integration tests for GET /trips/public endpoint in backend/tests/integration/test_public_feed_api.py
-- [ ] T024 [US1] Write contract tests for OpenAPI schema validation in backend/tests/contract/test_public_feed_contract.py
+- [x] T023 [US1] Write integration tests for GET /trips/public endpoint in backend/tests/integration/test_public_feed_api.py
+- [x] T024 [US1] Write contract tests for OpenAPI schema validation in backend/tests/contract/test_public_feed_contract.py
 
 ### Frontend Tasks (User Story 1)
 
-- [ ] T025 [P] [US1] Add getPublicTrips() method to frontend/src/services/tripService.ts
-- [ ] T026 [P] [US1] Create usePublicTrips custom hook in frontend/src/hooks/usePublicTrips.ts
-- [ ] T027 [P] [US1] Create PublicTripCard component in frontend/src/components/trips/PublicTripCard.tsx
-- [ ] T028 [P] [US1] Create PublicTripCard CSS in frontend/src/components/trips/PublicTripCard.css
-- [ ] T029 [US1] Create PublicFeedPage component in frontend/src/pages/PublicFeedPage.tsx with loading/error/empty states
-- [ ] T030 [US1] Create PublicFeedPage CSS in frontend/src/pages/PublicFeedPage.css
-- [ ] T031 [US1] Add route "/" to frontend/src/App.tsx for PublicFeedPage
-- [ ] T032 [US1] Write unit tests for PublicTripCard in frontend/tests/unit/PublicTripCard.test.tsx
-- [ ] T033 [US1] Write unit tests for usePublicTrips hook in frontend/tests/unit/usePublicTrips.test.ts
-- [ ] T034 [US1] Write integration tests for PublicFeedPage in frontend/tests/integration/PublicFeedPage.test.tsx
+- [x] T025 [P] [US1] Add getPublicTrips() method to frontend/src/services/tripService.ts
+- [x] T026 [P] [US1] Create usePublicTrips custom hook in frontend/src/hooks/usePublicTrips.ts
+- [x] T027 [P] [US1] Create PublicTripCard component in frontend/src/components/trips/PublicTripCard.tsx
+- [x] T028 [P] [US1] Create PublicTripCard CSS in frontend/src/components/trips/PublicTripCard.css
+- [x] T029 [US1] Create PublicFeedPage component in frontend/src/pages/PublicFeedPage.tsx with loading/error/empty states
+- [x] T030 [US1] Create PublicFeedPage CSS in frontend/src/pages/PublicFeedPage.css
+- [x] T031 [US1] Add route "/" to frontend/src/App.tsx for PublicFeedPage
+- [x] T032 [US1] Write unit tests for PublicTripCard in frontend/tests/unit/PublicTripCard.test.tsx
+- [x] T033 [US1] Write unit tests for usePublicTrips hook in frontend/tests/unit/usePublicTrips.test.ts
+- [x] T034 [US1] Write integration tests for PublicFeedPage in frontend/tests/integration/PublicFeedPage.test.tsx
 
 **Dependencies**: None (uses existing models)
 **Parallel Opportunities**: T025-T028 can run in parallel (different files)
