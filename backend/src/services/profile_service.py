@@ -111,6 +111,7 @@ class ProfileService:
             photo_url=photo_url,
             location=profile.location if (profile.show_location or is_owner) else None,
             cycling_type=profile.cycling_type,
+            profile_visibility=user.profile_visibility,
             show_email=profile.show_email,
             show_location=profile.show_location,
             followers_count=profile.followers_count,
@@ -169,6 +170,13 @@ class ProfileService:
 
             validated_type = await validate_cycling_type_async(update_data.cycling_type, self.db)
             profile.cycling_type = validated_type
+
+        # Update profile_visibility in User model (Feature 013)
+        if update_data.profile_visibility is not None:
+            if update_data.profile_visibility not in ['public', 'private']:
+                raise ValueError("profile_visibility debe ser 'public' o 'private'")
+            user.profile_visibility = update_data.profile_visibility
+            logger.info(f"Profile visibility updated to '{update_data.profile_visibility}' for user: {username}")
 
         if update_data.show_email is not None:
             profile.show_email = update_data.show_email

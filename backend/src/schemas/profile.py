@@ -49,6 +49,7 @@ class ProfileResponse(BaseModel):
         photo_url: URL to profile photo (optional)
         location: User's location (optional)
         cycling_type: Type of cycling (optional enum)
+        profile_visibility: Profile visibility ('public' or 'private')
         show_email: Privacy setting for email visibility
         show_location: Privacy setting for location visibility
         followers_count: Number of followers
@@ -65,6 +66,7 @@ class ProfileResponse(BaseModel):
     cycling_type: Optional[str] = Field(
         None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
+    profile_visibility: str = Field(..., description="Profile visibility: 'public' or 'private'")
     show_email: bool = Field(..., description="Email visibility in public profile")
     show_location: bool = Field(..., description="Location visibility in public profile")
     followers_count: int = Field(default=0, description="Number of followers")
@@ -84,6 +86,7 @@ class ProfileResponse(BaseModel):
                 "photo_url": "https://api.contravento.com/storage/profile_photos/2025/12/user123.jpg",
                 "location": "Barcelona, España",
                 "cycling_type": "mountain",
+                "profile_visibility": "public",
                 "show_email": False,
                 "show_location": True,
                 "followers_count": 42,
@@ -104,6 +107,7 @@ class ProfileUpdateRequest(BaseModel):
         bio: Profile biography (optional, max 500 chars)
         location: User's location (optional, max 100 chars)
         cycling_type: Type of cycling (optional, must be valid enum)
+        profile_visibility: Profile visibility (optional, 'public' or 'private')
         show_email: Email visibility setting (optional)
         show_location: Location visibility setting (optional)
     """
@@ -122,6 +126,12 @@ class ProfileUpdateRequest(BaseModel):
 
     cycling_type: Optional[str] = Field(
         None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
+    )
+
+    profile_visibility: Optional[str] = Field(
+        None,
+        description="Profile visibility: 'public' (visible to all) or 'private' (hidden from public feed)",
+        pattern="^(public|private)$"
     )
 
     show_email: Optional[bool] = Field(None, description="Show email in public profile")
@@ -148,6 +158,7 @@ class ProfileUpdateRequest(BaseModel):
                 "bio": "Ciclista de montaña. Explorando senderos y compartiendo aventuras.",
                 "location": "Barcelona, España",
                 "cycling_type": "mountain",
+                "profile_visibility": "public",
                 "show_email": False,
                 "show_location": True,
             }
