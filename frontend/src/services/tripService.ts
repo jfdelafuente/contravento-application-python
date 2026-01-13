@@ -13,6 +13,7 @@ import {
   TripCreateInput,
   TripUpdateInput,
   Tag,
+  PublicTripListResponse,
 } from '../types/trip';
 
 // ============================================================================
@@ -41,6 +42,34 @@ interface ApiResponse<T> {
     field?: string;
   };
 }
+
+// ============================================================================
+// Public Feed Operations (Feature 013)
+// ============================================================================
+
+/**
+ * Get public trips feed (T025)
+ *
+ * Fetches paginated list of published trips from public profiles.
+ * No authentication required - fully public endpoint.
+ *
+ * @param page - Page number (1-indexed, default 1)
+ * @param limit - Items per page (1-50, default 20)
+ * @returns PublicTripListResponse with trips and pagination metadata
+ *
+ * @example
+ * const response = await getPublicTrips(1, 20);
+ * console.log(`Showing ${response.trips.length} of ${response.pagination.total} trips`);
+ */
+export const getPublicTrips = async (
+  page: number = 1,
+  limit: number = 20
+): Promise<PublicTripListResponse> => {
+  const response = await api.get<PublicTripListResponse>('/trips/public', {
+    params: { page, limit },
+  });
+  return response.data;
+};
 
 // ============================================================================
 // Trip CRUD Operations

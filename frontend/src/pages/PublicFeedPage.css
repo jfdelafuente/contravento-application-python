@@ -1,0 +1,369 @@
+/**
+ * PublicFeedPage Component Styles (Feature 013 - T030)
+ *
+ * Homepage layout for public trips feed.
+ * Mobile-first responsive design with grid layout.
+ */
+
+.public-feed {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  min-height: calc(100vh - 200px);
+}
+
+/* Header Section */
+.public-feed__header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.public-feed__title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.public-feed__subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
+.public-feed__count {
+  font-size: 0.875rem;
+  color: #999;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Loading State */
+.public-feed__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  gap: 1rem;
+}
+
+.public-feed__loading .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.public-feed__loading p {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Error State */
+.public-feed__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  gap: 1rem;
+  text-align: center;
+}
+
+.public-feed__error-icon {
+  width: 64px;
+  height: 64px;
+  color: #ef4444;
+  margin-bottom: 0.5rem;
+}
+
+.public-feed__error h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.public-feed__error p {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+  max-width: 500px;
+}
+
+.public-feed__error-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.public-feed__error-button:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.public-feed__error-button:active {
+  transform: translateY(0);
+}
+
+/* Empty State */
+.public-feed__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  gap: 1rem;
+  text-align: center;
+}
+
+.public-feed__empty-icon {
+  width: 64px;
+  height: 64px;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.public-feed__empty h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.public-feed__empty p {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+  max-width: 500px;
+}
+
+/* Grid Layout */
+.public-feed__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Pagination */
+.public-feed__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid #e5e5e5;
+}
+
+.public-feed__pagination-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #fff;
+  color: #667eea;
+  border: 1px solid #667eea;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.public-feed__pagination-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.public-feed__pagination-button:hover:not(:disabled) {
+  background: #667eea;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.public-feed__pagination-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.public-feed__pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #ccc;
+  color: #999;
+}
+
+.public-feed__pagination-info {
+  font-size: 0.9375rem;
+  color: #666;
+  font-weight: 500;
+  min-width: 140px;
+  text-align: center;
+}
+
+/* Responsive Design */
+
+/* Tablet (640px and up) */
+@media (min-width: 640px) {
+  .public-feed {
+    padding: 2rem 1.5rem;
+  }
+
+  .public-feed__title {
+    font-size: 2.25rem;
+  }
+
+  .public-feed__subtitle {
+    font-size: 1.125rem;
+  }
+
+  .public-feed__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+/* Desktop (1024px and up) */
+@media (min-width: 1024px) {
+  .public-feed {
+    padding: 2.5rem 2rem;
+  }
+
+  .public-feed__title {
+    font-size: 2.5rem;
+  }
+
+  .public-feed__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Large Desktop (1280px and up) */
+@media (min-width: 1280px) {
+  .public-feed {
+    max-width: 1280px;
+    padding: 3rem 2rem;
+  }
+
+  .public-feed__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .public-feed__pagination-button:hover {
+    transform: none; /* Disable hover lift on touch devices */
+  }
+
+  .public-feed__pagination-button:active:not(:disabled) {
+    opacity: 0.8;
+  }
+
+  .public-feed__error-button:hover {
+    transform: none;
+  }
+
+  .public-feed__error-button:active {
+    opacity: 0.8;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .public-feed__title {
+    color: #000;
+  }
+
+  .public-feed__pagination-button {
+    border-width: 2px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .public-feed__title {
+    color: #fff;
+  }
+
+  .public-feed__subtitle,
+  .public-feed__loading p,
+  .public-feed__empty p,
+  .public-feed__pagination-info {
+    color: #ccc;
+  }
+
+  .public-feed__count {
+    color: #999;
+  }
+
+  .public-feed__error h2,
+  .public-feed__empty h2 {
+    color: #fff;
+  }
+
+  .public-feed__error p {
+    color: #ccc;
+  }
+
+  .public-feed__loading .spinner {
+    border-color: #333;
+    border-top-color: #667eea;
+  }
+
+  .public-feed__pagination {
+    border-top-color: #333;
+  }
+
+  .public-feed__pagination-button {
+    background: #1e1e1e;
+    border-color: #667eea;
+  }
+
+  .public-feed__pagination-button:hover:not(:disabled) {
+    background: #667eea;
+    color: #fff;
+  }
+
+  .public-feed__pagination-button:disabled {
+    border-color: #444;
+    color: #666;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .public-feed__pagination {
+    display: none;
+  }
+
+  .public-feed__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}

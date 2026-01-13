@@ -22,16 +22,8 @@ const TripDetailPage = lazy(() => import('./pages/TripDetailPage').then(module =
 const TripCreatePage = lazy(() => import('./pages/TripCreatePage').then(module => ({ default: module.TripCreatePage })));
 const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({ default: module.TripEditPage })));
 
-// Placeholder components
-const HomePage: React.FC = () => (
-  <div className="app">
-    <h1>ContraVento</h1>
-    <p>Plataforma social para ciclistas</p>
-    <p>
-      <a href="/login">Iniciar sesión</a> | <a href="/register">Registrarse</a>
-    </p>
-  </div>
-);
+// Public Trips Feed (Feature 013)
+const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage').then(module => ({ default: module.PublicFeedPage })));
 
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
@@ -49,7 +41,7 @@ function App() {
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<PublicFeedPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
