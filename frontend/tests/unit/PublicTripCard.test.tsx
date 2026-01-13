@@ -1,12 +1,22 @@
 /**
- * Unit tests for PublicTripCard component (Feature 013 - T032)
+ * Unit tests for PublicTripCard component (Feature 013 - T032, T042)
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { PublicTripCard } from '../../src/components/trips/PublicTripCard';
 import { PublicTripSummary } from '../../src/types/trip';
+
+// Mock useNavigate from react-router-dom
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 // Wrapper component for router context
 const RouterWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -33,6 +43,11 @@ describe('PublicTripCard', () => {
     },
     published_at: '2024-06-10T14:30:00Z',
   };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockNavigate.mockClear();
+  });
 
   it('renders trip card with all information', () => {
     render(
@@ -174,8 +189,44 @@ describe('PublicTripCard', () => {
     const card = container.querySelector('.public-trip-card');
     expect(card).toBeInTheDocument();
 
-    // Card should have the class that makes it clickable
-    expect(card).toHaveClass('public-trip-card');
+    // Click the card
+    fireEvent.click(card!);
+
+    // Should navigate to trip detail page with correct trip_id
+    expect(mockNavigate).toHaveBeenCalledWith('/trips/123e4567-e89b-12d3-a456-426614174000');
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to trip detail when clicking on image', () => {
+    render(
+      <RouterWrapper>
+        <PublicTripCard trip={mockTrip} />
+      </RouterWrapper>
+    );
+
+    const image = screen.getByAltText('Ruta Bikepacking Pirineos');
+
+    // Click the image
+    fireEvent.click(image);
+
+    // Should navigate to trip detail page
+    expect(mockNavigate).toHaveBeenCalledWith('/trips/123e4567-e89b-12d3-a456-426614174000');
+  });
+
+  it('navigates to trip detail when clicking on title', () => {
+    render(
+      <RouterWrapper>
+        <PublicTripCard trip={mockTrip} />
+      </RouterWrapper>
+    );
+
+    const title = screen.getByText('Ruta Bikepacking Pirineos');
+
+    // Click the title
+    fireEvent.click(title);
+
+    // Should navigate to trip detail page
+    expect(mockNavigate).toHaveBeenCalledWith('/trips/123e4567-e89b-12d3-a456-426614174000');
   });
 
   it('has proper accessibility attributes', () => {

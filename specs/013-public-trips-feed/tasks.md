@@ -210,8 +210,8 @@ Each increment is independently deployable and testable.
 
 ### Frontend Tasks (User Story 4)
 
-- [ ] T041 [US4] Add onClick navigation to PublicTripCard in frontend/src/components/trips/PublicTripCard.tsx
-- [ ] T042 [US4] Write navigation tests in frontend/tests/unit/PublicTripCard.test.tsx
+- [x] T041 [US4] Add onClick navigation to PublicTripCard in frontend/src/components/trips/PublicTripCard.tsx
+- [x] T042 [US4] Write navigation tests in frontend/tests/unit/PublicTripCard.test.tsx
 
 **Dependencies**: Requires User Story 1 (PublicTripCard exists)
 **Parallel Opportunities**: None (modification of existing component)
