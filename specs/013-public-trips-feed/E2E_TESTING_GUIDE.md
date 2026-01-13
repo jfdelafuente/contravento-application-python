@@ -573,22 +573,46 @@ curl http://localhost:8000/trips/public?page=1&limit=20 | jq '.data[] | .author.
 
 **Precondiciones**:
 - Usuario público (`testuser`) con viajes publicados
+- Usuario autenticado como `testuser` (para usar la API)
 
 **Pasos**:
 1. Acceder al feed público → ver viajes de `testuser`
-2. Cambiar el perfil del usuario a privado:
-   ```sql
-   UPDATE users SET profile_visibility = 'private' WHERE username = 'testuser';
+2. Cambiar el perfil del usuario a privado via API:
+   ```bash
+   # Iniciar sesión como testuser
+   curl -X POST http://localhost:8000/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"test@example.com","password":"TestPass123!"}' \
+     -c cookies.txt
+
+   # Cambiar visibilidad a privado
+   curl -X PUT http://localhost:8000/users/testuser/profile \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"profile_visibility":"private"}'
    ```
-3. Recargar el feed público
+3. Recargar el feed público (navegar a `/` en el navegador)
 
 **Resultado Esperado**:
 - ✅ Los viajes de `testuser` YA NO aparecen en el feed
 - ✅ Contador de viajes se reduce
 - ✅ Si no hay otros viajes públicos → muestra estado vacío
+- ✅ API responde con `"success": true` y muestra `"profile_visibility": "private"` en el perfil
 
-**Revertir**:
+**Revertir** (volver a público):
+```bash
+curl -X PUT http://localhost:8000/users/testuser/profile \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"profile_visibility":"public"}'
+```
+
+**Alternativa**: Cambio directo en base de datos (solo para debugging):
 ```sql
+-- Cambiar a privado
+UPDATE users SET profile_visibility = 'private' WHERE username = 'testuser';
+
+-- Revertir a público
 UPDATE users SET profile_visibility = 'public' WHERE username = 'testuser';
 ```
 
@@ -806,12 +830,25 @@ UPDATE users SET profile_visibility = 'public' WHERE username = 'testuser';
 
 **Pasos**:
 1. Ver viajes del usuario en el feed público
-2. Cambiar perfil a privado (via Feature 001):
+2. Cambiar perfil a privado via API:
    ```bash
-   curl -X PUT http://localhost:8000/users/profile \
-     -H "Cookie: session_token=..." \
+   # Iniciar sesión como testuser
+   curl -X POST http://localhost:8000/auth/login \
      -H "Content-Type: application/json" \
+     -d '{"email":"test@example.com","password":"TestPass123!"}' \
+     -c cookies.txt
+
+   # Cambiar visibilidad a privado
+   curl -X PUT http://localhost:8000/users/testuser/profile \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
      -d '{"profile_visibility":"private"}'
+   ```
+
+   **Alternativa SQL (solo para debugging)**:
+
+   ```sql
+   UPDATE users SET profile_visibility = 'private' WHERE username = 'testuser';
    ```
 3. Recargar el feed público
 
