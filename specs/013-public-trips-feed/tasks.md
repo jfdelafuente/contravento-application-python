@@ -65,21 +65,21 @@ Each increment is independently deployable and testable.
 
 ### Backend Foundation
 
-- [ ] T007 [P] Add PublicUserSummary schema to backend/src/schemas/trip.py
-- [ ] T008 [P] Add PublicPhotoSummary schema to backend/src/schemas/trip.py
-- [ ] T009 [P] Add PublicLocationSummary schema to backend/src/schemas/trip.py
-- [ ] T010 Add PublicTripSummary schema to backend/src/schemas/trip.py
-- [ ] T011 Add PaginationInfo schema to backend/src/schemas/trip.py
-- [ ] T012 Add PublicTripListResponse schema to backend/src/schemas/trip.py
+- [x] T007 [P] Add PublicUserSummary schema to backend/src/schemas/trip.py
+- [x] T008 [P] Add PublicPhotoSummary schema to backend/src/schemas/trip.py
+- [x] T009 [P] Add PublicLocationSummary schema to backend/src/schemas/trip.py
+- [x] T010 Add PublicTripSummary schema to backend/src/schemas/trip.py
+- [x] T011 Add PaginationInfo schema to backend/src/schemas/trip.py
+- [x] T012 Add PublicTripListResponse schema to backend/src/schemas/trip.py
 
 ### Frontend Foundation
 
-- [ ] T013 [P] Add PublicUserSummary interface to frontend/src/types/trip.ts
-- [ ] T014 [P] Add PublicPhotoSummary interface to frontend/src/types/trip.ts
-- [ ] T015 [P] Add PublicLocationSummary interface to frontend/src/types/trip.ts
-- [ ] T016 Add PublicTripSummary interface to frontend/src/types/trip.ts
-- [ ] T017 Add PaginationInfo interface to frontend/src/types/trip.ts
-- [ ] T018 Add PublicTripListResponse interface to frontend/src/types/trip.ts
+- [x] T013 [P] Add PublicUserSummary interface to frontend/src/types/trip.ts
+- [x] T014 [P] Add PublicPhotoSummary interface to frontend/src/types/trip.ts
+- [x] T015 [P] Add PublicLocationSummary interface to frontend/src/types/trip.ts
+- [x] T016 Add PublicTripSummary interface to frontend/src/types/trip.ts
+- [x] T017 Add PaginationInfo interface to frontend/src/types/trip.ts
+- [x] T018 Add PublicTripListResponse interface to frontend/src/types/trip.ts
 
 ---
 

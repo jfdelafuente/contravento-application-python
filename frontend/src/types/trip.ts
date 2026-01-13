@@ -422,3 +422,134 @@ export const DIFFICULTY_CLASSES: Record<TripDifficulty, string> = {
   difficult: 'difficulty-badge--difficult',
   very_difficult: 'difficulty-badge--very-difficult',
 };
+
+// ============================================================================
+// Public Feed Types (Feature 013 - Public Trips Feed)
+// ============================================================================
+
+/**
+ * User summary for public trip feed
+ *
+ * Minimal user info displayed on public trip cards - only public profile data.
+ *
+ * Used in:
+ * - PublicFeedPage (homepage)
+ * - PublicTripCard component
+ */
+export interface PublicUserSummary {
+  /** Unique user identifier (UUID) */
+  user_id: string;
+
+  /** Username (for profile link) */
+  username: string;
+
+  /** Profile photo URL (null if no photo) */
+  profile_photo_url: string | null;
+}
+
+/**
+ * Photo summary for public trip feed
+ *
+ * Minimal photo info for trip cards - only first photo thumbnail.
+ *
+ * Used in:
+ * - PublicTripCard (display first photo)
+ */
+export interface PublicPhotoSummary {
+  /** URL to optimized photo */
+  photo_url: string;
+
+  /** URL to thumbnail */
+  thumbnail_url: string;
+}
+
+/**
+ * Location summary for public trip feed
+ *
+ * Minimal location info for trip cards - only first location name.
+ *
+ * Used in:
+ * - PublicTripCard (display first location)
+ */
+export interface PublicLocationSummary {
+  /** Location name (e.g., "Baeza, España") */
+  name: string;
+}
+
+/**
+ * Trip summary for public feed (Feature 013)
+ *
+ * Optimized for homepage display - shows only essential trip data.
+ *
+ * Requirements (FR-002):
+ * - título, foto, distancia, location (primera), fecha, autor
+ *
+ * Used in:
+ * - PublicFeedPage (homepage trip grid)
+ * - PublicTripCard component
+ */
+export interface PublicTripSummary {
+  /** Unique trip identifier (UUID) */
+  trip_id: string;
+
+  /** Trip title */
+  title: string;
+
+  /** Trip start date (ISO 8601: YYYY-MM-DD) */
+  start_date: string;
+
+  /** Distance in kilometers (null if not provided) */
+  distance_km: number | null;
+
+  /** First photo thumbnail (null if no photos) */
+  photo: PublicPhotoSummary | null;
+
+  /** First location (null if no locations) */
+  location: PublicLocationSummary | null;
+
+  /** Trip author summary */
+  author: PublicUserSummary;
+
+  /** Publication timestamp (ISO 8601, for sorting) */
+  published_at: string;
+}
+
+/**
+ * Pagination metadata for public feed
+ *
+ * Provides information for client-side pagination controls.
+ *
+ * Used in:
+ * - PublicFeedPage (pagination UI)
+ * - usePublicTrips hook
+ */
+export interface PaginationInfo {
+  /** Total number of trips matching filter */
+  total: number;
+
+  /** Current page number (1-indexed) */
+  page: number;
+
+  /** Page size (trips per page, max 50) */
+  limit: number;
+
+  /** Total number of pages */
+  total_pages: number;
+}
+
+/**
+ * Paginated response for public trips feed (Feature 013)
+ *
+ * Main response schema for GET /trips/public endpoint.
+ *
+ * Used in:
+ * - PublicFeedPage (homepage)
+ * - usePublicTrips hook
+ */
+export interface PublicTripListResponse {
+  /** List of public trip summaries */
+  trips: PublicTripSummary[];
+
+  /** Pagination metadata */
+  pagination: PaginationInfo;
+}
