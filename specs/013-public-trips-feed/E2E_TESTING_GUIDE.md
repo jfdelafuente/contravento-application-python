@@ -541,43 +541,45 @@ curl http://localhost:8000/trips/public?page=1&limit=20 | jq '.data[] | .status'
 
 ---
 
-### TC-US3-002: Exclusión de Perfiles Privados
+### TC-US3-002: Exclusión de Viajes con trip_visibility='private'
 
-**Objetivo**: Verificar que viajes de usuarios con perfil privado NO aparecen
+**Objetivo**: Verificar que viajes con trip_visibility='private' NO aparecen en el feed público
 
 **Precondiciones**:
-- Usuario público (`testuser`) con 2 viajes publicados
-- Usuario privado (`privateuser`) con 2 viajes publicados
+- Usuario (`testuser`) con `trip_visibility='public'` y 2 viajes publicados
+- Usuario (`privateuser`) con `trip_visibility='private'` y 2 viajes publicados
+- Nota: `profile_visibility` NO afecta la visibilidad de viajes en el feed
 
 **Pasos**:
-1. Verificar que `privateuser` tiene `profile_visibility='private'`
+1. Verificar que `privateuser` tiene `trip_visibility='private'`
 2. Acceder al feed público
 3. Buscar viajes del usuario privado
 
 **Resultado Esperado**:
-- ✅ Solo se muestran los viajes de `testuser`
-- ✅ Viajes de `privateuser` NO aparecen en el feed
-- ✅ Contador refleja solo viajes de perfiles públicos
+- ✅ Solo se muestran los viajes de `testuser` (trip_visibility='public')
+- ✅ Viajes de `privateuser` NO aparecen (trip_visibility='private')
+- ✅ Contador refleja solo viajes con trip_visibility='public'
 
 **Verificación Backend**:
 ```bash
 curl http://localhost:8000/trips/public?page=1&limit=20 | jq '.data[] | .author.username'
-# NO debe aparecer "privateuser"
+# NO debe aparecer "privateuser" (porque trip_visibility='private')
 ```
 
 ---
 
-### TC-US3-003: Transición de Privacidad (Público → Privado)
+### TC-US3-003: Transición de Visibilidad de Viajes (Público → Privado)
 
-**Objetivo**: Verificar que los viajes desaparecen del feed cuando el usuario cambia a privado
+**Objetivo**: Verificar que los viajes desaparecen del feed cuando trip_visibility cambia a privado
 
 **Precondiciones**:
-- Usuario público (`testuser`) con viajes publicados
+- Usuario (`testuser`) con viajes publicados
 - Usuario autenticado como `testuser` (para usar la API)
+- Nota: Cambiar `profile_visibility` NO afecta los viajes en el feed
 
 **Pasos**:
 1. Acceder al feed público → ver viajes de `testuser`
-2. Cambiar el perfil del usuario a privado via API:
+2. Cambiar la visibilidad de viajes a privado via API:
    ```bash
    # Iniciar sesión como testuser
    curl -X POST http://localhost:8000/auth/login \
@@ -585,11 +587,11 @@ curl http://localhost:8000/trips/public?page=1&limit=20 | jq '.data[] | .author.
      -d '{"email":"test@example.com","password":"TestPass123!"}' \
      -c cookies.txt
 
-   # Cambiar visibilidad a privado
+   # Cambiar trip_visibility a privado (NO profile_visibility)
    curl -X PUT http://localhost:8000/users/testuser/profile \
      -H "Content-Type: application/json" \
      -b cookies.txt \
-     -d '{"profile_visibility":"private"}'
+     -d '{"trip_visibility":"private"}'
    ```
 3. Recargar el feed público (navegar a `/` en el navegador)
 
@@ -597,28 +599,70 @@ curl http://localhost:8000/trips/public?page=1&limit=20 | jq '.data[] | .author.
 - ✅ Los viajes de `testuser` YA NO aparecen en el feed
 - ✅ Contador de viajes se reduce
 - ✅ Si no hay otros viajes públicos → muestra estado vacío
-- ✅ API responde con `"success": true` y muestra `"profile_visibility": "private"` en el perfil
+- ✅ API responde con `"success": true` y muestra `"trip_visibility": "private"` en el perfil
 
 **Revertir** (volver a público):
 ```bash
 curl -X PUT http://localhost:8000/users/testuser/profile \
   -H "Content-Type: application/json" \
   -b cookies.txt \
-  -d '{"profile_visibility":"public"}'
+  -d '{"trip_visibility":"public"}'
 ```
 
 **Alternativa**: Cambio directo en base de datos (solo para debugging):
 ```sql
 -- Cambiar a privado
-UPDATE users SET profile_visibility = 'private' WHERE username = 'testuser';
+UPDATE users SET trip_visibility = 'private' WHERE username = 'testuser';
 
 -- Revertir a público
-UPDATE users SET profile_visibility = 'public' WHERE username = 'testuser';
+UPDATE users SET trip_visibility = 'public' WHERE username = 'testuser';
 ```
 
 ---
 
-### TC-US3-004: Verificación de Eager Loading (N+1 Prevention)
+### TC-US3-004: Perfil Privado con Viajes Públicos (Caso Clave)
+
+**Objetivo**: Verificar que profile_visibility='private' NO oculta viajes con trip_visibility='public'
+
+**Precondiciones**:
+- Usuario (`maria_garcia`) con:
+  - `profile_visibility='private'`
+  - `trip_visibility='public'`
+  - 1+ viajes publicados
+
+**Pasos**:
+1. Verificar configuración del usuario:
+   ```bash
+   # Verificar en base de datos
+   SELECT username, profile_visibility, trip_visibility
+   FROM users
+   WHERE username = 'maria_garcia';
+   # Esperado: profile_visibility='private', trip_visibility='public'
+   ```
+
+2. Acceder al feed público (anónimo o autenticado)
+
+3. Buscar viajes de `maria_garcia` en el feed
+
+**Resultado Esperado**:
+- ✅ Los viajes de `maria_garcia` SÍ aparecen en el feed público
+- ✅ El perfil privado NO oculta los viajes (solo oculta ubicación/email del perfil)
+- ✅ Contador incluye los viajes de `maria_garcia`
+
+**Verificación Backend**:
+```bash
+curl http://localhost:8000/trips/public?page=1&limit=20 | jq '.trips[] | select(.author.username == "maria_garcia")'
+# Debe retornar viajes de maria_garcia
+```
+
+**Caso de Uso Real**:
+Este es el escenario correcto para usuarios que quieren:
+- Mantener su información personal privada (ubicación, email)
+- Pero compartir sus viajes públicamente con la comunidad
+
+---
+
+### TC-US3-005: Verificación de Eager Loading (N+1 Prevention)
 
 **Objetivo**: Verificar que la consulta usa eager loading para relaciones (user, photos, locations)
 
@@ -646,7 +690,7 @@ UPDATE users SET profile_visibility = 'public' WHERE username = 'testuser';
    JOIN users ON trips.user_id = users.user_id
    LEFT JOIN trip_photos ON trips.trip_id = trip_photos.trip_id
    LEFT JOIN trip_locations ON trips.trip_id = trip_locations.trip_id
-   WHERE trips.status = 'PUBLISHED' AND users.profile_visibility = 'public'
+   WHERE trips.status = 'PUBLISHED' AND users.trip_visibility = 'public'
    ORDER BY trips.published_at DESC
    LIMIT 20;
    ```
@@ -1109,7 +1153,8 @@ Antes de considerar la Feature 013 completa, verificar que:
 
 **Backend**:
 - [ ] Endpoint `GET /trips/public` funciona correctamente
-- [ ] Filtrado de privacidad aplicado (`status=PUBLISHED`, `profile_visibility='public'`)
+- [ ] Filtrado de privacidad aplicado (`status=PUBLISHED`, `trip_visibility='public'`)
+- [ ] `profile_visibility` NO afecta los viajes en el feed público
 - [ ] Paginación funciona (page, limit, total)
 - [ ] Eager loading implementado (no N+1 queries)
 - [ ] Todos los tests unitarios pasan (pytest backend/tests/unit/test_trip_service_public.py)
@@ -1160,11 +1205,13 @@ Antes de considerar la Feature 013 completa, verificar que:
 
 ### ¿Qué es trip_visibility?
 
-Además de `profile_visibility` (que oculta todo el perfil), ahora los usuarios pueden controlar la visibilidad de sus viajes individualmente con `trip_visibility`:
+Los usuarios controlan la visibilidad de sus viajes con `trip_visibility` (independiente de `profile_visibility`):
 
 - **`public`**: Todos pueden ver los viajes (comportamiento por defecto)
 - **`followers`**: Solo los seguidores pueden ver los viajes
 - **`private`**: Solo el propietario puede ver los viajes
+
+**Nota importante**: `profile_visibility` solo controla la visibilidad de información del perfil (ubicación, email). NO afecta la visibilidad de viajes en el feed público. Use `trip_visibility` para controlar qué viajes aparecen en el feed.
 
 ### Test de Configuración de Visibilidad
 
@@ -1259,6 +1306,446 @@ curl "http://localhost:8000/trips/${TRIP_ID}" \
 - [ ] Error 403 con mensaje apropiado para viajes privados
 - [ ] Followers pueden ver viajes con trip_visibility='followers'
 - [ ] No-followers NO pueden ver viajes con trip_visibility='followers'
+
+---
+
+## Pruebas de Configuración de Privacidad (Profile UI)
+
+**Feature 013 Enhancement**: Interfaz de usuario para gestionar configuración de privacidad
+
+### ¿Qué incluye la configuración de privacidad?
+
+Los usuarios pueden gestionar dos configuraciones desde la interfaz:
+
+1. **Visibilidad del Perfil** (`profile_visibility`):
+   - `public`: Información del perfil (ubicación, email) es visible para todos
+   - `private`: Información del perfil (ubicación, email) es privada
+   - **Nota**: NO afecta la visibilidad de viajes en el feed público
+
+2. **Visibilidad de Viajes** (`trip_visibility`):
+   - `public`: Los viajes son visibles para todos
+   - `followers`: Solo los seguidores pueden ver los viajes
+   - `private`: Solo el propietario puede ver los viajes
+
+### TC-PRIV-001: Visualización de Configuración en Perfil
+
+**Objetivo**: Verificar que la configuración de privacidad se muestra en `/profile`
+
+**Precondiciones**:
+- Usuario autenticado (`testuser`)
+
+**Pasos**:
+1. Iniciar sesión
+2. Navegar a `/profile`
+3. Localizar la sección "Configuración de Privacidad"
+
+**Resultado Esperado**:
+- ✅ Sección "Configuración de Privacidad" visible
+- ✅ Campo "Visibilidad del perfil" muestra valor actual con badge
+- ✅ Campo "Visibilidad de viajes" muestra valor actual con badge
+- ✅ Badges tienen color-coding correcto:
+  - Verde (🌍) para "Público"
+  - Azul (👥) para "Solo seguidores"
+  - Rojo (🔒) para "Privado"
+- ✅ Estilo visual consistente con el resto del perfil
+
+**Capturas Recomendadas**:
+- Sección de privacidad con ambos campos en "Público"
+- Vista con diferentes combinaciones de visibilidad
+
+---
+
+### TC-PRIV-002: Navegación a Edición de Perfil
+
+**Objetivo**: Verificar que el botón "Editar Perfil" lleva a la página de edición
+
+**Precondiciones**:
+- Usuario autenticado en `/profile`
+
+**Pasos**:
+1. En la página `/profile`
+2. Hacer clic en el botón "Editar Perfil"
+
+**Resultado Esperado**:
+- ✅ Navega a `/profile/edit`
+- ✅ Página de edición carga sin errores
+- ✅ Formularios muestran datos actuales del usuario
+
+---
+
+### TC-PRIV-003: Inicialización del Formulario de Privacidad
+
+**Objetivo**: Verificar que el formulario se inicializa con los valores actuales del usuario
+
+**Precondiciones**:
+- Usuario con `profile_visibility='public'` y `trip_visibility='public'`
+
+**Pasos**:
+1. Navegar a `/profile`
+2. Hacer clic en "Editar Perfil"
+3. Verificar formularios en la página `/profile/edit`
+
+**Resultado Esperado**:
+- ✅ Sección "Información Básica" muestra bio, ubicación, tipo de ciclismo actuales
+- ✅ Sección "Configuración de Privacidad" muestra:
+  - Select "Visibilidad del perfil" con valor "public" seleccionado
+  - Select "Visibilidad de viajes" con valor "public" seleccionado
+- ✅ NO hay campos vacíos si el usuario tiene datos
+- ✅ Botón "Guardar Configuración" está deshabilitado (no hay cambios aún)
+
+**Bug Fix Verificado**:
+- Este test verifica que se corrigió el bug donde el formulario no se inicializaba con los datos del usuario al navegar desde `/profile` a `/profile/edit`
+
+---
+
+### TC-PRIV-004: Cambiar Visibilidad del Perfil a Privado
+
+**Objetivo**: Verificar que se puede cambiar profile_visibility a "private"
+
+**Precondiciones**:
+- Usuario en `/profile/edit`
+- `profile_visibility='public'` inicialmente
+
+**Pasos**:
+1. En la sección "Configuración de Privacidad"
+2. Cambiar select "Visibilidad del perfil" de "Público" a "Privado"
+3. Verificar que aparece indicador "Tienes cambios sin guardar"
+4. Hacer clic en "Guardar Configuración"
+
+**Resultado Esperado**:
+- ✅ Indicador "Tienes cambios sin guardar" aparece después del cambio
+- ✅ Botón "Guardar Configuración" se habilita
+- ✅ Al hacer clic en guardar:
+  - Toast de éxito: "Perfil actualizado correctamente"
+  - Redirección a `/profile` después de 1 segundo
+- ✅ En `/profile`, badge de "Visibilidad del perfil" muestra "Privado" 🔒 (rojo)
+- ✅ API recibe `PUT /users/testuser/profile` con `{"profile_visibility":"private"}`
+
+**Verificación de Integración**:
+- Viajes del usuario desaparecen del feed público (`/`)
+- Solo el propietario puede ver sus propios viajes
+
+---
+
+### TC-PRIV-005: Cambiar Visibilidad de Viajes a Solo Seguidores
+
+**Objetivo**: Verificar que se puede cambiar trip_visibility a "followers"
+
+**Precondiciones**:
+- Usuario en `/profile/edit`
+- `trip_visibility='public'` inicialmente
+
+**Pasos**:
+1. En la sección "Configuración de Privacidad"
+2. Cambiar select "Visibilidad de viajes" de "Público" a "Solo seguidores"
+3. Hacer clic en "Guardar Configuración"
+
+**Resultado Esperado**:
+- ✅ Toast de éxito aparece
+- ✅ Redirección a `/profile`
+- ✅ Badge de "Visibilidad de viajes" muestra "Solo seguidores" 👥 (azul)
+- ✅ API recibe `PUT /users/testuser/profile` con `{"trip_visibility":"followers"}`
+
+**Verificación de Integración**:
+- Viajes no aparecen en feed público para usuarios no seguidores
+- Viajes SÍ aparecen para usuarios que siguen a `testuser`
+
+---
+
+### TC-PRIV-006: Cambiar Ambas Configuraciones Simultáneamente
+
+**Objetivo**: Verificar que se pueden cambiar ambas configuraciones en una sola operación
+
+**Precondiciones**:
+- Usuario en `/profile/edit`
+
+**Pasos**:
+1. Cambiar "Visibilidad del perfil" a "Privado"
+2. Cambiar "Visibilidad de viajes" a "Privado"
+3. Verificar indicador de cambios sin guardar
+4. Hacer clic en "Guardar Configuración"
+
+**Resultado Esperado**:
+- ✅ Indicador muestra "Tienes cambios sin guardar"
+- ✅ API recibe una sola petición con ambos cambios:
+  ```json
+  {
+    "profile_visibility": "private",
+    "trip_visibility": "private"
+  }
+  ```
+- ✅ Toast de éxito aparece
+- ✅ En `/profile`, ambos badges muestran "Privado" 🔒 (rojo)
+
+---
+
+### TC-PRIV-007: Cancelar Cambios de Privacidad
+
+**Objetivo**: Verificar que se puede cancelar sin guardar cambios
+
+**Preconditions**:
+- Usuario en `/profile/edit` con cambios sin guardar
+
+**Pasos**:
+1. Cambiar "Visibilidad del perfil" a "Privado"
+2. NO hacer clic en "Guardar Configuración"
+3. Hacer clic en botón "Volver"
+4. Confirmar en el diálogo de advertencia
+
+**Resultado Esperado**:
+- ✅ Aparece diálogo: "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
+- ✅ Al confirmar:
+  - Navega a `/profile`
+  - Badges muestran los valores ORIGINALES (antes de editar)
+  - NO se hizo petición a la API
+
+---
+
+### TC-PRIV-008: Advertencia de Navegación con Cambios Sin Guardar
+
+**Objetivo**: Verificar que se advierte al intentar salir con cambios sin guardar
+
+**Precondiciones**:
+- Usuario en `/profile/edit` con cambios sin guardar
+
+**Pasos**:
+1. Cambiar "Visibilidad de viajes" a "Solo seguidores"
+2. Intentar navegar a otra página (ej: hacer clic en logo, o cerrar pestaña)
+
+**Resultado Esperado**:
+- ✅ Navegador muestra diálogo nativo: "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?"
+- ✅ Al confirmar: navega a la nueva página (cambios se pierden)
+- ✅ Al cancelar: permanece en `/profile/edit`
+
+**Implementación**:
+- Usa hook `useUnsavedChanges` con `beforeunload` event
+- Se activa cuando `isDirty=true` en React Hook Form
+
+---
+
+### TC-PRIV-009: Validación de Formulario de Privacidad
+
+**Objetivo**: Verificar que los valores de privacidad son válidos
+
+**Precondiciones**:
+- Usuario en `/profile/edit`
+
+**Pasos**:
+1. Inspeccionar los selects de privacidad con DevTools
+2. Verificar opciones disponibles
+
+**Resultado Esperado**:
+
+**Select "Visibilidad del perfil"**:
+- ✅ Opción "Público" (value: "public")
+- ✅ Opción "Privado" (value: "private")
+- ✅ Solo 2 opciones disponibles
+
+**Select "Visibilidad de viajes"**:
+- ✅ Opción "Público" (value: "public")
+- ✅ Opción "Solo seguidores" (value: "followers")
+- ✅ Opción "Privado" (value: "private")
+- ✅ Solo 3 opciones disponibles
+
+**Validación Zod**:
+- Schema acepta solo valores válidos ('public', 'private', 'followers')
+- Valores inválidos son rechazados en frontend y backend
+
+---
+
+### TC-PRIV-010: Persistencia de Configuración Después de Logout/Login
+
+**Objetivo**: Verificar que la configuración de privacidad persiste entre sesiones
+
+**Precondiciones**:
+- Usuario autenticado con configuración modificada
+
+**Pasos**:
+1. Cambiar `profile_visibility='private'` y `trip_visibility='followers'`
+2. Guardar configuración
+3. Cerrar sesión (click en "Cerrar sesión")
+4. Volver a iniciar sesión con las mismas credenciales
+5. Navegar a `/profile`
+
+**Resultado Esperado**:
+- ✅ Badges muestran la configuración guardada:
+  - "Visibilidad del perfil": "Privado" 🔒
+  - "Visibilidad de viajes": "Solo seguidores" 👥
+- ✅ La configuración NO se resetea al valor por defecto
+- ✅ API `/auth/me` devuelve los valores correctos
+
+---
+
+### TC-PRIV-011: Secciones Independientes en Profile Edit
+
+**Objetivo**: Verificar que cada sección tiene su propio formulario y botón de guardar
+
+**Precondiciones**:
+- Usuario en `/profile/edit`
+
+**Pasos**:
+1. Observar la estructura de la página
+2. Identificar las secciones
+
+**Resultado Esperado**:
+
+**Estructura de Secciones**:
+- ✅ Sección "Información Básica" (bio, ubicación, tipo de ciclismo)
+  - Tiene su propio botón "Guardar Cambios"
+  - Indicador de cambios sin guardar independiente
+- ✅ Sección "Foto de Perfil"
+  - Permite subir/cambiar foto
+  - Progreso de subida independiente
+- ✅ Sección "Cambio de Contraseña"
+  - Tiene su propio botón "Cambiar Contraseña"
+  - Indicador de cambios sin guardar independiente
+- ✅ Sección "Configuración de Privacidad"
+  - Tiene su propio botón "Guardar Configuración"
+  - Indicador de cambios sin guardar independiente
+
+**Comportamiento**:
+- ✅ Cambiar información básica NO afecta el estado de privacidad
+- ✅ Guardar privacidad NO guarda información básica sin cambios
+- ✅ Cada sección puede guardarse independientemente
+
+---
+
+### TC-PRIV-012: Estilos Visuales de Privacy Badges
+
+**Objetivo**: Verificar que los badges tienen el estilo correcto en `/profile`
+
+**Preconditions**:
+- Usuario con diferentes combinaciones de visibilidad
+
+**Pasos**:
+1. Configurar usuario con `profile_visibility='public'` y `trip_visibility='public'`
+2. Navegar a `/profile`
+3. Inspeccionar badges con DevTools
+
+**Resultado Esperado - Estilo "Público"**:
+- ✅ Color de fondo: `rgba(34, 197, 94, 0.1)` (verde claro)
+- ✅ Color de texto: `#166534` (verde oscuro)
+- ✅ Borde: `1px solid rgba(34, 197, 94, 0.3)`
+- ✅ Emoji: 🌍
+- ✅ Texto: "Público"
+
+**Cambiar a "Privado"**:
+- ✅ Color de fondo: `rgba(239, 68, 68, 0.1)` (rojo claro)
+- ✅ Color de texto: `#991b1b` (rojo oscuro)
+- ✅ Borde: `1px solid rgba(239, 68, 68, 0.3)`
+- ✅ Emoji: 🔒
+- ✅ Texto: "Privado"
+
+**Cambiar trip_visibility a "Solo seguidores"**:
+- ✅ Color de fondo: `rgba(59, 130, 246, 0.1)` (azul claro)
+- ✅ Color de texto: `#1e40af` (azul oscuro)
+- ✅ Borde: `1px solid rgba(59, 130, 246, 0.3)`
+- ✅ Emoji: 👥
+- ✅ Texto: "Solo seguidores"
+
+**CSS Data Attributes**:
+- ✅ `data-visibility="public"` aplica estilos verdes
+- ✅ `data-visibility="private"` aplica estilos rojos
+- ✅ `data-visibility="followers"` aplica estilos azules
+
+---
+
+### TC-PRIV-013: Responsive - Privacy Settings en Mobile
+
+**Objetivo**: Verificar diseño responsive de las secciones de privacidad
+
+**Precondiciones**:
+- Usuario en `/profile` y `/profile/edit`
+
+**Pasos**:
+1. Abrir DevTools → Device Toolbar
+2. Seleccionar dispositivo móvil (iPhone 12)
+3. Verificar secciones de privacidad
+
+**Resultado Esperado en `/profile` (< 768px)**:
+- ✅ Sección de privacidad ocupa ancho completo
+- ✅ Badges son legibles (font-size adecuado)
+- ✅ Emojis visibles
+- ✅ Layout se ajusta a una columna
+
+**Resultado Esperado en `/profile/edit` (< 768px)**:
+- ✅ Secciones se apilan verticalmente (una por fila)
+- ✅ Selects de privacidad ocupan ancho completo
+- ✅ Botón "Guardar Configuración" tiene altura mínima de 48px (táctil)
+- ✅ Texto legible sin zoom
+
+---
+
+### TC-PRIV-014: Accesibilidad - Privacy Settings
+
+**Objetivo**: Verificar que las configuraciones de privacidad son accesibles
+
+**Precondiciones**:
+- Screen reader activado (NVDA/VoiceOver)
+
+**Pasos**:
+1. Navegar a `/profile/edit`
+2. Usar navegación por teclado (Tab)
+3. Activar screen reader
+
+**Resultado Esperado**:
+
+**Navegación por Teclado**:
+- ✅ Tab enfoca select "Visibilidad del perfil"
+- ✅ Tab enfoca select "Visibilidad de viajes"
+- ✅ Tab enfoca botón "Guardar Configuración"
+- ✅ Enter/Space abre selects
+- ✅ Flechas arriba/abajo cambian opciones
+
+**Screen Reader**:
+- ✅ Label "Visibilidad del perfil" se anuncia correctamente
+- ✅ Valor actual del select se anuncia ("Público seleccionado")
+- ✅ Label "Visibilidad de viajes" se anuncia
+- ✅ Botón "Guardar Configuración" tiene aria-label descriptivo
+- ✅ Indicador "Tienes cambios sin guardar" tiene role="status" y aria-live="polite"
+
+**Contraste de Colores**:
+- ✅ Badges cumplen WCAG AA (ratio ≥ 4.5:1)
+- ✅ Texto en selects es legible
+- ✅ Axe DevTools no reporta errores
+
+---
+
+### Checklist de Validación - Privacy Settings UI
+
+**Visualización en Perfil**:
+- [ ] Sección "Configuración de Privacidad" visible en `/profile`
+- [ ] Badges muestran valores actuales correctamente
+- [ ] Color-coding correcto (verde/azul/rojo)
+- [ ] Emojis visibles (🌍/👥/🔒)
+
+**Edición en Profile Edit**:
+- [ ] Formulario se inicializa con valores actuales (bug fix verificado)
+- [ ] Selects permiten cambiar visibilidad
+- [ ] Indicador de cambios sin guardar funciona
+- [ ] Botón "Guardar Configuración" se habilita/deshabilita correctamente
+- [ ] Toast de éxito aparece al guardar
+- [ ] Redirección a `/profile` después de guardar
+
+**Integración con Backend**:
+- [ ] API recibe `PUT /users/{username}/profile` con campos correctos
+- [ ] Respuesta de API tiene `profile_visibility` y `trip_visibility` actualizados
+- [ ] `/auth/me` devuelve valores correctos después de guardar
+- [ ] Cambios persisten entre sesiones (logout/login)
+
+**Integración con Feed Público**:
+- [ ] `profile_visibility='private'` NO oculta viajes del feed (solo oculta info del perfil)
+- [ ] `trip_visibility='private'` SÍ oculta viajes del feed público
+- [ ] `trip_visibility='followers'` oculta viajes de no seguidores
+- [ ] Usuario con `profile_visibility='private'` y `trip_visibility='public'` tiene viajes visibles en el feed
+- [ ] Propietario siempre ve sus propios viajes
+
+**UX y Validación**:
+- [ ] Advertencia al salir con cambios sin guardar
+- [ ] Cancelar no guarda cambios
+- [ ] Secciones independientes (no interfieren entre sí)
+- [ ] Responsive en mobile
+- [ ] Accesible con teclado y screen reader
 
 ---
 
