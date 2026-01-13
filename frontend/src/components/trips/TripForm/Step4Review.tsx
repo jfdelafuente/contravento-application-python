@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
-import { TripCreateInput, DIFFICULTY_LABELS } from '../../../types/trip';
+import { TripCreateInput } from '../../../types/trip';
 import { formatDate, formatDistance, getDifficultyLabel } from '../../../utils/tripHelpers';
 import './Step1BasicInfo.css'; // Shared styles
 

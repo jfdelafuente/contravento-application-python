@@ -13,8 +13,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { TripListItem } from '../../types/trip';
 import {
-  getDifficultyLabel,
-  getDifficultyClass,
   formatDate,
   formatDistance,
   getStatusLabel,

@@ -89,7 +89,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   maxSizeMB = 10,
   disabled = false,
 }) => {
-  const [uploadQueue, setUploadQueue] = useState<string[]>([]); // IDs of photos being uploaded
+  // Future: Track upload queue for progress indicators
+  // const [uploadQueue, setUploadQueue] = useState<string[]>([]); // IDs of photos being uploaded
   const [dragState, setDragState] = useState<DragState>({
     draggedIndex: null,
     dragOverIndex: null,

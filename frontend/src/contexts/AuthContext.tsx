@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const register = async (data: RegisterFormData): Promise<void> => {
-    const newUser = await authService.register(data);
+    await authService.register(data);
     // Don't set user yet - email needs to be verified
     // User will login after email verification
   };
@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(prev => prev ? { ...prev, ...userData } : null);
   };
 
-  const requestPasswordReset = async (email: string): Promise<void> => {
+  const requestPasswordReset = async (_email: string): Promise<void> => {
     // This is handled in the component with CAPTCHA token
     // Just a placeholder in context
   };
