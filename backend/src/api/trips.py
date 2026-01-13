@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_current_user, get_db
+from src.api.deps import get_current_user, get_db, get_optional_current_user
 from src.models.trip import TripStatus
 from src.models.user import User
 from src.schemas.trip import (
@@ -859,9 +859,10 @@ async def get_user_trips(
     limit: int = Query(50, ge=1, le=100, description="Maximum trips to return"),
     offset: int = Query(0, ge=0, description="Number of trips to skip"),
     db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> dict[str, Any]:
     """
-    Get user's trips with optional filtering (T088, FR-025).
+    Get user's trips with optional filtering (T088, FR-025, Feature 013).
 
     **Filters:**
     - tag: Filter by tag name (case-insensitive)
@@ -869,9 +870,15 @@ async def get_user_trips(
     - limit: Max trips to return (1-100, default 50)
     - offset: Pagination offset (default 0)
 
+    **Visibility (Feature 013):**
+    - Owner: sees all trips (drafts and published, any visibility)
+    - Followers: see published trips with visibility='public' or 'followers'
+    - Public: see only published trips with visibility='public'
+
     **Returns:**
     - List of trips with photos, tags, and locations
     - Ordered by created_at descending (newest first)
+    - Filtered by trip_visibility settings
     """
     try:
         from sqlalchemy import select
@@ -902,6 +909,7 @@ async def get_user_trips(
             status=status,
             limit=limit,
             offset=offset,
+            current_user_id=current_user.id if current_user else None,
         )
 
         # Convert to response format

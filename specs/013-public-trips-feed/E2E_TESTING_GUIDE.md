@@ -1154,6 +1154,114 @@ Antes de considerar la Feature 013 completa, verificar que:
 
 ---
 
+## Pruebas de Visibilidad de Viajes (trip_visibility)
+
+**Feature 013 Enhancement**: Configuración granular de visibilidad de viajes
+
+### ¿Qué es trip_visibility?
+
+Además de `profile_visibility` (que oculta todo el perfil), ahora los usuarios pueden controlar la visibilidad de sus viajes individualmente con `trip_visibility`:
+
+- **`public`**: Todos pueden ver los viajes (comportamiento por defecto)
+- **`followers`**: Solo los seguidores pueden ver los viajes
+- **`private`**: Solo el propietario puede ver los viajes
+
+### Test de Configuración de Visibilidad
+
+**TC-VIS-001: Cambiar Visibilidad de Viajes a Privado**
+
+```bash
+# Iniciar sesión como testuser
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"TestPass123!"}' \
+  -c cookies.txt
+
+# Cambiar trip_visibility a private
+curl -X PUT http://localhost:8000/users/testuser/profile \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"trip_visibility":"private"}'
+
+# Verificar que los viajes NO aparecen en el feed público
+curl http://localhost:8000/public/trips
+# Expected: viajes de testuser NO aparecen
+
+# Verificar que el propietario SÍ puede verlos
+curl http://localhost:8000/users/testuser/trips \
+  -b cookies.txt
+# Expected: todos los viajes de testuser aparecen
+```
+
+**TC-VIS-002: Cambiar Visibilidad a Solo Seguidores**
+
+```bash
+# Cambiar trip_visibility a followers
+curl -X PUT http://localhost:8000/users/testuser/profile \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"trip_visibility":"followers"}'
+
+# Public access - NO ve viajes
+curl http://localhost:8000/users/testuser/trips
+# Expected: solo viajes públicos (ninguno si todos son followers)
+
+# Follower access - SÍ ve viajes
+# (requiere que otro usuario siga a testuser primero)
+```
+
+**TC-VIS-003: Acceso Individual a Viaje Privado**
+
+```bash
+# Crear un viaje y publicarlo
+TRIP_ID=$(curl -X POST http://localhost:8000/trips \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"title":"Viaje Privado","description":"Este viaje es privado y nadie debe verlo excepto yo"}' \
+  | jq -r '.trip_id')
+
+curl -X POST "http://localhost:8000/trips/${TRIP_ID}/publish" \
+  -b cookies.txt
+
+# Cambiar visibilidad del usuario a private
+curl -X PUT http://localhost:8000/users/testuser/profile \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"trip_visibility":"private"}'
+
+# Intentar acceder como público - debe fallar con 403
+curl http://localhost:8000/trips/${TRIP_ID}
+# Expected: PermissionError - "Este viaje es privado"
+
+# Acceder como propietario - debe funcionar
+curl "http://localhost:8000/trips/${TRIP_ID}" \
+  -b cookies.txt
+# Expected: viaje completo con todos los detalles
+```
+
+### Matriz de Visibilidad
+
+| trip_visibility | Feed Público | Ver Lista (/users/{user}/trips) | Ver Individual (/trips/{id}) |
+|-----------------|--------------|----------------------------------|------------------------------|
+| `public`        | ✅ Visible    | ✅ Visible                       | ✅ Visible                   |
+| `followers`     | ❌ Oculto     | ✅ Si es follower / ❌ Si no    | ✅ Si es follower / ❌ Si no |
+| `private`       | ❌ Oculto     | ❌ Solo owner                    | ❌ Solo owner                |
+
+**Nota**: Los viajes en estado `DRAFT` siempre son visibles solo para el propietario, independientemente de `trip_visibility`.
+
+### Checklist de Validación trip_visibility
+
+- [ ] Usuario puede cambiar trip_visibility en profile/edit
+- [ ] Feed público excluye viajes con trip_visibility='private'
+- [ ] Feed público excluye viajes con trip_visibility='followers'
+- [ ] Propietario siempre ve sus propios viajes
+- [ ] Acceso a viaje individual respeta trip_visibility
+- [ ] Error 403 con mensaje apropiado para viajes privados
+- [ ] Followers pueden ver viajes con trip_visibility='followers'
+- [ ] No-followers NO pueden ver viajes con trip_visibility='followers'
+
+---
+
 ## Herramientas Recomendadas
 
 - **DevTools**: Chrome/Firefox Developer Tools

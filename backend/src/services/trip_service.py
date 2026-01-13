@@ -99,9 +99,11 @@ class TripService:
         """
         Get trip by ID.
 
-        Enforces visibility rules:
-        - Published trips: visible to everyone
+        Enforces visibility rules (Feature 013):
         - Draft trips: only visible to owner
+        - Published trips with trip_visibility='public': visible to everyone
+        - Published trips with trip_visibility='followers': visible to followers and owner
+        - Published trips with trip_visibility='private': only visible to owner
 
         Args:
             trip_id: Trip identifier
@@ -111,9 +113,10 @@ class TripService:
             Trip instance
 
         Raises:
-            ValueError: If trip not found or access denied
+            ValueError: If trip not found
+            PermissionError: If access denied due to visibility settings
         """
-        # Query trip with relationships
+        # Query trip with relationships (eager load user for visibility check)
         result = await self.db.execute(
             select(Trip)
             .where(Trip.trip_id == trip_id)
@@ -121,6 +124,7 @@ class TripService:
                 selectinload(Trip.photos),
                 selectinload(Trip.locations),
                 selectinload(Trip.trip_tags).selectinload(TripTag.tag),
+                selectinload(Trip.user),  # Need user for trip_visibility check
             )
         )
         trip = result.scalar_one_or_none()
@@ -128,13 +132,43 @@ class TripService:
         if not trip:
             raise ValueError("Viaje no encontrado")
 
-        # Check visibility
-        if trip.status == TripStatus.DRAFT:
-            # Draft trips only visible to owner
-            if not current_user_id or trip.user_id != current_user_id:
-                raise PermissionError("No tienes permiso para ver este viaje en borrador")
+        # Check if user is the owner
+        is_owner = current_user_id and trip.user_id == current_user_id
 
-        logger.info(f"Retrieved trip {trip_id}")
+        # Check visibility - Draft trips
+        if trip.status == TripStatus.DRAFT:
+            if not is_owner:
+                raise PermissionError("No tienes permiso para ver este viaje en borrador")
+            logger.info(f"Retrieved draft trip {trip_id} (owner access)")
+            return trip
+
+        # Check visibility - Published trips with trip_visibility
+        if trip.user.trip_visibility == 'private':
+            # Private trips: only owner can see
+            if not is_owner:
+                raise PermissionError("Este viaje es privado y solo el propietario puede verlo")
+
+        elif trip.user.trip_visibility == 'followers':
+            # Followers-only trips: check if current user follows the owner
+            if not is_owner:
+                if not current_user_id:
+                    raise PermissionError("Debes iniciar sesión para ver este viaje")
+
+                # Check if current user follows trip owner
+                from src.models.social import Follow
+                follow_result = await self.db.execute(
+                    select(Follow).where(
+                        Follow.follower_id == current_user_id,
+                        Follow.following_id == trip.user_id
+                    )
+                )
+                is_follower = follow_result.scalar_one_or_none() is not None
+
+                if not is_follower:
+                    raise PermissionError("Este viaje solo es visible para seguidores del usuario")
+
+        # If we reach here, trip is visible (public, or followers/private with permission)
+        logger.info(f"Retrieved published trip {trip_id} (visibility={trip.user.trip_visibility})")
         return trip
 
     async def publish_trip(self, trip_id: str, user_id: str) -> Trip:
@@ -810,9 +844,16 @@ class TripService:
         status: Optional[TripStatus] = None,
         limit: int = 50,
         offset: int = 0,
+        current_user_id: Optional[str] = None,
     ) -> list[Trip]:
         """
-        T087: Get user's trips with optional filtering.
+        T087: Get user's trips with optional filtering (Feature 013: respects trip_visibility).
+
+        Visibility rules:
+        - Owner: can see all their trips (drafts and published, any visibility)
+        - Followers: can see published trips with visibility='public' or 'followers'
+        - Public: can only see published trips with visibility='public'
+        - Draft trips: always filtered unless viewer is owner
 
         Args:
             user_id: User ID to filter by
@@ -820,33 +861,64 @@ class TripService:
             status: Optional status to filter by (DRAFT, PUBLISHED)
             limit: Maximum number of results (default 50)
             offset: Number of results to skip (default 0)
+            current_user_id: ID of user viewing the trips (None for public access)
 
         Returns:
-            List of Trip objects matching the criteria
+            List of Trip objects matching the criteria (filtered by visibility)
 
         Examples:
-            # Get all published trips
-            trips = await service.get_user_trips(user_id, status=TripStatus.PUBLISHED)
+            # Get all published trips (as owner)
+            trips = await service.get_user_trips(user_id, status=TripStatus.PUBLISHED, current_user_id=user_id)
 
-            # Get trips with tag "camino"
+            # Get trips with tag "camino" (as public viewer)
             trips = await service.get_user_trips(user_id, tag="camino")
 
             # Pagination
             trips = await service.get_user_trips(user_id, limit=10, offset=20)
         """
+        # Check if current user is the owner
+        is_owner = current_user_id and current_user_id == user_id
+
         # Build base query
         query = (
             select(Trip)
+            .join(User, Trip.user_id == User.id)  # Join User for trip_visibility check
             .where(Trip.user_id == user_id)
             .options(
                 selectinload(Trip.photos),
                 selectinload(Trip.trip_tags).selectinload(TripTag.tag),
                 selectinload(Trip.locations),
+                selectinload(Trip.user),  # Eager load user for visibility
             )
         )
 
-        # Filter by status if provided
-        if status is not None:
+        # Apply visibility filters (Feature 013)
+        if not is_owner:
+            # Non-owners can only see PUBLISHED trips
+            query = query.where(Trip.status == TripStatus.PUBLISHED)
+
+            # Check if viewer is a follower
+            is_follower = False
+            if current_user_id:
+                from src.models.social import Follow
+                follow_result = await self.db.execute(
+                    select(Follow).where(
+                        Follow.follower_id == current_user_id,
+                        Follow.following_id == user_id
+                    )
+                )
+                is_follower = follow_result.scalar_one_or_none() is not None
+
+            # Apply trip_visibility filters
+            if is_follower:
+                # Followers can see 'public' and 'followers' trips
+                query = query.where(User.trip_visibility.in_(['public', 'followers']))
+            else:
+                # Public can only see 'public' trips
+                query = query.where(User.trip_visibility == 'public')
+
+        # Filter by status if provided (only applies if owner, since non-owners already filtered)
+        elif status is not None:
             query = query.where(Trip.status == status)
 
         # Filter by tag if provided (case-insensitive)
@@ -907,11 +979,13 @@ class TripService:
         Privacy filtering (FR-003):
         - Only trips with status=PUBLISHED
         - Only trips from users with profile_visibility='public'
+        - Only trips with trip_visibility='public' (Feature 013 enhancement)
 
         Performance optimization (SC-004):
         - Eager loads user, first photo (display_order=0), first location (sequence=0)
         - Uses composite index idx_trips_public_feed on (status, published_at DESC)
         - Uses index idx_users_profile_visibility on profile_visibility
+        - Uses index idx_users_trip_visibility on trip_visibility
 
         Args:
             page: Page number (1-indexed, default 1)
@@ -936,6 +1010,7 @@ class TripService:
             .where(
                 Trip.status == TripStatus.PUBLISHED,  # Only published trips
                 User.profile_visibility == "public",  # Only public profiles
+                User.trip_visibility == "public",     # Only public trips (Feature 013)
             )
             .options(
                 selectinload(Trip.user).selectinload(User.profile),  # Eager load user with profile
@@ -979,6 +1054,7 @@ class TripService:
             .where(
                 Trip.status == TripStatus.PUBLISHED,
                 User.profile_visibility == "public",
+                User.trip_visibility == "public",  # Feature 013
             )
         )
 
