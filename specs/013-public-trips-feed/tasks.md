@@ -182,8 +182,8 @@ Each increment is independently deployable and testable.
 
 ### Backend Tasks (User Story 3)
 
-- [ ] T039 [US3] Write edge case tests for privacy transitions in backend/tests/unit/test_trip_service_public.py
-- [ ] T040 [US3] Write tests for DRAFT trip exclusion in backend/tests/unit/test_trip_service_public.py
+- [x] T039 [US3] Write edge case tests for privacy transitions in backend/tests/unit/test_trip_service_public.py
+- [x] T040 [US3] Write tests for DRAFT trip exclusion in backend/tests/unit/test_trip_service_public.py
 
 **Dependencies**: Requires User Story 1 (get_public_trips exists)
 **Parallel Opportunities**: None (tests only)
