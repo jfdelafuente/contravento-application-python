@@ -68,6 +68,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateUser = (userData: Partial<User>): void => {
+    setUser(prev => prev ? { ...prev, ...userData } : null);
+  };
+
   const requestPasswordReset = async (email: string): Promise<void> => {
     // This is handled in the component with CAPTCHA token
     // Just a placeholder in context
@@ -89,6 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     refreshUser,
+    updateUser,
     requestPasswordReset,
     resetPassword,
     resendVerificationEmail,

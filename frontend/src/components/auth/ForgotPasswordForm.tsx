@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { AxiosError } from 'axios';
 import { authService } from '../../services/authService';
 import { TurnstileWidget } from './TurnstileWidget';
 import type { ApiError } from '../../types/api';
@@ -62,7 +63,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
 
       onSuccess(emailSentTo);
     } catch (error) {
-      const apiError = error as ApiError;
+      const apiError = error as AxiosError<{ error: ApiError }>;
 
       // Handle rate limiting
       if (apiError.response?.status === 429) {

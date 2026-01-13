@@ -1,0 +1,55 @@
+
+> contravento-frontend@0.1.0 type-check
+> tsc --noEmit
+
+src/components/auth/ForgotPasswordForm.tsx(7,8): error TS6133: 'axios' is declared but its value is never read.
+src/components/auth/RegisterForm.tsx(198,50): error TS2304: Cannot find name 'usernameAvailable'.
+src/components/auth/RegisterForm.tsx(202,10): error TS2304: Cannot find name 'isCheckingUsername'.
+src/components/auth/RegisterForm.tsx(208,10): error TS2304: Cannot find name 'usernameAvailable'.
+src/components/auth/RegisterForm.tsx(221,47): error TS2304: Cannot find name 'emailAvailable'.
+src/components/auth/RegisterForm.tsx(225,10): error TS2304: Cannot find name 'isCheckingEmail'.
+src/components/auth/RegisterForm.tsx(231,10): error TS2304: Cannot find name 'emailAvailable'.
+src/components/profile/PhotoCropModal.tsx(35,39): error TS6133: 'croppedArea' is declared but its value is never read.
+src/components/profile/PrivacySettingsSection.tsx(52,3): error TS6133: 'profileVisibility' is declared but its value is never read.
+src/components/profile/PrivacySettingsSection.tsx(53,3): error TS6133: 'tripVisibility' is declared but its value is never read.
+src/components/trips/PhotoUploader.tsx(92,10): error TS6133: 'uploadQueue' is declared but its value is never read.
+src/components/trips/PhotoUploader.tsx(92,23): error TS6133: 'setUploadQueue' is declared but its value is never read.
+src/components/trips/TripCard.tsx(16,3): error TS6133: 'getDifficultyLabel' is declared but its value is never read.
+src/components/trips/TripCard.tsx(17,3): error TS6133: 'getDifficultyClass' is declared but its value is never read.
+src/components/trips/TripForm/FormStepIndicator.tsx(37,17): error TS6133: 'isPending' is declared but its value is never read.
+src/components/trips/TripForm/Step3Photos.tsx(210,23): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/trips/TripForm/Step4Review.tsx(13,27): error TS6133: 'DIFFICULTY_LABELS' is declared but its value is never read.
+src/components/trips/TripForm/Step4Review.tsx(112,36): error TS18048: 'location.latitude' is possibly 'undefined'.
+src/components/trips/TripForm/Step4Review.tsx(115,33): error TS18048: 'location.longitude' is possibly 'undefined'.
+src/components/trips/TripForm/TripFormWizard.tsx(80,11): error TS6133: 'errors' is declared but its value is never read.
+src/components/trips/TripForm/TripFormWizard.tsx(143,38): error TS2554: Expected 2 arguments, but got 3.
+src/components/trips/TripForm/TripFormWizard.tsx(183,35): error TS2554: Expected 2 arguments, but got 3.
+src/components/trips/TripGallery.tsx(245,11): error TS2353: Object literal may only specify known properties, and 'easing' does not exist in type 'Partial<AnimationSettings>'.
+src/components/trips/TripGallery.tsx(253,11): error TS2353: Object literal may only specify known properties, and 'closeOnPullDown' does not exist in type 'Partial<ControllerSettings>'.
+src/contexts/AuthContext.tsx(37,11): error TS6133: 'newUser' is declared but its value is never read.
+src/contexts/AuthContext.tsx(75,39): error TS6133: 'email' is declared but its value is never read.
+src/hooks/useTripForm.ts(61,3): error TS6133: 'initialData' is declared but its value is never read.
+src/hooks/useTripForm.ts(144,23): error TS2367: This comparison appears to be unintentional because the types 'TripDifficulty | null' and '""' have no overlap.
+src/hooks/useTripPhotos.ts(74,3): error TS6133: 'chunkSize' is declared but its value is never read.
+src/pages/LoginPage.tsx(27,9): error TS6133: 'login' is declared but its value is never read.
+src/pages/ResetPasswordPage.tsx(52,29): error TS6133: 'code' is declared but its value is never read.
+src/pages/TripCreatePage.tsx(25,43): error TS6133: 'persistFormData' is declared but its value is never read.
+src/pages/TripDetailPage.tsx(22,3): error TS6133: 'formatDate' is declared but its value is never read.
+src/pages/TripEditPage.tsx(35,25): error TS6133: 'isSubmitting' is declared but its value is never read.
+src/pages/TripsListPage.tsx(48,5): error TS6133: 'refetch' is declared but its value is never read.
+src/services/authService.ts(8,3): error TS6196: 'LoginFormData' is declared but never used.
+src/services/authService.ts(9,3): error TS6196: 'LoginRequestPayload' is declared but never used.
+src/services/authService.ts(11,3): error TS6196: 'ResetPasswordFormData' is declared but never used.
+src/services/authService.ts(48,5): error TS2739: Type '{ id: string; username: string; email: string; is_verified: false; }' is missing the following properties from type 'User': user_id, created_at
+src/services/photoService.ts(37,32): error TS2352: Conversion of type 'AxiosProgressEvent' to type 'ProgressEvent<EventTarget>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'AxiosProgressEvent' is missing the following properties from type 'ProgressEvent<EventTarget>': target, bubbles, cancelBubble, cancelable, and 18 more.
+src/services/tripPhotoService.ts(231,3): error TS6133: 'tripId' is declared but its value is never read.
+src/services/tripPhotoService.ts(232,3): error TS6133: 'photoId' is declared but its value is never read.
+src/services/tripPhotoService.ts(233,3): error TS6133: 'caption' is declared but its value is never read.
+src/setupTests.ts(7,10): error TS6133: 'expect' is declared but its value is never read.
+src/setupTests.ts(40,2): error TS2304: Cannot find name 'global'.
+src/setupTests.ts(65,1): error TS2304: Cannot find name 'global'.
+src/setupTests.ts(76,1): error TS2304: Cannot find name 'global'.
+src/types/auth.ts(19,20): error TS2304: Cannot find name 'RegisterFormData'.
+src/utils/tripValidators.ts(9,1): error TS6133: 'TripDifficulty' is declared but its value is never read.

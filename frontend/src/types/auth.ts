@@ -24,6 +24,9 @@ export interface AuthContextType {
   /** Refresh user data */
   refreshUser: () => Promise<void>;
 
+  /** Update user data */
+  updateUser: (userData: Partial<User>) => void;
+
   /** Request password reset */
   requestPasswordReset: (email: string) => Promise<void>;
 
