@@ -196,17 +196,17 @@ describe('PublicHeader', () => {
       expect(avatar).toHaveTextContent('T'); // First letter of "testuser"
     });
 
-    it('navigates to user profile when profile button is clicked', () => {
+    it('navigates to dashboard when profile button is clicked', () => {
       render(
         <RouterWrapper>
           <PublicHeader />
         </RouterWrapper>
       );
 
-      const profileButton = screen.getByLabelText(/Ir al perfil de testuser/i);
-      fireEvent.click(profileButton);
+      const dashboardButton = screen.getByLabelText(/Ir al dashboard de testuser/i);
+      fireEvent.click(dashboardButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/profile/testuser');
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
 
     it('calls logout when logout button is clicked', async () => {

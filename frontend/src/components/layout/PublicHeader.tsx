@@ -30,10 +30,8 @@ export const PublicHeader: React.FC = () => {
     }
   };
 
-  const handleProfileClick = () => {
-    if (user) {
-      navigate(`/profile/${user.username}`);
-    }
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
   };
 
   const handleLogoClick = () => {
@@ -80,11 +78,11 @@ export const PublicHeader: React.FC = () => {
           ) : (
             /* Authenticated User - Show Profile + Logout */
             <div className="public-header__user-section">
-              {/* User Profile */}
+              {/* User Profile/Dashboard */}
               <button
                 className="public-header__profile-button"
-                onClick={handleProfileClick}
-                aria-label={`Ir al perfil de ${user?.username}`}
+                onClick={handleDashboardClick}
+                aria-label={`Ir al dashboard de ${user?.username}`}
               >
                 {user?.profile?.photo_url ? (
                   <img
