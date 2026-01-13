@@ -739,6 +739,8 @@ See `.specify/` directory for templates and workflows.
 - PostgreSQL (production), SQLite (development) - TripLocation model already has latitude/longitude Float columns (009-gps-coordinates)
 - TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x (010-reverse-geocoding)
 - No new backend storage (uses existing TripLocation model) (010-reverse-geocoding)
+- Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend) (013-public-trips-feed)
+- PostgreSQL (production), SQLite (development) - existing User and Trip models (013-public-trips-feed)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
@@ -1543,9 +1545,9 @@ const PRECISION_DECIMALS = 3; // ~111m at equator
 ```
 
 ## Recent Changes
+- 013-public-trips-feed: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend)
 - 010-reverse-geocoding: Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x
 - 009-gps-coordinates: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, react-leaflet, Leaflet.js (frontend)
 
-- 008-travel-diary-frontend: Added full CRUD UI for trips with photos, multi-step wizard, and owner controls
 
-**Last updated**: 2026-01-11
+**Last updated**: 2026-01-13
