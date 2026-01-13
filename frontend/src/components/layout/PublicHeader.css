@@ -1,0 +1,287 @@
+/**
+ * Public Header Styles (Feature 013 - T036)
+ *
+ * Responsive, mobile-first design for authentication-aware header.
+ */
+
+/* Header Container */
+.public-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 1rem 0;
+}
+
+.public-header__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo Section */
+.public-header__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.public-header__logo:hover {
+  opacity: 0.8;
+}
+
+.public-header__logo-icon {
+  width: 32px;
+  height: 32px;
+  color: #2196f3;
+}
+
+.public-header__logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1976d2;
+  letter-spacing: -0.5px;
+}
+
+/* Auth Section */
+.public-header__auth {
+  display: flex;
+  align-items: center;
+}
+
+/* Login Button (Anonymous State) */
+.public-header__login-button {
+  padding: 0.625rem 1.5rem;
+  background-color: #2196f3;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.public-header__login-button:hover {
+  background-color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.public-header__login-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+/* User Section (Authenticated State) */
+.public-header__user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Profile Button */
+.public-header__profile-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.public-header__profile-button:hover {
+  background-color: #f5f5f5;
+}
+
+.public-header__profile-photo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0e0e0;
+}
+
+.public-header__profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #2196f3;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid #e0e0e0;
+}
+
+.public-header__username {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333333;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Logout Button */
+.public-header__logout-button {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: #666666;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.public-header__logout-button:hover {
+  background-color: #f5f5f5;
+  border-color: #cccccc;
+  color: #333333;
+}
+
+.public-header__logout-button:active {
+  background-color: #eeeeee;
+}
+
+/* Mobile Responsive (< 640px) */
+@media (max-width: 640px) {
+  .public-header {
+    padding: 0.75rem 0;
+  }
+
+  .public-header__container {
+    padding: 0 0.75rem;
+  }
+
+  .public-header__logo-text {
+    font-size: 1.25rem;
+  }
+
+  .public-header__logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Hide username text on mobile to save space */
+  .public-header__username {
+    display: none;
+  }
+
+  .public-header__user-section {
+    gap: 0.75rem;
+  }
+
+  /* Smaller buttons on mobile */
+  .public-header__login-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .public-header__logout-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  /* Slightly smaller avatar on mobile */
+  .public-header__profile-photo,
+  .public-header__profile-avatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Tablet Responsive (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .public-header__container {
+    padding: 0 1.5rem;
+  }
+
+  .public-header__username {
+    max-width: 100px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .public-header__login-button,
+  .public-header__logout-button,
+  .public-header__profile-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .public-header__logo:hover,
+  .public-header__login-button:hover,
+  .public-header__profile-button:hover,
+  .public-header__logout-button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .public-header {
+    border-bottom-width: 2px;
+  }
+
+  .public-header__login-button,
+  .public-header__logout-button {
+    border-width: 2px;
+  }
+}
+
+/* Dark Mode Support (Future Enhancement) */
+@media (prefers-color-scheme: dark) {
+  .public-header {
+    background-color: #1e1e1e;
+    border-bottom-color: #333333;
+  }
+
+  .public-header__logo-text {
+    color: #64b5f6;
+  }
+
+  .public-header__logo-icon {
+    color: #64b5f6;
+  }
+
+  .public-header__username {
+    color: #e0e0e0;
+  }
+
+  .public-header__logout-button {
+    color: #b0b0b0;
+    border-color: #444444;
+  }
+
+  .public-header__logout-button:hover {
+    background-color: #2a2a2a;
+    border-color: #555555;
+    color: #e0e0e0;
+  }
+
+  .public-header__profile-button:hover {
+    background-color: #2a2a2a;
+  }
+}

@@ -104,10 +104,10 @@ Each increment is independently deployable and testable.
 
 ### Backend Tasks (User Story 1)
 
-- [ ] T019 [US1] Implement get_public_trips() method in backend/src/services/trip_service.py with privacy filters and eager loading
-- [ ] T020 [US1] Implement count_public_trips() method in backend/src/services/trip_service.py
-- [ ] T021 [US1] Add GET /trips/public endpoint to backend/src/api/trips.py with pagination parameters
-- [ ] T022 [US1] Write unit tests for get_public_trips() privacy filters in backend/tests/unit/test_trip_service_public.py
+- [x] T019 [US1] Implement get_public_trips() method in backend/src/services/trip_service.py with privacy filters and eager loading
+- [x] T020 [US1] Implement count_public_trips() method in backend/src/services/trip_service.py
+- [x] T021 [US1] Add GET /trips/public endpoint to backend/src/api/trips.py with pagination parameters
+- [x] T022 [US1] Write unit tests for get_public_trips() privacy filters in backend/tests/unit/test_trip_service_public.py
 - [ ] T023 [US1] Write integration tests for GET /trips/public endpoint in backend/tests/integration/test_public_feed_api.py
 - [ ] T024 [US1] Write contract tests for OpenAPI schema validation in backend/tests/contract/test_public_feed_contract.py
 
@@ -151,10 +151,10 @@ Each increment is independently deployable and testable.
 
 ### Frontend Tasks (User Story 2)
 
-- [ ] T035 [P] [US2] Create PublicHeader component in frontend/src/components/layout/PublicHeader.tsx
-- [ ] T036 [P] [US2] Create PublicHeader CSS in frontend/src/components/layout/PublicHeader.css
-- [ ] T037 [US2] Integrate PublicHeader into PublicFeedPage in frontend/src/pages/PublicFeedPage.tsx
-- [ ] T038 [US2] Write unit tests for PublicHeader auth states in frontend/tests/unit/PublicHeader.test.tsx
+- [x] T035 [P] [US2] Create PublicHeader component in frontend/src/components/layout/PublicHeader.tsx
+- [x] T036 [P] [US2] Create PublicHeader CSS in frontend/src/components/layout/PublicHeader.css
+- [x] T037 [US2] Integrate PublicHeader into PublicFeedPage in frontend/src/pages/PublicFeedPage.tsx
+- [x] T038 [US2] Write unit tests for PublicHeader auth states in frontend/tests/unit/PublicHeader.test.tsx
 
 **Dependencies**: Requires User Story 1 (PublicFeedPage exists)
 **Parallel Opportunities**: T035-T036 can run in parallel
