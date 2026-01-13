@@ -40,7 +40,7 @@ user_router = APIRouter(tags=["trips"])
     response_model=PublicTripListResponse,
     status_code=status.HTTP_200_OK,
     summary="Get public trips feed",
-    description="Get paginated list of published trips from public profiles (Feature 013).",
+    description="Get paginated list of published trips with public visibility (Feature 013).",
 )
 async def get_public_trips(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
@@ -50,12 +50,13 @@ async def get_public_trips(
     """
     T021: Get public trips feed for homepage (Feature 013).
 
-    Returns published trips from users with public profiles.
+    Returns published trips with public trip visibility.
     No authentication required - fully public endpoint.
 
     Privacy filtering (FR-003):
     - Only trips with status=PUBLISHED
-    - Only trips from users with profile_visibility='public'
+    - Only trips with trip_visibility='public'
+    - Note: profile_visibility does NOT affect trip visibility (only controls profile info)
 
     Pagination:
     - Default: 20 trips per page

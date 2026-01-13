@@ -974,17 +974,16 @@ class TripService:
         self, page: int = 1, limit: int = 20
     ) -> tuple[list[Trip], int]:
         """
-        T019: Get published trips from public profiles for homepage feed (Feature 013).
+        T019: Get published trips with public visibility for homepage feed (Feature 013).
 
         Privacy filtering (FR-003):
         - Only trips with status=PUBLISHED
-        - Only trips from users with profile_visibility='public'
-        - Only trips with trip_visibility='public' (Feature 013 enhancement)
+        - Only trips with trip_visibility='public' (Feature 013)
+        - profile_visibility does NOT affect trip visibility (only controls profile info visibility)
 
         Performance optimization (SC-004):
         - Eager loads user, first photo (display_order=0), first location (sequence=0)
         - Uses composite index idx_trips_public_feed on (status, published_at DESC)
-        - Uses index idx_users_profile_visibility on profile_visibility
         - Uses index idx_users_trip_visibility on trip_visibility
 
         Args:
@@ -1009,7 +1008,6 @@ class TripService:
             .join(User, Trip.user_id == User.id)
             .where(
                 Trip.status == TripStatus.PUBLISHED,  # Only published trips
-                User.profile_visibility == "public",  # Only public profiles
                 User.trip_visibility == "public",     # Only public trips (Feature 013)
             )
             .options(
@@ -1037,9 +1035,10 @@ class TripService:
 
     async def count_public_trips(self) -> int:
         """
-        T020: Count published trips from public profiles (Feature 013).
+        T020: Count published trips with public visibility (Feature 013).
 
         Uses same privacy filters as get_public_trips().
+        Note: profile_visibility does NOT affect trip visibility (only controls profile info visibility).
 
         Returns:
             Total count of public trips
@@ -1053,7 +1052,6 @@ class TripService:
             .join(User, Trip.user_id == User.id)
             .where(
                 Trip.status == TripStatus.PUBLISHED,
-                User.profile_visibility == "public",
                 User.trip_visibility == "public",  # Feature 013
             )
         )
