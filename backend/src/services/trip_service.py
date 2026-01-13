@@ -938,7 +938,7 @@ class TripService:
                 User.profile_visibility == "public",  # Only public profiles
             )
             .options(
-                selectinload(Trip.user),  # Eager load user
+                selectinload(Trip.user).selectinload(User.profile),  # Eager load user with profile
                 selectinload(Trip.photos),  # Eager load photos
                 selectinload(Trip.locations),  # Eager load locations
             )
