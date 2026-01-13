@@ -329,6 +329,82 @@
   }
 }
 
+/* Privacy Settings Section (Feature 013) */
+.profile-privacy-section {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(107, 114, 59, 0.05) 0%, rgba(107, 114, 59, 0.02) 100%);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+}
+
+.privacy-section-title {
+  margin: 0 0 var(--space-3) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-forest);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.privacy-section-title::before {
+  content: '🔒';
+  font-size: var(--text-lg);
+}
+
+/* Privacy Badge Styling */
+.privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--transition-fast);
+}
+
+/* Public visibility */
+.privacy-badge[data-visibility="public"] {
+  background: rgba(34, 197, 94, 0.1);
+  color: #166534;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* Followers visibility */
+.privacy-badge[data-visibility="followers"] {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Private visibility */
+.privacy-badge[data-visibility="private"] {
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.privacy-badge::before {
+  font-size: var(--text-sm);
+}
+
+.privacy-badge[data-visibility="public"]::before {
+  content: '🌍';
+}
+
+.privacy-badge[data-visibility="followers"]::before {
+  content: '👥';
+}
+
+.privacy-badge[data-visibility="private"]::before {
+  content: '🔒';
+}
+
 /* Animations */
 @keyframes slideUp {
   from {
