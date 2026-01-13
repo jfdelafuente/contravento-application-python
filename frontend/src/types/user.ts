@@ -13,6 +13,12 @@ export interface User {
   /** Email verification status (per FR-008) */
   is_verified: boolean;
 
+  /** Profile visibility setting (Feature 013) */
+  profile_visibility: 'public' | 'private';
+
+  /** Trip visibility setting (Feature 013) */
+  trip_visibility: 'public' | 'followers' | 'private';
+
   /** Account creation timestamp */
   created_at: string; // ISO 8601
 
@@ -21,6 +27,18 @@ export interface User {
 
   /** Optional statistics */
   stats?: UserStats;
+
+  /** Optional profile photo URL */
+  photo_url?: string;
+
+  /** Optional bio text */
+  bio?: string;
+
+  /** Optional location */
+  location?: string;
+
+  /** Optional cycling type */
+  cycling_type?: string;
 }
 
 export interface UserProfile {

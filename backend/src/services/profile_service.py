@@ -112,6 +112,7 @@ class ProfileService:
             location=profile.location if (profile.show_location or is_owner) else None,
             cycling_type=profile.cycling_type,
             profile_visibility=user.profile_visibility,
+            trip_visibility=user.trip_visibility,
             show_email=profile.show_email,
             show_location=profile.show_location,
             followers_count=profile.followers_count,
@@ -177,6 +178,13 @@ class ProfileService:
                 raise ValueError("profile_visibility debe ser 'public' o 'private'")
             user.profile_visibility = update_data.profile_visibility
             logger.info(f"Profile visibility updated to '{update_data.profile_visibility}' for user: {username}")
+
+        # Update trip_visibility in User model (Feature 013)
+        if update_data.trip_visibility is not None:
+            if update_data.trip_visibility not in ['public', 'followers', 'private']:
+                raise ValueError("trip_visibility debe ser 'public', 'followers' o 'private'")
+            user.trip_visibility = update_data.trip_visibility
+            logger.info(f"Trip visibility updated to '{update_data.trip_visibility}' for user: {username}")
 
         if update_data.show_email is not None:
             profile.show_email = update_data.show_email

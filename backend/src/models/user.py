@@ -42,6 +42,7 @@ class User(Base):
         hashed_password: Bcrypt hashed password
         role: User role (user/admin) - default: user
         profile_visibility: Profile visibility (public/private) - default: public
+        trip_visibility: Trip visibility (public/followers/private) - default: public
         is_active: Account active flag (for soft delete/ban)
         is_verified: Email verification status
         created_at: Account creation timestamp
@@ -100,6 +101,14 @@ class User(Base):
         nullable=False,
         index=True,
         doc="Profile visibility: 'public' or 'private' - default: public",
+    )
+
+    trip_visibility: Mapped[str] = mapped_column(
+        String(20),
+        default='public',
+        nullable=False,
+        index=True,
+        doc="Trip visibility: 'public', 'followers', or 'private' - default: public",
     )
 
     # Account status
