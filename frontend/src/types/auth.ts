@@ -1,6 +1,7 @@
 // src/types/auth.ts
 
 import { User } from './user';
+import type { RegisterFormData } from './forms';
 
 export interface AuthContextType {
   /** Current authenticated user (null if not authenticated) */
@@ -94,6 +95,3 @@ export const AUTH_ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   NETWORK_ERROR: 'Error de conexión. Verifica tu internet.',
   UNKNOWN_ERROR: 'Ha ocurrido un error inesperado. Inténtalo de nuevo.',
 };
-
-// Import RegisterFormData from forms.ts (will be created next)
-export type { RegisterFormData } from './forms';

@@ -45,7 +45,13 @@ export const authService = {
       throw new Error(data.error?.message || 'Registration failed');
     }
 
-    return data.data.user;
+    // Transform backend response to User interface
+    const { id, ...rest } = data.data.user;
+    return {
+      user_id: id,
+      created_at: new Date().toISOString(), // Backend should provide this
+      ...rest,
+    };
   },
 
   /**
