@@ -21,14 +21,28 @@ class UserResponse(BaseModel):
         username: Username
         email: Email address
         is_verified: Email verification status
+        profile_visibility: Profile visibility setting (Feature 013)
+        trip_visibility: Trip visibility setting (Feature 013)
         created_at: Account creation timestamp
+        photo_url: Profile photo URL (optional)
+        bio: Profile biography (optional)
+        location: User location (optional)
+        cycling_type: Type of cycling (optional)
     """
 
     user_id: str = Field(..., description="Unique user identifier (UUID)")
     username: str = Field(..., description="Username")
     email: str = Field(..., description="Email address")
     is_verified: bool = Field(..., description="Email verification status")
+    profile_visibility: str = Field(..., description="Profile visibility: 'public' or 'private'")
+    trip_visibility: str = Field(..., description="Trip visibility: 'public', 'followers', or 'private'")
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
+
+    # Optional profile fields
+    photo_url: Optional[str] = Field(None, description="Profile photo URL")
+    bio: Optional[str] = Field(None, description="Profile biography")
+    location: Optional[str] = Field(None, description="User location")
+    cycling_type: Optional[str] = Field(None, description="Type of cycling")
 
     class Config:
         """Pydantic config."""
@@ -40,7 +54,13 @@ class UserResponse(BaseModel):
                 "username": "maria_garcia",
                 "email": "maria@example.com",
                 "is_verified": True,
+                "profile_visibility": "public",
+                "trip_visibility": "public",
                 "created_at": "2025-12-23T10:30:00Z",
+                "photo_url": "https://storage.example.com/photos/user123.jpg",
+                "bio": "Ciclista apasionada de las rutas de montaña",
+                "location": "Madrid, España",
+                "cycling_type": "mountain",
             }
         }
 
@@ -55,12 +75,24 @@ class UserResponse(BaseModel):
         Returns:
             UserResponse instance
         """
+        # Check if profile is already loaded to avoid triggering lazy load
+        # Use hasattr to check if the relationship is loaded in the instance
+        profile = None
+        if hasattr(user, '__dict__') and 'profile' in user.__dict__:
+            profile = user.profile
+
         return cls(
             user_id=user.id,
             username=user.username,
             email=user.email,
             is_verified=user.is_verified,
+            profile_visibility=user.profile_visibility,
+            trip_visibility=user.trip_visibility,
             created_at=user.created_at,
+            photo_url=profile.profile_photo_url if profile else None,
+            bio=profile.bio if profile else None,
+            location=profile.location if profile else None,
+            cycling_type=profile.cycling_type if profile else None,
         )
 
 
