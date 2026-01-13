@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.trip import Tag, Trip, TripDifficulty, TripLocation, TripPhoto, TripStatus, TripTag
+from src.models.user import User
 from src.schemas.trip import LocationInput, TripCreateRequest
 from src.services.stats_service import StatsService
 from src.utils.html_sanitizer import sanitize_html
@@ -896,3 +897,94 @@ class TripService:
         logger.debug(f"Retrieved {len(tags)} tags ordered by usage count")
 
         return list(tags)
+
+    async def get_public_trips(
+        self, page: int = 1, limit: int = 20
+    ) -> tuple[list[Trip], int]:
+        """
+        T019: Get published trips from public profiles for homepage feed (Feature 013).
+
+        Privacy filtering (FR-003):
+        - Only trips with status=PUBLISHED
+        - Only trips from users with profile_visibility='public'
+
+        Performance optimization (SC-004):
+        - Eager loads user, first photo (display_order=0), first location (sequence=0)
+        - Uses composite index idx_trips_public_feed on (status, published_at DESC)
+        - Uses index idx_users_profile_visibility on profile_visibility
+
+        Args:
+            page: Page number (1-indexed, default 1)
+            limit: Items per page (1-50, default 20)
+
+        Returns:
+            Tuple of (trips list, total count)
+
+        Examples:
+            trips, total = await service.get_public_trips(page=1, limit=20)
+            # Returns: ([Trip(...), Trip(...)], 127)
+        """
+        # Calculate offset from page number
+        offset = (page - 1) * limit
+
+        # Main query with privacy filters and eager loading
+        # Note: We eager load all photos/locations but will only use first in response
+        # This is simpler than conditional loading and still performant for pagination
+        query = (
+            select(Trip)
+            .join(User, Trip.user_id == User.id)
+            .where(
+                Trip.status == TripStatus.PUBLISHED,  # Only published trips
+                User.profile_visibility == "public",  # Only public profiles
+            )
+            .options(
+                selectinload(Trip.user),  # Eager load user
+                selectinload(Trip.photos),  # Eager load photos
+                selectinload(Trip.locations),  # Eager load locations
+            )
+            .order_by(Trip.published_at.desc())  # Newest first (uses index)
+            .limit(limit)
+            .offset(offset)
+        )
+
+        # Execute query
+        result = await self.db.execute(query)
+        trips = result.scalars().unique().all()
+
+        # Count total (with same privacy filters)
+        total = await self.count_public_trips()
+
+        logger.debug(
+            f"Retrieved {len(trips)} public trips (page={page}, limit={limit}, total={total})"
+        )
+
+        return list(trips), total
+
+    async def count_public_trips(self) -> int:
+        """
+        T020: Count published trips from public profiles (Feature 013).
+
+        Uses same privacy filters as get_public_trips().
+
+        Returns:
+            Total count of public trips
+
+        Examples:
+            total = await service.count_public_trips()
+            # Returns: 127
+        """
+        query = (
+            select(func.count(Trip.trip_id))
+            .join(User, Trip.user_id == User.id)
+            .where(
+                Trip.status == TripStatus.PUBLISHED,
+                User.profile_visibility == "public",
+            )
+        )
+
+        result = await self.db.execute(query)
+        count = result.scalar() or 0
+
+        logger.debug(f"Counted {count} public trips")
+
+        return count
