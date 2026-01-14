@@ -43,7 +43,7 @@ poetry run alembic history
 
 ### Development Servers (Recommended)
 
-**Windows PowerShell - Simple Server Management:**
+**Windows PowerShell:**
 
 ```powershell
 # Backend Server (Terminal 1)
@@ -64,6 +64,31 @@ poetry run alembic history
 # 1. Open two PowerShell terminals in project root
 # 2. Terminal 1: .\run_backend.ps1
 # 3. Terminal 2: .\run_frontend.ps1
+# 4. Access: http://localhost:5173 (frontend) and http://localhost:8000/docs (API)
+# 5. Press Ctrl+C in each terminal to stop
+```
+
+**Linux/Mac (Bash):**
+
+```bash
+# Backend Server (Terminal 1)
+./run_backend.sh             # Start backend (default command)
+./run_backend.sh start       # Start backend at http://localhost:8000
+./run_backend.sh stop        # Stop backend
+./run_backend.sh verify      # Check backend status
+./run_backend.sh restart     # Restart backend
+
+# Frontend Server (Terminal 2)
+./run_frontend.sh            # Start frontend (default command)
+./run_frontend.sh start      # Start frontend at http://localhost:5173
+./run_frontend.sh stop       # Stop frontend
+./run_frontend.sh verify     # Check frontend status
+./run_frontend.sh restart    # Restart frontend
+
+# Typical workflow:
+# 1. Open two terminal windows in project root
+# 2. Terminal 1: ./run_backend.sh
+# 3. Terminal 2: ./run_frontend.sh
 # 4. Access: http://localhost:5173 (frontend) and http://localhost:8000/docs (API)
 # 5. Press Ctrl+C in each terminal to stop
 ```
