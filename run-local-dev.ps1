@@ -541,6 +541,11 @@ if ($WithFrontend) {
 Write-Host "============================================" -ForegroundColor Blue
 Write-Host ""
 
+# Store absolute paths before changing directories
+$projectRoot = (Get-Location).Path
+$backendPath = Join-Path $projectRoot "backend"
+$frontendPath = Join-Path $projectRoot "frontend"
+
 Set-Location backend
 
 try {
@@ -572,7 +577,6 @@ try {
     Write-Host "[INFO] API Docs: http://localhost:8000/docs" -ForegroundColor Blue
 
     # Start uvicorn with hot reload in separate window
-    $backendPath = Join-Path (Get-Location).Path "backend"
     Start-Process powershell -ArgumentList @(
         "-NoExit",
         "-Command",
@@ -600,10 +604,6 @@ try {
             Write-Host "[ERROR] npm not found. Install Node.js from: https://nodejs.org/" -ForegroundColor Red
             exit 1
         }
-
-        # Get absolute path to frontend directory
-        Set-Location (Get-Item $PSScriptRoot).FullName
-        $frontendPath = Join-Path (Get-Location).Path "frontend"
 
         # Check if .env.development exists, create from example if not
         if (!(Test-Path "$frontendPath\.env.development")) {
