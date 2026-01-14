@@ -84,9 +84,9 @@ export const PublicHeader: React.FC = () => {
                 onClick={handleDashboardClick}
                 aria-label={`Ir al dashboard de ${user?.username}`}
               >
-                {user?.profile?.photo_url ? (
+                {user?.photo_url ? (
                   <img
-                    src={user.profile.photo_url}
+                    src={user.photo_url}
                     alt={user.username}
                     className="public-header__profile-photo"
                   />
