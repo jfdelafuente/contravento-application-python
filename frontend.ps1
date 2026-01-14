@@ -49,18 +49,18 @@ function Stop-Server {
         return $true
     }
 
-    $pid = Get-ProcessOnPort -Port $PORT
-    if ($null -eq $pid) {
+    $processId = Get-ProcessOnPort -Port $PORT
+    if ($null -eq $processId) {
         Write-Host "[WARNING] Port $PORT is in use but cannot find process" -ForegroundColor Yellow
         return $false
     }
 
     try {
-        Stop-Process -Id $pid -Force -ErrorAction Stop
+        Stop-Process -Id $processId -Force -ErrorAction Stop
         Start-Sleep -Seconds 2
 
         if (Test-Port -Port $PORT) {
-            Write-Host "[ERROR] Failed to stop $SERVER_NAME (PID: $pid)" -ForegroundColor Red
+            Write-Host "[ERROR] Failed to stop $SERVER_NAME (PID: $processId)" -ForegroundColor Red
             return $false
         }
         else {
@@ -162,11 +162,11 @@ function Verify-Server {
         Write-Host "LISTENING" -ForegroundColor Green
 
         # Try to get process info
-        $pid = Get-ProcessOnPort -Port $PORT
-        if ($pid) {
-            $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+        $processId = Get-ProcessOnPort -Port $PORT
+        if ($processId) {
+            $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
             if ($process) {
-                Write-Host "  Process: $($process.ProcessName) (PID: $pid)" -ForegroundColor Gray
+                Write-Host "  Process: $($process.ProcessName) (PID: $processId)" -ForegroundColor Gray
                 Write-Host "  Started: $($process.StartTime)" -ForegroundColor Gray
             }
         }
