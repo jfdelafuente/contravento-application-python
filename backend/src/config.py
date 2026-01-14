@@ -103,6 +103,14 @@ class Settings(BaseSettings):
         description="Path to blocked words file relative to backend/",
     )
 
+    # Public Feed - Pagination
+    public_feed_page_size: int = Field(
+        default=8, ge=1, le=100, description="Default items per page in public feed"
+    )
+    public_feed_max_page_size: int = Field(
+        default=50, ge=1, le=100, description="Maximum items per page in public feed"
+    )
+
     # CORS (stored as Union to prevent automatic JSON parsing from env var)
     cors_origins: Union[str, list[str]] = Field(
         default="http://localhost:3000,http://localhost:5173",

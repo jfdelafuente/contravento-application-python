@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, get_optional_current_user
+from src.config import settings
 from src.models.trip import TripStatus
 from src.models.user import User
 from src.schemas.trip import (
@@ -44,7 +45,12 @@ user_router = APIRouter(tags=["trips"])
 )
 async def get_public_trips(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
-    limit: int = Query(20, ge=1, le=50, description="Items per page (max 50)"),
+    limit: int = Query(
+        default=None,
+        ge=1,
+        le=None,
+        description=f"Items per page (default: {settings.public_feed_page_size}, max: {settings.public_feed_max_page_size})",
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> PublicTripListResponse:
     """
@@ -59,12 +65,12 @@ async def get_public_trips(
     - Note: profile_visibility does NOT affect trip visibility (only controls profile info)
 
     Pagination:
-    - Default: 20 trips per page
-    - Max: 50 trips per page
+    - Default: Configurable via PUBLIC_FEED_PAGE_SIZE (default 8)
+    - Max: Configurable via PUBLIC_FEED_MAX_PAGE_SIZE (default 50)
 
     Args:
         page: Page number (1-indexed, default 1)
-        limit: Items per page (1-50, default 20)
+        limit: Items per page (configurable, default 8, max 50)
         db: Database session
 
     Returns:
@@ -94,6 +100,12 @@ async def get_public_trips(
             }
         }
     """
+    # Apply default limit and validate max
+    if limit is None:
+        limit = settings.public_feed_page_size
+    elif limit > settings.public_feed_max_page_size:
+        limit = settings.public_feed_max_page_size
+
     try:
         service = TripService(db)
         trips, total = await service.get_public_trips(page=page, limit=limit)
