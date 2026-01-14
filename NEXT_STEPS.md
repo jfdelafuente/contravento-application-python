@@ -1,16 +1,17 @@
 # ContraVento - Próximos Pasos
 
 **Última actualización**: 2026-01-14
-**Estado actual**: Feature 013 COMPLETADA y lista para merge, Issue #012 pausado
+**Estado actual**: Feature 013 MERGEADA a develop, Issue #012 pausado
 
 ---
 
 ## Estado Actual ✅
 
-### Feature 013: Public Trips Feed (✅ COMPLETADA - LISTA PARA MERGE)
+### Feature 013: Public Trips Feed (✅ MERGEADA A DEVELOP)
 
-**Branch**: `013-public-trips-feed` (active)
-**Status**: ✅ **COMPLETADA** - Lista para merge a develop
+**Branch**: `013-public-trips-feed` → **MERGED to develop**
+**Status**: ✅ **MERGEADA** - En develop, lista para deployment
+**Merge date**: 2026-01-14
 **Priority**: P1 (Critical - Homepage pública)
 
 **Implementación Completada**:
@@ -38,33 +39,35 @@
 - ✅ Anonymous trip access: Backend optional auth + Frontend public route (TC-US4-004)
 
 **Documentación Generada**:
+
 - `specs/013-public-trips-feed/TESTING_RESULTS.md` - Resultados E2E testing
 - `specs/013-public-trips-feed/E2E_TESTING_GUIDE.md` - Guía de testing completa
-- `specs/013-public-trips-feed/TC-US2-010_MOBILE_TESTING_GUIDE.md` - Guía de testing móvil (diferida)
+- `specs/013-public-trips-feed/spec.md` - Especificación completa
+- `specs/013-public-trips-feed/plan.md` - Plan de implementación
+- `specs/013-public-trips-feed/tasks.md` - Tareas ejecutadas
 
-**Commits realizados**: 14 commits (últimos: fix trip details access)
+**Commits mergeados**: 15 commits con implementación completa
 
-**Tiempo invertido**: ~5 horas (design system + E2E testing + bug fixes)
+**Tiempo invertido**: ~5.5 horas (design system + E2E testing + bug fixes + documentación)
 
 **Decisión de Lanzamiento - MVP Desktop-First**:
 
 - ✅ **MVP Funcional**: Feature completa y estable para experiencia desktop
 - ✅ **85.2% Test Coverage**: 23/27 tests E2E pasados (cobertura suficiente para MVP)
-- ⏭️ **Tests Diferidos a Fase 2** (Post-merge - No bloquean lanzamiento):
+- ✅ **Mergeada a develop**: Lista para deployment a staging/production
+- ⏭️ **Tests Diferidos a Fase 2** (Post-deployment - Optimización continua):
   - TC-US1-007: Loading state animation (mejora visual, no funcional)
   - TC-US2-009: Error handling logout (mejora de UX, no crítica)
   - TC-US2-010: Mobile responsive header (diferido a optimización móvil general)
   - TC-US3-005: Eager loading verification (validación técnica de performance)
 
-**Justificación del Diferimiento**:
+**Archivos Principales Añadidos/Modificados**:
 
-Las pruebas móviles (TC-US2-010) y mejoras de UX (loading states, error handling) no son críticas para el lanzamiento del MVP. La feature está **funcionalmente completa** y **estable** en desktop, que es el target inicial. Las optimizaciones móviles se abordarán en una fase posterior de mejora continua.
-
-**Próximos Pasos**:
-
-1. ✅ **Feature COMPLETADA** - Todas las User Stories implementadas y validadas
-2. 🎯 **ACCIÓN INMEDIATA**: Merge to develop (crear PR desde `013-public-trips-feed`)
-3. ⏭️ Tests diferidos a "Fase 2 - Optimización Móvil" (post-lanzamiento)
+- Backend: `src/api/trips.py`, `src/services/trip_service.py`, `src/schemas/trip.py`
+- Frontend: `pages/PublicFeedPage.tsx`, `components/PublicHeader.tsx`, `components/PublicTripCard.tsx`
+- Tests: 6 archivos de testing (unit, integration, contract)
+- Migrations: 2 migraciones de base de datos
+- Docs: 7 archivos de especificación y guías
 
 ---
 
@@ -212,56 +215,7 @@ Las pruebas móviles (TC-US2-010) y mejoras de UX (loading states, error handlin
 
 ## Próximos Pasos Inmediatos 🎯
 
-### Opción A: Merge Feature 013 (Public Trips Feed) - RECOMENDADO ⭐
-
-**Prioridad**: Alta (homepage pública crítica)
-
-**Estimación**: 15 minutos (crear PR y merge)
-
-**Branch**: `013-public-trips-feed` (completado)
-
-**Status**: ✅ **COMPLETADO** - Listo para merge a develop
-
-**Feature Completada**:
-
-- ✅ Todas las User Stories implementadas y validadas (US1-US4)
-- ✅ 23/27 tests E2E pasados (85.2% coverage - MVP desktop)
-- ✅ Backend + Frontend funcionando correctamente
-- ✅ Documentación completa generada
-
-**Acción Inmediata**:
-
-1. **Crear Pull Request** (5 min)
-   - Desde `013-public-trips-feed` hacia `develop`
-   - Incluir resumen de features implementadas
-   - Referenciar documentación de testing
-
-2. **Review y Merge** (10 min)
-   - Revisar cambios en PR
-   - Confirmar que no hay conflictos
-   - Merge a develop
-
-**Comandos**:
-
-```bash
-# Verificar branch actual
-git checkout 013-public-trips-feed
-git status
-
-# Push final (si hay cambios sin pushear)
-git push origin 013-public-trips-feed
-
-# Crear PR usando GitHub CLI o interfaz web
-gh pr create --base develop --head 013-public-trips-feed \
-  --title "Feature 013: Public Trips Feed (MVP Desktop)" \
-  --body "Implementa homepage pública con feed de viajes. Ver specs/013-public-trips-feed/TESTING_RESULTS.md"
-```
-
-**Resultado**: Homepage pública en develop, lista para deployment a staging
-
----
-
-### Opción B: Completar Issue #012 (TypeScript) - Alternativa
+### Opción A: Completar Issue #012 (TypeScript Code Quality) - RECOMENDADO ⭐
 
 **Prioridad**: Alta (desbloquea production builds)
 **Estimación**: 1.5-2 horas
@@ -293,7 +247,7 @@ npm run build:prod
 
 ---
 
-### Opción B: Testing/QA Suite (Validación Completa)
+### Opción B: Testing/QA Suite (Validación Completa) - Alternativa
 
 **Prioridad**: Alta (asegurar calidad antes de producción)
 **Estimación**: 4-8 horas
@@ -393,7 +347,7 @@ mkdir -p .github/workflows
 - ✅ 009: GPS Coordinates Frontend
 - ✅ 010: Reverse Geocoding
 - ✅ 011: Frontend Deployment Integration
-- ✅ 013: Public Trips Feed (MVP Desktop - lista para merge)
+- ✅ 013: Public Trips Feed (MVP Desktop - mergeada 2026-01-14)
 
 ### Issues Pausados (1/15)
 
@@ -565,4 +519,4 @@ poetry run pytest --cov=src
 
 **Prioridad Máxima**: Estabilización > Expansión
 
-El proyecto tiene una base sólida con 11 features completadas. Ahora es momento de asegurar calidad (TypeScript + Testing) antes de añadir más funcionalidades.
+El proyecto tiene una base sólida con **12 features completadas** (incluyendo Feature 013 Public Trips Feed recientemente mergeada). Ahora es momento de asegurar calidad (TypeScript + Testing) antes de añadir más funcionalidades o hacer deployment a staging/production.
