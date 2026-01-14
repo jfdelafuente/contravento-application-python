@@ -58,7 +58,7 @@ const STORAGE_KEY = 'trip_form_draft';
 
 export const useTripForm = ({
   tripId,
-  initialData,
+  initialData: _initialData,
   isEditMode = false,
   enablePersistence = true,
 }: UseTripFormOptions = {}): UseTripFormReturn => {
@@ -141,7 +141,7 @@ export const useTripForm = ({
         // Sanitize data: convert empty strings to null for optional fields
         const sanitizedData: TripCreateInput = {
           ...data,
-          difficulty: data.difficulty === '' ? null : data.difficulty,
+          difficulty: data.difficulty || null,
           distance_km: !data.distance_km || isNaN(data.distance_km as any) ? null : data.distance_km,
           end_date: data.end_date === '' ? null : data.end_date,
         };

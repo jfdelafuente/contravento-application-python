@@ -34,7 +34,6 @@ export const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({
           const stepNumber = index + 1;
           const isCompleted = stepNumber < currentStep;
           const isActive = stepNumber === currentStep;
-          const isPending = stepNumber > currentStep;
 
           const stepClass = `form-step-indicator__step ${
             isCompleted

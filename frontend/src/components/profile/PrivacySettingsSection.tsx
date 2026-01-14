@@ -49,8 +49,7 @@ export interface PrivacySettingsSectionProps {
 export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
   register,
   errors,
-  profileVisibility = 'public',
-  tripVisibility = 'public',
+  // profileVisibility and tripVisibility not used - future enhancement
 }) => {
   return (
     <section className="privacy-settings-section" aria-labelledby="privacy-settings-title">

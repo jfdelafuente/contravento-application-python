@@ -242,16 +242,9 @@ export const TripGallery: React.FC<TripGalleryProps> = ({ photos, tripTitle }) =
         animation={{
           fade: 250,
           swipe: 500,
-          easing: {
-            fade: 'ease',
-            swipe: 'ease-out',
-            navigation: 'ease-in-out',
-          },
         }}
         controller={{
           closeOnBackdropClick: true,
-          closeOnPullDown: true,
-          closeOnPullUp: true,
         }}
         render={{
           buttonPrev: photos.length <= 1 ? () => null : undefined,

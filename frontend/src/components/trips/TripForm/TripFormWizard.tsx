@@ -77,7 +77,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
   });
 
   const { handleSubmit, trigger, formState } = methods;
-  const { errors, isDirty } = formState;
+  const { isDirty } = formState;
 
   // Warn about unsaved changes when navigating away
   useEffect(() => {
@@ -139,8 +139,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
 
     try {
       const formData = methods.getValues();
-      const photos = (formData as any).selectedPhotos || [];
-      await onSubmit(formData, true, photos); // isDraft = true, photos will be uploaded
+      await onSubmit(formData, true); // isDraft = true
 
       toast.success('Borrador guardado correctamente', {
         duration: 3000,
@@ -179,8 +178,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const photos = (data as any).selectedPhotos || [];
-      await onSubmit(data, false, photos); // isDraft = false, upload photos
+      await onSubmit(data, false); // isDraft = false
 
       toast.success(
         isEditMode ? 'Viaje actualizado correctamente' : 'Viaje publicado correctamente',

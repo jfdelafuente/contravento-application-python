@@ -4,7 +4,7 @@
  * Global test configuration and mocks for Vitest + React Testing Library
  */
 
-import { expect, afterEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
@@ -37,7 +37,7 @@ Object.defineProperty(document, 'fullscreenElement', {
 });
 
 // Helper to set fullscreen element in tests
-(global as any).setFullscreenElement = (element: Element | null) => {
+(globalThis as any).setFullscreenElement = (element: Element | null) => {
   _fullscreenElement = element;
 };
 
@@ -62,7 +62,7 @@ Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
 });
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
+globalThis.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}
   observe() {}
@@ -73,7 +73,7 @@ global.IntersectionObserver = class IntersectionObserver {
 } as any;
 
 // Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
+globalThis.ResizeObserver = class ResizeObserver {
   constructor() {}
   disconnect() {}
   observe() {}

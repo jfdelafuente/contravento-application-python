@@ -32,7 +32,7 @@ export const PhotoCropModal: React.FC<PhotoCropModalProps> = ({
   const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 

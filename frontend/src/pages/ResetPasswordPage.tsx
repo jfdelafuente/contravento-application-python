@@ -49,7 +49,7 @@ export const ResetPasswordPage: React.FC = () => {
     }, 3000);
   };
 
-  const handleTokenError = (code: string, message: string) => {
+  const handleTokenError = (_code: string, message: string) => {
     setTokenError(message);
     setErrorMessage(null);
     setShowForm(false);

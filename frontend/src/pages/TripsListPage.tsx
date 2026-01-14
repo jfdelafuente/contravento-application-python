@@ -45,7 +45,6 @@ export const TripsListPage: React.FC = () => {
     trips,
     total,
     isLoading,
-    refetch,
     currentPage,
     totalPages,
   } = useTripList({

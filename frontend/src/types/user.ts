@@ -22,7 +22,25 @@ export interface User {
   /** Account creation timestamp */
   created_at: string; // ISO 8601
 
-  /** Optional profile data */
+  /** Profile photo URL */
+  photo_url?: string;
+
+  /** Short biography (max 500 chars) */
+  bio?: string;
+
+  /** User location */
+  location?: string;
+
+  /** Cycling type preference */
+  cycling_type?: string;
+
+  /** Profile visibility setting */
+  profile_visibility?: 'public' | 'private';
+
+  /** Trip visibility setting */
+  trip_visibility?: 'public' | 'followers' | 'private';
+
+  /** Optional profile data (deprecated - use flat properties above) */
   profile?: UserProfile;
 
   /** Optional statistics */

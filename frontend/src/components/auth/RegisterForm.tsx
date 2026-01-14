@@ -42,10 +42,11 @@ interface RegisterFormProps {
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onError }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  // For future email/username availability checking (T033) - currently disabled
+  const [emailAvailable] = useState<boolean | null>(null);
+  const [usernameAvailable] = useState<boolean | null>(null);
+  const [isCheckingEmail] = useState(false);
+  const [isCheckingUsername] = useState(false);
 
   const {
     register,

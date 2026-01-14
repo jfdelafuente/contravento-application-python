@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { LoginForm } from '../components/auth/LoginForm';
 import './LoginPage.css';
 
@@ -24,7 +23,6 @@ interface LocationState {
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

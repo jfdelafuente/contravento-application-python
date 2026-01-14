@@ -32,7 +32,7 @@ export const TripEditPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { handleSubmit, isSubmitting } = useTripForm({
+  const { handleSubmit } = useTripForm({
     tripId,
     isEditMode: true,
   });

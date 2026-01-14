@@ -71,7 +71,7 @@ export const useTripPhotos = ({
   tripId,
   initialPhotos = [],
   maxPhotos = 20,
-  chunkSize = 3,
+  chunkSize: _chunkSize = 3,
 }: UseTripPhotosOptions): UseTripPhotosReturn => {
   const [photos, setPhotos] = useState<PhotoFile[]>(initialPhotos);
 

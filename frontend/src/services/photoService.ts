@@ -34,7 +34,11 @@ export const uploadPhoto = async (
       onUploadProgress: onUploadProgress
         ? (progressEvent) => {
             if (progressEvent.total) {
-              onUploadProgress(progressEvent as ProgressEvent);
+              const progress = {
+                loaded: progressEvent.loaded,
+                total: progressEvent.total,
+              } as ProgressEvent;
+              onUploadProgress(progress);
             }
           }
         : undefined,

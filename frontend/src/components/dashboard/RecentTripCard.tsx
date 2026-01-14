@@ -1,6 +1,7 @@
 import React from 'react';
 import { TripSummary } from '../../types/trip';
-import { formatShortDate, formatDistance } from '../../utils/formatters';
+import { formatShortDate } from '../../utils/formatters';
+import { formatDistance } from '../../utils/tripHelpers';
 import './RecentTripCard.css';
 
 export interface RecentTripCardProps {
@@ -31,7 +32,7 @@ const RecentTripCard: React.FC<RecentTripCardProps> = ({ trip }) => {
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
-              <span>{trip.photos_count > 0 ? `${trip.photos_count} foto${trip.photos_count > 1 ? 's' : ''}` : 'Sin foto'}</span>
+              <span>{trip.photo_count > 0 ? `${trip.photo_count} foto${trip.photo_count > 1 ? 's' : ''}` : 'Sin foto'}</span>
             </div>
           )}
         </div>
@@ -60,16 +61,16 @@ const RecentTripCard: React.FC<RecentTripCardProps> = ({ trip }) => {
           </div>
 
           {/* Tags */}
-          {trip.tags && trip.tags.length > 0 && (
+          {trip.tag_names && trip.tag_names.length > 0 && (
             <div className="recent-trip-card__tags">
-              {trip.tags.slice(0, 3).map((tag, index) => (
+              {trip.tag_names.slice(0, 3).map((tag: string, index: number) => (
                 <span key={index} className="recent-trip-card__tag">
                   {tag}
                 </span>
               ))}
-              {trip.tags.length > 3 && (
+              {trip.tag_names.length > 3 && (
                 <span className="recent-trip-card__tag recent-trip-card__tag--more">
-                  +{trip.tags.length - 3}
+                  +{trip.tag_names.length - 3}
                 </span>
               )}
             </div>
