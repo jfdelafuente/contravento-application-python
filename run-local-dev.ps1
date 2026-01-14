@@ -571,14 +571,13 @@ try {
     Write-Host "[SUCCESS] Starting backend at http://localhost:8000" -ForegroundColor Green
     Write-Host "[INFO] API Docs: http://localhost:8000/docs" -ForegroundColor Blue
 
-    # Start uvicorn with hot reload in background
-    $BackendJob = Start-Job -ScriptBlock {
-        param($BackendPath)
-        Set-Location $BackendPath
-        poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-    } -ArgumentList (Get-Location).Path
-
-    Set-Location ..
+    # Start uvicorn with hot reload in separate window
+    $backendPath = Join-Path (Get-Location).Path "backend"
+    Start-Process powershell -ArgumentList @(
+        "-NoExit",
+        "-Command",
+        "cd '$backendPath'; Write-Host 'ContraVento Backend Server' -ForegroundColor Cyan; Write-Host 'Running at: http://localhost:8000' -ForegroundColor Green; Write-Host 'API Docs: http://localhost:8000/docs' -ForegroundColor Green; Write-Host ''; poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
+    )
 
     # Start frontend if requested
     if ($WithFrontend) {
@@ -587,135 +586,66 @@ try {
             Write-Host "[ERROR] Port 5173 is already in use!" -ForegroundColor Red
             Write-Host "[INFO] Kill the process using port 5173:" -ForegroundColor Blue
             Write-Host "  Get-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess | Stop-Process" -ForegroundColor Blue
-            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
-            Stop-Job $BackendJob
-            Remove-Job $BackendJob
             exit 1
         }
 
         # Check if Node.js is installed
         if (!(Get-Command node -ErrorAction SilentlyContinue)) {
             Write-Host "[ERROR] Node.js not found. Install from: https://nodejs.org/" -ForegroundColor Red
-            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
-            Stop-Job $BackendJob
-            Remove-Job $BackendJob
             exit 1
         }
 
         # Check if npm is installed
         if (!(Get-Command npm -ErrorAction SilentlyContinue)) {
             Write-Host "[ERROR] npm not found. Install Node.js from: https://nodejs.org/" -ForegroundColor Red
-            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
-            Stop-Job $BackendJob
-            Remove-Job $BackendJob
             exit 1
         }
 
-        Set-Location frontend
+        # Get absolute path to frontend directory
+        Set-Location (Get-Item $PSScriptRoot).FullName
+        $frontendPath = Join-Path (Get-Location).Path "frontend"
 
         # Check if .env.development exists, create from example if not
-        if (!(Test-Path ".env.development")) {
-            if (Test-Path ".env.development.example") {
+        if (!(Test-Path "$frontendPath\.env.development")) {
+            if (Test-Path "$frontendPath\.env.development.example") {
                 Write-Host "[WARNING] .env.development not found. Creating from .env.development.example..." -ForegroundColor Yellow
-                Copy-Item .env.development.example .env.development
+                Copy-Item "$frontendPath\.env.development.example" "$frontendPath\.env.development"
                 Write-Host "[SUCCESS] Created .env.development with default values" -ForegroundColor Green
             } else {
                 Write-Host "[ERROR] .env.development.example not found!" -ForegroundColor Red
-                Set-Location ..
-                Stop-Job $BackendJob
-                Remove-Job $BackendJob
                 exit 1
             }
         }
 
         # Check if node_modules exists
-        if (!(Test-Path "node_modules")) {
+        if (!(Test-Path "$frontendPath\node_modules")) {
             Write-Host "[WARNING] node_modules not found. Running npm install..." -ForegroundColor Yellow
+            Push-Location $frontendPath
             npm install
+            Pop-Location
             Write-Host "[SUCCESS] Dependencies installed!" -ForegroundColor Green
         }
 
         Write-Host "[SUCCESS] Starting frontend at http://localhost:5173" -ForegroundColor Green
-        Write-Host "[INFO] Press Ctrl+C to stop both services" -ForegroundColor Blue
         Write-Host ""
 
-        # Start Vite dev server in background
-        $FrontendJob = Start-Job -ScriptBlock {
-            param($FrontendPath)
-            Set-Location $FrontendPath
-            npm run dev
-        } -ArgumentList (Get-Location).Path
+        # Start Vite dev server in separate window
+        Start-Process powershell -ArgumentList @(
+            "-NoExit",
+            "-Command",
+            "cd '$frontendPath'; Write-Host 'ContraVento Frontend Server' -ForegroundColor Cyan; Write-Host 'Running at: http://localhost:5173' -ForegroundColor Green; Write-Host ''; npm run dev"
+        )
 
-        Set-Location ..
-
-        # Setup cleanup handler
-        Register-EngineEvent PowerShell.Exiting -Action {
-            Write-Host ""
-            Write-Host "[INFO] Stopping services..." -ForegroundColor Blue
-            Stop-Job $BackendJob -ErrorAction SilentlyContinue
-            Stop-Job $FrontendJob -ErrorAction SilentlyContinue
-            Remove-Job $BackendJob -ErrorAction SilentlyContinue
-            Remove-Job $FrontendJob -ErrorAction SilentlyContinue
-            Write-Host "[SUCCESS] Services stopped" -ForegroundColor Green
-        }
-
-        # Wait for both jobs and show their output
-        try {
-            while ($true) {
-                Receive-Job $BackendJob
-                Receive-Job $FrontendJob
-                Start-Sleep -Milliseconds 100
-
-                # Check if jobs are still running
-                if ($BackendJob.State -eq 'Completed' -or $FrontendJob.State -eq 'Completed') {
-                    break
-                }
-            }
-        }
-        catch {
-            Write-Host ""
-            Write-Host "[INFO] Stopping services..." -ForegroundColor Blue
-        }
-        finally {
-            Stop-Job $BackendJob -ErrorAction SilentlyContinue
-            Stop-Job $FrontendJob -ErrorAction SilentlyContinue
-            Remove-Job $BackendJob -ErrorAction SilentlyContinue
-            Remove-Job $FrontendJob -ErrorAction SilentlyContinue
-            Write-Host "[SUCCESS] Services stopped" -ForegroundColor Green
-        }
+        Write-Host "[INFO] Backend and Frontend started in separate windows" -ForegroundColor Blue
+        Write-Host "[INFO] Close the terminal windows to stop the servers" -ForegroundColor Blue
+        Write-Host ""
+        Write-Host "[SUCCESS] Development environment ready!" -ForegroundColor Green
     } else {
-        Write-Host "[INFO] Press Ctrl+C to stop" -ForegroundColor Blue
         Write-Host ""
-
-        # Setup cleanup handler for backend only
-        Register-EngineEvent PowerShell.Exiting -Action {
-            Write-Host ""
-            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
-            Stop-Job $BackendJob -ErrorAction SilentlyContinue
-            Remove-Job $BackendJob -ErrorAction SilentlyContinue
-            Write-Host "[SUCCESS] Backend stopped" -ForegroundColor Green
-        }
-
-        # Wait for backend job and show its output
-        try {
-            while ($true) {
-                Receive-Job $BackendJob
-                Start-Sleep -Milliseconds 100
-
-                if ($BackendJob.State -eq 'Completed') {
-                    break
-                }
-            }
-        }
-        catch {
-            Write-Host ""
-            Write-Host "[INFO] Stopping backend..." -ForegroundColor Blue
-        }
-        finally {
-            Stop-Job $BackendJob -ErrorAction SilentlyContinue
-            Remove-Job $BackendJob -ErrorAction SilentlyContinue
-            Write-Host "[SUCCESS] Backend stopped" -ForegroundColor Green
-        }
+        Write-Host "[INFO] Backend started in a separate window" -ForegroundColor Blue
+        Write-Host "[INFO] Close the terminal window to stop the server" -ForegroundColor Blue
+        Write-Host ""
+        Write-Host "[SUCCESS] Development environment ready!" -ForegroundColor Green
     }
 }
 finally {
