@@ -41,9 +41,32 @@ poetry run alembic downgrade -1
 poetry run alembic history
 ```
 
-### Frontend Development
+### Development Servers (Recommended)
 
-**Development Server (SQLite Local - No Docker):**
+**Windows PowerShell - Simple Server Management:**
+
+```powershell
+# Backend Server (Terminal 1)
+.\backend.ps1 start      # Start backend at http://localhost:8000
+.\backend.ps1 stop       # Stop backend
+.\backend.ps1 verify     # Check backend status
+.\backend.ps1 restart    # Restart backend
+
+# Frontend Server (Terminal 2)
+.\frontend.ps1 start     # Start frontend at http://localhost:5173
+.\frontend.ps1 stop      # Stop frontend
+.\frontend.ps1 verify    # Check frontend status
+.\frontend.ps1 restart   # Restart frontend
+
+# Typical workflow:
+# 1. Open two PowerShell terminals in project root
+# 2. Terminal 1: .\backend.ps1 start
+# 3. Terminal 2: .\frontend.ps1 start
+# 4. Access: http://localhost:5173 (frontend) and http://localhost:8000/docs (API)
+# 5. Press Ctrl+C in each terminal to stop
+```
+
+**Manual Frontend Development (Alternative):**
 
 ```bash
 # Install dependencies (first time only)
