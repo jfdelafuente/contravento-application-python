@@ -1,11 +1,55 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-13
-**Estado actual**: Feature 011 completada, Issue #012 en progreso (74% completado)
+**Última actualización**: 2026-01-14
+**Estado actual**: Feature 013 en progreso (82% testing completado), Issue #012 pausado
 
 ---
 
 ## Estado Actual ✅
+
+### Feature 013: Public Trips Feed (EN PROGRESO)
+
+**Branch**: `013-public-trips-feed` (active)
+**Status**: ⏸️ **82% testing completado** (14/17 tests E2E pasados)
+**Priority**: P1 (Critical - Homepage pública)
+
+**Progreso**:
+
+- ✅ Backend: Endpoint `/trips/public` con paginación configurable
+- ✅ Frontend: PublicFeedPage con diseño rústico completo
+- ✅ Header: Autenticación adaptativa (anónimo/autenticado)
+- ✅ Pagination: 8 trips/página (configurable)
+- ✅ Privacy filtering: Solo PUBLISHED + trip_visibility='public'
+- ✅ Rustic design system aplicado (Playfair Display, earth tones)
+- ⏸️ E2E Testing: 14/17 tests pasados (2 pendientes, 1 diferido)
+
+**Tests E2E Completados**:
+
+- ✅ User Story 1 (Browse): 6/7 pasados (1 diferido - loading state)
+- ✅ User Story 2 (Header): 5/9 pasados (2 pendientes - error handling, responsive)
+- ✅ User Story 3 (Privacy): 1/1 pasado
+
+**Issues Resueltos**:
+
+- ✅ Avatar photo URL path (user.photo_url vs user.profile.photo_url)
+- ✅ Login redirect (ahora va a `/` en lugar de `/welcome`)
+
+**Commits realizados**: 12 commits (últimos: ea5fde7, 11062d3, 92b5881)
+
+**Documentación**: `specs/013-public-trips-feed/TESTING_RESULTS.md`
+
+**Tiempo invertido**: ~4 horas (design system + E2E testing)
+
+**Estimado restante**: ~2 horas (completar tests pendientes)
+
+**Próximos pasos**:
+
+1. TC-US2-010: Responsive mobile testing (30 min)
+2. TC-US3-002 a TC-US3-004: Privacy filtering tests (1 hora)
+3. User Story 4: Trip detail navigation (30 min)
+4. Crear PR y merge a develop
+
+---
 
 ### Feature 011: Frontend Deployment Integration (COMPLETADA)
 
@@ -138,11 +182,68 @@
 - Comprehensive documentation (5 guides)
 - Validation suite (startup, HMR, CORS, security)
 
+### Feature 013: Public Trips Feed ⏸️ (82% complete)
+
+- Public feed endpoint con paginación configurable
+- PublicFeedPage con diseño rústico completo
+- PublicHeader con autenticación adaptativa
+- Privacy filtering (PUBLISHED + public visibility)
+- E2E testing: 14/17 tests pasados
+- Pendiente: Completar tests responsive y privacy
+
 ---
 
 ## Próximos Pasos Inmediatos 🎯
 
-### Opción A: Completar Issue #012 (TypeScript) - RECOMENDADO
+### Opción A: Completar Feature 013 (Public Trips Feed) - RECOMENDADO ⭐
+
+**Prioridad**: Alta (homepage pública crítica)
+
+**Estimación**: 2 horas
+
+**Branch**: `013-public-trips-feed` (ya creado)
+
+**Status**: 82% completado (14/17 tests E2E pasados)
+
+**Tasks Pendientes**:
+
+1. **TC-US2-010**: Responsive mobile testing (30 min)
+   - Probar cabecera en DevTools (320px, 375px, 768px)
+   - Verificar targets táctiles mínimo 44x44px
+
+2. **TC-US3-002 a TC-US3-004**: Privacy filtering tests (1 hora)
+   - Crear usuarios con profile_visibility='private'
+   - Verificar que sus viajes NO aparecen en feed
+   - Probar cambio dinámico de privacidad
+
+3. **User Story 4**: Trip detail navigation (30 min)
+   - Click en tarjeta de viaje → página de detalle
+   - Verificar toda la información se muestra
+
+4. **Merge to develop** (15 min)
+   - Crear PR desde `013-public-trips-feed`
+   - Review final y merge
+
+**Comandos**:
+
+```bash
+# Continuar desde donde se dejó
+git checkout 013-public-trips-feed
+git pull origin 013-public-trips-feed
+
+# Verificar tests pendientes
+cat specs/013-public-trips-feed/TESTING_RESULTS.md
+
+# Después de completar
+git push origin 013-public-trips-feed
+# Crear PR en GitHub
+```
+
+**Resultado**: Homepage pública funcional y production-ready
+
+---
+
+### Opción B: Completar Issue #012 (TypeScript) - Alternativa
 
 **Prioridad**: Alta (desbloquea production builds)
 **Estimación**: 1.5-2 horas
@@ -264,6 +365,7 @@ mkdir -p .github/workflows
 ## Métricas de Progreso 📊
 
 ### Features Completadas (11/15)
+
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
 - ✅ 005: Frontend User Auth
@@ -274,8 +376,13 @@ mkdir -p .github/workflows
 - ✅ 010: Reverse Geocoding
 - ✅ 011: Frontend Deployment Integration
 
-### Issues En Progreso (1/15)
-- ⏸️ 012: TypeScript Code Quality (10% complete)
+### Features En Progreso (1/15)
+
+- ⏸️ 013: Public Trips Feed (82% testing completado - 14/17 E2E tests pasados)
+
+### Issues Pausados (1/15)
+
+- ⏸️ 012: TypeScript Code Quality (74% complete - pausado para completar Feature 013)
 
 ### Tasks Pendientes (3/15)
 - 🎯 Testing/QA Suite (SIGUIENTE después de #012)
