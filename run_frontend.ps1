@@ -4,16 +4,17 @@
 # Manages the Vite frontend server (port 5173)
 #
 # Usage:
-#   .\frontend.ps1 start    # Start frontend server
-#   .\frontend.ps1 stop     # Stop frontend server
-#   .\frontend.ps1 restart  # Restart frontend server
-#   .\frontend.ps1 verify   # Check frontend status
+#   .\run_frontend.ps1          # Start frontend server (default)
+#   .\run_frontend.ps1 start    # Start frontend server
+#   .\run_frontend.ps1 stop     # Stop frontend server
+#   .\run_frontend.ps1 restart  # Restart frontend server
+#   .\run_frontend.ps1 verify   # Check frontend status
 # ============================================================================
 
 param(
-    [Parameter(Position=0, Mandatory=$true)]
+    [Parameter(Position=0, Mandatory=$false)]
     [ValidateSet("start", "stop", "restart", "verify")]
-    [string]$Command
+    [string]$Command = "start"
 )
 
 $PORT = 5173

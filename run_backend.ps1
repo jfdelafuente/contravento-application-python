@@ -4,16 +4,17 @@
 # Manages the FastAPI backend server (port 8000)
 #
 # Usage:
-#   .\backend.ps1 start    # Start backend server
-#   .\backend.ps1 stop     # Stop backend server
-#   .\backend.ps1 restart  # Restart backend server
-#   .\backend.ps1 verify   # Check backend status
+#   .\run_backend.ps1          # Start backend server (default)
+#   .\run_backend.ps1 start    # Start backend server
+#   .\run_backend.ps1 stop     # Stop backend server
+#   .\run_backend.ps1 restart  # Restart backend server
+#   .\run_backend.ps1 verify   # Check backend status
 # ============================================================================
 
 param(
-    [Parameter(Position=0, Mandatory=$true)]
+    [Parameter(Position=0, Mandatory=$false)]
     [ValidateSet("start", "stop", "restart", "verify")]
-    [string]$Command
+    [string]$Command = "start"
 )
 
 $PORT = 8000

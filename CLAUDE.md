@@ -47,12 +47,14 @@ poetry run alembic history
 
 ```powershell
 # Backend Server (Terminal 1)
+.\run_backend.ps1            # Start backend (default command)
 .\run_backend.ps1 start      # Start backend at http://localhost:8000
 .\run_backend.ps1 stop       # Stop backend
 .\run_backend.ps1 verify     # Check backend status
 .\run_backend.ps1 restart    # Restart backend
 
 # Frontend Server (Terminal 2)
+.\run_frontend.ps1           # Start frontend (default command)
 .\run_frontend.ps1 start     # Start frontend at http://localhost:5173
 .\run_frontend.ps1 stop      # Stop frontend
 .\run_frontend.ps1 verify    # Check frontend status
@@ -60,8 +62,8 @@ poetry run alembic history
 
 # Typical workflow:
 # 1. Open two PowerShell terminals in project root
-# 2. Terminal 1: .\run_backend.ps1 start
-# 3. Terminal 2: .\run_frontend.ps1 start
+# 2. Terminal 1: .\run_backend.ps1
+# 3. Terminal 2: .\run_frontend.ps1
 # 4. Access: http://localhost:5173 (frontend) and http://localhost:8000/docs (API)
 # 5. Press Ctrl+C in each terminal to stop
 ```
