@@ -9,13 +9,18 @@
 #   .\run-local-dev.ps1 -WithFrontend       # Start backend + frontend
 #   .\run-local-dev.ps1 -Setup              # First-time setup
 #   .\run-local-dev.ps1 -Reset              # Reset database
+#   .\run-local-dev.ps1 -Verify             # Check server status
+#   .\run-local-dev.ps1 -Stop [target]      # Stop servers (all/backend/frontend)
 # ============================================================================
 
 param(
     [switch]$Setup,
     [switch]$Reset,
     [switch]$Help,
-    [switch]$WithFrontend
+    [switch]$WithFrontend,
+    [switch]$Verify,
+    [Parameter(Position=0)]
+    [string]$Stop
 )
 
 # ============================================================================
@@ -29,6 +34,8 @@ if ($Help) {
     Write-Host "  -WithFrontend    Start backend + frontend together"
     Write-Host "  -Setup           First-time setup (install deps, create .env, run migrations)"
     Write-Host "  -Reset           Reset database (delete and recreate)"
+    Write-Host "  -Verify          Check backend and frontend server status"
+    Write-Host "  -Stop [target]   Stop running servers (all/backend/frontend, default: all)"
     Write-Host "  -Help            Show this help"
     Write-Host ""
     Write-Host "Examples:"
@@ -36,6 +43,10 @@ if ($Help) {
     Write-Host "  .\run-local-dev.ps1 -WithFrontend    # Start backend + frontend"
     Write-Host "  .\run-local-dev.ps1 -Setup           # Initial setup"
     Write-Host "  .\run-local-dev.ps1 -Reset           # Reset DB"
+    Write-Host "  .\run-local-dev.ps1 -Verify          # Check server status"
+    Write-Host "  .\run-local-dev.ps1 -Stop            # Stop all servers"
+    Write-Host "  .\run-local-dev.ps1 -Stop backend    # Stop backend only"
+    Write-Host "  .\run-local-dev.ps1 -Stop frontend   # Stop frontend only"
     exit 0
 }
 
@@ -53,6 +64,304 @@ if (!(Test-Path "backend")) {
 if (!(Get-Command poetry -ErrorAction SilentlyContinue)) {
     Write-Host "[ERROR] Poetry not found. Install with: pip install poetry" -ForegroundColor Red
     exit 1
+}
+
+# ============================================================================
+# VERIFY SERVER STATUS
+# ============================================================================
+if ($Verify) {
+    Write-Host ""
+    Write-Host "============================================" -ForegroundColor Blue
+    Write-Host "  Server Status Check" -ForegroundColor Blue
+    Write-Host "============================================" -ForegroundColor Blue
+    Write-Host ""
+
+    # Function to test HTTP endpoint
+    function Test-Endpoint {
+        param(
+            [string]$Url,
+            [int]$TimeoutSec = 3
+        )
+        try {
+            $response = Invoke-WebRequest -Uri $Url -Method Get -TimeoutSec $TimeoutSec -UseBasicParsing -ErrorAction Stop
+            return @{
+                Success = $true
+                StatusCode = $response.StatusCode
+                Content = $response.Content
+            }
+        }
+        catch {
+            return @{
+                Success = $false
+                Error = $_.Exception.Message
+            }
+        }
+    }
+
+    # Function to check if port is in use
+    function Test-Port {
+        param([int]$Port)
+        $connection = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+        return $null -ne $connection
+    }
+
+    # Check Backend (port 8000)
+    Write-Host "Backend Server (http://localhost:8000)" -ForegroundColor Cyan
+    Write-Host "  Port 8000: " -NoNewline
+    if (Test-Port -Port 8000) {
+        Write-Host "LISTENING" -ForegroundColor Green
+
+        Write-Host "  Health check: " -NoNewline
+        $healthResult = Test-Endpoint -Url "http://localhost:8000/health"
+        if ($healthResult.Success) {
+            Write-Host "OK (HTTP $($healthResult.StatusCode))" -ForegroundColor Green
+
+            # Parse health response
+            try {
+                $healthData = $healthResult.Content | ConvertFrom-Json
+                Write-Host "    Status: " -NoNewline
+                Write-Host "$($healthData.data.status)" -ForegroundColor Green
+                Write-Host "    Environment: " -NoNewline
+                Write-Host "$($healthData.data.environment)" -ForegroundColor Cyan
+                Write-Host "    Timestamp: " -NoNewline
+                Write-Host "$($healthData.data.timestamp)" -ForegroundColor Gray
+            }
+            catch {
+                Write-Host "    (Could not parse health data)" -ForegroundColor Yellow
+            }
+        }
+        else {
+            Write-Host "FAILED" -ForegroundColor Red
+            Write-Host "    Error: $($healthResult.Error)" -ForegroundColor Red
+        }
+
+        Write-Host "  API Docs: " -NoNewline
+        $docsResult = Test-Endpoint -Url "http://localhost:8000/docs"
+        if ($docsResult.Success) {
+            Write-Host "AVAILABLE (HTTP $($docsResult.StatusCode))" -ForegroundColor Green
+        }
+        else {
+            Write-Host "NOT AVAILABLE" -ForegroundColor Yellow
+        }
+
+        Write-Host "  Database: " -NoNewline
+        if (Test-Path "backend/contravento_dev.db") {
+            $dbSize = (Get-Item "backend/contravento_dev.db").Length
+            $dbSizeKB = [math]::Round($dbSize / 1KB, 2)
+            Write-Host "EXISTS ($dbSizeKB KB)" -ForegroundColor Green
+        }
+        else {
+            Write-Host "NOT FOUND" -ForegroundColor Yellow
+        }
+    }
+    else {
+        Write-Host "NOT RUNNING" -ForegroundColor Red
+        Write-Host "    Start with: .\run-local-dev.ps1" -ForegroundColor Gray
+    }
+
+    Write-Host ""
+
+    # Check Frontend (port 5173)
+    Write-Host "Frontend Server (http://localhost:5173)" -ForegroundColor Cyan
+    Write-Host "  Port 5173: " -NoNewline
+    if (Test-Port -Port 5173) {
+        Write-Host "LISTENING" -ForegroundColor Green
+
+        Write-Host "  HTTP check: " -NoNewline
+        $frontendResult = Test-Endpoint -Url "http://localhost:5173"
+        if ($frontendResult.Success) {
+            Write-Host "OK (HTTP $($frontendResult.StatusCode))" -ForegroundColor Green
+        }
+        else {
+            Write-Host "FAILED" -ForegroundColor Red
+            Write-Host "    Error: $($frontendResult.Error)" -ForegroundColor Red
+        }
+
+        Write-Host "  Config: " -NoNewline
+        if (Test-Path "frontend/.env.development") {
+            Write-Host "EXISTS" -ForegroundColor Green
+        }
+        else {
+            Write-Host "MISSING (.env.development)" -ForegroundColor Yellow
+        }
+
+        Write-Host "  node_modules: " -NoNewline
+        if (Test-Path "frontend/node_modules") {
+            Write-Host "EXISTS" -ForegroundColor Green
+        }
+        else {
+            Write-Host "NOT INSTALLED" -ForegroundColor Yellow
+        }
+    }
+    else {
+        Write-Host "NOT RUNNING" -ForegroundColor Red
+        Write-Host "    Start with: .\run-local-dev.ps1 -WithFrontend" -ForegroundColor Gray
+        Write-Host "    Or manually: cd frontend && npm run dev" -ForegroundColor Gray
+    }
+
+    Write-Host ""
+
+    # Summary
+    $backendRunning = Test-Port -Port 8000
+    $frontendRunning = Test-Port -Port 5173
+
+    Write-Host "Summary:" -ForegroundColor Blue
+    Write-Host "  Backend:  " -NoNewline
+    if ($backendRunning) {
+        Write-Host "RUNNING" -ForegroundColor Green
+    } else {
+        Write-Host "STOPPED" -ForegroundColor Red
+    }
+    Write-Host "  Frontend: " -NoNewline
+    if ($frontendRunning) {
+        Write-Host "RUNNING" -ForegroundColor Green
+    } else {
+        Write-Host "STOPPED" -ForegroundColor Red
+    }
+
+    Write-Host ""
+
+    # Exit with appropriate code
+    if ($backendRunning -and $frontendRunning) {
+        Write-Host "[SUCCESS] Both servers are running!" -ForegroundColor Green
+        exit 0
+    }
+    elseif ($backendRunning -or $frontendRunning) {
+        Write-Host "[WARNING] Only one server is running" -ForegroundColor Yellow
+        exit 0
+    }
+    else {
+        Write-Host "[INFO] No servers are currently running" -ForegroundColor Blue
+        exit 0
+    }
+}
+
+# ============================================================================
+# STOP SERVERS
+# ============================================================================
+if ($Stop -or $Stop -eq "") {
+    # Default to "all" if -Stop is used without parameter
+    if ($Stop -eq "") {
+        $Stop = "all"
+    }
+
+    # Normalize target
+    $target = $Stop.ToLower()
+
+    # Validate target
+    if ($target -notin @("all", "backend", "frontend")) {
+        Write-Host "[ERROR] Invalid target: $Stop" -ForegroundColor Red
+        Write-Host "[INFO] Valid targets: all, backend, frontend" -ForegroundColor Blue
+        exit 1
+    }
+
+    Write-Host ""
+    Write-Host "============================================" -ForegroundColor Blue
+    Write-Host "  Stop Servers" -ForegroundColor Blue
+    Write-Host "============================================" -ForegroundColor Blue
+    Write-Host ""
+
+    # Function to check if port is in use
+    function Test-Port {
+        param([int]$Port)
+        $connection = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+        return $null -ne $connection
+    }
+
+    # Function to stop process on port
+    function Stop-ProcessOnPort {
+        param(
+            [int]$Port,
+            [string]$ServerName
+        )
+
+        if (Test-Port -Port $Port) {
+            try {
+                # Get all processes LISTENING on this port
+                $processes = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction Stop |
+                            Select-Object -ExpandProperty OwningProcess |
+                            Where-Object { $_ -ne 0 } |
+                            Select-Object -Unique
+
+                if ($processes.Count -eq 0) {
+                    Write-Host "[WARNING] No processes found listening on port $Port" -ForegroundColor Yellow
+                }
+
+                foreach ($processId in $processes) {
+                    Write-Host "  Stopping process PID: $processId..." -ForegroundColor Gray
+                    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+                }
+
+                # Wait a bit and verify
+                Start-Sleep -Milliseconds 500
+
+                if (!(Test-Port -Port $Port)) {
+                    Write-Host "[SUCCESS] $ServerName stopped (port $Port)" -ForegroundColor Green
+                    return $true
+                } else {
+                    Write-Host "[WARNING] $ServerName may still be running on port $Port" -ForegroundColor Yellow
+                    return $false
+                }
+            }
+            catch {
+                Write-Host "[ERROR] Failed to stop $ServerName on port $Port" -ForegroundColor Red
+                Write-Host "  Error: $($_.Exception.Message)" -ForegroundColor Red
+                return $false
+            }
+        }
+        else {
+            Write-Host "[INFO] $ServerName is not running on port $Port" -ForegroundColor Blue
+            return $true
+        }
+    }
+
+    # Stop servers based on target
+    $backendStopped = $true
+    $frontendStopped = $true
+
+    if ($target -eq "all" -or $target -eq "backend") {
+        Write-Host "Stopping backend server..." -ForegroundColor Cyan
+        $backendStopped = Stop-ProcessOnPort -Port 8000 -ServerName "Backend"
+        Write-Host ""
+    }
+
+    if ($target -eq "all" -or $target -eq "frontend") {
+        Write-Host "Stopping frontend server..." -ForegroundColor Cyan
+        $frontendStopped = Stop-ProcessOnPort -Port 5173 -ServerName "Frontend"
+        Write-Host ""
+    }
+
+    # Summary
+    Write-Host "Summary:" -ForegroundColor Blue
+
+    if ($target -eq "all" -or $target -eq "backend") {
+        Write-Host "  Backend:  " -NoNewline
+        if ($backendStopped) {
+            Write-Host "STOPPED" -ForegroundColor Green
+        } else {
+            Write-Host "FAILED" -ForegroundColor Red
+        }
+    }
+
+    if ($target -eq "all" -or $target -eq "frontend") {
+        Write-Host "  Frontend: " -NoNewline
+        if ($frontendStopped) {
+            Write-Host "STOPPED" -ForegroundColor Green
+        } else {
+            Write-Host "FAILED" -ForegroundColor Red
+        }
+    }
+
+    Write-Host ""
+
+    # Exit with appropriate code
+    if ($backendStopped -and $frontendStopped) {
+        Write-Host "[SUCCESS] All requested servers stopped!" -ForegroundColor Green
+        exit 0
+    } else {
+        Write-Host "[WARNING] Some servers failed to stop" -ForegroundColor Yellow
+        exit 1
+    }
 }
 
 # ============================================================================
