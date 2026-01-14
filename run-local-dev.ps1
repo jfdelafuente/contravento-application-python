@@ -19,8 +19,10 @@ param(
     [switch]$Help,
     [switch]$WithFrontend,
     [switch]$Verify,
+    [switch]$Stop,
     [Parameter(Position=0)]
-    [string]$Stop
+    [ValidateSet("all", "backend", "frontend", "", $null)]
+    [string]$Target = "all"
 )
 
 # ============================================================================
@@ -58,6 +60,20 @@ if ($Help) {
 if (!(Test-Path "backend")) {
     Write-Host "[ERROR] Must run from project root directory" -ForegroundColor Red
     exit 1
+}
+
+# Ensure Node.js is in PATH (if it exists in common locations)
+$nodePaths = @(
+    "C:\Users\jfdelafuente\nodejs\node20",
+    "C:\Program Files\nodejs",
+    "C:\Program Files (x86)\nodejs"
+)
+
+foreach ($nodePath in $nodePaths) {
+    if ((Test-Path $nodePath) -and ($env:Path -notlike "*$nodePath*")) {
+        $env:Path += ";$nodePath"
+        break
+    }
 }
 
 # Check if poetry is installed
@@ -239,18 +255,18 @@ if ($Verify) {
 # ============================================================================
 # STOP SERVERS
 # ============================================================================
-if ($PSBoundParameters.ContainsKey('Stop')) {
-    # Default to "all" if -Stop is used without parameter
-    if ([string]::IsNullOrEmpty($Stop)) {
-        $Stop = "all"
+if ($Stop) {
+    # Use Target parameter or default to "all"
+    if ([string]::IsNullOrEmpty($Target)) {
+        $Target = "all"
     }
 
     # Normalize target
-    $target = $Stop.ToLower()
+    $target = $Target.ToLower()
 
     # Validate target
     if ($target -notin @("all", "backend", "frontend")) {
-        Write-Host "[ERROR] Invalid target: $Stop" -ForegroundColor Red
+        Write-Host "[ERROR] Invalid target: $Target" -ForegroundColor Red
         Write-Host "[INFO] Valid targets: all, backend, frontend" -ForegroundColor Blue
         exit 1
     }
