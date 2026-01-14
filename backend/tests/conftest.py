@@ -362,6 +362,10 @@ def sample_profile_data(faker_instance: Faker) -> dict:
     }
 
 
+# Import fixtures for Feature 013 (Public Trips Feed)
+pytest_plugins = ["tests.fixtures.feature_013_fixtures"]
+
+
 # Pytest configuration
 def pytest_configure(config):
     """Configure pytest with custom markers."""

@@ -542,3 +542,215 @@ class TripListResponse(BaseModel):
                 "offset": 0,
             }
         }
+
+
+# ============================================================================
+# Public Feed Schemas (Feature 013 - Public Trips Feed)
+# ============================================================================
+
+
+class PublicUserSummary(BaseModel):
+    """
+    User summary for public trip feed (Feature 013).
+
+    Minimal user info displayed on public trip cards - only public profile data.
+
+    Attributes:
+        user_id: Unique user identifier
+        username: Username (for profile link)
+        profile_photo_url: Profile photo URL (optional)
+    """
+
+    user_id: str = Field(..., description="Unique user identifier")
+    username: str = Field(..., description="Username")
+    profile_photo_url: Optional[str] = Field(None, description="Profile photo URL")
+
+    class Config:
+        """Pydantic config."""
+
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "user_id": "123e4567-e89b-12d3-a456-426614174000",
+                "username": "maria_ciclista",
+                "profile_photo_url": "/storage/profile_photos/2024/12/maria.jpg",
+            }
+        }
+
+
+class PublicPhotoSummary(BaseModel):
+    """
+    Photo summary for public trip feed (Feature 013).
+
+    Minimal photo info for trip cards - only first photo thumbnail.
+
+    Attributes:
+        photo_url: URL to optimized photo
+        thumbnail_url: URL to thumbnail
+    """
+
+    photo_url: str = Field(..., description="URL to optimized photo")
+    thumbnail_url: str = Field(..., description="URL to thumbnail")
+
+    class Config:
+        """Pydantic config."""
+
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "photo_url": "/storage/trip_photos/2024/12/550e.../abc123.jpg",
+                "thumbnail_url": "/storage/trip_photos/2024/12/550e.../abc123_thumb.jpg",
+            }
+        }
+
+
+class PublicLocationSummary(BaseModel):
+    """
+    Location summary for public trip feed (Feature 013).
+
+    Minimal location info for trip cards - only first location name.
+
+    Attributes:
+        name: Location name
+    """
+
+    name: str = Field(..., description="Location name")
+
+    class Config:
+        """Pydantic config."""
+
+        from_attributes = True
+        json_schema_extra = {"example": {"name": "Baeza, España"}}
+
+
+class PublicTripSummary(BaseModel):
+    """
+    Trip summary for public feed (Feature 013).
+
+    Optimized for homepage display - shows only essential trip data.
+
+    Requirements (FR-002):
+    - título, foto, distancia, location (primera), fecha, autor
+
+    Attributes:
+        trip_id: Unique trip identifier
+        title: Trip title
+        start_date: Trip start date
+        distance_km: Distance in kilometers (optional)
+        photo: First photo (optional)
+        location: First location (optional)
+        author: Trip author summary
+        published_at: Publication timestamp (for sorting)
+    """
+
+    trip_id: str = Field(..., description="Unique trip identifier")
+    title: str = Field(..., description="Trip title")
+    start_date: date = Field(..., description="Trip start date")
+    distance_km: Optional[float] = Field(None, description="Distance in kilometers")
+    photo: Optional[PublicPhotoSummary] = Field(None, description="First photo thumbnail")
+    location: Optional[PublicLocationSummary] = Field(None, description="First location")
+    author: PublicUserSummary = Field(..., description="Trip author")
+    published_at: datetime = Field(..., description="Publication timestamp (UTC)")
+
+    class Config:
+        """Pydantic config."""
+
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "trip_id": "550e8400-e29b-41d4-a716-446655440000",
+                "title": "Vía Verde del Aceite",
+                "start_date": "2024-05-15",
+                "distance_km": 127.3,
+                "photo": {
+                    "photo_url": "/storage/trip_photos/2024/12/550e.../abc123.jpg",
+                    "thumbnail_url": "/storage/trip_photos/2024/12/550e.../abc123_thumb.jpg",
+                },
+                "location": {"name": "Baeza, España"},
+                "author": {
+                    "user_id": "123e4567-e89b-12d3-a456-426614174000",
+                    "username": "maria_ciclista",
+                    "profile_photo_url": "/storage/profile_photos/2024/12/maria.jpg",
+                },
+                "published_at": "2024-12-22T15:45:00Z",
+            }
+        }
+
+
+class PaginationInfo(BaseModel):
+    """
+    Pagination metadata for public feed (Feature 013).
+
+    Provides information for client-side pagination controls.
+
+    Attributes:
+        total: Total number of trips matching filter
+        page: Current page number (1-indexed)
+        limit: Page size (trips per page)
+        total_pages: Total number of pages
+    """
+
+    total: int = Field(..., description="Total trips matching filter", ge=0)
+    page: int = Field(..., description="Current page (1-indexed)", ge=1)
+    limit: int = Field(..., description="Page size", ge=1, le=50)
+    total_pages: int = Field(..., description="Total pages", ge=0)
+
+    class Config:
+        """Pydantic config."""
+
+        json_schema_extra = {
+            "example": {
+                "total": 127,
+                "page": 1,
+                "limit": 20,
+                "total_pages": 7,
+            }
+        }
+
+
+class PublicTripListResponse(BaseModel):
+    """
+    Paginated response for public trips feed (Feature 013).
+
+    Main response schema for GET /trips/public endpoint.
+
+    Attributes:
+        trips: List of public trip summaries
+        pagination: Pagination metadata
+    """
+
+    trips: list[PublicTripSummary] = Field(..., description="List of public trips")
+    pagination: PaginationInfo = Field(..., description="Pagination metadata")
+
+    class Config:
+        """Pydantic config."""
+
+        json_schema_extra = {
+            "example": {
+                "trips": [
+                    {
+                        "trip_id": "550e8400-e29b-41d4-a716-446655440000",
+                        "title": "Vía Verde del Aceite",
+                        "start_date": "2024-05-15",
+                        "distance_km": 127.3,
+                        "photo": {
+                            "photo_url": "/storage/trip_photos/2024/12/abc.jpg",
+                            "thumbnail_url": "/storage/trip_photos/2024/12/abc_thumb.jpg",
+                        },
+                        "location": {"name": "Baeza, España"},
+                        "author": {
+                            "user_id": "123e4567-e89b-12d3-a456-426614174000",
+                            "username": "maria_ciclista",
+                            "profile_photo_url": "/storage/profile_photos/maria.jpg",
+                        },
+                        "published_at": "2024-12-22T15:45:00Z",
+                    }
+                ],
+                "pagination": {
+                    "total": 127,
+                    "page": 1,
+                    "limit": 20,
+                    "total_pages": 7,
+                },
+            }
+        }

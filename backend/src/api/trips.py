@@ -12,10 +12,21 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_current_user, get_db
+from src.api.deps import get_current_user, get_db, get_optional_current_user
+from src.config import settings
 from src.models.trip import TripStatus
 from src.models.user import User
-from src.schemas.trip import TripCreateRequest, TripResponse, TripUpdateRequest
+from src.schemas.trip import (
+    PublicTripListResponse,
+    PublicTripSummary,
+    PublicUserSummary,
+    PublicPhotoSummary,
+    PublicLocationSummary,
+    PaginationInfo,
+    TripCreateRequest,
+    TripResponse,
+    TripUpdateRequest,
+)
 from src.services.trip_service import TripService
 
 logger = logging.getLogger(__name__)
@@ -23,6 +34,149 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/trips", tags=["trips"])
 # Separate router for user-facing endpoints (no prefix needed)
 user_router = APIRouter(tags=["trips"])
+
+
+@router.get(
+    "/public",
+    response_model=PublicTripListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get public trips feed",
+    description="Get paginated list of published trips with public visibility (Feature 013).",
+)
+async def get_public_trips(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(
+        default=None,
+        ge=1,
+        le=None,
+        description=f"Items per page (default: {settings.public_feed_page_size}, max: {settings.public_feed_max_page_size})",
+    ),
+    db: AsyncSession = Depends(get_db),
+) -> PublicTripListResponse:
+    """
+    T021: Get public trips feed for homepage (Feature 013).
+
+    Returns published trips with public trip visibility.
+    No authentication required - fully public endpoint.
+
+    Privacy filtering (FR-003):
+    - Only trips with status=PUBLISHED
+    - Only trips with trip_visibility='public'
+    - Note: profile_visibility does NOT affect trip visibility (only controls profile info)
+
+    Pagination:
+    - Default: Configurable via PUBLIC_FEED_PAGE_SIZE (default 8)
+    - Max: Configurable via PUBLIC_FEED_MAX_PAGE_SIZE (default 50)
+
+    Args:
+        page: Page number (1-indexed, default 1)
+        limit: Items per page (configurable, default 8, max 50)
+        db: Database session
+
+    Returns:
+        PublicTripListResponse with trips list and pagination metadata
+
+    Examples:
+        GET /trips/public?page=1&limit=20
+        Response:
+        {
+            "trips": [
+                {
+                    "trip_id": "550e8400-...",
+                    "title": "Vía Verde del Aceite",
+                    "start_date": "2024-05-15",
+                    "distance_km": 127.3,
+                    "photo": {"photo_url": "...", "thumbnail_url": "..."},
+                    "location": {"name": "Baeza, España"},
+                    "author": {"user_id": "123e...", "username": "maria_ciclista", ...},
+                    "published_at": "2024-12-22T15:45:00Z"
+                }
+            ],
+            "pagination": {
+                "total": 127,
+                "page": 1,
+                "limit": 20,
+                "total_pages": 7
+            }
+        }
+    """
+    # Apply default limit and validate max
+    if limit is None:
+        limit = settings.public_feed_page_size
+    elif limit > settings.public_feed_max_page_size:
+        limit = settings.public_feed_max_page_size
+
+    try:
+        service = TripService(db)
+        trips, total = await service.get_public_trips(page=page, limit=limit)
+
+        # Calculate total pages
+        total_pages = (total + limit - 1) // limit if total > 0 else 0
+
+        # Map Trip entities to PublicTripSummary schema
+        public_trips = []
+        for trip in trips:
+            # Extract first photo (order=0)
+            first_photo = None
+            if trip.photos:
+                # Photos are already sorted by order in the model
+                photo = trip.photos[0]
+                first_photo = PublicPhotoSummary(
+                    photo_url=photo.photo_url,
+                    thumbnail_url=photo.thumbnail_url,
+                )
+
+            # Extract first location (sequence=0)
+            first_location = None
+            if trip.locations:
+                # Locations are already sorted by sequence in the model
+                location = trip.locations[0]
+                first_location = PublicLocationSummary(name=location.name)
+
+            # Map user to PublicUserSummary
+            author = PublicUserSummary(
+                user_id=trip.user.id,
+                username=trip.user.username,
+                profile_photo_url=trip.user.profile.profile_photo_url if trip.user.profile else None,
+            )
+
+            # Create PublicTripSummary
+            public_trip = PublicTripSummary(
+                trip_id=trip.trip_id,
+                title=trip.title,
+                start_date=trip.start_date,
+                distance_km=trip.distance_km,
+                photo=first_photo,
+                location=first_location,
+                author=author,
+                published_at=trip.published_at,
+            )
+            public_trips.append(public_trip)
+
+        # Build pagination metadata
+        pagination = PaginationInfo(
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+        )
+
+        logger.info(f"Public feed: page={page}, limit={limit}, total={total}")
+
+        return PublicTripListResponse(
+            trips=public_trips,
+            pagination=pagination,
+        )
+
+    except Exception as e:
+        logger.error(f"Error fetching public trips: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "code": "PUBLIC_FEED_ERROR",
+                "message": "Error al obtener viajes públicos",
+            },
+        )
 
 
 @router.post(
@@ -718,9 +872,10 @@ async def get_user_trips(
     limit: int = Query(50, ge=1, le=100, description="Maximum trips to return"),
     offset: int = Query(0, ge=0, description="Number of trips to skip"),
     db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> dict[str, Any]:
     """
-    Get user's trips with optional filtering (T088, FR-025).
+    Get user's trips with optional filtering (T088, FR-025, Feature 013).
 
     **Filters:**
     - tag: Filter by tag name (case-insensitive)
@@ -728,9 +883,15 @@ async def get_user_trips(
     - limit: Max trips to return (1-100, default 50)
     - offset: Pagination offset (default 0)
 
+    **Visibility (Feature 013):**
+    - Owner: sees all trips (drafts and published, any visibility)
+    - Followers: see published trips with visibility='public' or 'followers'
+    - Public: see only published trips with visibility='public'
+
     **Returns:**
     - List of trips with photos, tags, and locations
     - Ordered by created_at descending (newest first)
+    - Filtered by trip_visibility settings
     """
     try:
         from sqlalchemy import select
@@ -761,6 +922,7 @@ async def get_user_trips(
             status=status,
             limit=limit,
             offset=offset,
+            current_user_id=current_user.id if current_user else None,
         )
 
         # Convert to response format

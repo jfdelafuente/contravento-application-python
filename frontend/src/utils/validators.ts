@@ -108,7 +108,7 @@ import { z } from 'zod';
 
 /**
  * Profile Edit Schema
- * Validates bio, location, and cycling type fields.
+ * Validates bio, location, cycling type, and privacy settings (Feature 013).
  */
 export const profileEditSchema = z.object({
   bio: z
@@ -118,6 +118,8 @@ export const profileEditSchema = z.object({
     .or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
   cycling_type: z.string().optional().or(z.literal('')),
+  profile_visibility: z.enum(['public', 'private']).optional(),
+  trip_visibility: z.enum(['public', 'followers', 'private']).optional(),
 });
 
 /**

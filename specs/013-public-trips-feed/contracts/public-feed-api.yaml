@@ -1,0 +1,430 @@
+openapi: 3.1.0
+info:
+  title: ContraVento Public Trips Feed API
+  description: |
+    Public feed endpoint for browsing published trips from users with public profiles.
+    This endpoint does not require authentication.
+  version: 1.0.0
+  contact:
+    name: ContraVento API Support
+    email: api@contravento.com
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development
+  - url: https://staging.contravento.com/api
+    description: Staging environment
+  - url: https://contravento.com/api
+    description: Production
+
+tags:
+  - name: public-feed
+    description: Public trips feed endpoints (no authentication required)
+
+paths:
+  /trips/public:
+    get:
+      tags:
+        - public-feed
+      summary: Get public trips feed
+      description: |
+        Retrieve a paginated list of published trips from users with public profiles.
+
+        **Privacy Filters**:
+        - Only trips with `status = PUBLISHED`
+        - Only from users with `profile_visibility = 'public'`
+
+        **Ordering**: Most recently published first (`published_at DESC`)
+
+        **Performance**: <200ms p95 for 1000 trips
+
+      operationId: getPublicTrips
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+
+        - name: limit
+          in: query
+          description: Number of trips per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+            example: 20
+
+      responses:
+        '200':
+          description: Successfully retrieved public trips
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicTripListResponse'
+              examples:
+                with_trips:
+                  summary: Feed with public trips
+                  value:
+                    success: true
+                    data:
+                      - trip_id: "550e8400-e29b-41d4-a716-446655440000"
+                        title: "Ruta Bikepacking Pirineos"
+                        distance_km: 320.5
+                        start_date: "2024-06-01"
+                        published_at: "2024-06-10T14:30:00Z"
+                        author:
+                          user_id: "660e8400-e29b-41d4-a716-446655440000"
+                          username: "maria_garcia"
+                          photo_url: "https://storage.contravento.com/profile_photos/maria_garcia.jpg"
+                        first_photo:
+                          photo_id: "770e8400-e29b-41d4-a716-446655440000"
+                          photo_url: "https://storage.contravento.com/trip_photos/2024/06/photo1.jpg"
+                          caption: "Vista del Aneto"
+                        first_location:
+                          location_id: "880e8400-e29b-41d4-a716-446655440000"
+                          name: "Parque Nacional de Ordesa"
+                          latitude: 42.6668
+                          longitude: 0.0333
+                      - trip_id: "990e8400-e29b-41d4-a716-446655440000"
+                        title: "Costa Brava en bicicleta"
+                        distance_km: 150.2
+                        start_date: "2024-05-15"
+                        published_at: "2024-05-20T10:15:00Z"
+                        author:
+                          user_id: "aa0e8400-e29b-41d4-a716-446655440000"
+                          username: "juan_lopez"
+                          photo_url: null
+                        first_photo: null
+                        first_location:
+                          location_id: "bb0e8400-e29b-41d4-a716-446655440000"
+                          name: "Cadaqués"
+                          latitude: 42.2889
+                          longitude: 3.2781
+                    pagination:
+                      page: 1
+                      limit: 20
+                      total: 45
+                      pages: 3
+
+                empty_feed:
+                  summary: No public trips available
+                  value:
+                    success: true
+                    data: []
+                    pagination:
+                      page: 1
+                      limit: 20
+                      total: 0
+                      pages: 0
+
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_page:
+                  summary: Invalid page number
+                  value:
+                    success: false
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "El número de página debe ser mayor o igual a 1"
+                      field: "page"
+
+                invalid_limit:
+                  summary: Limit out of range
+                  value:
+                    success: false
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "El límite debe estar entre 1 y 50"
+                      field: "limit"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: "INTERNAL_ERROR"
+                  message: "Error al obtener viajes públicos. Inténtalo de nuevo más tarde."
+
+components:
+  schemas:
+    PublicTripSummary:
+      type: object
+      description: Public trip card data (no private fields)
+      required:
+        - trip_id
+        - title
+        - distance_km
+        - start_date
+        - published_at
+        - author
+      properties:
+        trip_id:
+          type: string
+          format: uuid
+          description: Unique trip identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Trip title
+          example: "Ruta Bikepacking Pirineos"
+
+        distance_km:
+          anyOf:
+            - type: number
+              format: float
+              minimum: 0
+            - type: "null"
+          description: Total distance in kilometers (null if not specified)
+          example: 320.5
+
+        start_date:
+          type: string
+          format: date
+          description: Trip start date (ISO 8601 YYYY-MM-DD)
+          example: "2024-06-01"
+
+        published_at:
+          type: string
+          format: date-time
+          description: Publication timestamp (ISO 8601 UTC)
+          example: "2024-06-10T14:30:00Z"
+
+        author:
+          $ref: '#/components/schemas/PublicUserSummary'
+
+        photo:
+          allOf:
+            - $ref: '#/components/schemas/PublicPhotoSummary'
+            - nullable: true
+          description: First trip photo (order=0) or null if no photos
+          example: null
+
+        location:
+          allOf:
+            - $ref: '#/components/schemas/PublicLocationSummary'
+            - nullable: true
+          description: First trip location (sequence=0) or null if no locations
+          example: null
+
+    PublicUserSummary:
+      type: object
+      description: Minimal user information for public trip cards (privacy-safe)
+      required:
+        - user_id
+        - username
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: Unique user identifier
+          example: "660e8400-e29b-41d4-a716-446655440000"
+
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-zA-Z0-9_]+$'
+          description: Unique username (alphanumeric + underscore)
+          example: "maria_garcia"
+
+        photo_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Profile photo URL or null if no photo
+          example: "https://storage.contravento.com/profile_photos/maria_garcia.jpg"
+
+    PublicPhotoSummary:
+      type: object
+      description: Trip photo information
+      required:
+        - photo_id
+        - photo_url
+      properties:
+        photo_id:
+          type: string
+          format: uuid
+          description: Unique photo identifier
+          example: "770e8400-e29b-41d4-a716-446655440000"
+
+        photo_url:
+          type: string
+          format: uri
+          description: Photo URL (absolute or relative)
+          example: "https://storage.contravento.com/trip_photos/2024/06/photo1.jpg"
+
+        caption:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Optional photo caption
+          example: "Vista del Aneto desde el refugio"
+
+    PublicLocationSummary:
+      type: object
+      description: Trip location information
+      required:
+        - location_id
+        - name
+        - latitude
+        - longitude
+      properties:
+        location_id:
+          type: string
+          format: uuid
+          description: Unique location identifier
+          example: "880e8400-e29b-41d4-a716-446655440000"
+
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Location name (place, city, region)
+          example: "Parque Nacional de Ordesa"
+
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          description: Latitude in decimal degrees
+          example: 42.6668
+
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          description: Longitude in decimal degrees
+          example: 0.0333
+
+    PaginationInfo:
+      type: object
+      description: Pagination metadata
+      required:
+        - page
+        - limit
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number (1-indexed)
+          example: 1
+
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: Items per page
+          example: 20
+
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items across all pages
+          example: 45
+
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 3
+
+    PublicTripListResponse:
+      type: object
+      description: Successful response for public trips feed
+      required:
+        - success
+        - data
+        - pagination
+      properties:
+        success:
+          type: boolean
+          description: Request success status
+          example: true
+
+        data:
+          type: array
+          description: Array of public trip summaries
+          items:
+            $ref: '#/components/schemas/PublicTripSummary'
+          minItems: 0
+          maxItems: 50
+
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+    ErrorResponse:
+      type: object
+      description: Standard error response
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          description: Request success status (always false for errors)
+          example: false
+
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              enum:
+                - VALIDATION_ERROR
+                - INTERNAL_ERROR
+                - NETWORK_ERROR
+              example: "VALIDATION_ERROR"
+
+            message:
+              type: string
+              description: Human-readable error message in Spanish
+              example: "El número de página debe ser mayor o igual a 1"
+
+            field:
+              type: string
+              nullable: true
+              description: Field name for validation errors (optional)
+              example: "page"
+
+            details:
+              type: object
+              nullable: true
+              description: Additional error context (optional)
+              additionalProperties: true
+              example: null
+
+  securitySchemes:
+    # No security schemes required for this endpoint (public access)
+    {}
+
+security:
+  # No security requirements (public endpoint)
+  []
+

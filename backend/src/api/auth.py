@@ -451,8 +451,17 @@ async def get_current_user_info(
     Raises:
         HTTPException 401: Not authenticated
     """
+    # Eagerly load profile to include profile fields in response (Feature 013)
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
 
-    # current_user already is a User model from get_current_user dependency
+    from src.models.user import UserProfile
+
+    result = await db.execute(
+        select(User).where(User.id == current_user.id).options(selectinload(User.profile))
+    )
+    user_with_profile = result.scalar_one()
+
     return create_response(
-        success=True, data=UserResponse.from_user_model(current_user).model_dump()
+        success=True, data=UserResponse.from_user_model(user_with_profile).model_dump()
     )

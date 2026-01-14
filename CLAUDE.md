@@ -41,9 +41,59 @@ poetry run alembic downgrade -1
 poetry run alembic history
 ```
 
-### Frontend Development
+### Development Servers (Recommended)
 
-**Development Server (SQLite Local - No Docker):**
+**Windows PowerShell:**
+
+```powershell
+# Backend Server (Terminal 1)
+.\run_backend.ps1            # Start backend (default command)
+.\run_backend.ps1 start      # Start backend at http://localhost:8000
+.\run_backend.ps1 stop       # Stop backend
+.\run_backend.ps1 verify     # Check backend status
+.\run_backend.ps1 restart    # Restart backend
+
+# Frontend Server (Terminal 2)
+.\run_frontend.ps1           # Start frontend (default command)
+.\run_frontend.ps1 start     # Start frontend at http://localhost:5173
+.\run_frontend.ps1 stop      # Stop frontend
+.\run_frontend.ps1 verify    # Check frontend status
+.\run_frontend.ps1 restart   # Restart frontend
+
+# Typical workflow:
+# 1. Open two PowerShell terminals in project root
+# 2. Terminal 1: .\run_backend.ps1
+# 3. Terminal 2: .\run_frontend.ps1
+# 4. Access: http://localhost:5173 (frontend) and http://localhost:8000/docs (API)
+# 5. Press Ctrl+C in each terminal to stop
+```
+
+**Linux/Mac (Bash):**
+
+```bash
+# Backend Server (Terminal 1)
+./run_backend.sh             # Start backend (default command)
+./run_backend.sh start       # Start backend at http://localhost:8000
+./run_backend.sh stop        # Stop backend
+./run_backend.sh verify      # Check backend status
+./run_backend.sh restart     # Restart backend
+
+# Frontend Server (Terminal 2)
+./run_frontend.sh            # Start frontend (default command)
+./run_frontend.sh start      # Start frontend at http://localhost:5173
+./run_frontend.sh stop       # Stop frontend
+./run_frontend.sh verify     # Check frontend status
+./run_frontend.sh restart    # Restart frontend
+
+# Typical workflow:
+# 1. Open two terminal windows in project root
+# 2. Terminal 1: ./run_backend.sh
+# 3. Terminal 2: ./run_frontend.sh
+# 4. Access: http://localhost:5173 (frontend) and http://localhost:8000/docs (API)
+# 5. Press Ctrl+C in each terminal to stop
+```
+
+**Manual Frontend Development (Alternative):**
 
 ```bash
 # Install dependencies (first time only)
@@ -739,6 +789,8 @@ See `.specify/` directory for templates and workflows.
 - PostgreSQL (production), SQLite (development) - TripLocation model already has latitude/longitude Float columns (009-gps-coordinates)
 - TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x (010-reverse-geocoding)
 - No new backend storage (uses existing TripLocation model) (010-reverse-geocoding)
+- Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend) (013-public-trips-feed)
+- PostgreSQL (production), SQLite (development) - existing User and Trip models (013-public-trips-feed)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
@@ -1543,9 +1595,9 @@ const PRECISION_DECIMALS = 3; // ~111m at equator
 ```
 
 ## Recent Changes
+- 013-public-trips-feed: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend)
 - 010-reverse-geocoding: Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x
 - 009-gps-coordinates: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, react-leaflet, Leaflet.js (frontend)
 
-- 008-travel-diary-frontend: Added full CRUD UI for trips with photos, multi-step wizard, and owner controls
 
-**Last updated**: 2026-01-11
+**Last updated**: 2026-01-13

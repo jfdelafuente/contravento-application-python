@@ -51,7 +51,7 @@ import './ProfileEditPage.css';
 const PhotoCropModal = lazy(() => import('../components/profile/PhotoCropModal'));
 
 export const ProfileEditPage: React.FC = () => {
-  const { user, updateUser, logout } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -91,12 +91,11 @@ export const ProfileEditPage: React.FC = () => {
     handleRemovePhoto,
   } = usePhotoUpload(
     user?.username || '',
-    (photoUrl) => {
-      // Update local state and auth context when photo changes
+    async (photoUrl) => {
+      // Update local state when photo changes
       setCurrentPhotoUrl(photoUrl);
-      if (updateUser) {
-        updateUser({ ...user!, photo_url: photoUrl });
-      }
+      // Refresh user data from server to get updated photo_url
+      await refreshUser();
     }
   );
 
@@ -115,6 +114,19 @@ export const ProfileEditPage: React.FC = () => {
   useEffect(() => {
     setCurrentPhotoUrl(user?.photo_url || '');
   }, [user?.photo_url]);
+
+  // Reset form when user data is loaded/updated (Feature 013)
+  useEffect(() => {
+    if (user) {
+      reset({
+        bio: user.bio || '',
+        location: user.location || '',
+        cycling_type: user.cycling_type || '',
+        profile_visibility: user.profile_visibility || 'public',
+        trip_visibility: user.trip_visibility || 'public',
+      });
+    }
+  }, [user, reset]);
 
   // Warn about unsaved changes (profile or password)
   useUnsavedChanges(
@@ -198,6 +210,9 @@ export const ProfileEditPage: React.FC = () => {
 
       // Call API to update profile
       await updateProfile(user?.username || '', updateData);
+
+      // Refresh user data to get updated values from server (Feature 013)
+      await refreshUser();
 
       // Show success message
       toast.success('Perfil actualizado correctamente', {

@@ -60,6 +60,24 @@ export const ProfilePage: React.FC = () => {
     ? CYCLING_TYPES.find((type) => type.value === profile.cycling_type)?.label || profile.cycling_type
     : null;
 
+  // Get privacy settings labels (Feature 013)
+  const getProfileVisibilityLabel = (visibility: 'public' | 'private') => {
+    return visibility === 'public' ? 'Público' : 'Privado';
+  };
+
+  const getTripVisibilityLabel = (visibility: 'public' | 'followers' | 'private') => {
+    switch (visibility) {
+      case 'public':
+        return 'Público';
+      case 'followers':
+        return 'Solo seguidores';
+      case 'private':
+        return 'Privado';
+      default:
+        return visibility;
+    }
+  };
+
   return (
     <div className="profile-page">
       <header className="profile-header">
@@ -154,6 +172,28 @@ export const ProfilePage: React.FC = () => {
                       day: 'numeric',
                     })}
                   </span>
+                </div>
+              </div>
+
+              {/* Privacy Settings Section (Feature 013) */}
+              <div className="profile-privacy-section">
+                <h3 className="privacy-section-title">Configuración de Privacidad</h3>
+                <div className="profile-info">
+                  {/* Profile Visibility */}
+                  <div className="info-item">
+                    <span className="info-label">Visibilidad del perfil:</span>
+                    <span className="info-value privacy-badge" data-visibility={user.profile_visibility}>
+                      {getProfileVisibilityLabel(user.profile_visibility)}
+                    </span>
+                  </div>
+
+                  {/* Trip Visibility */}
+                  <div className="info-item">
+                    <span className="info-label">Visibilidad de viajes:</span>
+                    <span className="info-value privacy-badge" data-visibility={user.trip_visibility}>
+                      {getTripVisibilityLabel(user.trip_visibility)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
