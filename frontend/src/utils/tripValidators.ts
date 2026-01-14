@@ -6,7 +6,6 @@
  */
 
 import { z } from 'zod';
-import { TripDifficulty } from '../types/trip';
 
 // ============================================================================
 // Field Validators

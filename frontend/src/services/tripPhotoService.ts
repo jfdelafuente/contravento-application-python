@@ -228,9 +228,9 @@ export const reorderTripPhotos = async (
  * await uploadTripPhoto(tripId, newFile, newCaption);
  */
 export const updatePhotoCaption = async (
-  tripId: string,
-  photoId: string,
-  caption: string
+  _tripId: string,
+  _photoId: string,
+  _caption: string
 ): Promise<void> => {
   // TODO: Implement in future if backend adds dedicated endpoint
   // For MVP: delete and re-upload photo with new caption

@@ -109,10 +109,10 @@ export const Step4Review: React.FC = () => {
                     {location.latitude !== null && location.longitude !== null ? (
                       <div className="review-location__coords">
                         <span className="review-location__coord">
-                          📍 Lat: {location.latitude.toFixed(6)}°
+                          📍 Lat: {location.latitude?.toFixed(6)}°
                         </span>
                         <span className="review-location__coord">
-                          Lon: {location.longitude.toFixed(6)}°
+                          Lon: {location.longitude?.toFixed(6)}°
                         </span>
                       </div>
                     ) : (

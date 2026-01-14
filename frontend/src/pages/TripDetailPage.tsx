@@ -19,7 +19,6 @@ import type { LocationInput } from '../types/trip';
 import {
   getDifficultyLabel,
   getDifficultyClass,
-  formatDate,
   formatDateRange,
   formatDistance,
   getStatusLabel,

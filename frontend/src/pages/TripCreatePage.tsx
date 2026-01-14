@@ -22,7 +22,7 @@ import { useTripForm } from '../hooks/useTripForm';
 import './TripCreatePage.css';
 
 export const TripCreatePage: React.FC = () => {
-  const { handleSubmit, getPersistedData, persistFormData } = useTripForm({
+  const { handleSubmit, getPersistedData } = useTripForm({
     enablePersistence: true,
   });
 

@@ -207,7 +207,7 @@ export const Step3Photos: React.FC<Step3PhotosProps> = ({
                     className={`step3-photos__thumbnail ${isMarkedForDeletion ? 'step3-photos__thumbnail--deleted' : ''}`}
                   >
                     <img
-                      src={getPhotoUrl(photo.thumbnail_url || photo.photo_url)}
+                      src={getPhotoUrl(photo.thumbnail_url || photo.photo_url) || ''}
                       alt={photo.caption || 'Foto del viaje'}
                       className="step3-photos__thumbnail-image"
                       style={{ opacity: isMarkedForDeletion ? 0.3 : 1 }}
