@@ -239,9 +239,9 @@ if ($Verify) {
 # ============================================================================
 # STOP SERVERS
 # ============================================================================
-if ($Stop -or $Stop -eq "") {
+if ($PSBoundParameters.ContainsKey('Stop')) {
     # Default to "all" if -Stop is used without parameter
-    if ($Stop -eq "") {
+    if ([string]::IsNullOrEmpty($Stop)) {
         $Stop = "all"
     }
 
