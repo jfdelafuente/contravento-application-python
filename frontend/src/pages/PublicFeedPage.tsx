@@ -13,7 +13,7 @@ import './PublicFeedPage.css';
 
 export const PublicFeedPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const { trips, pagination, isLoading, error } = usePublicTrips(currentPage, 20);
+  const { trips, pagination, isLoading, error } = usePublicTrips(currentPage);
 
   // Loading state
   if (isLoading) {

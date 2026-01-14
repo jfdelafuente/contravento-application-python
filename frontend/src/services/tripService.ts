@@ -63,10 +63,15 @@ interface ApiResponse<T> {
  */
 export const getPublicTrips = async (
   page: number = 1,
-  limit: number = 20
+  limit?: number
 ): Promise<PublicTripListResponse> => {
+  const params: { page: number; limit?: number } = { page };
+  if (limit !== undefined) {
+    params.limit = limit;
+  }
+
   const response = await api.get<PublicTripListResponse>('/trips/public', {
-    params: { page, limit },
+    params,
   });
   return response.data;
 };

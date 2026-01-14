@@ -30,11 +30,11 @@ interface UsePublicTripsReturn {
  * Hook for fetching public trips feed
  *
  * @param page - Page number (1-indexed, default 1)
- * @param limit - Items per page (default 20)
+ * @param limit - Items per page (optional, uses backend default if not specified)
  * @returns Object with trips, pagination, loading, error, and refetch
  *
  * @example
- * const { trips, pagination, isLoading, error } = usePublicTrips(1, 20);
+ * const { trips, pagination, isLoading, error } = usePublicTrips(1);
  *
  * if (isLoading) return <LoadingSpinner />;
  * if (error) return <ErrorMessage message={error} />;
@@ -47,7 +47,7 @@ interface UsePublicTripsReturn {
  */
 export const usePublicTrips = (
   page: number = 1,
-  limit: number = 20
+  limit?: number
 ): UsePublicTripsReturn => {
   const [trips, setTrips] = useState<PublicTripSummary[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
