@@ -4,7 +4,7 @@ Social features models.
 Models for follow relationships and social interactions.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
@@ -48,7 +48,7 @@ class Follow(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
     )
 
     # Relationships

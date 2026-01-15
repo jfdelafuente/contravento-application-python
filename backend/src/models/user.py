@@ -6,7 +6,7 @@ UserProfile: Extended profile information (1-to-1 with User)
 """
 
 import enum
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -130,15 +130,15 @@ class User(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         doc="Account creation timestamp (UTC)",
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
         doc="Last update timestamp (UTC)",
     )
@@ -324,15 +324,15 @@ class UserProfile(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         doc="Profile creation timestamp (UTC)",
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
         doc="Last profile update timestamp (UTC)",
     )

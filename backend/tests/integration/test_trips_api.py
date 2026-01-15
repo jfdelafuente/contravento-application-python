@@ -171,7 +171,7 @@ class TestPhotoUploadWorkflow:
         assert publish_response.status_code == 200
 
         # Get initial stats
-        from src.models.user import UserStats
+        from src.models.stats import UserStats
 
         # Get user ID from auth token
         get_user_response = await client.get("/users/me", headers=auth_headers)
@@ -301,7 +301,7 @@ class TestPhotoDeleteWorkflow:
         photo_id = upload_response.json()["data"]["id"]
 
         # Get user stats before deletion
-        from src.models.user import UserStats
+        from src.models.stats import UserStats
 
         get_user_response = await client.get("/users/me", headers=auth_headers)
         user_id = get_user_response.json()["data"]["id"]

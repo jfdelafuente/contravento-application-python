@@ -9,7 +9,7 @@ import io
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -260,7 +260,7 @@ class TripPhotoService:
         filename_base = f"{file_uuid}.jpg"  # Always save as JPEG
 
         # Build directory path: YYYY/MM/trip_id/
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         dir_path = (
             Path(settings.trip_photos_full_path) / str(now.year) / f"{now.month:02d}" / trip_id
         )

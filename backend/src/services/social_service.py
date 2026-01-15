@@ -9,7 +9,7 @@ Business logic for social features including:
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy import func, select
@@ -91,7 +91,7 @@ class SocialService:
             id=str(uuid4()),
             follower_id=follower_user.id,
             following_id=following_user.id,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
         self.db.add(follow)
 

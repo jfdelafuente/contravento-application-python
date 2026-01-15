@@ -688,7 +688,7 @@ class TestTripServicePhotoUpload:
         service = TripService(db_session)
 
         # Get initial stats
-        from src.models.user import UserStats
+        from src.models.stats import UserStats
 
         result = await db_session.execute(
             select(UserStats).where(UserStats.user_id == test_user.id)
@@ -941,7 +941,7 @@ class TestTripServicePhotoDelete:
         await db_session.commit()
 
         # Create or get user stats
-        from src.models.user import UserStats
+        from src.models.stats import UserStats
 
         result = await db_session.execute(
             select(UserStats).where(UserStats.user_id == test_user.id)

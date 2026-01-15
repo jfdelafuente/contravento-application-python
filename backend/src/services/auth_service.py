@@ -9,7 +9,7 @@ Business logic for authentication flows including:
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from jose import JWTError
 from sqlalchemy import or_, select
@@ -105,7 +105,7 @@ class AuthService:
             user_id=user.id,
             token_hash=token_hash,
             token_type="email_verification",
-            expires_at=datetime.utcnow() + timedelta(hours=24),
+            expires_at=datetime.now(UTC) + timedelta(hours=24),
         )
         self.db.add(password_reset)
 
@@ -176,7 +176,7 @@ class AuthService:
         token_record = result.scalar_one_or_none()
 
         if token_record:
-            token_record.used_at = datetime.utcnow()
+            token_record.used_at = datetime.now(UTC)
 
         await self.db.commit()
 
@@ -212,7 +212,7 @@ class AuthService:
             return True
 
         # Check rate limit: 3 verification emails per hour
-        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        one_hour_ago = datetime.now(UTC) - timedelta(hours=1)
         result = await self.db.execute(
             select(PasswordReset).where(
                 PasswordReset.user_id == user.id,
@@ -236,7 +236,7 @@ class AuthService:
             user_id=user.id,
             token_hash=token_hash,
             token_type="email_verification",
-            expires_at=datetime.utcnow() + timedelta(hours=24),
+            expires_at=datetime.now(UTC) + timedelta(hours=24),
         )
         self.db.add(password_reset)
         await self.db.commit()
@@ -268,7 +268,7 @@ class AuthService:
         user = result.scalar_one_or_none()
 
         # Check account lockout
-        if user and user.locked_until and user.locked_until > datetime.utcnow():
+        if user and user.locked_until and user.locked_until > datetime.now(UTC):
             raise ValueError("Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos.")
 
         # Verify credentials
@@ -279,7 +279,7 @@ class AuthService:
 
                 # Lock account after 5 failed attempts
                 if user.failed_login_attempts >= 5:
-                    user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+                    user.locked_until = datetime.now(UTC) + timedelta(minutes=15)
                     await self.db.commit()
                     raise ValueError(
                         "Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos."
@@ -300,7 +300,7 @@ class AuthService:
         # Reset failed login attempts
         user.failed_login_attempts = 0
         user.locked_until = None
-        user.last_login_at = datetime.utcnow()
+        user.last_login_at = datetime.now(UTC)
 
         # Create tokens
         access_token = create_access_token({"sub": user.id, "username": user.username})
@@ -312,7 +312,7 @@ class AuthService:
             user_id=user.id,
             token_hash=token_hash,
             token_type="refresh_token",
-            expires_at=datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days),
+            expires_at=datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days),
         )
         self.db.add(refresh_token_record)
 
@@ -363,7 +363,7 @@ class AuthService:
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "refresh_token",
                 PasswordReset.used_at.is_(None),
-                PasswordReset.expires_at > datetime.utcnow(),
+                PasswordReset.expires_at > datetime.now(UTC),
             )
             .order_by(PasswordReset.created_at.desc())
         )
@@ -387,7 +387,7 @@ class AuthService:
             raise ValueError("Usuario no encontrado o cuenta desactivada")
 
         # Mark old refresh token as used
-        token_record.used_at = datetime.utcnow()
+        token_record.used_at = datetime.now(UTC)
 
         # Create new tokens
         new_access_token = create_access_token({"sub": user.id, "username": user.username})
@@ -399,7 +399,7 @@ class AuthService:
             user_id=user.id,
             token_hash=new_token_hash,
             token_type="refresh_token",
-            expires_at=datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days),
+            expires_at=datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days),
         )
         self.db.add(new_refresh_record)
 
@@ -450,7 +450,7 @@ class AuthService:
         token_record = result.scalar_one_or_none()
 
         if token_record:
-            token_record.used_at = datetime.utcnow()
+            token_record.used_at = datetime.now(UTC)
             await self.db.commit()
 
         logger.info(f"User logged out (ID: {user_id})")
@@ -488,7 +488,7 @@ class AuthService:
             user_id=user.id,
             token_hash=token_hash,
             token_type="password_reset",
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
         )
         self.db.add(password_reset)
         await self.db.commit()
@@ -540,7 +540,7 @@ class AuthService:
                 PasswordReset.user_id == user_id,
                 PasswordReset.token_type == "password_reset",
                 PasswordReset.used_at.is_(None),
-                PasswordReset.expires_at > datetime.utcnow(),
+                PasswordReset.expires_at > datetime.now(UTC),
             )
         )
         token_record = result.scalar_one_or_none()
@@ -552,7 +552,7 @@ class AuthService:
         user.hashed_password = hash_password(new_password)
 
         # Mark token as used
-        token_record.used_at = datetime.utcnow()
+        token_record.used_at = datetime.now(UTC)
 
         # Reset failed login attempts
         user.failed_login_attempts = 0
@@ -569,7 +569,7 @@ class AuthService:
         refresh_tokens = result.scalars().all()
 
         for refresh_token in refresh_tokens:
-            refresh_token.used_at = datetime.utcnow()
+            refresh_token.used_at = datetime.now(UTC)
 
         await self.db.commit()
 

@@ -4,7 +4,7 @@ Authentication-related models.
 PasswordReset: Tokens for email verification and password reset
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -80,7 +80,7 @@ class PasswordReset(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         doc="Token creation timestamp (UTC)",
     )
@@ -109,7 +109,7 @@ class PasswordReset(Base):
     @property
     def is_expired(self) -> bool:
         """Check if token is expired."""
-        return datetime.utcnow() > self.expires_at
+        return lambda: datetime.now(UTC)() > self.expires_at
 
     @property
     def is_used(self) -> bool:

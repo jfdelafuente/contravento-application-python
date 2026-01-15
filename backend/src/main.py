@@ -4,7 +4,7 @@ FastAPI application entry point for ContraVento backend.
 Initializes the FastAPI app with middleware, error handling, and routing.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -201,7 +201,7 @@ async def add_timestamp_header(request: Request, call_next):
         Response with timestamp header
     """
     response = await call_next(request)
-    response.headers["X-Timestamp"] = datetime.utcnow().isoformat() + "Z"
+    response.headers["X-Timestamp"] = datetime.now(UTC).isoformat() + "Z"
     return response
 
 
@@ -219,7 +219,7 @@ async def health_check() -> dict[str, Any]:
         data={
             "status": "healthy",
             "environment": settings.app_env,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat() + "Z",
         },
     )
 

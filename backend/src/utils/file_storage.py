@@ -6,7 +6,7 @@ Handles profile photo upload, validation, resizing, and storage path management.
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import BinaryIO, Optional
 
@@ -43,7 +43,7 @@ def get_storage_path(user_id: str, filename: str) -> str:
         >>> get_storage_path("user123", "photo.jpg")
         'profile_photos/2025/12/user123_a1b2c3d4.jpg'
     """
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     year = now.strftime("%Y")
     month = now.strftime("%m")
 

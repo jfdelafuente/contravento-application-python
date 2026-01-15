@@ -8,7 +8,7 @@ Business logic for:
 """
 
 import logging
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -252,7 +252,7 @@ class StatsService:
         if stats.last_trip_date is None or trip_date > stats.last_trip_date:
             stats.last_trip_date = trip_date
 
-        stats.updated_at = datetime.utcnow()
+        stats.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 
@@ -307,7 +307,7 @@ class StatsService:
                 countries.append(new_country_code)
                 stats.countries_visited = countries
 
-        stats.updated_at = datetime.utcnow()
+        stats.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 
@@ -346,7 +346,7 @@ class StatsService:
         # Note: We don't remove countries as determining if they should be removed
         # would require querying all other trips
 
-        stats.updated_at = datetime.utcnow()
+        stats.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 

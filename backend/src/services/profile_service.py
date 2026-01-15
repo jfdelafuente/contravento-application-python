@@ -10,7 +10,7 @@ Business logic for profile management including:
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -193,7 +193,7 @@ class ProfileService:
             profile.show_location = update_data.show_location
 
         # Update timestamp
-        profile.updated_at = datetime.utcnow()
+        profile.updated_at = datetime.now(UTC)
 
         await self.db.commit()
         await self.db.refresh(profile)
@@ -251,7 +251,7 @@ class ProfileService:
 
         # Create storage directory
         storage_dir = (
-            Path(settings.storage_path) / "profile_photos" / datetime.utcnow().strftime("%Y/%m")
+            Path(settings.storage_path) / "profile_photos" / datetime.now(UTC).strftime("%Y/%m")
         )
         storage_dir.mkdir(parents=True, exist_ok=True)
 
@@ -280,12 +280,12 @@ class ProfileService:
 
         # Generate absolute URL with backend base URL
         photo_url = (
-            f"{settings.backend_url}/storage/profile_photos/{datetime.utcnow().strftime('%Y/%m')}/{final_path.name}"
+            f"{settings.backend_url}/storage/profile_photos/{datetime.now(UTC).strftime('%Y/%m')}/{final_path.name}"
         )
 
         # Update profile
         profile.profile_photo_url = photo_url
-        profile.updated_at = datetime.utcnow()
+        profile.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 
@@ -328,7 +328,7 @@ class ProfileService:
 
         # Remove URL from profile
         profile.profile_photo_url = None
-        profile.updated_at = datetime.utcnow()
+        profile.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 
@@ -369,7 +369,7 @@ class ProfileService:
         if privacy_settings.show_location is not None:
             profile.show_location = privacy_settings.show_location
 
-        profile.updated_at = datetime.utcnow()
+        profile.updated_at = datetime.now(UTC)
 
         await self.db.commit()
         await self.db.refresh(profile)
@@ -415,7 +415,7 @@ class ProfileService:
 
         # Update password
         user.hashed_password = hash_password(new_password)
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(UTC)
 
         await self.db.commit()
 

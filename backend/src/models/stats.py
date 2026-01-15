@@ -6,7 +6,7 @@ Achievement: Achievement/badge definitions
 UserAchievement: User-earned achievements (join table)
 """
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -101,15 +101,15 @@ class UserStats(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         doc="Record creation timestamp (UTC)",
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
         doc="Last update timestamp (UTC)",
     )
@@ -199,7 +199,7 @@ class Achievement(Base):
     # Timestamp
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         doc="Achievement creation timestamp (UTC)",
     )
@@ -264,7 +264,7 @@ class UserAchievement(Base):
     # Award timestamp
     awarded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         doc="Timestamp when achievement was earned (UTC)",
     )
