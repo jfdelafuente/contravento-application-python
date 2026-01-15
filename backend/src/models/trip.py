@@ -81,9 +81,9 @@ class Trip(Base):
     )
 
     # Metadata
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
-    published_at = Column(DateTime, nullable=True)  # When first published
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    published_at = Column(DateTime(timezone=True), nullable=True)  # When first published
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="trips")  # type: ignore
@@ -145,7 +145,7 @@ class TripPhoto(Base):
     height = Column(Integer, nullable=False, default=0)  # Image height in pixels
 
     # Metadata
-    uploaded_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    uploaded_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="photos")
@@ -191,7 +191,7 @@ class Tag(Base):
     usage_count = Column(Integer, nullable=False, default=0)  # How many trips use this tag
 
     # Metadata
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
     # Relationships
     trip_tags: Mapped[list["TripTag"]] = relationship(
@@ -224,7 +224,7 @@ class TripTag(Base):
     tag_id = Column(String(36), ForeignKey("tags.tag_id", ondelete="CASCADE"), primary_key=True)
 
     # Metadata
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="trip_tags")
@@ -264,7 +264,7 @@ class TripLocation(Base):
     sequence = Column(Integer, nullable=False)  # Order along route (0 = start, 1 = next, etc.)
 
     # Metadata
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="locations")
