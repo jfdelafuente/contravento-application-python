@@ -106,8 +106,8 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               </svg>
               Inicio
             </Link>
-            {/* Show Dashboard link when on /profile, Profile link otherwise */}
-            {location.pathname === '/profile' ? (
+            {/* Show Dashboard link when on /profile or /trips, Profile link otherwise */}
+            {location.pathname === '/profile' || location.pathname === '/trips' ? (
               <Link
                 to="/dashboard"
                 className="nav-link"
