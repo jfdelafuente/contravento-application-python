@@ -99,13 +99,10 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              {/* Public route - no authentication required for public trips */}
               <Route
                 path="/trips/:tripId"
-                element={
-                  <ProtectedRoute>
-                    <TripDetailPage />
-                  </ProtectedRoute>
-                }
+                element={<TripDetailPage />}
               />
               {/* Phase 7: Edit trip route */}
               <Route
