@@ -44,6 +44,12 @@ api.interceptors.response.use(
       originalRequest?.url?.includes(endpoint)
     );
 
+    // Public endpoints that should work without auth (don't redirect to login on 401)
+    const publicEndpoints = ['/trips/public', '/trips/', '/users/'];
+    const isPublicEndpoint = publicEndpoints.some((endpoint) =>
+      originalRequest?.url?.includes(endpoint)
+    );
+
     // If 401 and not already retrying and not a no-retry endpoint
     if (
       error.response?.status === 401 &&
@@ -58,10 +64,19 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refresh_token');
 
         if (!refreshToken) {
-          // No refresh token available - user needs to login again
-          localStorage.clear();
-          window.location.href = '/login';
-          return Promise.reject(new Error('No refresh token available'));
+          // No refresh token available
+          if (isPublicEndpoint) {
+            // For public endpoints, clear invalid token and retry without auth
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            delete originalRequest.headers?.Authorization;
+            return api(originalRequest);
+          } else {
+            // For protected endpoints, redirect to login
+            localStorage.clear();
+            window.location.href = '/login';
+            return Promise.reject(new Error('No refresh token available'));
+          }
         }
 
         // Call refresh endpoint with refresh token as query parameter
@@ -82,10 +97,19 @@ api.interceptors.response.use(
         // Retry original request with new access token
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear storage and redirect to login
-        localStorage.clear();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+        // Refresh failed
+        if (isPublicEndpoint) {
+          // For public endpoints, clear invalid tokens and retry without auth
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          delete originalRequest.headers?.Authorization;
+          return api(originalRequest);
+        } else {
+          // For protected endpoints, redirect to login
+          localStorage.clear();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
       }
     }
 
