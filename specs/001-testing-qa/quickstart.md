@@ -107,6 +107,7 @@ npm run test:e2e
 
 ### Run Smoke Tests
 
+**Linux/Mac (Bash)**:
 ```bash
 # Test local-dev mode (SQLite)
 ./scripts/run_smoke_tests.sh local-dev
@@ -121,37 +122,118 @@ npm run test:e2e
 ./scripts/run_smoke_tests.sh staging
 ```
 
+**Windows (PowerShell)**:
+```powershell
+# Test local-dev mode (SQLite)
+.\scripts\run_smoke_tests.ps1 -Mode local-dev
+
+# Test local-minimal mode (PostgreSQL via Docker)
+.\scripts\run_smoke_tests.ps1 -Mode local-minimal
+
+# Test local-full mode (Docker with all services)
+.\scripts\run_smoke_tests.ps1 -Mode local-full
+
+# Test staging mode
+.\scripts\run_smoke_tests.ps1 -Mode staging
+```
+
 ### What Smoke Tests Validate
 
 1. **Health Check** (`GET /health`)
-   - API server is running
-   - Responds within 5 seconds
+   - API server is running and responding
+   - Returns 200 OK status code
+   - Response contains "status" field
 
 2. **Auth Endpoints** (`POST /auth/login`, `GET /auth/me`)
-   - Returns 401 for invalid credentials
-   - Returns 401 for missing token
+   - POST /auth/login returns 401 for invalid credentials
+   - GET /auth/me returns 401 without authentication token
+   - Auth system is functional
 
-3. **Database Connectivity**
-   - Can connect to database (SQLite or PostgreSQL)
-   - Can execute simple query
+3. **Database Connectivity** (via `check_db.py`)
+   - Connects to SQLite (local-dev) or PostgreSQL (other modes)
+   - Executes test query successfully
+   - Verifies database schema is accessible
 
-4. **Static Files** (if applicable)
-   - Frontend build files are served
-   - Returns correct MIME types
+4. **Static Files** (local-full and staging only)
+   - Frontend HTML is served at /
+   - Returns 200 OK status code
+   - Response contains HTML content
 
 ### Example Output
 
 ```bash
 $ ./scripts/run_smoke_tests.sh local-dev
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ContraVento Smoke Tests - Mode: local-dev
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Base URL: http://localhost:8000
+Timeout: 30s
 
-Running smoke tests for local-dev mode...
-✅ Health check passed (120ms)
-✅ Auth endpoints responding (401 as expected)
-✅ Database connectivity OK
-✅ All smoke tests passed for local-dev
+▶ Running: Health check - GET /health
+✅ PASS - Health endpoint returned 200 OK
 
-Total time: 8 seconds
+▶ Running: Auth endpoint - POST /auth/login (invalid credentials)
+✅ PASS - Auth endpoint correctly rejects invalid credentials (401)
+
+▶ Running: Protected endpoint - GET /auth/me (no token)
+✅ PASS - Protected endpoint correctly requires authentication (401)
+
+▶ Running: Database connectivity check
+Checking database connectivity for mode: local-dev
+
+✅ SQLite connection successful
+   Database: C:\...\backend\contravento_dev.db
+
+Database connection successful
+✅ PASS - Database connection verified
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Test Summary
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Total Tests: 4
+  Passed: 4
+  Failed: 0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Duration: 8.5s
+
+✅ All smoke tests passed!
 ```
+
+### Troubleshooting Smoke Tests
+
+If smoke tests fail, check:
+
+1. **Application is running**:
+   ```bash
+   # For local-dev
+   ./run-local-dev.sh
+
+   # For Docker modes
+   ./deploy.sh local-minimal
+   ```
+
+2. **Database is initialized**:
+   ```bash
+   # For local-dev
+   ./run-local-dev.sh --setup
+
+   # For Docker modes (auto-initialized)
+   ```
+
+3. **Correct port is listening**:
+   ```bash
+   # Linux/Mac
+   lsof -i :8000
+
+   # Windows
+   netstat -ano | findstr :8000
+   ```
+
+4. **Network connectivity**:
+   ```bash
+   curl http://localhost:8000/health
+   ```
 
 ---
 

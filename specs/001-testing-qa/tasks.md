@@ -134,14 +134,15 @@ Phase 7: User Story 5 - Performance Tests (P3)
 
 **Tasks**:
 
-- [ ] T023 [US1] Create scripts/run_smoke_tests.sh shell script with mode argument validation (local-dev, local-minimal, local-full, staging)
-- [ ] T024 [US1] Implement health check test in run_smoke_tests.sh using curl to GET /health endpoint (expect 200)
-- [ ] T025 [US1] Implement auth endpoint test in run_smoke_tests.sh to verify POST /auth/login returns 401 for invalid credentials
-- [ ] T026 [US1] Implement auth/me endpoint test in run_smoke_tests.sh to verify GET /auth/me returns 401 without token
-- [ ] T027 [US1] Create scripts/check_db.py Python script to test database connectivity (SQLite or PostgreSQL based on mode)
-- [ ] T028 [US1] Add database connectivity test to run_smoke_tests.sh calling check_db.py
-- [ ] T029 [US1] Add static file serving test to run_smoke_tests.sh (curl frontend index.html, expect 200)
-- [ ] T030 [US1] Add exit code handling and colored output (✅ PASS, ❌ FAIL) to run_smoke_tests.sh
+- [X] T023 [US1] Create scripts/run_smoke_tests.sh shell script with mode argument validation (local-dev, local-minimal, local-full, staging)
+- [X] T024 [US1] Implement health check test in run_smoke_tests.sh using curl to GET /health endpoint (expect 200)
+- [X] T025 [US1] Implement auth endpoint test in run_smoke_tests.sh to verify POST /auth/login returns 401 for invalid credentials
+- [X] T026 [US1] Implement auth/me endpoint test in run_smoke_tests.sh to verify GET /auth/me returns 401 without token
+- [X] T027 [US1] Create scripts/check_db.py Python script to test database connectivity (SQLite or PostgreSQL based on mode)
+- [X] T028 [US1] Add database connectivity test to run_smoke_tests.sh calling check_db.py
+- [X] T029 [US1] Add static file serving test to run_smoke_tests.sh (curl frontend index.html, expect 200)
+- [X] T030 [US1] Add exit code handling and colored output (✅ PASS, ❌ FAIL) to run_smoke_tests.sh
+- [X] BONUS: Created run_smoke_tests.ps1 PowerShell version for Windows users
 
 **Testing US1**:
 ```bash
