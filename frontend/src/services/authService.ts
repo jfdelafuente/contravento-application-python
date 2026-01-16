@@ -42,13 +42,9 @@ export const authService = {
       throw new Error(data.error?.message || 'Registration failed');
     }
 
-    // Transform backend response to User interface
-    const { id, ...rest } = data.data.user;
-    return {
-      user_id: id,
-      created_at: new Date().toISOString(), // Backend should provide this
-      ...rest,
-    };
+    // Backend returns UserResponse directly (not nested under 'user')
+    // Fields: user_id, username, email, is_verified, created_at, etc.
+    return data.data as User;
   },
 
   /**

@@ -45,15 +45,8 @@ export interface FieldError {
 
 // Authentication endpoint responses
 
-export interface RegisterResponse {
-  message: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    is_verified: false;
-  };
-}
+// Backend returns UserResponse directly (not nested under 'user')
+export type RegisterResponse = User;
 
 export interface LoginResponse {
   message: string;
