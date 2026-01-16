@@ -45,10 +45,18 @@ api.interceptors.response.use(
     );
 
     // Public endpoints that should work without auth (don't redirect to login on 401)
-    const publicEndpoints = ['/trips/public', '/trips/', '/users/'];
-    const isPublicEndpoint = publicEndpoints.some((endpoint) =>
-      originalRequest?.url?.includes(endpoint)
-    );
+    // Match patterns: /trips/public, /trips/{uuid}, /users/{username}
+    const isPublicEndpoint =
+      originalRequest?.url?.includes('/trips/public') ||
+      /\/trips\/[a-f0-9-]{36}$/i.test(originalRequest?.url || '') ||
+      /\/users\/[^/]+$/.test(originalRequest?.url || '');
+
+    // Debug logging
+    if (error.response?.status === 401 && import.meta.env.DEV) {
+      console.log('[Auth Debug] 401 on:', originalRequest?.url);
+      console.log('[Auth Debug] Is public endpoint:', isPublicEndpoint);
+      console.log('[Auth Debug] Has refresh token:', !!localStorage.getItem('refresh_token'));
+    }
 
     // If 401 and not already retrying and not a no-retry endpoint
     if (
@@ -69,8 +77,13 @@ api.interceptors.response.use(
             // For public endpoints, clear invalid token and retry without auth
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
-            delete originalRequest.headers?.Authorization;
-            return api(originalRequest);
+            // Create new request without Authorization header
+            const cleanRequest = { ...originalRequest };
+            if (cleanRequest.headers) {
+              cleanRequest.headers = { ...cleanRequest.headers };
+              delete cleanRequest.headers.Authorization;
+            }
+            return api(cleanRequest);
           } else {
             // For protected endpoints, redirect to login
             localStorage.clear();
@@ -102,8 +115,13 @@ api.interceptors.response.use(
           // For public endpoints, clear invalid tokens and retry without auth
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-          delete originalRequest.headers?.Authorization;
-          return api(originalRequest);
+          // Create new request without Authorization header
+          const cleanRequest = { ...originalRequest };
+          if (cleanRequest.headers) {
+            cleanRequest.headers = { ...cleanRequest.headers };
+            delete cleanRequest.headers.Authorization;
+          }
+          return api(cleanRequest);
         } else {
           // For protected endpoints, redirect to login
           localStorage.clear();
