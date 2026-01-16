@@ -940,8 +940,9 @@ async def get_user_trips(
                 "end_date": trip.end_date.isoformat() if trip.end_date else None,
                 "distance_km": trip.distance_km,
                 "status": trip.status.value,
-                "photos_count": len(trip.photos),
-                "tags": [tag_rel.tag.name for tag_rel in trip.trip_tags],
+                "photo_count": len(trip.photos),
+                "tag_names": [tag_rel.tag.name for tag_rel in trip.trip_tags],
+                "thumbnail_url": trip.photos[0].thumbnail_url if trip.photos else None,
                 "created_at": trip.created_at.isoformat(),
                 "updated_at": trip.updated_at.isoformat(),
             }
