@@ -1,11 +1,69 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-14
-**Estado actual**: Feature 013 e Issue #012 MERGEADOS a develop
+**Última actualización**: 2026-01-16
+**Estado actual**: Feature 001 (Testing & QA Suite) MERGEADA a develop
 
 ---
 
 ## Estado Actual ✅
+
+### Feature 001: Testing & QA Suite (✅ MERGEADA A DEVELOP)
+
+**Branch**: `001-testing-qa` → **MERGED to develop**
+**Status**: ✅ **COMPLETADO 98.6%** - Mergeada a develop
+**Merge date**: 2026-01-16
+**Priority**: P1 (Critical - Infrastructure Foundation)
+
+**Implementación Completada**: 72/73 tasks (98.6%)
+
+**Entregables**:
+- ✅ Suite completa de smoke tests (4 deployment modes validados)
+- ✅ Integration tests (API + Database)
+- ✅ E2E tests con Playwright (171 executions: 57 tests × 3 browsers)
+- ✅ Performance tests (pytest-benchmark + Locust load testing)
+- ✅ CI/CD pipeline (4 GitHub Actions workflows)
+- ✅ Documentación comprehensiva (3 guías, ~3,600 líneas)
+
+**Fases Implementadas**:
+1. ✅ Phase 1: Test Framework Setup (pytest, Vitest, Playwright)
+2. ✅ Phase 2: Smoke Tests (4 deployment modes)
+3. ✅ Phase 3: Integration Tests (API endpoints, database)
+4. ✅ Phase 4: E2E Tests (user flows, 3 browsers)
+5. ✅ Phase 5: Performance Tests (benchmarks + load testing)
+6. ✅ Phase 6: CI/CD Workflows (GitHub Actions)
+7. ✅ Phase 7: Documentation (QA manual + CI/CD guide + testing manual)
+
+**Testing Coverage**:
+- Backend Integration: 43 tests (auth, profile, stats, trips, social)
+- Frontend E2E: 57 tests × 3 browsers = 171 executions (Chromium, Firefox, WebKit)
+- Performance: 12 benchmarks + load testing (100+ concurrent users)
+- Smoke Tests: 4 deployment modes (SQLite Local, Docker Minimal, Docker Full, Production)
+
+**CI/CD Workflows**:
+1. `backend-tests.yml`: pytest (unit, integration, coverage ≥90%)
+2. `frontend-tests.yml`: Vitest + TypeScript type-check
+3. `e2e-tests.yml`: Playwright cross-browser testing
+4. `deploy-staging.yml`: Automated staging deployment
+
+**Documentación Generada**:
+- `docs/QA_TESTING_MANUAL.md` (1,095 lines): Complete testing guide
+- `docs/CI_CD_GUIDE.md` (1,579 lines): CI/CD infrastructure guide
+- `docs/TESTING_MANUAL.md` (938 lines): Technical testing reference
+
+**Archivos Añadidos**: 53 files, +15,377 lines
+- Tests: 32 archivos (integration, E2E, performance)
+- CI/CD: 4 workflows
+- Docs: 3 comprehensive guides
+- Scripts: Cross-platform helpers (Bash + PowerShell)
+
+**Commits mergeados**: 11 commits con implementación completa
+
+**Tiempo invertido**: ~6 horas (planning + implementation + documentation)
+
+**Task Pendiente** (opcional):
+- ⏸️ T045: SQLAlchemy query logging (optional - N+1 detection)
+
+---
 
 ### Issue #012: TypeScript Code Quality (✅ MERGEADO A DEVELOP)
 
@@ -184,6 +242,14 @@
 
 ## Features Completadas ✅
 
+### Feature 001: Testing & QA Suite ✅
+- Suite completa de smoke tests (4 deployment modes)
+- Integration tests (43 tests backend)
+- E2E tests con Playwright (57 tests × 3 browsers)
+- Performance tests (pytest-benchmark + Locust)
+- CI/CD pipeline (4 GitHub Actions workflows)
+- Documentación completa (3 guías, ~3,600 líneas)
+
 ### Feature 001: User Profiles Backend ✅
 - Sistema de autenticación backend
 - Perfiles de usuario
@@ -265,66 +331,115 @@
 
 ## Próximos Pasos Inmediatos 🎯
 
-### Opción A: Testing/QA Suite - RECOMENDADO ⭐
+### Opción A: Configurar CI/CD en GitHub - RECOMENDADO ⭐
 
-**Prioridad**: Alta (asegurar calidad antes de producción)
-**Estimación**: 4-8 horas
-**Branch**: Nueva desde develop
+**Prioridad**: Alta (activar pipelines automatizados)
+**Estimación**: 1-2 horas
+**Branch**: develop (ya merged)
 
 **Objetivo**:
-Crear suite completa de tests automatizados y smoke tests para validar los 4 modos de deployment.
+Activar los 4 workflows de GitHub Actions ya implementados en Feature 001-testing-qa.
 
-**Entregables**:
-- Suite de smoke tests automatizados
-- Integration tests para deployment modes
-- CI/CD pipeline configuration (GitHub Actions)
-- Performance benchmarks
-- Load testing básico
+**Pasos**:
+1. **Configurar GitHub Secrets** (Settings → Secrets and variables → Actions):
+   - `SECRET_KEY`: Generar con `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+   - `DOCKER_USERNAME`: Usuario de Docker Hub (opcional, para deploy staging)
+   - `DOCKER_PASSWORD`: Token de Docker Hub (opcional)
+   - `STAGING_SERVER`: IP/hostname del servidor de staging (opcional)
 
-**Comandos**:
-```bash
-git checkout develop
-git checkout -b testing-qa-suite
+2. **Configurar GitHub Environments** (Settings → Environments):
+   - Crear environment `staging` con protection rules
+   - Crear environment `production` con protection rules
 
-# Crear estructura
-mkdir -p tests/smoke
-mkdir -p tests/performance
-mkdir -p .github/workflows
-```
+3. **Habilitar Branch Protection** (Settings → Branches → main/develop):
+   - Require status checks to pass before merging
+   - Select: `backend-tests`, `frontend-tests`, `e2e-tests`
+
+4. **Primer PR de prueba**:
+   - Crear branch de prueba desde develop
+   - Hacer un cambio mínimo (ej: actualizar README)
+   - Abrir PR y verificar que los workflows se ejecutan correctamente
+
+**Workflows Disponibles**:
+- `backend-tests.yml`: pytest (unit, integration, coverage ≥90%)
+- `frontend-tests.yml`: Vitest + TypeScript type-check
+- `e2e-tests.yml`: Playwright cross-browser testing (57 tests × 3 browsers)
+- `deploy-staging.yml`: Automated staging deployment
+
+**Documentación**: Ver [docs/CI_CD_GUIDE.md](docs/CI_CD_GUIDE.md) para guía completa
 
 ---
 
-### Opción C: Nueva Feature (Después de estabilizar)
+### Opción B: Nueva Feature - Advanced Search & Filters
 
-**Recomendación**: Solo después de completar Issue #012 + Testing/QA
+**Prioridad**: Media
+**Estimación**: 3-4 días
+**Branch**: Nueva desde develop
+
+**Objetivo**:
+Implementar búsqueda global de viajes con filtros avanzados y mapa de clustering.
+
+**Recomendación**: Comenzar después de validar CI/CD en staging
+
+---
+
+### Opción C: Deployment a Staging
+
+**Prioridad**: Alta
+**Estimación**: 2-4 horas
+**Branch**: develop
+
+**Objetivo**:
+Realizar primer deployment a staging para validación real con usuarios.
+
+**Recomendación**: Ejecutar después de configurar CI/CD (Opción A)
 
 ---
 
 ## Roadmap Técnico 🗺️
 
-### Fase 1: Estabilización (ACTUAL) ⚠️
+### Fase 1: Estabilización (COMPLETADA) ✅
 **Objetivo**: Proyecto production-ready
 
-1. **Issue #012**: TypeScript Code Quality
-   - Estado: 10% completo (10/96 errors)
-   - Prioridad: Alta
-   - Bloquea: Production builds
+1. ✅ **Issue #012**: TypeScript Code Quality
+   - Estado: 100% completado (25/25 errors resueltos)
+   - Resultado: Production builds funcionando
 
-2. **Testing/QA Suite**
-   - Estado: No iniciado
-   - Prioridad: Alta
-   - Entrega: Suite automatizada de tests
+2. ✅ **Testing/QA Suite** (Feature 001-testing-qa)
+   - Estado: 98.6% completado (72/73 tasks)
+   - Entrega: Suite automatizada completa (smoke, integration, E2E, performance)
 
-3. **CI/CD Pipeline**
-   - Estado: No iniciado
-   - Prioridad: Media-Alta
-   - Entrega: GitHub Actions workflows
+3. ✅ **CI/CD Pipeline**
+   - Estado: 100% completado
+   - Entrega: 4 GitHub Actions workflows implementados
 
-**Resultado**: Base sólida para deployment a staging/production
+**Resultado**: ✅ Base sólida lista para deployment a staging/production
 
 ---
 
-### Fase 2: Expansión Controlada (FUTURO)
+### Fase 2: Activación y Validación (ACTUAL) 🎯
+**Objetivo**: Poner en marcha infraestructura de calidad
+
+1. **Configuración CI/CD en GitHub**
+   - Estado: Pendiente
+   - Prioridad: Alta
+   - Acción: Configurar secrets, environments, branch protection
+
+2. **Deployment a Staging**
+   - Estado: Pendiente
+   - Prioridad: Alta
+   - Acción: Primer deployment real para validación
+
+3. **Validación con Usuarios Reales**
+   - Estado: Pendiente
+   - Prioridad: Media
+   - Acción: Testing beta con usuarios seleccionados
+
+**Resultado**: Infraestructura de calidad activa y validada
+
+---
+
+### Fase 3: Expansión Controlada (FUTURO)
 
 #### Feature 012: Advanced Search & Filters
 - **Prioridad**: Media
@@ -354,8 +469,9 @@ mkdir -p .github/workflows
 
 ## Métricas de Progreso 📊
 
-### Features Completadas (12/15)
+### Features Completadas (13/15)
 
+- ✅ 001-testing-qa: Testing & QA Suite (mergeada 2026-01-16)
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
 - ✅ 005: Frontend User Auth
@@ -372,16 +488,19 @@ mkdir -p .github/workflows
 - ✅ 012: TypeScript Code Quality (100% complete - mergeado 2026-01-14)
 
 ### Tasks Pendientes (3/15)
-- 🎯 Testing/QA Suite (SIGUIENTE después de #012)
+- 🎯 Configurar CI/CD en GitHub (SIGUIENTE - Activar workflows)
+- 🎯 Deployment a Staging (Validación real)
 - ⏳ Advanced Search & Filters
 - ⏳ Social Features Frontend
 - ⏳ GPS Routes
 
 ### Cobertura de Testing
-- **Backend**: ~90% (pytest coverage)
-- **Frontend**: ~60% (vitest - necesita mejora)
-- **Integration**: ~40% (necesita expansión)
-- **E2E**: 0% (pendiente)
+- **Backend Unit**: ~90% (pytest coverage)
+- **Backend Integration**: 43 tests (auth, profile, stats, trips, social)
+- **Frontend Unit**: ~60% (vitest - necesita mejora)
+- **E2E**: 57 tests × 3 browsers = 171 executions (Playwright)
+- **Performance**: 12 benchmarks + load testing (100+ concurrent users)
+- **Smoke Tests**: 4 deployment modes validados
 
 ### Líneas de Código (estimado)
 - **Backend**: ~28,000 líneas (Python)
@@ -515,26 +634,33 @@ poetry run pytest --cov=src
 
 ## Estado del Proyecto 🚀
 
-**Production Ready**: ⚠️ 85% (bloqueado por TypeScript errors)
+**Production Ready**: ✅ 95% (infraestructura completa, pendiente activación)
 
 ### Listo para Producción ✅
-- Backend API completo y testeado
-- Frontend features completas
-- 4 deployment modes funcionales
-- Documentación comprehensiva
-- Security review passed
+- ✅ Backend API completo y testeado (90% coverage)
+- ✅ Frontend features completas (13 features)
+- ✅ 4 deployment modes funcionales y validados
+- ✅ TypeScript code quality: 0 errors
+- ✅ Testing/QA suite automatizada:
+  - 43 integration tests (backend)
+  - 171 E2E executions (57 tests × 3 browsers)
+  - 12 performance benchmarks
+  - 4 smoke tests (deployment modes)
+- ✅ CI/CD pipeline implementado (4 workflows)
+- ✅ Documentación comprehensiva (3 guías de testing + deployment)
+- ✅ Security review passed
 
 ### Pendiente para Producción ⏸️
-- TypeScript errors (86 restantes)
-- Testing/QA suite automatizada
-- CI/CD pipeline
-- Performance optimization
-- Load testing
+- ⏸️ Configurar GitHub Secrets (CI/CD activation)
+- ⏸️ Configurar GitHub Environments (staging/production)
+- ⏸️ Habilitar Branch Protection Rules
+- ⏸️ Deployment inicial a staging
+- ⏸️ Validación con usuarios beta
 
 ---
 
-**Siguiente Acción Recomendada**: Completar Issue #012 (TypeScript) para desbloquear production builds, luego crear Testing/QA suite para asegurar calidad antes de deployment real.
+**Siguiente Acción Recomendada**: Configurar CI/CD en GitHub (Opción A) para activar los workflows automatizados ya implementados, luego realizar deployment a staging para validación real.
 
-**Prioridad Máxima**: Estabilización > Expansión
+**Prioridad Máxima**: Activación > Validación > Expansión
 
-El proyecto tiene una base sólida con **12 features completadas** (incluyendo Feature 013 Public Trips Feed recientemente mergeada). Ahora es momento de asegurar calidad (TypeScript + Testing) antes de añadir más funcionalidades o hacer deployment a staging/production.
+El proyecto tiene una **base sólida con 13 features completadas** (incluyendo Feature 001 Testing & QA Suite recientemente mergeada el 2026-01-16). La infraestructura de calidad está **100% implementada** y lista para activarse. Próximo paso: configurar GitHub para aprovechar los workflows automatizados y realizar primer deployment a staging.
