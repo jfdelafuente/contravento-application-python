@@ -1,0 +1,534 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - Social Links API
+  description: |
+    API endpoints for the Social Links with Granular Privacy Control feature.
+
+    Allows users to add external social media links (Instagram, Strava, Blog, Portfolio)
+    to their profiles with 4 levels of privacy: Public, Community, Mutual Followers, and Hidden.
+  version: 0.15.0
+  contact:
+    name: ContraVento API Support
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.contravento.com
+    description: Production server
+
+tags:
+  - name: social-links
+    description: Social link CRUD operations with privacy control
+
+paths:
+  /users/{username}/social-links:
+    get:
+      tags: [social-links]
+      summary: Get user's visible social links
+      description: |
+        Retrieve social links for a user profile, filtered by privacy level based on viewer's relationship.
+
+        **Visibility Rules**:
+        - Anonymous user: Only PUBLIC links
+        - Authenticated user: PUBLIC + COMMUNITY links
+        - Mutual follower: PUBLIC + COMMUNITY + MUTUAL_FOLLOWERS links
+        - Profile owner: All links including HIDDEN (for edit mode)
+
+        **Functional Requirements**: FR-006, FR-011
+        **Success Criteria**: SC-007, SC-008
+      operationId: get_user_social_links
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username of profile owner
+          example: "juan_ciclista"
+      responses:
+        '200':
+          description: Social links retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                anonymous_user:
+                  summary: Anonymous user sees only PUBLIC links
+                  value:
+                    success: true
+                    data:
+                      - id: "link-1"
+                        platform_type: "INSTAGRAM"
+                        url: "https://instagram.com/juan_ciclista"
+                        privacy_level: "PUBLIC"
+                    error: null
+                authenticated_user:
+                  summary: Authenticated user sees PUBLIC + COMMUNITY
+                  value:
+                    success: true
+                    data:
+                      - id: "link-1"
+                        platform_type: "INSTAGRAM"
+                        url: "https://instagram.com/juan_ciclista"
+                        privacy_level: "PUBLIC"
+                      - id: "link-2"
+                        platform_type: "STRAVA"
+                        url: "https://strava.com/athletes/123456"
+                        privacy_level: "COMMUNITY"
+                    error: null
+                mutual_follower:
+                  summary: Mutual follower sees all except HIDDEN
+                  value:
+                    success: true
+                    data:
+                      - id: "link-1"
+                        platform_type: "INSTAGRAM"
+                        url: "https://instagram.com/juan_ciclista"
+                        privacy_level: "PUBLIC"
+                      - id: "link-2"
+                        platform_type: "STRAVA"
+                        url: "https://strava.com/athletes/123456"
+                        privacy_level: "COMMUNITY"
+                      - id: "link-3"
+                        platform_type: "BLOG"
+                        url: "https://juanciclista.substack.com"
+                        privacy_level: "MUTUAL_FOLLOWERS"
+                    error: null
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /social-links:
+    get:
+      tags: [social-links]
+      summary: Get current user's own social links
+      description: |
+        Retrieve all social links for the authenticated user (including HIDDEN links).
+
+        Used in profile edit mode to display user's own links with privacy indicators.
+
+        **Authentication**: Required
+        **Functional Requirements**: FR-008, FR-009
+      operationId: get_own_social_links
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Own social links retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  - id: "link-1"
+                    platform_type: "INSTAGRAM"
+                    url: "https://instagram.com/juan_ciclista"
+                    privacy_level: "PUBLIC"
+                    created_at: "2026-01-10T10:30:00Z"
+                    updated_at: "2026-01-10T10:30:00Z"
+                  - id: "link-2"
+                    platform_type: "STRAVA"
+                    url: "https://strava.com/athletes/123456"
+                    privacy_level: "COMMUNITY"
+                    created_at: "2026-01-10T10:35:00Z"
+                    updated_at: "2026-01-12T15:20:00Z"
+                  - id: "link-3"
+                    platform_type: "PORTFOLIO"
+                    url: "https://myweb.com"
+                    privacy_level: "HIDDEN"
+                    created_at: "2026-01-15T09:00:00Z"
+                    updated_at: "2026-01-15T09:00:00Z"
+                error: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [social-links]
+      summary: Create new social link
+      description: |
+        Add a new social media link to the authenticated user's profile.
+
+        **Validation**:
+        - URL format must be valid (RFC 3986)
+        - Domain must match platform type allowlist
+        - URL is sanitized to prevent XSS/phishing
+        - Maximum 1 link per platform_type per user
+
+        **Authentication**: Required
+        **Functional Requirements**: FR-001, FR-003, FR-004, FR-005, FR-010
+        **Success Criteria**: SC-001, SC-002, SC-003, SC-006
+      operationId: create_social_link
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialLinkCreateRequest'
+            examples:
+              instagram_public:
+                summary: Instagram link with PUBLIC privacy
+                value:
+                  platform_type: "INSTAGRAM"
+                  url: "https://instagram.com/juan_ciclista"
+                  privacy_level: "PUBLIC"
+              strava_community:
+                summary: Strava link for community only
+                value:
+                  platform_type: "STRAVA"
+                  url: "https://strava.com/athletes/123456"
+                  privacy_level: "COMMUNITY"
+              blog_mutual:
+                summary: Blog link for mutual followers
+                value:
+                  platform_type: "BLOG"
+                  url: "https://juanciclista.substack.com"
+                  privacy_level: "MUTUAL_FOLLOWERS"
+      responses:
+        '201':
+          description: Social link created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  id: "link-abc123"
+                  platform_type: "INSTAGRAM"
+                  url: "https://instagram.com/juan_ciclista"
+                  privacy_level: "PUBLIC"
+                  created_at: "2026-01-16T12:00:00Z"
+                  updated_at: "2026-01-16T12:00:00Z"
+                error: null
+        '400':
+          description: Validation error or duplicate platform
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalid_url:
+                  summary: Invalid URL format
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "URL inválida. Verifica el formato (debe comenzar con https://)"
+                      field: "url"
+                invalid_domain:
+                  summary: Domain not allowed for platform
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Dominio no permitido para Instagram. Usa un enlace válido de instagram.com"
+                      field: "url"
+                xss_attempt:
+                  summary: XSS attempt blocked
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "URL inválida. Contiene caracteres peligrosos"
+                      field: "url"
+                duplicate_platform:
+                  summary: User already has link for this platform
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "DUPLICATE_PLATFORM"
+                      message: "Ya tienes un enlace de Instagram configurado. Edítalo o elimínalo primero"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /social-links/{link_id}:
+    put:
+      tags: [social-links]
+      summary: Update existing social link
+      description: |
+        Update URL or privacy level for an existing social link.
+
+        Supports partial updates - only provided fields are updated.
+
+        **Authentication**: Required (owner only)
+        **Functional Requirements**: FR-008
+        **Success Criteria**: SC-005
+      operationId: update_social_link
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LinkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialLinkUpdateRequest'
+            examples:
+              update_url:
+                summary: Update URL only
+                value:
+                  url: "https://instagram.com/new_username"
+              update_privacy:
+                summary: Change privacy level
+                value:
+                  privacy_level: "COMMUNITY"
+              update_both:
+                summary: Update both URL and privacy
+                value:
+                  url: "https://strava.com/athletes/789012"
+                  privacy_level: "MUTUAL_FOLLOWERS"
+      responses:
+        '200':
+          description: Social link updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  id: "link-abc123"
+                  platform_type: "INSTAGRAM"
+                  url: "https://instagram.com/new_username"
+                  privacy_level: "COMMUNITY"
+                  created_at: "2026-01-10T10:30:00Z"
+                  updated_at: "2026-01-16T14:45:00Z"
+                error: null
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - Not link owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "FORBIDDEN"
+                  message: "No tienes permiso para editar este enlace"
+        '404':
+          description: Social link not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "NOT_FOUND"
+                  message: "Enlace social no encontrado"
+
+    delete:
+      tags: [social-links]
+      summary: Delete social link
+      description: |
+        Permanently delete a social link from user's profile.
+
+        **Authentication**: Required (owner only)
+        **Functional Requirements**: FR-008
+      operationId: delete_social_link
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LinkId'
+      responses:
+        '200':
+          description: Social link deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  message: "Enlace social eliminado exitosamente"
+                error: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - Not link owner
+        '404':
+          description: Social link not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /auth/login
+
+  parameters:
+    LinkId:
+      name: link_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique social link identifier
+
+  schemas:
+    SocialLinkCreateRequest:
+      type: object
+      required:
+        - platform_type
+        - url
+      properties:
+        platform_type:
+          type: string
+          enum: [INSTAGRAM, STRAVA, BLOG, PORTFOLIO, CUSTOM_1, CUSTOM_2]
+          description: Social media platform type
+          example: "INSTAGRAM"
+        url:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: URL to social profile (will be validated and sanitized)
+          example: "https://instagram.com/juan_ciclista"
+        privacy_level:
+          type: string
+          enum: [PUBLIC, COMMUNITY, MUTUAL_FOLLOWERS, HIDDEN]
+          default: PUBLIC
+          description: Visibility level for this link
+          example: "PUBLIC"
+
+    SocialLinkUpdateRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: New URL (will be validated against platform allowlist)
+          example: "https://instagram.com/new_username"
+        privacy_level:
+          type: string
+          enum: [PUBLIC, COMMUNITY, MUTUAL_FOLLOWERS, HIDDEN]
+          description: New privacy level
+          example: "COMMUNITY"
+
+    SocialLinkResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique link identifier
+          example: "link-abc123"
+        platform_type:
+          type: string
+          enum: [INSTAGRAM, STRAVA, BLOG, PORTFOLIO, CUSTOM_1, CUSTOM_2]
+          description: Platform type
+          example: "INSTAGRAM"
+        url:
+          type: string
+          description: Sanitized URL
+          example: "https://instagram.com/juan_ciclista"
+        privacy_level:
+          type: string
+          enum: [PUBLIC, COMMUNITY, MUTUAL_FOLLOWERS, HIDDEN]
+          description: Privacy level
+          example: "PUBLIC"
+        created_at:
+          type: string
+          format: date-time
+          description: When link was created
+          example: "2026-01-10T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When link was last updated
+          example: "2026-01-16T14:45:00Z"
+
+    ApiResponse:
+      type: object
+      required:
+        - success
+        - data
+        - error
+      properties:
+        success:
+          type: boolean
+          description: Whether request succeeded
+        data:
+          oneOf:
+            - type: object
+            - type: array
+              items:
+                $ref: '#/components/schemas/SocialLinkResponse'
+          nullable: true
+          description: Response data (null on error)
+        error:
+          type: object
+          nullable: true
+          description: Error details (null on success)
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: Human-readable error message in Spanish
+              example: "URL inválida. Verifica el formato"
+            field:
+              type: string
+              nullable: true
+              description: Field name for validation errors
+              example: "url"
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "VALIDATION_ERROR"
+              message: "URL inválida. Verifica el formato (debe comenzar con https://)"
+              field: "url"
+
+    Unauthorized:
+      description: Unauthorized - Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token de autenticación inválido o expirado"
+
+    UserNotFound:
+      description: User not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "USER_NOT_FOUND"
+              message: "Usuario no encontrado"
