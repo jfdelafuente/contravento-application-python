@@ -1,0 +1,163 @@
+/* frontend/src/components/landing/Header.css */
+
+/**
+ * Header Styles (Landing Page)
+ *
+ * Sticky header with logo (left) and navigation links (right)
+ * Responsive: horizontal (desktop) → stacked (mobile)
+ */
+
+.landing-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--landing-bg); /* Crema #F9F7F2 */
+  border-bottom: 1px solid rgba(27, 38, 33, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.landing-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+}
+
+/* Logo Section */
+.landing-header-logo {
+  flex-shrink: 0;
+}
+
+.landing-header-logo a {
+  font-family: var(--landing-font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--landing-title); /* Verde bosque #1B2621 */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.landing-header-logo a:hover {
+  color: var(--landing-accent); /* Terracota #D35400 */
+}
+
+.landing-header-logo a:focus {
+  outline: 2px solid var(--landing-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Navigation Section */
+.landing-header-nav {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.landing-header-link {
+  font-family: var(--landing-font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--landing-title); /* Verde bosque #1B2621 */
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.landing-header-link:hover {
+  background-color: rgba(27, 38, 33, 0.05);
+  color: var(--landing-accent); /* Terracota #D35400 */
+}
+
+.landing-header-link:focus {
+  outline: 2px solid var(--landing-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Login button styling (last link) */
+.landing-header-nav .landing-header-link:last-child {
+  background-color: var(--landing-title); /* Verde bosque #1B2621 */
+  color: var(--landing-bg); /* Crema #F9F7F2 */
+  padding: 10px 20px;
+}
+
+.landing-header-nav .landing-header-link:last-child:hover {
+  background-color: var(--landing-accent); /* Terracota #D35400 */
+  color: var(--landing-bg);
+}
+
+/* Tablet breakpoint (768px - 1023px) */
+@media (max-width: 1023px) {
+  .landing-header-content {
+    padding: 14px 20px;
+  }
+
+  .landing-header-logo a {
+    font-size: 1.375rem;
+  }
+
+  .landing-header-nav {
+    gap: 16px;
+  }
+
+  .landing-header-link {
+    font-size: 0.9375rem;
+    padding: 8px 14px;
+  }
+
+  .landing-header-nav .landing-header-link:last-child {
+    padding: 9px 18px;
+  }
+}
+
+/* Mobile breakpoint (<768px) - Stacked layout */
+@media (max-width: 768px) {
+  .landing-header-content {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 16px;
+  }
+
+  .landing-header-logo a {
+    font-size: 1.25rem;
+  }
+
+  .landing-header-nav {
+    width: 100%;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .landing-header-link {
+    font-size: 0.875rem;
+    padding: 8px 12px;
+  }
+
+  .landing-header-nav .landing-header-link:last-child {
+    padding: 9px 16px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .landing-header-logo a,
+  .landing-header-link {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .landing-header {
+    border-bottom-width: 2px;
+  }
+
+  .landing-header-link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+}

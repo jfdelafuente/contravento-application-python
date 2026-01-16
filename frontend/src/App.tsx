@@ -10,6 +10,9 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { WelcomePage } from './pages/WelcomePage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { LandingPage } from './pages/LandingPage';
 
 // Lazy load non-critical routes for better performance
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
@@ -41,7 +44,8 @@ function App() {
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<PublicFeedPage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/trips/public" element={<PublicFeedPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -113,6 +117,10 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Legal pages */}
+              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
               {/* Catch-all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />

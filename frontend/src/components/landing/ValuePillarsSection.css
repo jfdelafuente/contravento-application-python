@@ -1,0 +1,177 @@
+/* frontend/src/components/landing/ValuePillarsSection.css */
+
+/**
+ * ValuePillarsSection Styles (Feature 014 - User Story 2)
+ *
+ * 3-column grid with icons, hover effects, and responsive stacking.
+ */
+
+.value-pillars-section {
+  background-color: var(--color-white);
+  padding: var(--space-16) var(--space-8);
+}
+
+/* Section Title */
+.value-pillars-title {
+  font-family: var(--landing-font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--landing-title);
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+/* 3-Column Grid on Desktop */
+.value-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Individual Pillar Card */
+.value-pillar {
+  background-color: var(--landing-bg);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.value-pillar:hover {
+  background-color: var(--landing-pillar-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-8px);
+}
+
+/* Icon Container */
+.value-pillar-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--landing-cta);
+  border-radius: var(--radius-full);
+  color: var(--color-white);
+}
+
+.value-pillar-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* Pillar Title - Sans-serif */
+.value-pillar-title {
+  font-family: var(--landing-font-sans);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--landing-title);
+  margin-bottom: var(--space-4);
+  line-height: 1.3;
+}
+
+/* Pillar Description - Sans-serif */
+.value-pillar-description {
+  font-family: var(--landing-font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--landing-text);
+}
+
+/* Tablet Responsive (768px - 1024px) */
+@media (max-width: 1024px) {
+  .value-pillars-section {
+    padding: var(--space-12) var(--space-6);
+  }
+
+  .value-pillars-title {
+    font-size: 2rem;
+    margin-bottom: var(--space-10);
+  }
+
+  .value-pillars-grid {
+    gap: var(--space-6);
+  }
+
+  .value-pillar {
+    padding: var(--space-6);
+  }
+
+  .value-pillar-title {
+    font-size: 1.375rem;
+  }
+
+  .value-pillar-description {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Mobile Responsive (< 768px) - Stacked Layout */
+@media (max-width: 768px) {
+  .value-pillars-section {
+    padding: var(--space-10) var(--space-4);
+  }
+
+  .value-pillars-title {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-8);
+  }
+
+  /* Single column stack on mobile */
+  .value-pillars-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  .value-pillar {
+    padding: var(--space-6);
+  }
+
+  .value-pillar-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .value-pillar-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .value-pillar-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+  }
+
+  .value-pillar-description {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  /* Remove hover effect on mobile (touch devices) */
+  .value-pillar:hover {
+    transform: none;
+  }
+}
+
+/* Small Mobile (< 480px) */
+@media (max-width: 480px) {
+  .value-pillars-section {
+    padding: var(--space-8) var(--space-3);
+  }
+
+  .value-pillars-title {
+    font-size: 1.5rem;
+  }
+
+  .value-pillars-grid {
+    gap: var(--space-5);
+  }
+
+  .value-pillar {
+    padding: var(--space-5);
+  }
+}

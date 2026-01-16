@@ -1,0 +1,187 @@
+/* frontend/src/components/landing/Footer.css */
+
+/**
+ * Footer Styles (Feature 014 - User Story 5)
+ *
+ * Requirements:
+ * - SC-014-009: 4-column grid on desktop, stacked on mobile
+ * - SC-014-010: Verde bosque background (#1B2621) with crema text (#F9F7F2)
+ */
+
+.footer {
+  background-color: var(--landing-title); /* Verde bosque #1B2621 */
+  color: var(--landing-bg); /* Crema #F9F7F2 */
+  padding: 60px 24px 24px;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto 40px;
+}
+
+/* Branding Section */
+.footer-brand {
+  grid-column: span 1;
+}
+
+.footer-logo {
+  font-family: var(--landing-font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--landing-bg);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.footer-tagline {
+  font-family: var(--landing-font-serif);
+  font-size: 0.875rem;
+  font-style: italic;
+  color: rgba(249, 247, 242, 0.8);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.footer-description {
+  font-family: var(--landing-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: rgba(249, 247, 242, 0.7);
+}
+
+/* Section Titles */
+.footer-section-title {
+  font-family: var(--landing-font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--landing-bg);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Links */
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-link {
+  font-family: var(--landing-font-sans);
+  font-size: 0.9375rem;
+  color: rgba(249, 247, 242, 0.8);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  display: inline-block;
+}
+
+.footer-link:hover {
+  color: var(--landing-bg);
+  text-decoration: underline;
+}
+
+.footer-link:focus {
+  outline: 2px solid var(--landing-bg);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Copyright */
+.footer-bottom {
+  border-top: 1px solid rgba(249, 247, 242, 0.2);
+  padding-top: 24px;
+  text-align: center;
+}
+
+.footer-copyright {
+  font-family: var(--landing-font-sans);
+  font-size: 0.875rem;
+  color: rgba(249, 247, 242, 0.6);
+  margin: 0;
+}
+
+/* Tablet breakpoint (768px - 1023px) */
+@media (max-width: 1023px) {
+  .footer {
+    padding: 48px 20px 20px;
+  }
+
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 36px;
+    margin-bottom: 32px;
+  }
+
+  .footer-brand {
+    grid-column: span 2;
+  }
+}
+
+/* Mobile breakpoint (<768px) - Stacked layout */
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 16px 16px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-bottom: 28px;
+  }
+
+  .footer-brand {
+    grid-column: span 1;
+  }
+
+  .footer-logo {
+    font-size: 1.375rem;
+  }
+
+  .footer-tagline {
+    font-size: 0.8125rem;
+  }
+
+  .footer-description {
+    font-size: 0.8125rem;
+  }
+
+  .footer-section-title {
+    font-size: 0.9375rem;
+    margin-bottom: 12px;
+  }
+
+  .footer-link {
+    font-size: 0.875rem;
+  }
+
+  .footer-copyright {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .footer-link {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .footer {
+    border-top: 3px solid var(--landing-bg);
+  }
+
+  .footer-link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+}

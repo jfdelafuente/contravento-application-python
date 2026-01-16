@@ -220,3 +220,24 @@ button:disabled, .button:disabled {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-earth-dark);
 }
+
+/* ============================================================================
+   Landing Page Color Palette (Feature 014)
+   ========================================================================= */
+
+:root {
+  /* Landing Page Specific Colors - Rustic Minimalist Palette */
+  --landing-bg: #F9F7F2;        /* Crema orgánico - page background */
+  --landing-title: #1B2621;     /* Verde bosque profundo - headings */
+  --landing-accent: #D35400;    /* Terracota arcilloso - accent color (same as CTA) */
+  --landing-cta: #D35400;       /* Terracota arcilloso - CTA buttons */
+  --landing-text: #4A4A4A;      /* Gris carbón suave - body text */
+
+  /* Hover States */
+  --landing-cta-hover: #BF4A00; /* Darker terracota on hover */
+  --landing-pillar-hover: rgba(27, 38, 33, 0.05); /* Subtle green tint for value pillars */
+
+  /* Typography */
+  --landing-font-serif: 'Playfair Display', Georgia, serif;
+  --landing-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}

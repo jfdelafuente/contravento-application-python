@@ -20,6 +20,7 @@
     "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@marsidev/react-turnstile": "^0.7.0",
     "axios": "^1.6.5",
@@ -29,6 +30,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.8",
     "react-easy-crop": "^5.5.6",
+    "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.70.0",
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^4.2.1",

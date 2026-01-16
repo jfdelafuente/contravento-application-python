@@ -19,6 +19,16 @@ interface TripsApiResponse {
   error: null | any;
 }
 
+interface PublicTripsApiResponse {
+  trips: TripSummary[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    total_pages: number;
+  };
+}
+
 /**
  * Fetch user's trips
  * @param params - Query parameters (username, status, limit, offset)
@@ -50,4 +60,21 @@ export const getRecentTrips = async (username: string, limit: number = 5): Promi
     status: 'published',
     limit,
   });
+};
+
+/**
+ * Fetch public trips feed (Feature 013)
+ * No authentication required - fully public endpoint
+ * @param page - Page number (1-indexed, default: 1)
+ * @param limit - Items per page (default: 8, max: 50)
+ * @returns Paginated list of published trips with public visibility
+ */
+export const getPublicTrips = async (page: number = 1, limit: number = 8): Promise<PublicTripsApiResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('page', page.toString());
+  queryParams.append('limit', limit.toString());
+
+  const url = `/trips/public?${queryParams.toString()}`;
+  const response = await api.get<PublicTripsApiResponse>(url);
+  return response.data;
 };
