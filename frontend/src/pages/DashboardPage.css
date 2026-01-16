@@ -58,6 +58,25 @@
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.dashboard-header__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.dashboard-header__logo:hover {
+  opacity: 0.9;
+}
+
+.dashboard-header__logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--color-cream);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
 .dashboard-main {
   padding: var(--space-10) var(--space-8);
   position: relative;
