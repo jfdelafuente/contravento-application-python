@@ -1,0 +1,69 @@
+{
+  "users": [
+    {
+      "id": "admin_user",
+      "username": "admin_test",
+      "email": "admin_test@contravento.com",
+      "password": "AdminPass123!",
+      "role": "ADMIN",
+      "is_verified": true,
+      "is_active": true,
+      "profile": {
+        "full_name": "Admin Usuario",
+        "bio": "Administrador de pruebas para el sistema ContraVento",
+        "location": "Madrid, España",
+        "cycling_type": "road"
+      }
+    },
+    {
+      "id": "verified_user",
+      "username": "maria_test",
+      "email": "maria_test@example.com",
+      "password": "TestPass123!",
+      "role": "USER",
+      "is_verified": true,
+      "is_active": true,
+      "profile": {
+        "full_name": "María García",
+        "bio": "Ciclista apasionada de las rutas de montaña en los Pirineos",
+        "location": "Barcelona, España",
+        "cycling_type": "mountain"
+      }
+    },
+    {
+      "id": "unverified_user",
+      "username": "juan_test",
+      "email": "juan_test@example.com",
+      "password": "TestPass123!",
+      "role": "USER",
+      "is_verified": false,
+      "is_active": true,
+      "profile": {
+        "full_name": "Juan Pérez",
+        "bio": null,
+        "location": null,
+        "cycling_type": null
+      }
+    },
+    {
+      "id": "cyclist_user",
+      "username": "carlos_test",
+      "email": "carlos_test@example.com",
+      "password": "TestPass123!",
+      "role": "USER",
+      "is_verified": true,
+      "is_active": true,
+      "profile": {
+        "full_name": "Carlos Rodríguez",
+        "bio": "Amante del bikepacking y las rutas largas",
+        "location": "Valencia, España",
+        "cycling_type": "bikepacking"
+      }
+    }
+  ],
+  "notes": {
+    "usage": "Load these users in tests with load_json_fixture('users.json')",
+    "password_note": "All passwords use TestPass123! for consistency",
+    "id_note": "IDs are descriptive strings for test readability, will be replaced with UUIDs in DB"
+  }
+}

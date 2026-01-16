@@ -362,6 +362,53 @@ def sample_profile_data(faker_instance: Faker) -> dict:
     }
 
 
+@pytest.fixture(scope="function")
+def fixtures_dir() -> Path:
+    """
+    Get path to test fixtures directory.
+
+    Returns:
+        Path: Absolute path to backend/tests/fixtures/
+
+    Example:
+        def test_load_fixture(fixtures_dir):
+            users_file = fixtures_dir / "users.json"
+            with open(users_file) as f:
+                users = json.load(f)
+    """
+    return Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture(scope="function")
+def load_json_fixture(fixtures_dir):
+    """
+    Load JSON fixture file.
+
+    Returns a function that loads JSON fixtures by filename.
+
+    Args:
+        fixtures_dir: Fixtures directory path fixture
+
+    Returns:
+        callable: Function that takes filename and returns parsed JSON
+
+    Example:
+        def test_users_fixture(load_json_fixture):
+            users = load_json_fixture("users.json")
+            assert len(users) > 0
+    """
+    import json
+
+    def _load(filename: str):
+        filepath = fixtures_dir / filename
+        if not filepath.exists():
+            return None
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    return _load
+
+
 # Import fixtures for Feature 013 (Public Trips Feed)
 pytest_plugins = ["tests.fixtures.feature_013_fixtures"]
 
@@ -372,4 +419,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "unit: Unit tests for business logic")
     config.addinivalue_line("markers", "integration: Integration tests for API endpoints")
     config.addinivalue_line("markers", "contract: Contract tests for OpenAPI validation")
+    config.addinivalue_line("markers", "e2e: End-to-end tests for full application")
+    config.addinivalue_line("markers", "performance: Performance and load tests")
     config.addinivalue_line("markers", "slow: Tests that take longer to run")

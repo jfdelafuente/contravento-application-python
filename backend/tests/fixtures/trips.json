@@ -1,0 +1,130 @@
+{
+  "trips": [
+    {
+      "id": "draft_trip",
+      "title": "Ruta Borrador - En preparación",
+      "description": "Este es un viaje en borrador que aún no ha sido publicado",
+      "start_date": "2025-06-01",
+      "end_date": "2025-06-05",
+      "distance_km": 250.5,
+      "difficulty": "moderate",
+      "status": "DRAFT",
+      "tags": ["bikepacking", "montaña"],
+      "locations": [],
+      "photos": []
+    },
+    {
+      "id": "published_trip",
+      "title": "Bikepacking Pirineos - Travesía Completa",
+      "description": "Viaje de 5 días atravesando los Pirineos desde el Mediterráneo hasta el Cantábrico. Ruta espectacular con paisajes increíbles, puertos de montaña desafiantes y pueblos con encanto. Incluye pernoctas en refugios y campings. Recomendado para ciclistas con experiencia en alta montaña.",
+      "start_date": "2025-06-01",
+      "end_date": "2025-06-05",
+      "distance_km": 320.5,
+      "difficulty": "hard",
+      "status": "PUBLISHED",
+      "tags": ["bikepacking", "montaña", "pirineos"],
+      "locations": [
+        {
+          "name": "Collado de Toses",
+          "latitude": 42.3191,
+          "longitude": 2.0042,
+          "address": "Collado de Toses, Girona"
+        },
+        {
+          "name": "Parque Nacional de Ordesa",
+          "latitude": 42.6666,
+          "longitude": -0.0333,
+          "address": "Parque Nacional de Ordesa y Monte Perdido, Huesca"
+        }
+      ],
+      "photos": [
+        {
+          "caption": "Vista del Valle de Ordesa",
+          "order": 0
+        },
+        {
+          "caption": "Refugio de montaña al atardecer",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "id": "minimal_trip",
+      "title": "Ruta Mínima - Test",
+      "description": "Viaje de prueba con los campos mínimos requeridos para validar el sistema",
+      "start_date": "2025-07-01",
+      "end_date": null,
+      "distance_km": 50.0,
+      "difficulty": "easy",
+      "status": "PUBLISHED",
+      "tags": [],
+      "locations": [],
+      "photos": []
+    },
+    {
+      "id": "short_trip",
+      "title": "Ruta Costera Valencia",
+      "description": "Paseo por la costa valenciana, ideal para un día de descanso activo. Terreno llano y vistas al mar.",
+      "start_date": "2025-08-15",
+      "end_date": "2025-08-15",
+      "distance_km": 45.2,
+      "difficulty": "easy",
+      "status": "PUBLISHED",
+      "tags": ["road", "costa"],
+      "locations": [
+        {
+          "name": "Playa de la Malvarrosa",
+          "latitude": 39.4795,
+          "longitude": -0.3267,
+          "address": "Playa de la Malvarrosa, Valencia"
+        }
+      ],
+      "photos": []
+    },
+    {
+      "id": "long_trip",
+      "title": "Camino de Santiago en Bicicleta",
+      "description": "Peregrinación completa del Camino Francés en bicicleta desde Saint-Jean-Pied-de-Port hasta Santiago de Compostela. Una experiencia transformadora de 800km a través de paisajes diversos y pueblos históricos.",
+      "start_date": "2025-09-01",
+      "end_date": "2025-09-15",
+      "distance_km": 780.0,
+      "difficulty": "moderate",
+      "status": "PUBLISHED",
+      "tags": ["touring", "camino", "pilgrimage"],
+      "locations": [
+        {
+          "name": "Saint-Jean-Pied-de-Port",
+          "latitude": 43.1633,
+          "longitude": -1.2372,
+          "address": "Saint-Jean-Pied-de-Port, Francia"
+        },
+        {
+          "name": "Catedral de Santiago",
+          "latitude": 42.8805,
+          "longitude": -8.5447,
+          "address": "Plaza del Obradoiro, Santiago de Compostela"
+        }
+      ],
+      "photos": [
+        {
+          "caption": "Inicio del Camino en los Pirineos",
+          "order": 0
+        },
+        {
+          "caption": "Llegada a Santiago",
+          "order": 1
+        },
+        {
+          "caption": "Cruz de Ferro",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "notes": {
+    "usage": "Load these trips in tests with load_json_fixture('trips.json')",
+    "id_note": "IDs are descriptive strings for test readability, will be replaced with UUIDs in DB",
+    "user_assignment": "Tests should assign trips to users dynamically based on test scenario",
+    "photo_note": "Photo objects represent metadata; actual files in tests/fixtures/photos/"
+  }
+}

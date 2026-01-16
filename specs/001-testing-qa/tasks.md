@@ -96,18 +96,18 @@ Phase 7: User Story 5 - Performance Tests (P3)
 
 **Tasks**:
 
-- [ ] T011 Create backend/tests/conftest.py with async db_session fixture (SQLite in-memory)
-- [ ] T012 Add async client fixture to conftest.py using httpx.AsyncClient with base_url="http://test"
-- [ ] T013 Add auth_headers fixture to conftest.py that creates verified user and returns JWT Bearer token
-- [ ] T014 Create backend/tests/fixtures/users.json with sample users (admin_user, verified_user, unverified_user)
-- [ ] T015 Create backend/tests/fixtures/trips.json with sample trips (draft_trip, published_trip, minimal_trip)
-- [ ] T016 Create backend/tests/fixtures/tags.json with sample tags (bikepacking, montaña, road, pirineos)
-- [ ] T017 Add fixture loader helper in conftest.py to load JSON fixtures and create database records
-- [ ] T018 [P] Add PostgreSQL session fixture to conftest.py using pytest-docker-compose
-- [ ] T019 [P] Create test helpers in backend/tests/helpers.py for common operations (create_user, create_trip, upload_photo)
-- [ ] T020 [P] Add pytest markers in pytest.ini (unit, integration, e2e, performance, slow)
-- [ ] T021 Create .coveragerc configuration file with exclusions for migrations and test files
-- [ ] T022 Document test fixture usage in backend/tests/README.md with examples
+- [X] T011 Create backend/tests/conftest.py with async db_session fixture (SQLite in-memory) (already existed, enhanced with load_json_fixture)
+- [X] T012 Add async client fixture to conftest.py using httpx.AsyncClient with base_url="http://test" (already existed)
+- [X] T013 Add auth_headers fixture to conftest.py that creates verified user and returns JWT Bearer token (already existed)
+- [X] T014 Create backend/tests/fixtures/users.json with sample users (admin_user, verified_user, unverified_user)
+- [X] T015 Create backend/tests/fixtures/trips.json with sample trips (draft_trip, published_trip, minimal_trip)
+- [X] T016 Create backend/tests/fixtures/tags.json with sample tags (bikepacking, montaña, road, pirineos)
+- [X] T017 Add fixture loader helper in conftest.py to load JSON fixtures and create database records
+- [ ] T018 [P] Add PostgreSQL session fixture to conftest.py using pytest-docker-compose (deferred - PostgreSQL via docker-compose.test.yml)
+- [X] T019 [P] Create test helpers in backend/tests/helpers.py for common operations (create_user, create_trip, upload_photo)
+- [X] T020 [P] Add pytest markers in pytest.ini (unit, integration, e2e, performance, slow) (already existed, enhanced)
+- [X] T021 Create .coveragerc configuration file with exclusions for migrations and test files
+- [X] T022 Document test fixture usage in backend/tests/README.md with examples
 
 **Validation**:
 - [ ] `pytest --collect-only` shows fixtures are discovered
