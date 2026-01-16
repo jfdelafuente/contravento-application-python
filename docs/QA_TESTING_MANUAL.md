@@ -14,10 +14,11 @@
 4. [Tests de Integración (Backend)](#tests-de-integración-backend)
 5. [Tests Unitarios (Frontend)](#tests-unitarios-frontend)
 6. [Tests E2E (End-to-End)](#tests-e2e-end-to-end)
-7. [Tests de Performance](#tests-de-performance)
-8. [Pre-commit Checks](#pre-commit-checks)
-9. [Generación de Reportes](#generación-de-reportes)
-10. [Troubleshooting](#troubleshooting)
+7. [¿Qué es Playwright?](#qué-es-playwright)
+8. [Tests de Performance](#tests-de-performance)
+9. [Pre-commit Checks](#pre-commit-checks)
+10. [Generación de Reportes](#generación-de-reportes)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -600,6 +601,349 @@ El reporte incluye:
 - 🎥 Videos de ejecución (solo tests fallidos)
 - 🔍 Traces interactivos (timeline de acciones)
 - 📋 Logs de consola del navegador
+
+---
+
+## ¿Qué es Playwright?
+
+### Introducción a Playwright
+
+**Playwright** es una herramienta moderna de automatización de navegadores desarrollada por **Microsoft** para realizar **tests end-to-end (E2E)** de aplicaciones web.
+
+#### En términos simples:
+
+Playwright es como tener un **robot que usa tu aplicación web igual que lo haría un usuario real**:
+
+- ✅ Abre navegadores (Chrome, Firefox, Safari)
+- ✅ Hace clic en botones
+- ✅ Llena formularios
+- ✅ Navega entre páginas
+- ✅ Verifica que aparezca el contenido esperado
+- ✅ Toma screenshots y videos de las pruebas
+
+### Comparación con Otras Herramientas
+
+| Característica | Playwright | Selenium | Cypress |
+|----------------|------------|----------|---------|
+| **Navegadores** | Chrome, Firefox, Safari | Chrome, Firefox, Safari, IE | Solo Chrome, Firefox |
+| **Velocidad** | ⚡ Muy rápido | 🐌 Lento | ⚡ Rápido |
+| **Instalación** | Muy fácil | Compleja | Fácil |
+| **Multi-tab** | ✅ Sí | ✅ Sí | ❌ No |
+| **Auto-wait** | ✅ Inteligente | ❌ Manual | ✅ Sí |
+| **Screenshots/Videos** | ✅ Automático | ❌ Manual | ✅ Automático |
+| **Desarrollador** | Microsoft | SeleniumHQ | Cypress.io |
+
+### Ejemplo Práctico: Testing Manual vs Automatizado
+
+#### Sin Playwright (Testing Manual)
+Un QA tendría que hacer esto **manualmente** cada vez:
+
+1. Abrir navegador
+2. Ir a http://localhost:5173/login
+3. Escribir username: "testuser"
+4. Escribir password: "TestPass123!"
+5. Hacer clic en "Iniciar sesión"
+6. Verificar que redirige a /dashboard
+7. Tomar screenshot
+8. Cerrar navegador
+9. Repetir en Chrome, Firefox y Safari
+
+**Tiempo**: ~5 minutos × 3 navegadores = **15 minutos**
+
+#### Con Playwright (Automatizado)
+
+El mismo test **automatizado**:
+
+```typescript
+// frontend/tests/e2e/auth.spec.ts
+test('should login with valid credentials', async ({ page }) => {
+  // 1. Abrir navegador y navegar
+  await page.goto('http://localhost:5173/login');
+
+  // 2. Llenar formulario
+  await page.fill('input[name="login"]', 'testuser');
+  await page.fill('input[name="password"]', 'TestPass123!');
+
+  // 3. Hacer clic en botón
+  await page.click('button[type="submit"]');
+
+  // 4. Verificar redirección
+  await expect(page).toHaveURL(/\/dashboard/);
+
+  // 5. Screenshot automático si falla
+});
+```
+
+**Tiempo**: ~5 segundos × 3 navegadores = **15 segundos**
+
+**Ahorro de tiempo**: **99% más rápido** ⚡
+
+### Características Principales de Playwright
+
+#### 1. Auto-waiting Inteligente
+Playwright espera automáticamente a que los elementos estén listos:
+
+```typescript
+// ❌ Selenium/otros (necesitas esperas manuales)
+await driver.sleep(2000); // Esperar 2 segundos... ¿suficiente?
+const button = await driver.findElement(By.id('submit'));
+await button.click();
+
+// ✅ Playwright (espera automática)
+await page.click('#submit'); // Espera hasta que el botón sea clickeable
+```
+
+#### 2. Multi-navegador Real
+Ejecuta en navegadores reales, no simulados:
+
+```typescript
+// playwright.config.ts
+projects: [
+  { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+  { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+  { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+]
+```
+
+Un solo test × 3 navegadores = **máxima compatibilidad**
+
+#### 3. Screenshots y Videos Automáticos
+Cuando un test falla:
+- 📸 Captura screenshot del momento exacto
+- 🎥 Graba video de toda la ejecución
+- 🔍 Genera "trace" interactivo para depurar
+
+#### 4. Inspección Visual (UI Mode)
+Modo interactivo para ver tests ejecutándose:
+
+```bash
+npx playwright test --ui
+```
+
+Permite:
+- ✅ Ver tests ejecutándose en vivo
+- ✅ Depurar paso a paso
+- ✅ Inspeccionar elementos
+- ✅ Re-ejecutar tests con un clic
+
+### Tests E2E Implementados en ContraVento
+
+Tenemos **4 suites de tests** que simulan usuarios reales:
+
+#### 1. auth.spec.ts - Autenticación (12 tests)
+
+```typescript
+test('registro completo de usuario', async ({ page }) => {
+  // Simula: Usuario nuevo se registra
+  await page.goto('/register');
+  await page.fill('input[name="username"]', 'newuser');
+  await page.fill('input[name="email"]', 'new@example.com');
+  await page.fill('input[name="password"]', 'SecurePass123!');
+  await page.click('button[type="submit"]');
+
+  // Verifica: Redirige a login
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.locator('text=/registro exitoso/i')).toBeVisible();
+});
+```
+
+**Tests incluidos**:
+- ✅ Registro de usuario completo
+- ✅ Validación de formularios
+- ✅ Login con credenciales válidas
+- ✅ Login con email en lugar de username
+- ✅ Rechazo de credenciales inválidas
+- ✅ Logout y limpieza de sesión
+- ✅ Persistencia de sesión tras refresh
+- ✅ Control de acceso a rutas protegidas
+
+#### 2. trip-creation.spec.ts - Creación de Viajes (15 tests)
+
+```typescript
+test('crear viaje con wizard de 4 pasos', async ({ page }) => {
+  // Paso 1: Info básica
+  await page.fill('input[name="title"]', 'Ruta Pirineos');
+  await page.fill('textarea[name="description"]', 'Viaje de 5 días...');
+  await page.click('button:has-text("Siguiente")');
+
+  // Paso 2: Tags
+  await page.fill('input[name="tags"]', 'bikepacking');
+  await page.press('input[name="tags"]', 'Enter');
+  await page.click('button:has-text("Siguiente")');
+
+  // Paso 3: Fotos (saltar)
+  await page.click('button:has-text("Siguiente")');
+
+  // Paso 4: Publicar
+  await page.click('button:has-text("Publicar")');
+
+  // Verifica: Viaje creado
+  await expect(page.locator('h1:has-text("Ruta Pirineos")')).toBeVisible();
+});
+```
+
+**Tests incluidos**:
+- ✅ Wizard paso a paso (4 pasos)
+- ✅ Validación de formularios por paso
+- ✅ Gestión de tags (añadir/eliminar, max 10)
+- ✅ Carga de fotos con drag-and-drop
+- ✅ Guardar como borrador vs publicar
+- ✅ Navegación entre pasos
+- ✅ Persistencia de datos entre pasos
+
+#### 3. public-feed.spec.ts - Feed Público (18 tests)
+
+```typescript
+test('usuario anónimo navega feed público', async ({ page }) => {
+  // Sin login, puede ver viajes públicos
+  await page.goto('/trips/public');
+
+  // Verifica: Ve viajes
+  await expect(page.locator('[data-testid="trip-card"]').first()).toBeVisible();
+
+  // Click en un viaje
+  await page.locator('[data-testid="trip-card"]').first().click();
+
+  // Verifica: Ve detalle del viaje
+  await expect(page.locator('h1')).toBeVisible();
+
+  // Verifica: NO ve botones de edición (no es dueño)
+  await expect(page.locator('button:has-text(/editar/i)')).not.toBeVisible();
+});
+```
+
+**Tests incluidos**:
+- ✅ Acceso anónimo al feed público
+- ✅ Vista de detalle sin autenticación
+- ✅ Filtrado por tags
+- ✅ Paginación (navegación entre páginas)
+- ✅ Privacidad (no expone emails)
+- ✅ Diseño responsive (móvil/tablet)
+
+#### 4. location-editing.spec.ts - Mapas Interactivos (12 tests)
+
+```typescript
+test('añadir ubicación haciendo click en mapa', async ({ page }) => {
+  // Login como dueño del viaje
+  await loginAsOwner(page);
+  await page.goto('/trips/my-trip-id');
+
+  // Activar modo edición
+  await page.click('button:has-text(/editar.*ubicación/i)');
+
+  // Simular click en mapa
+  const mapContainer = page.locator('.leaflet-container');
+  const mapBox = await mapContainer.boundingBox();
+  await page.mouse.click(mapBox.x + 100, mapBox.y + 100);
+
+  // Verifica: Modal de confirmación aparece
+  await expect(page.locator('text=/confirmar.*ubicación/i')).toBeVisible();
+
+  // Editar nombre
+  await page.fill('[data-testid="location-name-input"]', 'Barcelona');
+  await page.click('button:has-text(/confirmar/i)');
+
+  // Verifica: Marcador aparece en mapa
+  await expect(page.locator('.leaflet-marker-icon')).toBeVisible();
+});
+```
+
+**Tests incluidos**:
+- ✅ Display de mapa Leaflet
+- ✅ Click para añadir ubicación
+- ✅ Geocodificación inversa (loading states)
+- ✅ Edición de nombres de lugares
+- ✅ Arrastrar marcadores (drag markers)
+- ✅ Eliminar ubicaciones
+- ✅ Múltiples ubicaciones por viaje
+- ✅ Control de acceso (solo dueño)
+
+### Ventajas de Playwright para QA
+
+#### Sin Playwright (Testing Manual):
+- ❌ Tests manuales repetitivos
+- ❌ Propenso a errores humanos
+- ❌ Lento (15 min por suite)
+- ❌ Difícil probar en múltiples navegadores
+- ❌ No hay registro visual de fallos
+- ❌ Difícil reproducir bugs
+
+#### Con Playwright (Testing Automatizado):
+- ✅ Tests automatizados y confiables
+- ✅ Consistente y repetible
+- ✅ Rápido (15 segundos por suite)
+- ✅ Prueba 3 navegadores simultáneamente
+- ✅ Screenshots, videos y traces automáticos
+- ✅ Se integra con CI/CD
+- ✅ Fácil reproducción de bugs
+
+### Estadísticas de Testing en ContraVento
+
+| Métrica | Valor |
+|---------|-------|
+| **Suites de tests** | 4 |
+| **Tests totales** | 57 |
+| **Navegadores** | 3 (Chrome, Firefox, Safari) |
+| **Ejecuciones por ciclo** | 171 (57 tests × 3 navegadores) |
+| **Tiempo de ejecución** | ~3-5 minutos |
+| **Tiempo manual equivalente** | ~4-6 horas |
+| **Ahorro de tiempo** | 95%+ |
+
+### Flujo de Trabajo con Playwright
+
+#### 1. Desarrollador crea un test:
+
+```typescript
+// Escribir el test
+test('nueva funcionalidad', async ({ page }) => {
+  await page.goto('/nueva-pagina');
+  await page.click('button#nueva-accion');
+  await expect(page.locator('text=Éxito')).toBeVisible();
+});
+```
+
+#### 2. CI/CD ejecuta automáticamente:
+
+```yaml
+# .github/workflows/frontend-tests.yml
+- name: Run E2E tests
+  run: npx playwright test
+
+- name: Upload report
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: playwright-report
+    path: playwright-report/
+```
+
+#### 3. Si falla en CI:
+
+1. ✅ Descarga el reporte HTML de GitHub Actions
+2. ✅ Ve screenshot del momento exacto del fallo
+3. ✅ Ve video de la ejecución completa
+4. ✅ Ve trace interactivo para depurar paso a paso
+5. ✅ Reproduce localmente con `npx playwright test --debug`
+
+### Recursos Adicionales
+
+- **Documentación Oficial**: https://playwright.dev/
+- **Nuestro README**: `frontend/tests/e2e/README.md`
+- **Ejemplos de tests**: `frontend/tests/e2e/*.spec.ts`
+- **Configuración**: `frontend/playwright.config.ts`
+
+### Resumen
+
+**Playwright** = Robot que prueba tu web como lo haría un usuario real
+
+**En ContraVento**:
+- ✅ 57 tests automatizados
+- ✅ 3 navegadores (Chrome, Firefox, Safari)
+- ✅ 4 flujos críticos (auth, trips, feed, maps)
+- ✅ Screenshots/videos automáticos
+- ✅ Integrado en CI/CD
+
+**Beneficio**: Lo que antes tomaba **horas de testing manual**, ahora toma **minutos de forma automática y confiable**.
 
 ---
 
