@@ -106,26 +106,50 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               </svg>
               Inicio
             </Link>
-            <Link
-              to="/profile"
-              className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
-            >
-              <svg
-                className="nav-icon"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            {/* Show Dashboard link when on /profile, Profile link otherwise */}
+            {location.pathname === '/profile' ? (
+              <Link
+                to="/dashboard"
+                className="nav-link"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              Perfil
-            </Link>
+                <svg
+                  className="nav-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                to="/profile"
+                className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
+              >
+                <svg
+                  className="nav-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Perfil
+              </Link>
+            )}
           </nav>
         )}
 
