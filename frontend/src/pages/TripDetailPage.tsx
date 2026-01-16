@@ -74,20 +74,15 @@ export const TripDetailPage: React.FC = () => {
           message: err.message,
         });
 
-        // Handle authentication errors (401) - redirect to login
-        if (err.response?.status === 401) {
-          toast.error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.', {
-            duration: 5000,
-            position: 'top-center',
-          });
-          navigate('/login');
-          return;
-        }
+        // Note: 401 errors are now handled by axios interceptor (api.ts)
+        // which will retry without auth for public endpoints or redirect to login for protected ones
 
         const errorMessage =
           err.response?.status === 404
             ? 'Viaje no encontrado'
             : err.response?.status === 403
+            ? 'No tienes permiso para ver este viaje'
+            : err.response?.status === 401
             ? 'No tienes permiso para ver este viaje'
             : 'Error al cargar el viaje. Intenta nuevamente.';
 
