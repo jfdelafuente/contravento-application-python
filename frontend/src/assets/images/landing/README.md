@@ -1,100 +1,184 @@
-# Landing Page Images
+# Landing Page Images - Quick Reference
 
-## Hero Image Requirements
+**📖 Guía Completa**: Ver [`specs/014-landing-page-inspiradora/HERO_IMAGE_GUIDE.md`](../../../../specs/014-landing-page-inspiradora/HERO_IMAGE_GUIDE.md)
 
-**IMPORTANT**: Este directorio necesita las siguientes imágenes para el hero section de la landing page.
+---
+
+## 🚀 Cambio Rápido de Imagen (5 minutos)
+
+### 1. Prepara tus imágenes
+- Desktop: 1920×1080px (16:9)
+- Mobile: 768×1024px (3:4)
+
+### 2. Optimiza con herramientas online
+- **TinyPNG**: https://tinypng.com/ (JPG)
+- **Squoosh**: https://squoosh.app/ (WebP, calidad 80-85%)
+
+### 3. Renombra y reemplaza
+```
+tu-imagen-desktop.jpg   → hero.jpg
+tu-imagen-desktop.webp  → hero.webp
+tu-imagen-mobile.jpg    → hero-mobile.jpg
+tu-imagen-mobile.webp   → hero-mobile.webp
+```
+
+### 4. Coloca en esta carpeta
+```
+frontend/src/assets/images/landing/
+```
+
+### 5. Recarga navegador
+- Chrome/Edge: `Ctrl+Shift+R`
+- Firefox: `Ctrl+F5`
+
+---
+
+## 📋 Especificaciones Técnicas
 
 ### Imágenes Requeridas
 
-1. **hero.jpg** (Desktop version)
-   - Dimensiones: 2560×1440px (16:9 ratio)
-   - Formato: JPG
-   - Tamaño objetivo: ~500KB (antes de optimización)
-   - Contenido: Ciclista en entorno rural durante la hora dorada
+| Archivo | Dimensiones | Formato | Peso Máx | Uso |
+|---------|------------|---------|----------|-----|
+| `hero.jpg` | 1920×1080px | JPG | 500 KB | Desktop fallback |
+| `hero.webp` | 1920×1080px | WebP | 500 KB | Desktop optimizado |
+| `hero-mobile.jpg` | 768×1024px | JPG | 200 KB | Mobile fallback |
+| `hero-mobile.webp` | 768×1024px | WebP | 200 KB | Mobile optimizado |
 
-2. **hero.webp** (Desktop WebP optimized)
-   - Dimensiones: 2560×1440px
-   - Formato: WebP
-   - Tamaño objetivo: < 200KB
-   - Generado desde hero.jpg
+### Calidad de Compresión
 
-3. **hero-mobile.jpg** (Mobile version)
-   - Dimensiones: 1024×768px
-   - Formato: JPG
-   - Tamaño objetivo: ~150KB
-   - Contenido: Misma imagen recortada para mobile
+- **WebP**: 80-85% (mejor balance)
+- **JPG**: 85-90% (fallback)
 
-4. **hero-mobile.webp** (Mobile WebP optimized)
-   - Dimensiones: 1024×768px
-   - Formato: WebP
-   - Tamaño objetivo: < 60KB
-   - Generado desde hero-mobile.jpg
+---
 
-### Opciones para Obtener Imágenes
+## 🛠️ Optimización Automática (Recomendado)
 
-#### Opción 1: Placeholder de Unsplash (Desarrollo)
-
-Para desarrollo, puedes usar imágenes temporales de Unsplash:
+### Usando Script Incluido
 
 ```bash
-# Buscar en: https://unsplash.com/s/photos/cyclist-sunset
-# Palabras clave: "cyclist golden hour", "bikepacking landscape", "cycling rural"
+# 1. Navega a frontend
+cd frontend
+
+# 2. Coloca tus JPG originales aquí:
+# frontend/src/assets/images/landing/hero-original.jpg
+# frontend/src/assets/images/landing/hero-mobile-original.jpg
+
+# 3. Ejecuta script
+node convert-to-webp.js
+
+# 4. Se crean automáticamente los archivos WebP optimizados
 ```
 
-Ejemplos de búsquedas sugeridas:
-- https://unsplash.com/s/photos/cyclist-sunset
-- https://unsplash.com/s/photos/bikepacking-landscape
-- https://unsplash.com/s/photos/cycling-nature
-
-#### Opción 2: Fotografía Personalizada (Producción)
-
-Para producción, se recomienda:
-- Fotografía original de ContraVento
-- Licencia comercial apropiada
-- Alta resolución para mantener calidad en pantallas 4K
-
-### Optimización de Imágenes
-
-Una vez tengas las imágenes JPG, optimízalas con:
+### Usando cwebp (Google - Mejor Calidad)
 
 ```bash
-# Instalar Squoosh CLI (recomendado por Google)
-npm install -g @squoosh/cli
+# Desktop WebP
+cwebp -q 82 -preset photo hero.jpg -o hero.webp
 
-# Convertir JPG a WebP (desde el directorio de imágenes)
-cd frontend/src/assets/images/landing
-
-# Desktop version
-squoosh-cli --webp auto hero.jpg
-
-# Mobile version
-squoosh-cli --webp auto hero-mobile.jpg
-```
-
-### Licencia
-
-**IMPORTANTE**: Asegúrate de que todas las imágenes tienen la licencia adecuada para uso comercial.
-
-- Unsplash: Licencia gratuita para uso comercial (CC0)
-- Stock photos pagadas: Verifica términos de licencia
-- Fotografía personalizada: Obtén derechos de autor por escrito
-
-### Alt Text Recomendado
-
-Para accesibilidad, usar:
-```
-"Ciclista en entorno rural durante la hora dorada"
+# Mobile WebP
+cwebp -q 80 -preset photo hero-mobile.jpg -o hero-mobile.webp
 ```
 
 ---
 
-**Status**: ✅ DESARROLLO - Imágenes placeholder de Unsplash disponibles
-**Current Images**:
-- hero.jpg (536KB, 2560×1440px) - Placeholder from Unsplash
-- hero-mobile.jpg (149KB, 1024×768px) - Placeholder from Unsplash
-- hero.webp / hero-mobile.webp - Currently JPG copies, need WebP optimization
+## 🎨 Características de Imagen Ideal
 
-**Production TODO**:
-1. Replace with official ContraVento photography
-2. Optimize WebP files (target: <200KB desktop, <60KB mobile)
-3. Use Squoosh CLI or https://squoosh.app/ for optimization
+✅ **Tema**: Ciclismo en entornos naturales/rurales
+✅ **Iluminación**: Hora dorada (amanecer/atardecer)
+✅ **Composición**: Ciclista en acción, paisaje amplio
+✅ **Colores**: Tonos cálidos (compatible con paleta terracota/verde bosque)
+✅ **Enfoque**: Sujeto nítido, fondo puede tener bokeh
+✅ **Derechos**: Libre de derechos o licencia comercial
+
+---
+
+## 🔍 Bancos de Imágenes Gratuitas
+
+- **Unsplash**: https://unsplash.com/s/photos/cycling
+- **Pexels**: https://pexels.com/search/bicycle/
+- **Pixabay**: https://pixabay.com/images/search/cycling/
+
+**Búsquedas sugeridas**:
+- "cyclist golden hour"
+- "bikepacking landscape"
+- "cycling rural sunset"
+- "bicycle mountain road"
+
+---
+
+## 🐛 Troubleshooting Rápido
+
+### Imagen no se muestra
+```bash
+# Verifica que existen
+ls -la frontend/src/assets/images/landing/hero*
+
+# Recarga forzada: Ctrl+Shift+R
+```
+
+### Imagen borrosa
+```bash
+# Aumenta calidad WebP
+cwebp -q 90 -preset photo hero.jpg -o hero.webp
+```
+
+### Imagen muy pesada
+```bash
+# Comprime más
+cwebp -q 75 -preset photo hero.jpg -o hero.webp
+
+# Verifica tamaño
+ls -lh hero.webp  # Debe ser < 500 KB
+```
+
+---
+
+## 📍 Ubicación del Código
+
+**Componente**: `frontend/src/components/landing/HeroSection.tsx`
+**Líneas**: 24-49 (elemento `<picture>`)
+
+**Para cambiar rutas de imágenes**, edita:
+```typescript
+<source srcSet="/src/assets/images/landing/TU-IMAGEN.webp" />
+```
+
+---
+
+## ✅ Checklist de Verificación
+
+- [ ] Imagen desktop (1920×1080px) < 500 KB
+- [ ] Imagen mobile (768×1024px) < 200 KB
+- [ ] Versiones WebP generadas
+- [ ] Archivos en `frontend/src/assets/images/landing/`
+- [ ] Alt text actualizado (si cambió el contenido)
+- [ ] Navegador recargado (Ctrl+Shift+R)
+- [ ] Verificado en mobile (DevTools → Toggle Device)
+- [ ] WebP se carga correctamente (Network tab)
+
+---
+
+## 📚 Recursos
+
+- **Guía Completa**: `specs/014-landing-page-inspiradora/HERO_IMAGE_GUIDE.md`
+- **Optimización**: https://web.dev/optimize-images/
+- **WebP Converter**: https://squoosh.app/
+- **Lighthouse**: Chrome DevTools → Lighthouse tab
+
+---
+
+## 📊 Estado Actual
+
+**Imágenes Actuales**:
+- ✅ `hero.jpg` (536 KB, 1920×1080px)
+- ✅ `hero.webp` (Optimizado)
+- ✅ `hero-mobile.jpg` (149 KB, 768×1024px)
+- ✅ `hero-mobile.webp` (Optimizado)
+
+**Licencia**: Unsplash (CC0 - Uso comercial permitido)
+**Alt Text**: "Ciclista en entorno rural durante la hora dorada"
+
+---
+
+**Última actualización**: 2026-01-16
+**Feature**: 014 - Landing Page Inspiradora
