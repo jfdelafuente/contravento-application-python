@@ -10,6 +10,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { UserMenu } from '../components/auth/UserMenu';
 import { TripCard } from '../components/trips/TripCard';
 import { TripFilters } from '../components/trips/TripFilters';
 import { useTripList } from '../hooks/useTripList';
@@ -17,6 +18,7 @@ import { useTripFilters } from '../hooks/useTripFilters';
 import { getAllTags } from '../services/tripService';
 import { Tag } from '../types/trip';
 import './TripsListPage.css';
+import './DashboardPage.css'; // For dashboard-header styles
 
 export const TripsListPage: React.FC = () => {
   const { user } = useAuth();
@@ -78,27 +80,16 @@ export const TripsListPage: React.FC = () => {
 
   return (
     <div className="trips-list-page">
-      {/* Header */}
-      <div className="trips-list-page__header">
-        {/* Back to Dashboard Button */}
-        <Link to="/dashboard" className="trips-list-page__back-button">
-          <svg
-            className="trips-list-page__back-icon"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-          Volver al Dashboard
-        </Link>
+      {/* Header with UserMenu */}
+      <header className="dashboard-header">
+        <div className="header-content">
+          <h1>ContraVento</h1>
+          <UserMenu />
+        </div>
+      </header>
 
+      {/* Page Title */}
+      <div className="trips-list-page__header">
         <div className="trips-list-page__header-content">
           <h1 className="trips-list-page__title">Mis Viajes</h1>
           <p className="trips-list-page__subtitle">
