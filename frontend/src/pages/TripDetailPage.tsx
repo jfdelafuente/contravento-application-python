@@ -390,8 +390,8 @@ export const TripDetailPage: React.FC = () => {
             </svg>
           </div>
           <h1 className="trip-detail-page__error-title">{error || 'Viaje no encontrado'}</h1>
-          <Link to="/trips" className="trip-detail-page__error-button">
-            Volver a Mis Viajes
+          <Link to={user ? "/trips" : "/"} className="trip-detail-page__error-button">
+            {user ? "Volver a Mis Viajes" : "Volver al Feed Público"}
           </Link>
         </div>
       </div>
@@ -600,7 +600,7 @@ export const TripDetailPage: React.FC = () => {
 
         {/* Back to list button */}
         <div className="trip-detail-page__footer">
-          <Link to="/trips" className="trip-detail-page__back-button">
+          <Link to={user ? "/trips" : "/"} className="trip-detail-page__back-button">
             <svg
               fill="none"
               stroke="currentColor"
@@ -614,7 +614,7 @@ export const TripDetailPage: React.FC = () => {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Volver a Mis Viajes
+            {user ? "Volver a Mis Viajes" : "Volver al Feed Público"}
           </Link>
         </div>
       </div>
