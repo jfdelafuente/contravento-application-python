@@ -62,16 +62,16 @@ Phase 7: User Story 5 - Performance Tests (P3)
 
 **Tasks**:
 
-- [ ] T001 Add pytest dependencies to backend/pyproject.toml (pytest 7.4+, pytest-asyncio 0.21+, pytest-cov 4.1+, pytest-benchmark 4.0+, httpx, pytest-docker-compose)
-- [ ] T002 Create backend pytest configuration in backend/pytest.ini with asyncio mode, coverage settings, and test markers
-- [ ] T003 Create backend test directory structure: backend/tests/{unit,integration,contract,performance,fixtures}
-- [ ] T004 [P] Add Playwright dependencies to frontend/package.json (@playwright/test 1.40+)
-- [ ] T005 [P] Create Playwright configuration in frontend/playwright.config.ts with browser matrix (chromium, firefox, webkit)
-- [ ] T006 [P] Create frontend test directory structure: frontend/tests/{e2e,fixtures,helpers}
-- [ ] T007 Install Playwright browsers locally with `npx playwright install --with-deps`
-- [ ] T008 Create test fixtures directory structure: backend/tests/fixtures/{photos,users.json,trips.json,tags.json}
-- [ ] T009 Add sample photos to backend/tests/fixtures/photos/ (sample_1.jpg 500KB, sample_2.jpg 400KB, sample_large.jpg 5MB)
-- [ ] T010 Create docker-compose.test.yml for PostgreSQL test container with health checks
+- [X] T001 Add pytest dependencies to backend/pyproject.toml (pytest 7.4+, pytest-asyncio 0.21+, pytest-cov 4.1+, pytest-benchmark 4.0+, httpx, pytest-docker-compose)
+- [X] T002 Create backend pytest configuration in backend/pytest.ini with asyncio mode, coverage settings, and test markers
+- [X] T003 Create backend test directory structure: backend/tests/{unit,integration,contract,performance,fixtures}
+- [X] T004 [P] Add Playwright dependencies to frontend/package.json (@playwright/test 1.40+)
+- [X] T005 [P] Create Playwright configuration in frontend/playwright.config.ts with browser matrix (chromium, firefox, webkit)
+- [X] T006 [P] Create frontend test directory structure: frontend/tests/{e2e,fixtures,helpers}
+- [ ] T007 Install Playwright browsers locally with `npx playwright install --with-deps` (MANUAL - User must run)
+- [X] T008 Create test fixtures directory structure: backend/tests/fixtures/{photos,users.json,trips.json,tags.json}
+- [X] T009 Add sample photos to backend/tests/fixtures/photos/ (sample_1.jpg 500KB, sample_2.jpg 400KB, sample_large.jpg 5MB) (placeholders created)
+- [X] T010 Create docker-compose.test.yml for PostgreSQL test container with health checks
 
 **Validation**:
 - [ ] `poetry install` completes successfully in backend/
