@@ -139,7 +139,8 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
 
     try {
       const formData = methods.getValues();
-      await onSubmit(formData, true); // isDraft = true
+      const selectedPhotos = (formData as any).selectedPhotos || [];
+      await onSubmit(formData, true, selectedPhotos); // isDraft = true, pass photos
 
       toast.success('Borrador guardado correctamente', {
         duration: 3000,
@@ -178,7 +179,8 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
     setIsSubmitting(true);
 
     try {
-      await onSubmit(data, false); // isDraft = false
+      const selectedPhotos = (data as any).selectedPhotos || [];
+      await onSubmit(data, false, selectedPhotos); // isDraft = false, pass photos
 
       toast.success(
         isEditMode ? 'Viaje actualizado correctamente' : 'Viaje publicado correctamente',
