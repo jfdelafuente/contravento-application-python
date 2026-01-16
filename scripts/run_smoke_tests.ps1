@@ -113,16 +113,17 @@ try {
         -ContentType "application/json" `
         -Body $Body `
         -TimeoutSec $Timeout `
-        -UseBasicParsing `
-        -SkipHttpErrorCheck
+        -UseBasicParsing
 
-    if ($Response.StatusCode -eq 401) {
+    # If we get here, it means the request succeeded (not a 401)
+    Print-Fail "Auth endpoint returned HTTP $($Response.StatusCode)" "Expected 401 for invalid credentials"
+} catch {
+    # Check if it's a 401 error (expected behavior)
+    if ($_.Exception.Response.StatusCode -eq 401) {
         Print-Pass "Auth endpoint correctly rejects invalid credentials (401)"
     } else {
-        Print-Fail "Auth endpoint returned HTTP $($Response.StatusCode)" "Expected 401 for invalid credentials"
+        Print-Fail "Auth endpoint request failed" $_.Exception.Message
     }
-} catch {
-    Print-Fail "Auth endpoint request failed" $_.Exception.Message
 }
 
 # Test 3: Protected endpoint - GET /auth/me without token (should return 401)
@@ -130,22 +131,28 @@ Print-Test "Protected endpoint - GET /auth/me (no token)"
 try {
     $Response = Invoke-WebRequest -Uri "$BaseUrl/auth/me" `
         -TimeoutSec $Timeout `
-        -UseBasicParsing `
-        -SkipHttpErrorCheck
+        -UseBasicParsing
 
-    if ($Response.StatusCode -eq 401) {
+    # If we get here, it means the request succeeded (not a 401)
+    Print-Fail "Protected endpoint returned HTTP $($Response.StatusCode)" "Expected 401 without token"
+} catch {
+    # Check if it's a 401 error (expected behavior)
+    if ($_.Exception.Response.StatusCode -eq 401) {
         Print-Pass "Protected endpoint correctly requires authentication (401)"
     } else {
-        Print-Fail "Protected endpoint returned HTTP $($Response.StatusCode)" "Expected 401 without token"
+        Print-Fail "Protected endpoint request failed" $_.Exception.Message
     }
-} catch {
-    Print-Fail "Protected endpoint request failed" $_.Exception.Message
 }
 
 # Test 4: Database connectivity (via Python script)
 Print-Test "Database connectivity check"
 try {
-    $DbCheckOutput = python scripts/check_db.py $Mode 2>&1
+    # Execute Python script with Poetry to ensure dependencies are available
+    Push-Location backend
+    $DbCheckOutput = poetry run python ../scripts/check_db.py $Mode 2>&1 | Out-String
+    Pop-Location
+    Write-Host $DbCheckOutput
+
     if ($DbCheckOutput -match "Database connection successful") {
         Print-Pass "Database connection verified"
     } else {

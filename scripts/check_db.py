@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Database Connectivity Checker for ContraVento Smoke Tests
 
@@ -21,7 +22,13 @@ Exit codes:
 
 import asyncio
 import sys
+import io
 from pathlib import Path
+
+# Force UTF-8 encoding for stdout on Windows
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
