@@ -253,23 +253,25 @@ async def create_trip(
     "/{trip_id}",
     response_model=dict[str, Any],
     summary="Get trip by ID",
-    description="Retrieve detailed trip information. Published trips visible to all, drafts only to owner.",
+    description="Retrieve detailed trip information. Published trips visible to all (no auth required), drafts only to owner.",
 )
 async def get_trip(
     trip_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """
-    Get trip by ID (FR-007, FR-008).
+    Get trip by ID (FR-007, FR-008, Feature 013).
 
-    Visibility rules:
-    - Published trips: visible to everyone
+    Visibility rules (Feature 013):
+    - Published trips with trip_visibility='public': visible to everyone (no auth required)
+    - Published trips with trip_visibility='followers': visible to followers and owner
+    - Published trips with trip_visibility='private': only visible to owner
     - Draft trips: only visible to owner
 
     Args:
         trip_id: Trip identifier
-        current_user: Authenticated user (from JWT)
+        current_user: Optional authenticated user (from JWT, None if not authenticated)
         db: Database session
 
     Returns:
@@ -277,12 +279,14 @@ async def get_trip(
 
     Raises:
         404: Trip not found
-        403: Access denied (draft trip, not owner)
-        401: Unauthorized
+        403: Access denied (insufficient permissions based on visibility settings)
     """
     try:
         service = TripService(db)
-        trip = await service.get_trip(trip_id=trip_id, current_user_id=current_user.id)
+        trip = await service.get_trip(
+            trip_id=trip_id,
+            current_user_id=current_user.id if current_user else None
+        )
 
         # Convert to response schema
         trip_response = TripResponse.model_validate(trip)
