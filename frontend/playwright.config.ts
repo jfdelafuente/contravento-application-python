@@ -40,6 +40,9 @@ export default defineConfig({
   // Number of parallel workers
   workers: process.env.CI ? 2 : undefined,
 
+  // Global setup (runs once before all tests)
+  globalSetup: './tests/e2e/setup/global-setup.ts',
+
   // Reporter configuration
   reporter: [
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
