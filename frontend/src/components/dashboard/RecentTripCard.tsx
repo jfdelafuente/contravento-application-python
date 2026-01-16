@@ -1,7 +1,7 @@
 import React from 'react';
 import { TripSummary } from '../../types/trip';
 import { formatShortDate } from '../../utils/formatters';
-import { formatDistance } from '../../utils/tripHelpers';
+import { formatDistance, getPhotoUrl } from '../../utils/tripHelpers';
 import './RecentTripCard.css';
 
 export interface RecentTripCardProps {
@@ -20,7 +20,7 @@ const RecentTripCard: React.FC<RecentTripCardProps> = ({ trip }) => {
         <div className="recent-trip-card__photo">
           {trip.thumbnail_url ? (
             <img
-              src={trip.thumbnail_url}
+              src={getPhotoUrl(trip.thumbnail_url)}
               alt={trip.title}
               className="recent-trip-card__image recent-trip-card__image--loaded"
               loading="lazy"
