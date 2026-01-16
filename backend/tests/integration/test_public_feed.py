@@ -76,10 +76,11 @@ class TestAnonymousPublicFeedAccess:
         assert response.status_code == 200
 
         data = response.json()
-        assert data["success"] is True
-        assert "data" in data
+        # Public feed endpoint returns {trips, pagination} directly (not wrapped in success/data)
+        assert "trips" in data
+        assert "pagination" in data
 
-        trips = data["data"]["trips"]
+        trips = data["trips"]
 
         # Verify only published trips returned
         trip_titles = [trip["title"] for trip in trips]
@@ -108,22 +109,22 @@ class TestAnonymousPublicFeedAccess:
             trip_id = response.json()["data"]["trip_id"]
             await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
-        # Get first page (limit=2)
-        response_page1 = await client.get("/trips/public?limit=2&offset=0")
+        # Get first page (limit=2, page=1)
+        response_page1 = await client.get("/trips/public?limit=2&page=1")
         assert response_page1.status_code == 200
 
-        page1_data = response_page1.json()["data"]
-        assert page1_data["limit"] == 2
-        assert page1_data["offset"] == 0
+        page1_data = response_page1.json()
+        assert page1_data["pagination"]["limit"] == 2
+        assert page1_data["pagination"]["page"] == 1
         assert len(page1_data["trips"]) <= 2
 
         # Get second page
-        response_page2 = await client.get("/trips/public?limit=2&offset=2")
+        response_page2 = await client.get("/trips/public?limit=2&page=2")
         assert response_page2.status_code == 200
 
-        page2_data = response_page2.json()["data"]
-        assert page2_data["limit"] == 2
-        assert page2_data["offset"] == 2
+        page2_data = response_page2.json()
+        assert page2_data["pagination"]["limit"] == 2
+        assert page2_data["pagination"]["page"] == 2
 
     async def test_anonymous_cannot_see_trip_owner_email(
         self, client: AsyncClient, auth_headers: dict
@@ -143,7 +144,7 @@ class TestAnonymousPublicFeedAccess:
 
         # Get public feed
         feed_response = await client.get("/trips/public")
-        trips = feed_response.json()["data"]["trips"]
+        trips = feed_response.json()["trips"]
 
         # Find our trip
         our_trip = next(
@@ -152,9 +153,10 @@ class TestAnonymousPublicFeedAccess:
         assert our_trip is not None
 
         # Verify email is not exposed
-        # Assuming user info is included in response
-        if "user" in our_trip:
-            assert "email" not in our_trip["user"]
+        # User info should include username but NOT email
+        if "owner" in our_trip:
+            assert "email" not in our_trip["owner"]
+        # Public trips may not include owner info at all (privacy)
 
 
 @pytest.mark.integration
@@ -204,8 +206,10 @@ class TestAuthenticatedFeedAccess:
         )
         assert response.status_code == 200
 
-        data = response.json()["data"]
-        trips = data["trips"]
+        data = response.json()
+        # User trips endpoint returns standard {success, data} structure
+        assert data["success"] is True
+        trips = data["data"]["trips"]
 
         # Verify both published and draft are returned
         trip_ids = [trip["trip_id"] for trip in trips]
