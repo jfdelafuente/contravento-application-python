@@ -6,7 +6,9 @@
       "Bash(git add:*)",
       "Bash(poetry show:*)",
       "Bash(powershell.exe:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(timeout 20 npm test:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

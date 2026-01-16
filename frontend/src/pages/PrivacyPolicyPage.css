@@ -1,0 +1,4 @@
+/* src/pages/PrivacyPolicyPage.css */
+
+/* Reuse same styles as Terms of Service */
+@import './TermsOfServicePage.css';

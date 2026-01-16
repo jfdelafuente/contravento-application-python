@@ -1,0 +1,55 @@
+/* frontend/src/pages/LandingPage.css */
+
+/**
+ * LandingPage Styles (Feature 014 - User Story 1)
+ *
+ * Container styles for landing page, ensuring smooth scrolling
+ * and proper spacing between sections.
+ */
+
+.landing-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--landing-bg);
+  overflow-x: hidden;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--landing-bg);
+}
+
+.loading-spinner {
+  font-family: var(--landing-font-sans);
+  font-size: 1.125rem;
+  color: var(--landing-text);
+}
+
+/* Optional: Add spinner animation */
+.loading-spinner::after {
+  content: '...';
+  animation: loading-dots 1.5s infinite;
+}
+
+@keyframes loading-dots {
+  0%,
+  20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%,
+  100% {
+    content: '...';
+  }
+}

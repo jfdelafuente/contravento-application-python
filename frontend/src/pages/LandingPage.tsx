@@ -4,6 +4,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSEO } from '../hooks/useSEO';
+import { Header } from '../components/landing/Header';
 import { HeroSection } from '../components/landing/HeroSection';
 import { ManifestoSection } from '../components/landing/ManifestoSection';
 import { ValuePillarsSection } from '../components/landing/ValuePillarsSection';
@@ -59,6 +60,7 @@ export const LandingPage: React.FC = () => {
   return (
     <>
       {useSEO(seoConfig)}
+      <Header />
       <main className="landing-page" aria-label="Landing Page - ContraVento">
         <HeroSection />
         <ManifestoSection />

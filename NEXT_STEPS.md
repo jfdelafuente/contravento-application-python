@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
 **Última actualización**: 2026-01-16
-**Estado actual**: Feature 014 (Landing Page Inspiradora) COMPLETADA - Pending merge
+**Estado actual**: Feature 014 (Landing Page Inspiradora) COMPLETADA - Ready for merge
 
 ---
 
@@ -10,33 +10,36 @@
 ### Feature 014: Landing Page Inspiradora (✅ COMPLETADO)
 
 **Branch**: `014-landing-page-inspiradora`
-**Status**: ✅ **COMPLETADO 62%** - Ready for merge to develop
+**Status**: ✅ **COMPLETADO** - Ready for merge to develop
 **Priority**: P1 (Critical - User Acquisition Foundation)
 
-**Implementación Completada**: 44/71 tasks (62% - All MVP User Stories Complete)
+**Implementación Completada**: MVP completo con todas las secciones y funcionalidades
 
 **Entregables**:
 
-- ✅ Complete Landing Page with 7 sections (Hero, Manifesto, Value Pillars, How It Works, **Discover Trips**, CTA, Footer)
+- ✅ Complete Landing Page with 8 sections (Header, Hero, Manifesto, Value Pillars, How It Works, Discover Trips, CTA, Footer)
 - ✅ SEO optimization with react-helmet-async
 - ✅ Responsive design (mobile/tablet/desktop)
-- ✅ Comprehensive test suite (**187 tests**, 100% landing page coverage)
+- ✅ Comprehensive test suite (**208 tests**, 100% landing page coverage)
 - ✅ Accessibility (WCAG 2.1 AA compliant)
 - ✅ Performance optimized (Google Fonts preloaded)
-- ✅ **NEW**: "Descubre nuevas rutas" section displaying 4 recent public trips
+- ✅ Sticky header with navigation (Rutas, Login)
+- ✅ "Descubre nuevas rutas" section displaying 4 recent public trips
+- ✅ Color palette: Terracota (#D35400), Verde Bosque (#1B2621), Crema (#F9F7F2)
 
-**User Stories Implementadas** (5/5):
+**User Stories Implementadas** (6/6):
 
 1. ✅ US1: Hero Section + Manifesto + Authenticated Redirect (17+21+14 tests)
 2. ✅ US2: Value Pillars Section (28 tests)
 3. ✅ US3: How It Works Section (33 tests)
 4. ✅ US4: CTA Section (25 tests + E2E scenarios)
 5. ✅ US5: Footer (34 tests)
-6. ✅ **NEW**: Discover Trips Section (15 tests) - Displays 4 recent public trips
+6. ✅ **NEW**: Header Component (21 tests) - Sticky header with navigation
+7. ✅ **NEW**: Discover Trips Section (15 tests) - Displays 4 recent public trips
 
 **Testing Coverage**:
 
-- Unit Tests: **187/187 passing** ✅ (+15 new tests)
+- Unit Tests: **208/208 passing** ✅ (21 Header + 15 DiscoverTrips + 172 landing)
 - Coverage: 100% for landing page components
 - E2E Tests: Visitor journey scenarios ready
 

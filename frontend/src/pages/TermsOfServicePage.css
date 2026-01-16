@@ -1,0 +1,45 @@
+/* src/pages/TermsOfServicePage.css */
+
+.legal-page {
+  min-height: 100vh;
+  background-color: var(--landing-bg);
+  padding: var(--space-16) var(--space-4);
+}
+
+.legal-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--color-white);
+  padding: var(--space-12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.legal-page h1 {
+  color: var(--landing-title);
+  font-family: var(--landing-font-serif);
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.legal-page p {
+  color: var(--landing-text);
+  font-size: var(--text-lg);
+  line-height: 1.8;
+  margin-bottom: var(--space-6);
+}
+
+.legal-notice {
+  font-style: italic;
+  color: var(--color-gray-500);
+}
+
+.legal-page a {
+  color: var(--landing-cta);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.legal-page a:hover {
+  color: var(--landing-cta-hover);
+}
