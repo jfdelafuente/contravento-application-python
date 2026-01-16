@@ -1,0 +1,56 @@
+# Docker Compose configuration for testing environment
+# Provides PostgreSQL test database for integration tests
+#
+# Usage:
+#   docker-compose -f docker-compose.test.yml up -d postgres
+#   pytest tests/integration/ --postgresql
+#   docker-compose -f docker-compose.test.yml down
+
+version: '3.8'
+
+services:
+  # PostgreSQL test database
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: contravento-test-db
+    environment:
+      POSTGRES_DB: contravento_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with local PostgreSQL
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d contravento_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test-network
+    restart: unless-stopped
+
+  # Redis test instance (if needed for caching tests)
+  redis-test:
+    image: redis:7-alpine
+    container_name: contravento-test-redis
+    ports:
+      - "6380:6379"  # Different port to avoid conflict with local Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test-network
+    restart: unless-stopped
+
+volumes:
+  test_db_data:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge
