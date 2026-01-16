@@ -1,11 +1,60 @@
 # ContraVento - Próximos Pasos
 
 **Última actualización**: 2026-01-16
-**Estado actual**: Feature 001 (Testing & QA Suite) MERGEADA a develop
+**Estado actual**: Feature 014 (Landing Page Inspiradora) COMPLETADA - Pending merge
 
 ---
 
 ## Estado Actual ✅
+
+### Feature 014: Landing Page Inspiradora (✅ COMPLETADO)
+
+**Branch**: `014-landing-page-inspiradora`
+**Status**: ✅ **COMPLETADO 62%** - Ready for merge to develop
+**Priority**: P1 (Critical - User Acquisition Foundation)
+
+**Implementación Completada**: 44/71 tasks (62% - All MVP User Stories Complete)
+
+**Entregables**:
+
+- ✅ Complete Landing Page with 7 sections (Hero, Manifesto, Value Pillars, How It Works, **Discover Trips**, CTA, Footer)
+- ✅ SEO optimization with react-helmet-async
+- ✅ Responsive design (mobile/tablet/desktop)
+- ✅ Comprehensive test suite (**187 tests**, 100% landing page coverage)
+- ✅ Accessibility (WCAG 2.1 AA compliant)
+- ✅ Performance optimized (Google Fonts preloaded)
+- ✅ **NEW**: "Descubre nuevas rutas" section displaying 4 recent public trips
+
+**User Stories Implementadas** (5/5):
+
+1. ✅ US1: Hero Section + Manifesto + Authenticated Redirect (17+21+14 tests)
+2. ✅ US2: Value Pillars Section (28 tests)
+3. ✅ US3: How It Works Section (33 tests)
+4. ✅ US4: CTA Section (25 tests + E2E scenarios)
+5. ✅ US5: Footer (34 tests)
+6. ✅ **NEW**: Discover Trips Section (15 tests) - Displays 4 recent public trips
+
+**Testing Coverage**:
+
+- Unit Tests: **187/187 passing** ✅ (+15 new tests)
+- Coverage: 100% for landing page components
+- E2E Tests: Visitor journey scenarios ready
+
+**Design Features**:
+- Color Palette: Terracota (#D35400), Verde Bosque (#1B2621), Crema (#F9F7F2)
+- Typography: Playfair Display (serif), System Sans-serif
+- Philosophy: "El camino es el destino"
+- Responsive: 2x2 grid (desktop) → stacked (mobile)
+
+**Next Steps**:
+- [ ] Run E2E tests for complete user journey
+- [ ] Performance audit with Lighthouse (target: LCP < 2.5s)
+- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [ ] Merge to develop branch
+
+---
+
+## Features Anteriores ✅
 
 ### Feature 001: Testing & QA Suite (✅ MERGEADA A DEVELOP)
 

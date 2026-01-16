@@ -27,14 +27,17 @@ const getApiBaseUrl = (): string => {
  * This converts them to absolute URLs like "http://localhost:8000/storage/trip_photos/..."
  *
  * @param relativeUrl - Relative URL from backend (e.g., '/storage/trip_photos/...')
- * @returns Absolute URL pointing to backend
+ * @returns Absolute URL pointing to backend, or placeholder image if null/undefined
  *
  * @example
  * getPhotoUrl('/storage/trip_photos/2024/01/photo.jpg')
  * // Returns: 'http://localhost:8000/storage/trip_photos/2024/01/photo.jpg'
+ *
+ * getPhotoUrl(null)
+ * // Returns: '/images/placeholders/trip-placeholder.jpg'
  */
-export const getPhotoUrl = (relativeUrl: string | null | undefined): string | null => {
-  if (!relativeUrl) return null;
+export const getPhotoUrl = (relativeUrl: string | null | undefined): string => {
+  if (!relativeUrl) return '/images/placeholders/trip-placeholder.jpg';
 
   // If already absolute URL, return as-is
   if (relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) {
