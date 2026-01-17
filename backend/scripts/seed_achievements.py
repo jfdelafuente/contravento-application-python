@@ -28,6 +28,16 @@ from sqlalchemy import select
 from src.database import AsyncSessionLocal
 from src.models.stats import Achievement
 
+# Import all models to ensure SQLAlchemy relationships are resolved
+from src.models.user import User, UserProfile  # noqa: F401
+from src.models.comment import Comment  # noqa: F401
+from src.models.like import Like  # noqa: F401
+from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.share import Share  # noqa: F401
+from src.models.social import Follow  # noqa: F401
+from src.models.trip import Trip, TripPhoto, TripLocation, Tag, TripTag  # noqa: F401
+from src.models.stats import UserStats, UserAchievement  # noqa: F401
+
 # All 9 predefined achievements
 ACHIEVEMENTS = [
     {
@@ -108,7 +118,7 @@ ACHIEVEMENTS = [
 async def seed_achievements():
     """Seed all 9 predefined achievements into database."""
     async with AsyncSessionLocal() as db:
-        print("🌱 Seeding achievements...")
+        print("Seeding achievements...")
 
         for achievement_data in ACHIEVEMENTS:
             # Check if already exists
@@ -118,16 +128,16 @@ async def seed_achievements():
             existing = result.scalar_one_or_none()
 
             if existing:
-                print(f"  ⏭️  {achievement_data['code']} already exists, skipping")
+                print(f"  [SKIP] {achievement_data['code']} already exists")
                 continue
 
             # Create achievement
             achievement = Achievement(**achievement_data)
             db.add(achievement)
-            print(f"  ✅ Created {achievement_data['code']} - {achievement_data['name']}")
+            print(f"  [OK] Created {achievement_data['code']} - {achievement_data['name']}")
 
         await db.commit()
-        print(f"\n✨ Successfully seeded {len(ACHIEVEMENTS)} achievements!")
+        print(f"\n[SUCCESS] Seeded {len(ACHIEVEMENTS)} achievements!")
 
 
 async def main():
@@ -135,7 +145,7 @@ async def main():
     try:
         await seed_achievements()
     except Exception as e:
-        print(f"\n❌ Error seeding achievements: {str(e)}")
+        print(f"\n[ERROR] Error seeding achievements: {str(e)}")
         import traceback
 
         traceback.print_exc()

@@ -193,6 +193,39 @@ class User(Base):
         doc="Password reset and verification tokens",
     )
 
+    # Social network relationships (Feature 004)
+    likes: Mapped[list["Like"]] = relationship(
+        "Like",
+        foreign_keys="Like.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Likes given by this user",
+    )
+
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        foreign_keys="Comment.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Comments posted by this user",
+    )
+
+    shares: Mapped[list["Share"]] = relationship(
+        "Share",
+        foreign_keys="Share.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Shares created by this user",
+    )
+
+    notifications: Mapped[list["Notification"]] = relationship(
+        "Notification",
+        foreign_keys="Notification.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Notifications received by this user",
+    )
+
     # Social relationships (T199)
     followers: Mapped[list["Follow"]] = relationship(
         "Follow",

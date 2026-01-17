@@ -26,6 +26,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import AsyncSessionLocal
 from src.models.cycling_type import CyclingType
 
+# Import all models to ensure SQLAlchemy relationships are resolved
+# This prevents "failed to locate a name" errors when using any model
+from src.models.comment import Comment  # noqa: F401
+from src.models.like import Like  # noqa: F401
+from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.share import Share  # noqa: F401
+from src.models.social import Follow  # noqa: F401
+from src.models.trip import Trip, TripPhoto, TripLocation, Tag, TripTag  # noqa: F401
+from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
+from src.models.user import User  # noqa: F401
+
 
 async def load_cycling_types_from_yaml(yaml_path: Path) -> list[dict]:
     """
