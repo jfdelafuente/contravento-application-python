@@ -1,6 +1,6 @@
 // src/services/likeService.ts
 
-import api from './api';
+import { api } from './api';
 
 /**
  * LikeService - API client for likes endpoints (Feature 004 - US2).
