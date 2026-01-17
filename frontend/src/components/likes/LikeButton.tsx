@@ -39,10 +39,15 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
     initialCount
   );
 
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent event bubbling to parent (FeedItem)
+    toggleLike();
+  };
+
   return (
     <button
       className={`like-button like-button--${size} ${isLiked ? 'like-button--liked' : ''}`}
-      onClick={toggleLike}
+      onClick={handleClick}
       disabled={isLoading}
       aria-label={isLiked ? 'Quitar like' : 'Dar like'}
       aria-pressed={isLiked}
