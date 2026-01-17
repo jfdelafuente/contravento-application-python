@@ -64,7 +64,7 @@ All tasks follow strict checklist format:
 
 **Backend Status**: ✅ 18/18 tasks completed (Tests + Implementation)
 **Frontend Status**: ✅ 10/10 tasks completed (Services + Hooks + Components + Page + Routing)
-**Manual Testing**: ⏸️ 0/2 tests pending (T039-T040)
+**Manual Testing**: ✅ 2/2 tests completed (T039-T040) - All success criteria met!
 
 **Independent Test**:
 - Create multiple users with published trips
@@ -108,8 +108,8 @@ All tasks follow strict checklist format:
 - [X] T036 [P] [US1] Create FeedSkeleton loading component in frontend/src/components/feed/FeedSkeleton.tsx
 - [X] T037 [US1] Create FeedPage main page in frontend/src/pages/FeedPage.tsx
 - [X] T038 [US1] Add /feed route to React Router in frontend/src/App.tsx
-- [ ] T039 [US1] Manual test: Verify feed loads in <1s with 10 trips (SC-001)
-- [ ] T040 [US1] Manual test: Verify infinite scroll loads next page <500ms (SC-002)
+- [X] T039 [US1] Manual test: Verify feed loads in <1s with 10 trips (SC-001)
+- [X] T040 [US1] Manual test: Verify infinite scroll loads next page <500ms (SC-002)
 
 ---
 
