@@ -105,6 +105,25 @@ class Trip(Base):
         cascade="all, delete-orphan",
     )
 
+    # Social network relationships (Feature 004)
+    likes: Mapped[list["Like"]] = relationship(
+        "Like",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+    )
+
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+    )
+
+    shares: Mapped[list["Share"]] = relationship(
+        "Share",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+    )
+
     # Indexes
     __table_args__ = (
         Index("idx_trip_user_status", "user_id", "status"),  # List user's trips by status

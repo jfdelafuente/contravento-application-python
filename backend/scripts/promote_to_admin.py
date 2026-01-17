@@ -27,6 +27,15 @@ from sqlalchemy import select
 from src.database import AsyncSessionLocal
 from src.models.user import User, UserRole
 
+# Import all models to ensure SQLAlchemy relationships are resolved
+from src.models.comment import Comment  # noqa: F401
+from src.models.like import Like  # noqa: F401
+from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.share import Share  # noqa: F401
+from src.models.social import Follow  # noqa: F401
+from src.models.trip import Trip, TripPhoto, TripLocation, Tag, TripTag  # noqa: F401
+from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
+
 
 async def promote_user(username: str = None, email: str = None, demote: bool = False):
     """

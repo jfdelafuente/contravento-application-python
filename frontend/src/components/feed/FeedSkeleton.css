@@ -1,0 +1,179 @@
+/**
+ * FeedSkeleton Styles (Feature 004 - T036)
+ *
+ * Skeleton loader for feed items.
+ * Animated placeholders during loading states.
+ */
+
+.feed-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feed-skeleton__item {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Image Skeleton */
+.feed-skeleton__image {
+  width: 100%;
+  height: 240px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* Content Section */
+.feed-skeleton__content {
+  padding: 1.25rem;
+}
+
+/* Author Skeleton */
+.feed-skeleton__author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.feed-skeleton__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.feed-skeleton__author-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* Generic Line Skeleton */
+.feed-skeleton__line {
+  height: 14px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.feed-skeleton__line--username {
+  width: 120px;
+  height: 16px;
+}
+
+.feed-skeleton__line--fullname {
+  width: 90px;
+  height: 12px;
+}
+
+.feed-skeleton__line--short {
+  width: 60%;
+}
+
+/* Title Skeleton */
+.feed-skeleton__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.feed-skeleton__line--title {
+  height: 20px;
+}
+
+/* Description Skeleton */
+.feed-skeleton__description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Metadata Skeleton */
+.feed-skeleton__metadata {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.feed-skeleton__line--metadata {
+  width: 80px;
+  height: 14px;
+}
+
+/* Tags Skeleton */
+.feed-skeleton__tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.feed-skeleton__tag {
+  width: 60px;
+  height: 24px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+/* Interactions Skeleton */
+.feed-skeleton__interactions {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.feed-skeleton__interaction {
+  width: 50px;
+  height: 18px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Loading Animation */
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .feed-skeleton__image {
+    height: 200px;
+  }
+
+  .feed-skeleton__content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-skeleton__image {
+    height: 180px;
+  }
+
+  .feed-skeleton__avatar {
+    width: 36px;
+    height: 36px;
+  }
+}

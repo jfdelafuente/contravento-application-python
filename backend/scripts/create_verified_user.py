@@ -32,6 +32,16 @@ from src.models.user import User, UserRole
 from src.schemas.auth import RegisterRequest
 from src.services.auth_service import AuthService
 
+# Import all models to ensure SQLAlchemy relationships are resolved
+# This prevents "failed to locate a name" errors when using User model
+from src.models.comment import Comment  # noqa: F401
+from src.models.like import Like  # noqa: F401
+from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.share import Share  # noqa: F401
+from src.models.social import Follow  # noqa: F401
+from src.models.trip import Trip, TripPhoto, TripLocation, Tag, TripTag  # noqa: F401
+from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
+
 
 async def create_verified_user(
     username: str, email: str, password: str, role: str = "user"

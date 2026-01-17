@@ -15,14 +15,22 @@ from datetime import datetime, timedelta
 import argparse
 from uuid import uuid4
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy import select
-from database import AsyncSessionLocal
-from models.user import User
-from models.trip import Trip, TripStatus, TripDifficulty
-from models.tag import Tag
+from src.database import AsyncSessionLocal
+from src.models.user import User
+from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripTag
+
+# Import all models to ensure SQLAlchemy relationships are resolved
+from src.models.comment import Comment  # noqa: F401
+from src.models.like import Like  # noqa: F401
+from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.share import Share  # noqa: F401
+from src.models.social import Follow  # noqa: F401
+from src.models.trip import TripPhoto, TripLocation  # noqa: F401
+from src.models.stats import UserStats, Achievement, UserAchievement  # noqa: F401
 
 
 SAMPLE_TRIPS = [
@@ -123,7 +131,7 @@ Cualquier consejo es bienvenido!""",
         "start_date": datetime.now() + timedelta(days=120),
         "end_date": datetime.now() + timedelta(days=135),
         "distance_km": 800.0,
-        "difficulty": TripDifficulty.EXTREME,
+        "difficulty": TripDifficulty.VERY_DIFFICULT,
         "status": TripStatus.DRAFT,
         "tags": ["transpirenaica", "proyecto", "verano"],
     },
@@ -161,47 +169,56 @@ async def seed_trips(username: str = "testuser", count: int = None):
         user = result.scalar_one_or_none()
 
         if not user:
-            print(f"❌ Error: Usuario '{username}' no encontrado")
+            print(f"[ERROR] Usuario '{username}' no encontrado")
             print(f"   Crea el usuario primero con: poetry run python scripts/create_verified_user.py --username {username}")
             return
 
         # Determine how many trips to create
         trips_to_create = SAMPLE_TRIPS[:count] if count else SAMPLE_TRIPS
 
-        print(f"📝 Creando {len(trips_to_create)} viajes para {user.username}...")
+        print(f"Creando {len(trips_to_create)} viajes para {user.username}...")
 
         created_count = 0
         for trip_data in trips_to_create:
             # Extract tags from trip_data
             tag_names = trip_data.pop("tags", [])
 
+            # Set published_at for published trips
+            if trip_data.get("status") == TripStatus.PUBLISHED:
+                trip_data["published_at"] = datetime.now()
+
             # Create trip
             trip = Trip(
-                trip_id=uuid4(),
-                user_id=user.user_id,
+                trip_id=str(uuid4()),
+                user_id=user.id,
                 **trip_data
             )
             db.add(trip)
             await db.flush()
 
-            # Add tags
+            # Add tags via TripTag association
             for tag_name in tag_names:
                 tag = await get_or_create_tag(db, tag_name)
-                trip.tags.append(tag)
+
+                # Create TripTag association
+                trip_tag = TripTag(trip_id=trip.trip_id, tag_id=tag.tag_id)
+                db.add(trip_tag)
+
+                # Increment tag usage
                 tag.usage_count += 1
 
             await db.flush()
 
-            status_emoji = "📄" if trip.status == TripStatus.DRAFT else "✅"
-            print(f"  {status_emoji} {trip.title[:50]}... ({trip.distance_km}km, {trip.difficulty.value})")
+            status_marker = "[DRAFT]" if trip.status == TripStatus.DRAFT else "[OK]"
+            print(f"  {status_marker} {trip.title[:50]}... ({trip.distance_km}km, {trip.difficulty.value})")
             created_count += 1
 
         await db.commit()
 
-        print(f"\n✅ Se crearon {created_count} viajes exitosamente")
+        print(f"\n[SUCCESS] Se crearon {created_count} viajes exitosamente")
         print(f"   Usuario: {user.username}")
         print(f"   Email: {user.email}")
-        print(f"\n🌐 Prueba en: http://localhost:3001/trips")
+        print(f"\nPrueba en: http://localhost:5173/feed")
 
 
 async def list_existing_trips(username: str = "testuser"):
@@ -213,22 +230,22 @@ async def list_existing_trips(username: str = "testuser"):
         user = result.scalar_one_or_none()
 
         if not user:
-            print(f"❌ Usuario '{username}' no encontrado")
+            print(f"[ERROR] Usuario '{username}' no encontrado")
             return
 
         result = await db.execute(
-            select(Trip).where(Trip.user_id == user.user_id)
+            select(Trip).where(Trip.user_id == user.id)
         )
         trips = result.scalars().all()
 
         if not trips:
-            print(f"📭 El usuario '{username}' no tiene viajes")
+            print(f"[INFO] El usuario '{username}' no tiene viajes")
             return
 
-        print(f"📋 Viajes de {username} ({len(trips)} total):")
+        print(f"Viajes de {username} ({len(trips)} total):")
         for trip in trips:
-            status_emoji = "📄" if trip.status == TripStatus.DRAFT else "✅"
-            print(f"  {status_emoji} {trip.title[:60]}")
+            status_marker = "[DRAFT]" if trip.status == TripStatus.DRAFT else "[OK]"
+            print(f"  {status_marker} {trip.title[:60]}")
             print(f"     ID: {trip.trip_id}")
             print(f"     Distancia: {trip.distance_km}km | Dificultad: {trip.difficulty.value}")
 

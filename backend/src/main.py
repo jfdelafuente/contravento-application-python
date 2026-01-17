@@ -16,7 +16,11 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import settings
+from src.models.comment import Comment  # noqa: F401
 from src.models.cycling_type import CyclingType  # noqa: F401
+from src.models.like import Like  # noqa: F401
+from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.share import Share  # noqa: F401
 from src.models.social import Follow  # noqa: F401
 from src.models.stats import Achievement, UserAchievement, UserStats  # noqa: F401
 from src.models.trip import Tag, Trip, TripLocation, TripPhoto, TripTag  # noqa: F401
@@ -112,9 +116,23 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
         }
         content = create_response(success=False, error=error)
 
+    # Build response headers - include CORS headers for preflight/error responses
+    response_headers = {}
+
+    # Get origin from request
+    origin = request.headers.get("origin")
+    if origin and origin in settings.cors_origins:
+        response_headers["Access-Control-Allow-Origin"] = origin
+        response_headers["Access-Control-Allow-Credentials"] = "true"
+
+    # Preserve WWW-Authenticate header if present
+    if hasattr(exc, "headers") and exc.headers:
+        response_headers.update(exc.headers)
+
     return JSONResponse(
         status_code=exc.status_code,
         content=content,
+        headers=response_headers,
     )
 
 
@@ -244,13 +262,14 @@ async def root() -> dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth, cycling_types, profile, social, stats, trips
+from src.api import auth, cycling_types, feed, profile, social, stats, trips
 
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(stats.router)
 app.include_router(stats.achievements_router)
 app.include_router(social.router)
+app.include_router(feed.router)  # Feature 004: Personalized feed
 app.include_router(trips.router)
 app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
 app.include_router(cycling_types.router)  # Public cycling types endpoint

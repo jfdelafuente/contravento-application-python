@@ -28,6 +28,9 @@ const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({
 // Public Trips Feed (Feature 013)
 const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage').then(module => ({ default: module.PublicFeedPage })));
 
+// Personalized Feed (Feature 004)
+const FeedPage = lazy(() => import('./pages/FeedPage').then(module => ({ default: module.FeedPage })));
+
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
   <div className="loading-container">
@@ -82,6 +85,16 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ProfileEditPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Personalized Feed (Feature 004) */}
+              <Route
+                path="/feed"
+                element={
+                  <ProtectedRoute>
+                    <FeedPage />
                   </ProtectedRoute>
                 }
               />
