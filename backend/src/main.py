@@ -262,7 +262,7 @@ async def root() -> dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth, cycling_types, feed, profile, social, stats, trips
+from src.api import auth, cycling_types, feed, likes, profile, social, stats, trips
 
 app.include_router(auth.router)
 app.include_router(profile.router)
@@ -270,6 +270,7 @@ app.include_router(stats.router)
 app.include_router(stats.achievements_router)
 app.include_router(social.router)
 app.include_router(feed.router)  # Feature 004: Personalized feed
+app.include_router(likes.router)  # Feature 004: Likes/Me Gusta
 app.include_router(trips.router)
 app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
 app.include_router(cycling_types.router)  # Public cycling types endpoint
