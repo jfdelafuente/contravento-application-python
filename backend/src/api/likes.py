@@ -29,7 +29,7 @@ async def like_trip(
     trip_id: str = Path(..., description="Trip ID to like"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> LikeResponse:
     """
     Like a trip (FR-009) - T055, T046.
 
@@ -50,11 +50,7 @@ async def like_trip(
         result = await LikeService.like_trip(
             db=db, user_id=current_user.id, trip_id=trip_id
         )
-        return {
-            "success": True,
-            "data": result,
-            "error": None,
-        }
+        return result
     except ValueError as e:
         error_message = str(e)
 
@@ -62,26 +58,12 @@ async def like_trip(
         if "no encontrado" in error_message.lower():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    "success": False,
-                    "data": None,
-                    "error": {
-                        "code": "TRIP_NOT_FOUND",
-                        "message": error_message,
-                    },
-                },
+                detail=error_message,
             )
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "success": False,
-                "data": None,
-                "error": {
-                    "code": "LIKE_ERROR",
-                    "message": error_message,
-                },
-            },
+            detail=error_message,
         )
 
 
@@ -90,7 +72,7 @@ async def unlike_trip(
     trip_id: str = Path(..., description="Trip ID to unlike"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> UnlikeResponse:
     """
     Unlike a trip (FR-009) - T056, T047.
 
@@ -107,22 +89,11 @@ async def unlike_trip(
         result = await LikeService.unlike_trip(
             db=db, user_id=current_user.id, trip_id=trip_id
         )
-        return {
-            "success": True,
-            "data": result,
-            "error": None,
-        }
+        return result
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "success": False,
-                "data": None,
-                "error": {
-                    "code": "UNLIKE_ERROR",
-                    "message": str(e),
-                },
-            },
+            detail=str(e),
         )
 
 
@@ -134,7 +105,7 @@ async def get_trip_likes(
         default=20, ge=1, le=50, description="Items per page (min 1, max 50)"
     ),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> LikesListResponse:
     """
     Get users who liked a trip (FR-014) - T057, T048.
 
@@ -156,8 +127,4 @@ async def get_trip_likes(
         db=db, trip_id=trip_id, page=page, limit=limit
     )
 
-    return {
-        "success": True,
-        "data": result,
-        "error": None,
-    }
+    return result
