@@ -180,7 +180,14 @@ fi
 
 # Test 4: Database connectivity (via Python script)
 print_test "Database connectivity check"
-DB_OUTPUT=$(python scripts/check_db.py "$MODE" 2>&1) || true
+# Use Poetry to run Python script with correct dependencies
+if command -v poetry &> /dev/null && [ -f "backend/pyproject.toml" ]; then
+    DB_OUTPUT=$(cd backend && poetry run python ../scripts/check_db.py "$MODE" 2>&1) || true
+else
+    # Fallback to system Python if Poetry not available
+    DB_OUTPUT=$(python scripts/check_db.py "$MODE" 2>&1) || true
+fi
+
 if echo "$DB_OUTPUT" | grep -q "Database connection successful"; then
     print_pass "Database connection verified"
 else
