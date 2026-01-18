@@ -725,7 +725,7 @@ poetry run python scripts/seed_trips.py
 - [ ] TC-US2-006: Prevent Duplicate Like
 - [ ] TC-US2-007: Loading State
 - [ ] TC-US2-008: Get Likes List (⚠️ UI not implemented)
-- [ ] TC-US2-009: Counter Accuracy
+- [x] TC-US2-009: Counter Accuracy ✅ Passed (2026-01-18)
 - [ ] TC-US2-010: Accessibility
 
 ### Integration Tests
