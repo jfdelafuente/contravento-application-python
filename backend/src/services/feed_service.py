@@ -176,6 +176,7 @@ class FeedService:
             feed_item = await FeedService._trip_to_feed_item(
                 trip=trip,
                 current_user_id=user_id,
+                db=db,
             )
             feed_items.append(feed_item)
 
@@ -266,6 +267,7 @@ class FeedService:
             feed_item = await FeedService._trip_to_feed_item(
                 trip=trip,
                 current_user_id=user_id,
+                db=db,
             )
             feed_items.append(feed_item)
 
@@ -275,6 +277,7 @@ class FeedService:
     async def _trip_to_feed_item(
         trip: Trip,
         current_user_id: str,
+        db: AsyncSession,
     ) -> dict[str, Any]:
         """
         Convert Trip model to FeedItem dict.
@@ -283,11 +286,23 @@ class FeedService:
 
         Args:
             trip: Trip model instance
-            current_user_id: Current user ID (for is_liked_by_me flag)
+            current_user_id: Current user ID (for is_liked_by_me and is_following flags)
+            db: Database session
 
         Returns:
             FeedItem dict matching schema
         """
+        # Check if current user follows trip author (Feature 004 - US1)
+        is_following = None
+        if current_user_id and trip.user.id != current_user_id:
+            follow_result = await db.execute(
+                select(Follow).where(
+                    Follow.follower_id == current_user_id,
+                    Follow.following_id == trip.user.id
+                )
+            )
+            is_following = follow_result.scalar_one_or_none() is not None
+
         # Author (UserSummary)
         author = {
             "username": trip.user.username,
@@ -295,6 +310,7 @@ class FeedService:
             "profile_photo_url": (
                 trip.user.profile.profile_photo_url if trip.user.profile else None
             ),
+            "is_following": is_following,  # Feature 004 - US1
         }
 
         # Photos (PhotoSummary array)
