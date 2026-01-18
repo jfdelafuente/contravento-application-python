@@ -895,7 +895,7 @@ poetry run python scripts/seed_trips.py
 **Core Feed Tests**:
 
 - [x] TC-US1-001: Access Feed (Authenticated) ✅ Passed (2026-01-18)
-- [ ] TC-US1-002: Feed Content (Followed Users) 🆕 DESBLOQUEADO - Follow UI implementada
+- [x] TC-US1-002: Feed Content (Followed Users) ✅ Passed (2026-01-18)
 - [x] TC-US1-003: Feed Content (Popular Backfill) ✅ Passed (2026-01-18)
 - [x] TC-US1-004: Infinite Scroll Pagination ⚠️ Passed with Bug Found (2026-01-18) - Backend duplicate trips issue, frontend workaround applied (see BUGS_FOUND_TESTING.md)
 - [x] TC-US1-005: Skeleton Loading State ✅ Passed (2026-01-18)
