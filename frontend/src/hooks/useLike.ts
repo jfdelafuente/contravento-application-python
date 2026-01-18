@@ -66,7 +66,9 @@ export function useLike(
       setIsLoading(false);
 
       // Show Spanish error message
+      // Backend error structure: { success: false, data: null, error: { code, message } }
       const errorMessage =
+        error.response?.data?.error?.message ||
         error.response?.data?.detail ||
         error.response?.data?.message ||
         'Error al procesar la acción. Intenta de nuevo.';
