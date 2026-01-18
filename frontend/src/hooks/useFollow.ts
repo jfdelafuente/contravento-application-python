@@ -13,12 +13,12 @@ import { toast } from 'react-hot-toast';
  * - Loading state management
  * - Spanish error messages
  *
- * @param userId - User ID to follow/unfollow
+ * @param username - Username to follow/unfollow
  * @param initialFollowing - Initial following state
  * @returns Follow state and actions
  */
 export function useFollow(
-  userId: string,
+  username: string,
   initialFollowing: boolean = false
 ) {
   const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowing);
@@ -46,10 +46,10 @@ export function useFollow(
     try {
       if (isFollowing) {
         // Unfollow
-        await unfollowUser(userId);
+        await unfollowUser(username);
       } else {
         // Follow
-        await followUser(userId);
+        await followUser(username);
       }
 
       // Success - optimistic update was correct
@@ -68,7 +68,7 @@ export function useFollow(
         'Error al procesar la acción. Intenta de nuevo.';
       toast.error(errorMessage);
     }
-  }, [userId, isFollowing, isLoading]);
+  }, [username, isFollowing, isLoading]);
 
   return {
     isFollowing,

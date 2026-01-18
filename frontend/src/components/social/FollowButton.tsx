@@ -15,36 +15,36 @@ import './FollowButton.css';
  * - Prevents following yourself
  *
  * Usage:
- * <FollowButton userId="123" initialFollowing={false} currentUserId="456" />
+ * <FollowButton username="john_doe" initialFollowing={false} />
  */
 
 interface FollowButtonProps {
-  userId: string;
+  username: string;
   initialFollowing?: boolean;
   size?: 'small' | 'medium' | 'large';
   variant?: 'primary' | 'secondary';
 }
 
 export const FollowButton: React.FC<FollowButtonProps> = ({
-  userId,
+  username,
   initialFollowing = false,
   size = 'medium',
   variant = 'primary',
 }) => {
   const { isFollowing, isLoading, toggleFollow } = useFollow(
-    userId,
+    username,
     initialFollowing
   );
 
   // Get current user from localStorage
   const currentUserStr = localStorage.getItem('user');
   const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
-  const currentUserId = currentUser?.user_id;
+  const currentUsername = currentUser?.username;
 
   // Don't show button if:
   // 1. Not authenticated (no current user)
   // 2. User is viewing their own profile
-  if (!currentUserId || currentUserId === userId) {
+  if (!currentUsername || currentUsername === username) {
     return null;
   }
 

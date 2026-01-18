@@ -156,7 +156,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
             </div>
           </div>
           <FollowButton
-            userId={item.author.user_id}
+            username={item.author.username}
             initialFollowing={item.author.is_following || false}
             size="small"
             variant="secondary"

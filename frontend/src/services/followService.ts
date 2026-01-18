@@ -6,10 +6,10 @@ import { api } from './api';
  * Follow Service - API calls for follow/unfollow functionality (Feature 004 - US1).
  *
  * Endpoints:
- * - POST /social/follow/{user_id} - Follow a user
- * - DELETE /social/unfollow/{user_id} - Unfollow a user
- * - GET /social/{user_id}/followers - Get user's followers
- * - GET /social/{user_id}/following - Get users that user follows
+ * - POST /users/{username}/follow - Follow a user
+ * - DELETE /users/{username}/follow - Unfollow a user
+ * - GET /users/{username}/followers - Get user's followers
+ * - GET /users/{username}/following - Get users that user follows
  *
  * Backend integration with SocialService.
  */
@@ -44,24 +44,24 @@ export interface FollowingListResponse {
 /**
  * Follow a user.
  *
- * @param userId - ID of the user to follow
+ * @param username - Username of the user to follow
  * @returns Follow details
  * @throws Error if already following, self-follow, or unauthorized
  */
-export async function followUser(userId: string): Promise<FollowResponse> {
-  const response = await api.post<FollowResponse>(`/social/follow/${userId}`);
+export async function followUser(username: string): Promise<FollowResponse> {
+  const response = await api.post<FollowResponse>(`/users/${username}/follow`);
   return response.data;
 }
 
 /**
  * Unfollow a user.
  *
- * @param userId - ID of the user to unfollow
+ * @param username - Username of the user to unfollow
  * @returns Success response
  * @throws Error if not following or unauthorized
  */
-export async function unfollowUser(userId: string): Promise<UnfollowResponse> {
-  const response = await api.delete<UnfollowResponse>(`/social/unfollow/${userId}`);
+export async function unfollowUser(username: string): Promise<UnfollowResponse> {
+  const response = await api.delete<UnfollowResponse>(`/users/${username}/follow`);
   return response.data;
 }
 
@@ -70,11 +70,11 @@ export async function unfollowUser(userId: string): Promise<UnfollowResponse> {
  *
  * Public endpoint (no auth required).
  *
- * @param userId - ID of the user
+ * @param username - Username of the user
  * @returns List of followers
  */
-export async function getFollowers(userId: string): Promise<FollowersListResponse> {
-  const response = await api.get<FollowersListResponse>(`/social/${userId}/followers`);
+export async function getFollowers(username: string): Promise<FollowersListResponse> {
+  const response = await api.get<FollowersListResponse>(`/users/${username}/followers`);
   return response.data;
 }
 
@@ -83,10 +83,10 @@ export async function getFollowers(userId: string): Promise<FollowersListRespons
  *
  * Public endpoint (no auth required).
  *
- * @param userId - ID of the user
+ * @param username - Username of the user
  * @returns List of users being followed
  */
-export async function getFollowing(userId: string): Promise<FollowingListResponse> {
-  const response = await api.get<FollowingListResponse>(`/social/${userId}/following`);
+export async function getFollowing(username: string): Promise<FollowingListResponse> {
+  const response = await api.get<FollowingListResponse>(`/users/${username}/following`);
   return response.data;
 }

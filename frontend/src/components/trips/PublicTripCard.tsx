@@ -104,7 +104,7 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
             <span className="public-trip-card__author-name">{trip.author.username}</span>
           </div>
           <FollowButton
-            userId={trip.author.user_id}
+            username={trip.author.username}
             initialFollowing={trip.author.is_following || false}
             size="small"
             variant="secondary"
