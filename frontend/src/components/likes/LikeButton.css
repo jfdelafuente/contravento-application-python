@@ -78,6 +78,29 @@
   text-align: center;
 }
 
+/* Clickable count (for opening likes list) */
+.like-button__count--clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0.125rem 0.25rem;
+  margin: -0.125rem -0.25rem;
+  transition: all 0.2s ease;
+}
+
+.like-button__count--clickable:hover {
+  background-color: rgba(255, 71, 87, 0.15);
+  transform: scale(1.05);
+}
+
+.like-button__count--clickable:active {
+  transform: scale(0.95);
+}
+
+.like-button__count--clickable:focus {
+  outline: 2px solid #ff4757;
+  outline-offset: 2px;
+}
+
 /* Loading spinner */
 .like-button__spinner {
   position: absolute;

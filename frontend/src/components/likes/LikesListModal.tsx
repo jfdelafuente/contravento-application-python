@@ -1,0 +1,247 @@
+import React, { useEffect, useRef } from 'react';
+import { Heart, X, User } from 'lucide-react';
+import { useTripLikes } from '../../hooks/useTripLikes';
+import './LikesListModal.css';
+
+interface LikesListModalProps {
+  tripId: string;
+  tripTitle: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+/**
+ * LikesListModal - Modal que muestra la lista de usuarios que dieron like a un viaje (T057, TC-US2-008).
+ *
+ * Features:
+ * - Lista paginada de usuarios con avatar y username
+ * - Infinite scroll para cargar más resultados
+ * - Loading states con skeleton loaders
+ * - Error handling con mensajes en español
+ * - Diseño rústico consistente con la app
+ * - Accessibility: ARIA labels, keyboard navigation (ESC to close)
+ *
+ * @param tripId - ID del viaje
+ * @param tripTitle - Título del viaje (para mostrar en header)
+ * @param isOpen - Si el modal está abierto
+ * @param onClose - Callback para cerrar el modal
+ */
+export const LikesListModal: React.FC<LikesListModalProps> = ({
+  tripId,
+  tripTitle,
+  isOpen,
+  onClose,
+}) => {
+  const { likes, totalCount, isLoading, error, hasMore, loadMore } =
+    useTripLikes({
+      tripId,
+      enabled: isOpen,
+    });
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard navigation (ESC to close)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Infinite scroll with Intersection Observer
+  useEffect(() => {
+    if (!isOpen || !hasMore || isLoading) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (sentinelRef.current) {
+      observerRef.current.observe(sentinelRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [isOpen, hasMore, isLoading, loadMore]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  // Get profile photo URL or default placeholder
+  const getPhotoUrl = (photoUrl: string | null): string => {
+    if (!photoUrl) return '/images/placeholders/user-avatar.png';
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return photoUrl;
+    }
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${photoUrl}`;
+  };
+
+  // Format timestamp to relative time (e.g., "hace 2 horas")
+  const formatRelativeTime = (isoString: string): string => {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMinutes < 1) return 'Hace unos segundos';
+    if (diffMinutes < 60) return `Hace ${diffMinutes} ${diffMinutes === 1 ? 'minuto' : 'minutos'}`;
+    if (diffHours < 24) return `Hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+    if (diffDays < 7) return `Hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
+
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  return (
+    <div
+      className="likes-list-modal-overlay"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="likes-modal-title"
+    >
+      <div
+        className="likes-list-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="likes-list-modal-header">
+          <div className="likes-list-modal-title-container">
+            <Heart className="likes-list-modal-icon" size={20} fill="currentColor" />
+            <div>
+              <h2 id="likes-modal-title" className="likes-list-modal-title">
+                Me gusta
+              </h2>
+              <p className="likes-list-modal-subtitle">{tripTitle}</p>
+            </div>
+          </div>
+          <button
+            className="likes-list-modal-close"
+            onClick={onClose}
+            aria-label="Cerrar modal de likes"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="likes-list-modal-content" ref={listRef}>
+          {/* Loading state (initial) */}
+          {isLoading && likes.length === 0 && (
+            <div className="likes-list-loading" role="status" aria-live="polite">
+              <div className="spinner" aria-hidden="true"></div>
+              <p>Cargando likes...</p>
+            </div>
+          )}
+
+          {/* Error state */}
+          {error && (
+            <div className="likes-list-error" role="alert">
+              <p>{error}</p>
+              <button
+                className="likes-list-retry-button"
+                onClick={() => window.location.reload()}
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && !error && likes.length === 0 && (
+            <div className="likes-list-empty">
+              <Heart size={48} className="likes-list-empty-icon" />
+              <p>Aún no hay likes en este viaje</p>
+              <span className="likes-list-empty-hint">Sé el primero en darle me gusta</span>
+            </div>
+          )}
+
+          {/* Likes list */}
+          {likes.length > 0 && (
+            <>
+              <div className="likes-list-count">
+                {totalCount} {totalCount === 1 ? 'persona' : 'personas'} {totalCount === 1 ? 'dio' : 'dieron'} like
+              </div>
+
+              <ul className="likes-list" role="list">
+                {likes.map((like, index) => (
+                  <li key={`${like.user.username}-${index}`} className="likes-list-item">
+                    <a
+                      href={`/users/${like.user.username}`}
+                      className="likes-list-item-link"
+                      onClick={(e) => {
+                        // Allow default navigation behavior
+                        onClose(); // Close modal when clicking user
+                      }}
+                    >
+                      <div className="likes-list-item-avatar">
+                        {like.user.profile_photo_url ? (
+                          <img
+                            src={getPhotoUrl(like.user.profile_photo_url)}
+                            alt={`Avatar de ${like.user.username}`}
+                            onError={(e) => {
+                              // Fallback to default avatar on error
+                              e.currentTarget.src = '/images/placeholders/user-avatar.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="likes-list-item-avatar-placeholder">
+                            <User size={20} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="likes-list-item-info">
+                        <span className="likes-list-item-username">
+                          {like.user.username}
+                        </span>
+                        <span className="likes-list-item-time">
+                          {formatRelativeTime(like.created_at)}
+                        </span>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Infinite scroll sentinel */}
+              {hasMore && (
+                <div ref={sentinelRef} className="likes-list-sentinel">
+                  <div className="spinner" aria-hidden="true"></div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

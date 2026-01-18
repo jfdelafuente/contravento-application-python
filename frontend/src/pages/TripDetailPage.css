@@ -143,6 +143,29 @@
   color: #9ca3af;
 }
 
+/* Clickable like count (opens likes list) */
+.trip-detail-page__like-count-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 0.5rem !important;
+  margin: -0.5rem;
+}
+
+.trip-detail-page__like-count-clickable:hover {
+  background-color: rgba(255, 71, 87, 0.1);
+  color: #ff4757;
+}
+
+.trip-detail-page__like-count-clickable:hover .trip-detail-page__meta-icon {
+  color: #ff4757;
+}
+
+.trip-detail-page__like-count-clickable:focus {
+  outline: 2px solid #ff4757;
+  outline-offset: 2px;
+}
+
 /* ============================================================================
    Owner Actions (T039)
    ============================================================================ */

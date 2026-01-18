@@ -5,11 +5,12 @@
  * Shows: title, photo, location (if exists), distance, date, author.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PublicTripSummary } from '../../types/trip';
 import { LikeButton } from '../likes/LikeButton';
 import { FollowButton } from '../social/FollowButton';
+import { LikesListModal } from '../likes/LikesListModal';
 import './PublicTripCard.css';
 
 interface PublicTripCardProps {
@@ -61,9 +62,15 @@ const getPhotoUrl = (url: string | null | undefined): string => {
  */
 export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
   const navigate = useNavigate();
+  const [showLikesModal, setShowLikesModal] = useState(false);
 
   const handleClick = () => {
     navigate(`/trips/${trip.trip_id}`);
+  };
+
+  const handleLikesClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+    setShowLikesModal(true);
   };
 
   const photoUrl = trip.photo
@@ -181,9 +188,18 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
             initialCount={trip.like_count}
             size="small"
             showCount={true}
+            onCountClick={trip.like_count > 0 ? handleLikesClick : undefined}
           />
         </div>
       </div>
+
+      {/* Likes List Modal */}
+      <LikesListModal
+        tripId={trip.trip_id}
+        tripTitle={trip.title}
+        isOpen={showLikesModal}
+        onClose={() => setShowLikesModal(false)}
+      />
     </article>
   );
 };

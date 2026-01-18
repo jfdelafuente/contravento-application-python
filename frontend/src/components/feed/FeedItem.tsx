@@ -5,11 +5,12 @@
  * Shows: photo, title, author, description excerpt, metadata, and interaction counters.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FeedItem as FeedItemType } from '../../services/feedService';
 import { LikeButton } from '../likes/LikeButton';
 import { FollowButton } from '../social/FollowButton';
+import { LikesListModal } from '../likes/LikesListModal';
 import './FeedItem.css';
 
 interface FeedItemProps {
@@ -104,6 +105,7 @@ const truncateDescription = (text: string, maxLength: number = 150): string => {
  */
 export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
   const navigate = useNavigate();
+  const [showLikesModal, setShowLikesModal] = useState(false);
 
   const handleClick = () => {
     if (onClick) {
@@ -111,6 +113,11 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
     } else {
       navigate(`/trips/${item.trip_id}`);
     }
+  };
+
+  const handleLikesClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+    setShowLikesModal(true);
   };
 
   const photoUrl =
@@ -257,6 +264,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
             initialCount={item.likes_count}
             size="small"
             showCount={true}
+            onCountClick={item.likes_count > 0 ? handleLikesClick : undefined}
           />
 
           {/* Comments */}
@@ -298,6 +306,14 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Likes List Modal */}
+      <LikesListModal
+        tripId={item.trip_id}
+        tripTitle={item.title}
+        isOpen={showLikesModal}
+        onClose={() => setShowLikesModal(false)}
+      />
     </article>
   );
 };
