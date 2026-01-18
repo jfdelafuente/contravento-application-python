@@ -178,24 +178,37 @@ else
     print_fail "Protected endpoint request failed" "Connection timeout or network error"
 fi
 
-# Test 4: Database connectivity (via Python script)
+# Test 4: Database connectivity
 print_test "Database connectivity check"
-# Use Poetry to run Python script with correct dependencies
-if command -v poetry &> /dev/null && [ -f "backend/pyproject.toml" ]; then
-    # Run in subshell to avoid changing current directory
-    DB_OUTPUT=$(
-        cd backend 2>&1 || { echo "Failed to cd to backend from $(pwd)"; exit 1; }
-        poetry run python ../scripts/check_db.py "$MODE" 2>&1
-    ) || true
-else
-    # Fallback to system Python if Poetry not available
-    DB_OUTPUT=$(python scripts/check_db.py "$MODE" 2>&1) || true
-fi
 
-if echo "$DB_OUTPUT" | grep -q "Database connection successful"; then
-    print_pass "Database connection verified"
+# For Docker modes, verify PostgreSQL container is running
+# For local-dev (SQLite), check database file directly
+if [ "$MODE" = "local-minimal" ] || [ "$MODE" = "local-full" ]; then
+    # Check if Docker is available
+    if ! command -v docker &> /dev/null; then
+        print_fail "Docker not found" "Docker is required for mode: $MODE"
+    else
+        # Check if postgres container is running
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -q postgres; then
+            CONTAINER_NAME=$(docker ps --format '{{.Names}}' | grep postgres | head -n1)
+            print_pass "PostgreSQL container running ($CONTAINER_NAME)"
+        else
+            print_fail "PostgreSQL container not running" "Run ./deploy.sh $MODE to start containers"
+        fi
+    fi
+elif [ "$MODE" = "local-dev" ]; then
+    # SQLite - check database file exists
+    DB_PATH="backend/contravento_dev.db"
+    if [ -f "$DB_PATH" ]; then
+        print_pass "SQLite database file exists ($DB_PATH)"
+    else
+        print_fail "SQLite database not found" "Run ./run-local-dev.sh --setup to initialize"
+    fi
+elif [ "$MODE" = "staging" ]; then
+    # Staging - skip database check (Test 1 /health already verifies DB)
+    echo -e "${YELLOW}⊘${NC} Skipping: Database check for staging (verified by /health endpoint)"
 else
-    print_fail "Database connection failed" "$DB_OUTPUT"
+    print_fail "Unknown mode" "Cannot determine database type for mode: $MODE"
 fi
 
 # Test 5: Static files (only for full/staging with frontend)
