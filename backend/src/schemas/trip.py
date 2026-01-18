@@ -566,11 +566,13 @@ class PublicUserSummary(BaseModel):
         user_id: Unique user identifier
         username: Username (for profile link)
         profile_photo_url: Profile photo URL (optional)
+        is_following: Whether current user follows this user (Feature 004 - US1, None if not authenticated)
     """
 
     user_id: str = Field(..., description="Unique user identifier")
     username: str = Field(..., description="Username")
     profile_photo_url: Optional[str] = Field(None, description="Profile photo URL")
+    is_following: Optional[bool] = Field(None, description="Whether current user follows this user (Feature 004 - US1)")
 
     class Config:
         """Pydantic config."""
@@ -581,6 +583,7 @@ class PublicUserSummary(BaseModel):
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
                 "username": "maria_ciclista",
                 "profile_photo_url": "/storage/profile_photos/2024/12/maria.jpg",
+                "is_following": False,
             }
         }
 

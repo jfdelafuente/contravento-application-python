@@ -68,13 +68,22 @@
   -webkit-box-orient: vertical;
 }
 
-/* Author */
+/* Author (with Follow Button) */
 .public-trip-card__author {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   font-size: 0.875rem;
   color: #666;
+}
+
+.public-trip-card__author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
 }
 
 .public-trip-card__author-avatar {

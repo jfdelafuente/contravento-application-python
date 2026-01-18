@@ -731,8 +731,8 @@ poetry run python scripts/seed_trips.py
 ### Integration Tests
 
 - [x] TC-INT-001: Like from Feed ✅ Passed (2026-01-18)
-- [ ] TC-INT-002: Like Affects Feed Ordering
-- [ ] TC-INT-003: Feed Updates After Like
+- [x] TC-INT-002: Like Affects Feed Ordering ✅ Passed (2026-01-18)
+- [x] TC-INT-003: Feed Updates After Like ✅ Passed (2026-01-18)
 
 ### Performance Validation
 

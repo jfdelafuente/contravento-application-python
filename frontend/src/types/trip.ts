@@ -451,6 +451,9 @@ export interface PublicUserSummary {
 
   /** Profile photo URL (null if no photo) */
   profile_photo_url: string | null;
+
+  /** Whether current user follows this user (Feature 004 - US1, null if not authenticated) */
+  is_following?: boolean | null;
 }
 
 /**

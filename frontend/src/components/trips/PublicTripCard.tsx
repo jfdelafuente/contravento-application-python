@@ -9,6 +9,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PublicTripSummary } from '../../types/trip';
 import { LikeButton } from '../likes/LikeButton';
+import { FollowButton } from '../social/FollowButton';
+import { useAuth } from '../../hooks/useAuth';
 import './PublicTripCard.css';
 
 interface PublicTripCardProps {
@@ -60,6 +62,7 @@ const getPhotoUrl = (url: string | null | undefined): string => {
  */
 export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleClick = () => {
     navigate(`/trips/${trip.trip_id}`);
@@ -86,20 +89,31 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
         {/* Title */}
         <h3 className="public-trip-card__title">{trip.title}</h3>
 
-        {/* Author */}
+        {/* Author with Follow Button */}
         <div className="public-trip-card__author">
-          {trip.author.profile_photo_url ? (
-            <img
-              src={getPhotoUrl(trip.author.profile_photo_url)}
-              alt={trip.author.username}
-              className="public-trip-card__author-avatar"
+          <div className="public-trip-card__author-info">
+            {trip.author.profile_photo_url ? (
+              <img
+                src={getPhotoUrl(trip.author.profile_photo_url)}
+                alt={trip.author.username}
+                className="public-trip-card__author-avatar"
+              />
+            ) : (
+              <div className="public-trip-card__author-avatar public-trip-card__author-avatar--placeholder">
+                {trip.author.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="public-trip-card__author-name">{trip.author.username}</span>
+          </div>
+          {user && (
+            <FollowButton
+              userId={trip.author.user_id}
+              initialFollowing={trip.author.is_following || false}
+              currentUserId={user.user_id}
+              size="small"
+              variant="secondary"
             />
-          ) : (
-            <div className="public-trip-card__author-avatar public-trip-card__author-avatar--placeholder">
-              {trip.author.username.charAt(0).toUpperCase()}
-            </div>
           )}
-          <span className="public-trip-card__author-name">{trip.author.username}</span>
         </div>
 
         {/* Metadata (Location, Distance, Date) */}
