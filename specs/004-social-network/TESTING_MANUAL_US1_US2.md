@@ -898,7 +898,7 @@ poetry run python scripts/seed_trips.py
 - [ ] TC-US1-002: Feed Content (Followed Users) 🆕 DESBLOQUEADO - Follow UI implementada
 - [x] TC-US1-003: Feed Content (Popular Backfill) ✅ Passed (2026-01-18)
 - [x] TC-US1-004: Infinite Scroll Pagination ⚠️ Passed with Bug Found (2026-01-18) - Backend duplicate trips issue, frontend workaround applied (see BUGS_FOUND_TESTING.md)
-- [ ] TC-US1-005: Skeleton Loading State
+- [x] TC-US1-005: Skeleton Loading State ✅ Passed (2026-01-18)
 - [x] TC-US1-006: Unauthorized Access ✅ Passed (2026-01-18)
 - [x] TC-US1-007: Empty State ✅ Passed (2026-01-18)
 - [x] TC-US1-008: Trip Card Click ✅ Passed (2026-01-18)
