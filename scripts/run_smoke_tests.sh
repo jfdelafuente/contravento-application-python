@@ -126,6 +126,9 @@ echo "Base URL: ${BASE_URL}"
 echo "Timeout: ${TIMEOUT}s"
 echo ""
 
+# Disable exit-on-error for tests (we want all tests to run)
+set +e
+
 # Test 1: Health check endpoint
 print_test "Health check - GET /health"
 RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" "${BASE_URL}/health" 2>&1) || true
@@ -205,6 +208,9 @@ if [ "$MODE" = "local-full" ] || [ "$MODE" = "staging" ]; then
         print_fail "Frontend request failed" "Connection timeout or network error"
     fi
 fi
+
+# Re-enable exit-on-error
+set -e
 
 # Calculate duration
 END_TIME=$(date +%s)
