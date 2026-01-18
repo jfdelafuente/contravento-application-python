@@ -10,6 +10,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, get_optional_current_user
@@ -140,6 +141,13 @@ async def get_public_trips(
                 profile_photo_url=trip.user.profile.profile_photo_url if trip.user.profile else None,
             )
 
+            # Count likes for this trip (Feature 004 - US2)
+            from src.models.like import Like
+            like_count_result = await db.execute(
+                select(func.count(Like.id)).where(Like.trip_id == trip.trip_id)
+            )
+            like_count = like_count_result.scalar() or 0
+
             # Create PublicTripSummary
             public_trip = PublicTripSummary(
                 trip_id=trip.trip_id,
@@ -150,6 +158,8 @@ async def get_public_trips(
                 location=first_location,
                 author=author,
                 published_at=trip.published_at,
+                like_count=like_count,  # Feature 004 - US2
+                is_liked=None,  # Feature 004 - US2 (public endpoint, no authentication)
             )
             public_trips.append(public_trip)
 

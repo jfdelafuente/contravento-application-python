@@ -378,6 +378,8 @@ class TripResponse(BaseModel):
         photos: List of trip photos
         locations: List of trip locations
         tags: List of trip tags
+        like_count: Number of likes (Feature 004 - US2)
+        is_liked: Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)
     """
 
     trip_id: str = Field(..., description="Unique trip identifier")
@@ -397,10 +399,12 @@ class TripResponse(BaseModel):
         default_factory=list, description="List of trip locations"
     )
     tags: list[TagResponse] = Field(default_factory=list, description="List of trip tags")
+    like_count: int = Field(default=0, description="Number of likes (Feature 004 - US2)")
+    is_liked: Optional[bool] = Field(default=None, description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)")
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
-        """Custom validation to handle trip_tags -> tags conversion."""
+        """Custom validation to handle trip_tags -> tags conversion and dynamic attributes."""
         if hasattr(obj, "trip_tags"):
             # Extract tags from trip_tags relationship
             tags = [trip_tag.tag for trip_tag in obj.trip_tags]
@@ -423,6 +427,9 @@ class TripResponse(BaseModel):
                 "photos": obj.photos,
                 "locations": obj.locations,
                 "tags": tags,
+                # Feature 004 - US2: Like count and is_liked (dynamic attributes)
+                "like_count": getattr(obj, "like_count", 0),
+                "is_liked": getattr(obj, "is_liked", None),
             }
             return super().model_validate(data, **kwargs)
         return super().model_validate(obj, **kwargs)
@@ -651,6 +658,8 @@ class PublicTripSummary(BaseModel):
     location: Optional[PublicLocationSummary] = Field(None, description="First location")
     author: PublicUserSummary = Field(..., description="Trip author")
     published_at: datetime = Field(..., description="Publication timestamp (UTC)")
+    like_count: int = Field(default=0, description="Number of likes (Feature 004 - US2)")
+    is_liked: Optional[bool] = Field(default=None, description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)")
 
     class Config:
         """Pydantic config."""
@@ -673,6 +682,8 @@ class PublicTripSummary(BaseModel):
                     "profile_photo_url": "/storage/profile_photos/2024/12/maria.jpg",
                 },
                 "published_at": "2024-12-22T15:45:00Z",
+                "like_count": 15,
+                "is_liked": None,
             }
         }
 
