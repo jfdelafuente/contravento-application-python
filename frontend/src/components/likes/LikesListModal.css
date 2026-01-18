@@ -55,17 +55,18 @@
 /* Header */
 .likes-list-modal-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: 1.5rem;
   border-bottom: 1px solid #d4c4b0;
   background: linear-gradient(to bottom, #fdf9f3, #faf8f3);
+  position: relative;
 }
 
 .likes-list-modal-title-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
   flex: 1;
   min-width: 0; /* Allow flex child to shrink below content size */
@@ -75,7 +76,6 @@
 .likes-list-modal-icon {
   color: #c1666b;
   flex-shrink: 0;
-  margin-top: 0.125rem; /* Align with title baseline */
 }
 
 .likes-list-modal-title-container > div {
@@ -108,14 +108,15 @@
   border: none;
   cursor: pointer;
   color: #6b5d4f;
-  padding: 0.25rem;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
   transition: all 0.2s;
   flex-shrink: 0;
-  margin-left: auto; /* Push to right edge */
+  width: 40px;
+  height: 40px;
 }
 
 .likes-list-modal-close:hover {
