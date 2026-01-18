@@ -184,7 +184,7 @@ print_test "Database connectivity check"
 if command -v poetry &> /dev/null && [ -f "backend/pyproject.toml" ]; then
     # Run in subshell to avoid changing current directory
     DB_OUTPUT=$(
-        cd backend || exit 1
+        cd backend 2>&1 || { echo "Failed to cd to backend from $(pwd)"; exit 1; }
         poetry run python ../scripts/check_db.py "$MODE" 2>&1
     ) || true
 else
@@ -195,7 +195,7 @@ fi
 if echo "$DB_OUTPUT" | grep -q "Database connection successful"; then
     print_pass "Database connection verified"
 else
-    print_fail "Database connection failed" "See check_db.py output for details"
+    print_fail "Database connection failed" "$DB_OUTPUT"
 fi
 
 # Test 5: Static files (only for full/staging with frontend)
