@@ -1,11 +1,11 @@
-// src/hooks/useLike.ts
+// src/hooks/useFollow.ts
 
 import { useState, useCallback } from 'react';
-import { likeTrip, unlikeTrip } from '../services/likeService';
+import { followUser, unfollowUser } from '../services/followService';
 import { toast } from 'react-hot-toast';
 
 /**
- * Custom hook for like/unlike functionality (T060).
+ * Custom hook for follow/unfollow functionality (Feature 004 - US1).
  *
  * Features:
  * - Optimistic UI updates (instant feedback)
@@ -13,56 +13,56 @@ import { toast } from 'react-hot-toast';
  * - Loading state management
  * - Spanish error messages
  *
- * @param tripId - Trip ID
- * @param initialLiked - Initial liked state
- * @param initialCount - Initial like count
- * @returns Like state and actions
+ * @param username - Username to follow/unfollow
+ * @param initialFollowing - Initial following state
+ * @returns Follow state and actions
  */
-export function useLike(
-  tripId: string,
-  initialLiked: boolean = false,
-  initialCount: number = 0
+export function useFollow(
+  username: string,
+  initialFollowing: boolean = false
 ) {
-  const [isLiked, setIsLiked] = useState<boolean>(initialLiked);
-  const [likeCount, setLikeCount] = useState<number>(initialCount);
+  const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowing);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   /**
-   * Toggle like/unlike with optimistic updates.
+   * Toggle follow/unfollow with optimistic updates.
    *
    * Optimistic UI pattern:
    * 1. Update UI immediately (instant feedback)
    * 2. Call API
    * 3. Rollback on error
    */
-  const toggleLike = useCallback(async () => {
+  const toggleFollow = useCallback(async () => {
     // Prevent double-clicks
     if (isLoading) return;
 
     // Store previous state for rollback
-    const previousLiked = isLiked;
-    const previousCount = likeCount;
+    const previousFollowing = isFollowing;
 
     // Optimistic update
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    setIsFollowing(!isFollowing);
     setIsLoading(true);
 
     try {
-      if (isLiked) {
-        // Unlike
-        await unlikeTrip(tripId);
+      if (isFollowing) {
+        // Unfollow
+        await unfollowUser(username);
       } else {
-        // Like
-        await likeTrip(tripId);
+        // Follow
+        await followUser(username);
       }
 
       // Success - optimistic update was correct
       setIsLoading(false);
+
+      // Emit custom event to notify other components (Feature 004 - US1)
+      // This allows feed pages to refetch data and update all follow buttons
+      window.dispatchEvent(new CustomEvent('followStatusChanged', {
+        detail: { username, isFollowing: !previousFollowing }
+      }));
     } catch (error: any) {
       // Rollback optimistic update
-      setIsLiked(previousLiked);
-      setLikeCount(previousCount);
+      setIsFollowing(previousFollowing);
       setIsLoading(false);
 
       // Show Spanish error message
@@ -74,12 +74,11 @@ export function useLike(
         'Error al procesar la acción. Intenta de nuevo.';
       toast.error(errorMessage);
     }
-  }, [tripId, isLiked, likeCount, isLoading]);
+  }, [username, isFollowing, isLoading]);
 
   return {
-    isLiked,
-    likeCount,
+    isFollowing,
     isLoading,
-    toggleLike,
+    toggleFollow,
   };
 }

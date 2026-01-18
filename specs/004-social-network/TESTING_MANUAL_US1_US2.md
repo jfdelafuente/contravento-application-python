@@ -267,6 +267,192 @@ print('Social tables:', [row[0] for row in cursor.fetchall()])
 
 ---
 
+### TC-US1-009: Follow Button Display
+
+**Objective**: Verify FollowButton appears correctly in trip cards
+
+**Precondition**: User B is viewing feed with trips from users they don't follow
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. Observe trip cards from other users
+
+**Expected Results**:
+- ✅ FollowButton appears next to author name on each trip card
+- ✅ Button shows "Seguir" text with User Plus icon
+- ✅ Button is small size with secondary variant (outline style)
+- ✅ Button does NOT appear on own trips (if any)
+
+---
+
+### TC-US1-010: Follow User from Feed
+
+**Objective**: Verify user can follow another user from trip card
+
+**Precondition**:
+- User B is NOT following User A
+- User A has published trips in feed
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. Find a trip card from User A
+4. Click "Seguir" button next to User A's name
+
+**Expected Results**:
+- ✅ Button immediately changes to "Siguiendo" with User Check icon (optimistic UI)
+- ✅ Button style changes from filled to outline
+- ✅ Brief loading spinner appears
+- ✅ No page refresh or navigation
+- ✅ Button remains in "Siguiendo" state after API completes
+- ✅ If page is refreshed, button still shows "Siguiendo"
+
+---
+
+### TC-US1-011: Unfollow User from Feed
+
+**Objective**: Verify user can unfollow a user from trip card
+
+**Precondition**: User B is already following User A
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. Find a trip card from User A
+4. Observe "Siguiendo" button next to User A's name
+5. Click "Siguiendo" button
+
+**Expected Results**:
+- ✅ Button immediately changes to "Seguir" with User Plus icon (optimistic UI)
+- ✅ Button style changes from outline to filled
+- ✅ Brief loading spinner appears
+- ✅ Button remains in "Seguir" state after API completes
+- ✅ If page is refreshed, button still shows "Seguir"
+
+---
+
+### TC-US1-012: Follow Button - Optimistic UI
+
+**Objective**: Verify optimistic UI updates (instant feedback)
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. **Throttle network** in DevTools (Slow 3G)
+4. Click "Seguir" button on a user
+
+**Expected Results**:
+- ✅ Button changes to "Siguiendo" **immediately** (before API response)
+- ✅ Loading spinner appears
+- ✅ If API succeeds → changes persist
+- ✅ If API fails → reverts to "Seguir" state + error toast
+
+---
+
+### TC-US1-013: Follow Button - Error Rollback
+
+**Objective**: Verify UI rollback on API error
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. **Stop backend server** (simulate network failure)
+4. Click "Seguir" button
+
+**Expected Results**:
+- ✅ Button changes to "Siguiendo" immediately (optimistic)
+- ✅ After ~10s timeout: button reverts to "Seguir"
+- ✅ Error toast: "Error al procesar la acción. Intenta de nuevo."
+
+---
+
+### TC-US1-014: Feed Updates After Follow
+
+**Objective**: Verify feed content updates after following a user
+
+**Setup**:
+1. Create User A with 3 published trips
+2. Create User B who follows nobody
+3. User B's feed shows popular community trips (not User A's trips)
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. Verify User A's trips are NOT in feed (User B follows nobody)
+4. Navigate to User A's profile or find a trip by User A
+5. Click "Seguir" button for User A
+6. Navigate back to `/feed` and refresh
+
+**Expected Results**:
+- ✅ Feed now shows User A's 3 trips at the top (chronological order)
+- ✅ Feed algorithm prioritizes followed users over popular backfill
+- ✅ Previous popular trips are pushed down or removed from first page
+
+**Note**: This test validates FR-002 (feed from followed users) + integration with Follow functionality
+
+---
+
+### TC-US1-015: Follow Button - Prevent Self-Follow
+
+**Objective**: Verify users cannot follow themselves
+
+**Steps**:
+1. Log in as User A
+2. Navigate to `/feed`
+3. Observe own trips (if any)
+
+**Expected Results**:
+- ✅ FollowButton is **hidden** on own trips
+- ✅ No "Seguir" or "Siguiendo" button appears next to own username
+- ✅ Other users' trips still show FollowButton normally
+
+**Note**: Backend also prevents self-follow (API validation), but frontend hides button proactively
+
+---
+
+### TC-US1-016: Follow Button - Loading State
+
+**Objective**: Verify loading state prevents double-clicks
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. Throttle network (Slow 3G)
+4. Click "Seguir" button
+5. While loading, try clicking button again multiple times
+
+**Expected Results**:
+- ✅ Button shows loading spinner
+- ✅ Button is **disabled** during loading (cursor: not-allowed)
+- ✅ Multiple clicks do NOT trigger multiple API calls
+- ✅ Only ONE follow action is executed
+
+---
+
+### TC-US1-017: Follow Button - Accessibility
+
+**Objective**: Verify keyboard navigation and screen reader support
+
+**Steps**:
+1. Log in as User B
+2. Navigate to `/feed`
+3. Use **Tab** key to navigate to FollowButton
+4. Press **Enter** or **Space** to activate button
+5. Use screen reader (NVDA/VoiceOver) to read button
+
+**Expected Results**:
+- ✅ FollowButton is focusable with Tab key
+- ✅ Focus indicator visible (outline)
+- ✅ Enter/Space keys activate button (same as click)
+- ✅ Screen reader announces:
+  - "Seguir, botón" (when not following)
+  - "Siguiendo, botón presionado" (when following)
+- ✅ aria-label updates dynamically: "Seguir" / "Dejar de seguir"
+- ✅ aria-pressed attribute: false / true
+
+---
+
 ## US2: Likes/Me Gusta
 
 ### TC-US2-001: Like a Trip (First Time)
@@ -706,33 +892,47 @@ poetry run python scripts/seed_trips.py
 
 ### US1: Feed Personalizado
 
-- [ ] TC-US1-001: Access Feed (Authenticated)
-- [ ] TC-US1-002: Feed Content (Followed Users)
-- [ ] TC-US1-003: Feed Content (Popular Backfill)
-- [ ] TC-US1-004: Infinite Scroll Pagination
-- [ ] TC-US1-005: Skeleton Loading State
-- [ ] TC-US1-006: Unauthorized Access
-- [ ] TC-US1-007: Empty State
-- [ ] TC-US1-008: Trip Card Click
+**Core Feed Tests**:
+
+- [x] TC-US1-001: Access Feed (Authenticated) ✅ Passed (2026-01-18)
+- [x] TC-US1-002: Feed Content (Followed Users) ✅ Passed (2026-01-18)
+- [x] TC-US1-003: Feed Content (Popular Backfill) ✅ Passed (2026-01-18)
+- [x] TC-US1-004: Infinite Scroll Pagination ⚠️ Passed with Bug Found (2026-01-18) - Backend duplicate trips issue, frontend workaround applied (see BUGS_FOUND_TESTING.md)
+- [x] TC-US1-005: Skeleton Loading State ✅ Passed (2026-01-18)
+- [x] TC-US1-006: Unauthorized Access ✅ Passed (2026-01-18)
+- [x] TC-US1-007: Empty State ✅ Passed (2026-01-18)
+- [x] TC-US1-008: Trip Card Click ✅ Passed (2026-01-18)
+
+**Follow/Unfollow Tests** (NEW - Feature 004 Follow UI):
+
+- [x] TC-US1-009: Follow Button Display ✅ Passed (2026-01-18) - Button displays correctly in both feeds with appropriate size
+- [x] TC-US1-010: Follow User from Feed ✅ Passed (2026-01-18) - Optimistic UI + auto-refetch working perfectly
+- [x] TC-US1-011: Unfollow User from Feed ✅ Passed (2026-01-18) - State persists correctly across page reloads
+- [x] TC-US1-012: Follow Button - Optimistic UI ✅ Passed (2026-01-18) - Instant state change before API response
+- [ ] TC-US1-013: Follow Button - Error Rollback ⚠️ Not tested (requires network failure simulation)
+- [x] TC-US1-014: Feed Updates After Follow ✅ Passed (2026-01-18) - Auto-refetch updates all buttons (~500ms delay)
+- [x] TC-US1-015: Follow Button - Prevent Self-Follow ✅ Passed (2026-01-18) - Button hidden on own trips (verified in PublicFeedPage)
+- [x] TC-US1-016: Follow Button - Loading State ✅ Passed (2026-01-18) - Button disabled during API call, prevents double-clicks
+- [ ] TC-US1-017: Follow Button - Accessibility ⚠️ Partially tested (keyboard navigation works, screen reader not tested)
 
 ### US2: Likes/Me Gusta
 
-- [ ] TC-US2-001: Like a Trip
-- [ ] TC-US2-002: Unlike a Trip
-- [ ] TC-US2-003: Optimistic UI
-- [ ] TC-US2-004: Error Rollback
-- [ ] TC-US2-005: Prevent Self-Like
-- [ ] TC-US2-006: Prevent Duplicate Like
-- [ ] TC-US2-007: Loading State
-- [ ] TC-US2-008: Get Likes List
-- [ ] TC-US2-009: Counter Accuracy
-- [ ] TC-US2-010: Accessibility
+- [x] TC-US2-001: Like a Trip ✅ Passed (2026-01-18)
+- [x] TC-US2-002: Unlike a Trip ✅ Passed (2026-01-18)
+- [x] TC-US2-003: Optimistic UI ✅ Passed (2026-01-18)
+- [x] TC-US2-004: Error Rollback ✅ Passed (2026-01-18)
+- [x] TC-US2-005: Prevent Self-Like ✅ Passed (2026-01-18)
+- [x] TC-US2-006: Prevent Duplicate Like ✅ Passed (2026-01-18)
+- [x] TC-US2-007: Loading State ✅ Passed (2026-01-18)
+- [ ] TC-US2-008: Get Likes List (⚠️ UI not implemented)
+- [x] TC-US2-009: Counter Accuracy ✅ Passed (2026-01-18)
+- [x] TC-US2-010: Accessibility ✅ Passed (2026-01-18)
 
 ### Integration Tests
 
-- [ ] TC-INT-001: Like from Feed
-- [ ] TC-INT-002: Like Affects Feed Ordering
-- [ ] TC-INT-003: Feed Updates After Like
+- [x] TC-INT-001: Like from Feed ✅ Passed (2026-01-18)
+- [x] TC-INT-002: Like Affects Feed Ordering ✅ Passed (2026-01-18)
+- [x] TC-INT-003: Feed Updates After Like ✅ Passed (2026-01-18)
 
 ### Performance Validation
 
@@ -803,6 +1003,59 @@ After completing tests, fill out:
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2026-01-17
+**Document Version**: 1.1
+**Last Updated**: 2026-01-18
 **Next Review**: After Phase 5 (Comments) implementation
+
+---
+
+## Test Execution Notes (2026-01-18)
+
+### Follow/Unfollow UI Testing Completed ✅
+
+**Tests Executed**: TC-US1-009 through TC-US1-016 (7/9 completed)
+
+**Results**: See detailed test results in [TEST_RESULTS_FOLLOW_UI.md](TEST_RESULTS_FOLLOW_UI.md)
+
+**Summary**:
+- ✅ All core follow/unfollow functionality working correctly
+- ✅ Optimistic UI provides instant feedback
+- ✅ Auto-refetch keeps all buttons in sync across feeds
+- ✅ State persists across page reloads
+- ✅ Performance meets targets (<500ms API, <1s refetch)
+
+**Issues Fixed During Testing**:
+1. Button size too large - reduced via CSS adjustments
+2. Feed endpoint missing `is_following` field - added to backend schema
+3. Frontend calling wrong API routes - corrected to `/users/{username}/follow`
+4. User not persisting in localStorage - fixed in AuthContext
+
+**Commits**: 8 commits (9c3e4f8...33fff9c) - See TEST_RESULTS_FOLLOW_UI.md for details
+
+**Not Tested**:
+- TC-US1-013 (Error Rollback) - Requires network failure simulation
+- TC-US1-017 (Full Accessibility) - Screen reader testing pending
+
+---
+
+## Bugs Found During Testing
+
+See [BUGS_FOUND_TESTING.md](BUGS_FOUND_TESTING.md) for complete bug reports.
+
+### Bug #1: Duplicate Trips in Infinite Scroll Pagination
+
+**Discovered During**: TC-US1-004
+**Severity**: Medium
+**Status**: ⚠️ Workaround Applied
+
+**Summary**: Backend hybrid feed algorithm returns duplicate trips across pagination boundaries when transitioning from "followed users" content to "community backfill" content.
+
+**Root Cause**: `backend/src/services/feed_service.py` - Backfill logic only excludes trips from current page, not ALL previous pages.
+
+**Workaround**: Frontend deduplication in `useFeed.ts` hook filters out duplicate `trip_id` values during infinite scroll append.
+
+**Action Required**: Fix backend `FeedService.get_personalized_feed()` hybrid algorithm to ensure no trip appears in multiple pages.
+
+**Test Result**: ⚠️ PASS (with workaround) - Feature works correctly for users, but backend needs refactoring.
+
+**Commit**: c315c67

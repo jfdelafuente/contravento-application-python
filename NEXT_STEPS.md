@@ -1,16 +1,107 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-16
-**Estado actual**: Feature 014 (Landing Page Inspiradora) MERGEADA A DEVELOP ✅
+**Última actualización**: 2026-01-18
+**Estado actual**: Feature 004 (Red Social - US1/US2) EN DESARROLLO 🚧
 
 ---
 
-## Estado Actual ✅
+## Estado Actual 🚧
 
-### Todas las features completadas y mergeadas
+### Feature 004: Red Social y Feed (US1 + US2) - En Desarrollo
 
-**Repositorio**: En `develop` branch
-**Último merge**: Feature 014 - Landing Page Inspiradora (2026-01-16)
+**Repositorio**: En branch `004-social-network` (23 commits)
+**Fase actual**: Testing manual (50% completado - 14/28 tests)
+**Último trabajo**: 2026-01-18 - Testing US1/US2 + bug fixes
+
+---
+
+## Feature en Desarrollo 🚧
+
+### Feature 004: Red Social y Feed de Ciclistas (EN PROGRESO)
+
+**Branch**: `004-social-network` (active)
+**Status**: 🚧 **US1 + US2 implementadas, testing en progreso**
+**Priority**: P1 (Critical - Core Social Features)
+**Commits**: 23 commits realizados
+
+**Implementación Completada**:
+
+**Backend** (100% completo):
+- ✅ Modelo `Follow` con relaciones many-to-many (user_id, follower_id)
+- ✅ Modelo `Like` con unique constraint (user_id + trip_id)
+- ✅ Endpoints `/feed` con lógica híbrida (seguidos + popular backfill)
+- ✅ Endpoints `/trips/{trip_id}/like` (POST/DELETE) con validaciones
+- ✅ Servicio `SocialService` con métodos: follow, unfollow, get_followers, get_following
+- ✅ Servicio `LikeService` con métodos: like_trip, unlike_trip, get_trip_likes, get_user_liked_trips
+- ✅ Feed personalizado con paginación (page=1, limit=10)
+- ✅ Eager loading optimizado (N+1 prevention)
+- ✅ Validaciones: prevent self-like, prevent duplicate like, authentication required
+
+**Frontend** (100% completo):
+- ✅ `PublicFeedPage` con infinite scroll y skeleton loading
+- ✅ `PublicTripCard` con like button integrado
+- ✅ `LikeButton` component con optimistic UI updates
+- ✅ `useLike` hook con error rollback y Spanish messages
+- ✅ `likeService` para llamadas API (POST/DELETE)
+- ✅ Diseño rústico aplicado (Playfair Display, earth tones)
+- ✅ Accessibility: ARIA labels, keyboard navigation
+- ✅ Loading states con spinners
+
+**Testing Manual Completado** (50% - 14/28 tests):
+
+**US1: Feed Personalizado** (62% - 5/8 tests):
+- ✅ TC-US1-001: Access Feed (Authenticated)
+- ⚠️ TC-US1-002: Feed Content (Followed Users) - BLOQUEADO (requiere Follow UI)
+- ✅ TC-US1-003: Feed Content (Popular Backfill)
+- ⏳ TC-US1-004: Infinite Scroll Pagination - PENDING
+- ⏳ TC-US1-005: Skeleton Loading State - PENDING
+- ✅ TC-US1-006: Unauthorized Access
+- ✅ TC-US1-007: Empty State
+- ✅ TC-US1-008: Trip Card Click
+
+**US2: Likes/Me Gusta** (80% - 8/10 tests):
+- ✅ TC-US2-001: Like a Trip
+- ✅ TC-US2-002: Unlike a Trip
+- ✅ TC-US2-003: Optimistic UI
+- ✅ TC-US2-004: Error Rollback
+- ✅ TC-US2-005: Prevent Self-Like
+- ⏳ TC-US2-006: Prevent Duplicate Like - PENDING
+- ✅ TC-US2-007: Loading State
+- ⚠️ TC-US2-008: Get Likes List - BLOQUEADO (UI not implemented)
+- ✅ TC-US2-009: Counter Accuracy
+- ✅ TC-US2-010: Accessibility
+
+**Integration Tests** (100% - 3/3 tests):
+- ✅ TC-INT-001: Like from Feed
+- ✅ TC-INT-002: Like Affects Feed Ordering
+- ✅ TC-INT-003: Feed Updates After Like
+
+**Bug Fixes Realizados**:
+1. ✅ Fix seed_trips.py - No actualizaba user_stats table (integrado StatsService)
+2. ✅ Fix useLike hook - Error message extraction (backend structure: error.response.data.error.message)
+
+**User Stories Pendientes** (diferidas para siguientes fases):
+- 🔜 **US3**: Comentarios en Viajes (Priority: P3)
+- 🔜 **US4**: Compartir Viajes (Priority: P4)
+- 🔜 **US5**: Notificaciones de Interacciones (Priority: P5)
+
+**Próximos Pasos en Feature 004**:
+1. Continuar testing manual (14/28 tests completados, quedan 14 tests)
+2. Completar tests de Performance Validation (4 tests)
+3. Completar tests de Accessibility (3 tests)
+4. Implementar Follow/Unfollow UI (frontend) para desbloquear TC-US1-002
+5. Implementar Likes List UI (frontend) para desbloquear TC-US2-008
+6. Merge a develop cuando testing alcance 90%+
+7. Continuar con US3 (Comentarios) en nueva fase
+
+**Archivos Principales Añadidos/Modificados**:
+- Backend: `src/models/like.py`, `src/models/social.py`, `src/services/like_service.py`, `src/services/social_service.py`, `src/api/feed.py`, `src/api/likes.py`
+- Frontend: `pages/PublicFeedPage.tsx`, `components/likes/LikeButton.tsx`, `hooks/useLike.ts`, `services/likeService.ts`
+- Migrations: 2 migraciones (social, likes tables)
+- Tests: Manual testing guide con 28 test cases documentados
+- Scripts: seed_trips.py con StatsService integration
+
+**Tiempo invertido**: ~8 horas (backend + frontend + testing + bug fixes)
 
 ---
 

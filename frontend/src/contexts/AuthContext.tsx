@@ -22,9 +22,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const currentUser = await authService.getCurrentUser();
         setUser(currentUser);
+        // Sync with localStorage
+        localStorage.setItem('user', JSON.stringify(currentUser));
       } catch (error) {
         // Not authenticated or token expired
         setUser(null);
+        localStorage.removeItem('user');
       } finally {
         setIsLoading(false);
       }
@@ -46,6 +49,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<void> => {
     const userData = await authService.login(email, password, rememberMe);
     setUser(userData);
+    // Also store user in localStorage for components that need it
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = async (): Promise<void> => {
@@ -56,6 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.warn('Logout request failed, clearing local state anyway:', error);
     } finally {
       setUser(null);
+      localStorage.removeItem('user');
     }
   };
 
@@ -63,13 +69,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
+      localStorage.setItem('user', JSON.stringify(currentUser));
     } catch (error) {
       setUser(null);
+      localStorage.removeItem('user');
     }
   };
 
   const updateUser = (userData: Partial<User>): void => {
-    setUser(prev => prev ? { ...prev, ...userData } : null);
+    setUser(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...userData };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const requestPasswordReset = async (_email: string): Promise<void> => {

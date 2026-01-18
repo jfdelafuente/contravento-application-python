@@ -62,6 +62,12 @@ export interface Trip {
 
   /** Trip tags for categorization */
   tags: Tag[];
+
+  /** Like count for this trip (Feature 004 - US2) */
+  like_count?: number;
+
+  /** Whether current user has liked this trip (Feature 004 - US2, null if not authenticated) */
+  is_liked?: boolean;
 }
 
 /**
@@ -445,6 +451,9 @@ export interface PublicUserSummary {
 
   /** Profile photo URL (null if no photo) */
   profile_photo_url: string | null;
+
+  /** Whether current user follows this user (Feature 004 - US1, null if not authenticated) */
+  is_following?: boolean | null;
 }
 
 /**
@@ -512,6 +521,12 @@ export interface PublicTripSummary {
 
   /** Publication timestamp (ISO 8601, for sorting) */
   published_at: string;
+
+  /** Like count for this trip (Feature 004 - US2) */
+  like_count: number;
+
+  /** Whether current user has liked this trip (Feature 004 - US2, null if not authenticated) */
+  is_liked: boolean | null;
 }
 
 /**

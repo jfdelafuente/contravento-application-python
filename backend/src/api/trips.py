@@ -10,6 +10,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, get_optional_current_user
@@ -52,6 +53,7 @@ async def get_public_trips(
         description=f"Items per page (default: {settings.public_feed_page_size}, max: {settings.public_feed_max_page_size})",
     ),
     db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> PublicTripListResponse:
     """
     T021: Get public trips feed for homepage (Feature 013).
@@ -133,11 +135,42 @@ async def get_public_trips(
                 location = trip.locations[0]
                 first_location = PublicLocationSummary(name=location.name)
 
+            # Count likes for this trip (Feature 004 - US2)
+            from src.models.like import Like
+            like_count_result = await db.execute(
+                select(func.count(Like.id)).where(Like.trip_id == trip.trip_id)
+            )
+            like_count = like_count_result.scalar() or 0
+
+            # Check if current user has liked this trip (Feature 004 - US2)
+            is_liked = None
+            if current_user:
+                like_result = await db.execute(
+                    select(Like).where(
+                        Like.trip_id == trip.trip_id,
+                        Like.user_id == current_user.id
+                    )
+                )
+                is_liked = like_result.scalar_one_or_none() is not None
+
+            # Check if current user follows this trip's author (Feature 004 - US1)
+            from src.models.social import Follow
+            is_following = None
+            if current_user:
+                follow_result = await db.execute(
+                    select(Follow).where(
+                        Follow.follower_id == current_user.id,
+                        Follow.following_id == trip.user.id
+                    )
+                )
+                is_following = follow_result.scalar_one_or_none() is not None
+
             # Map user to PublicUserSummary
             author = PublicUserSummary(
                 user_id=trip.user.id,
                 username=trip.user.username,
                 profile_photo_url=trip.user.profile.profile_photo_url if trip.user.profile else None,
+                is_following=is_following,  # Feature 004 - US1 (None if not authenticated, True/False if authenticated)
             )
 
             # Create PublicTripSummary
@@ -150,6 +183,8 @@ async def get_public_trips(
                 location=first_location,
                 author=author,
                 published_at=trip.published_at,
+                like_count=like_count,  # Feature 004 - US2
+                is_liked=is_liked,  # Feature 004 - US2 (None if not authenticated, True/False if authenticated)
             )
             public_trips.append(public_trip)
 

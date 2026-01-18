@@ -140,6 +140,12 @@ class TripService:
             if not is_owner:
                 raise PermissionError("No tienes permiso para ver este viaje en borrador")
             logger.info(f"Retrieved draft trip {trip_id} (owner access)")
+
+            # Add like_count and is_liked for drafts (Feature 004 - US2)
+            # Drafts have 0 likes since they're not published
+            trip.like_count = 0
+            trip.is_liked = None
+
             return trip
 
         # Check visibility - Published trips with trip_visibility
@@ -169,6 +175,31 @@ class TripService:
 
         # If we reach here, trip is visible (public, or followers/private with permission)
         logger.info(f"Retrieved published trip {trip_id} (visibility={trip.user.trip_visibility})")
+
+        # Calculate like_count and is_liked (Feature 004 - US2)
+        from src.models.like import Like
+
+        # Count likes for this trip
+        like_count_result = await self.db.execute(
+            select(func.count(Like.id)).where(Like.trip_id == trip_id)
+        )
+        like_count = like_count_result.scalar() or 0
+
+        # Check if current user has liked this trip
+        is_liked = None
+        if current_user_id:
+            like_result = await self.db.execute(
+                select(Like).where(
+                    Like.trip_id == trip_id,
+                    Like.user_id == current_user_id
+                )
+            )
+            is_liked = like_result.scalar_one_or_none() is not None
+
+        # Add dynamic attributes to trip object
+        trip.like_count = like_count
+        trip.is_liked = is_liked
+
         return trip
 
     async def publish_trip(self, trip_id: str, user_id: str) -> Trip:

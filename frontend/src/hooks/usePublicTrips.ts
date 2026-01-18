@@ -85,6 +85,19 @@ export const usePublicTrips = (
     fetchTrips();
   }, [page, limit]);
 
+  // Listen for follow status changes to refetch trips (Feature 004 - US1)
+  useEffect(() => {
+    const handleFollowChange = () => {
+      fetchTrips();
+    };
+
+    window.addEventListener('followStatusChanged', handleFollowChange);
+
+    return () => {
+      window.removeEventListener('followStatusChanged', handleFollowChange);
+    };
+  }, [page, limit]);
+
   return {
     trips,
     pagination,

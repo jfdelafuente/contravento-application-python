@@ -11,9 +11,11 @@ import { api } from './api';
  * User summary for feed item author
  */
 export interface UserSummary {
+  user_id: string; // Feature 004 - US1
   username: string;
   full_name: string | null;
   profile_photo_url: string | null;
+  is_following?: boolean | null; // Feature 004 - US1
 }
 
 /**

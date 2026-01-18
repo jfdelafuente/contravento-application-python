@@ -8,6 +8,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PublicTripSummary } from '../../types/trip';
+import { LikeButton } from '../likes/LikeButton';
+import { FollowButton } from '../social/FollowButton';
 import './PublicTripCard.css';
 
 interface PublicTripCardProps {
@@ -85,20 +87,28 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
         {/* Title */}
         <h3 className="public-trip-card__title">{trip.title}</h3>
 
-        {/* Author */}
+        {/* Author with Follow Button */}
         <div className="public-trip-card__author">
-          {trip.author.profile_photo_url ? (
-            <img
-              src={getPhotoUrl(trip.author.profile_photo_url)}
-              alt={trip.author.username}
-              className="public-trip-card__author-avatar"
-            />
-          ) : (
-            <div className="public-trip-card__author-avatar public-trip-card__author-avatar--placeholder">
-              {trip.author.username.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <span className="public-trip-card__author-name">{trip.author.username}</span>
+          <div className="public-trip-card__author-info">
+            {trip.author.profile_photo_url ? (
+              <img
+                src={getPhotoUrl(trip.author.profile_photo_url)}
+                alt={trip.author.username}
+                className="public-trip-card__author-avatar"
+              />
+            ) : (
+              <div className="public-trip-card__author-avatar public-trip-card__author-avatar--placeholder">
+                {trip.author.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="public-trip-card__author-name">{trip.author.username}</span>
+          </div>
+          <FollowButton
+            username={trip.author.username}
+            initialFollowing={trip.author.is_following || false}
+            size="small"
+            variant="secondary"
+          />
         </div>
 
         {/* Metadata (Location, Distance, Date) */}
@@ -161,6 +171,17 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
             </svg>
             <span>{formatDate(trip.start_date)}</span>
           </div>
+        </div>
+
+        {/* Like Button (Feature 004 - US2) */}
+        <div className="public-trip-card__interactions">
+          <LikeButton
+            tripId={trip.trip_id}
+            initialLiked={trip.is_liked || false}
+            initialCount={trip.like_count}
+            size="small"
+            showCount={true}
+          />
         </div>
       </div>
     </article>

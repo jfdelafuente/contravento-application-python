@@ -22,6 +22,7 @@ from sqlalchemy import select
 from src.database import AsyncSessionLocal
 from src.models.user import User
 from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripTag
+from src.services.stats_service import StatsService
 
 # Import all models to ensure SQLAlchemy relationships are resolved
 from src.models.comment import Comment  # noqa: F401
@@ -173,18 +174,23 @@ async def seed_trips(username: str = "testuser", count: int = None):
             print(f"   Crea el usuario primero con: poetry run python scripts/create_verified_user.py --username {username}")
             return
 
+        # Initialize StatsService
+        stats_service = StatsService(db)
+
         # Determine how many trips to create
         trips_to_create = SAMPLE_TRIPS[:count] if count else SAMPLE_TRIPS
 
         print(f"Creando {len(trips_to_create)} viajes para {user.username}...")
 
         created_count = 0
+        published_count = 0
         for trip_data in trips_to_create:
             # Extract tags from trip_data
             tag_names = trip_data.pop("tags", [])
 
             # Set published_at for published trips
-            if trip_data.get("status") == TripStatus.PUBLISHED:
+            is_published = trip_data.get("status") == TripStatus.PUBLISHED
+            if is_published:
                 trip_data["published_at"] = datetime.now()
 
             # Create trip
@@ -209,6 +215,22 @@ async def seed_trips(username: str = "testuser", count: int = None):
 
             await db.flush()
 
+            # Update user stats for published trips
+            if is_published:
+                # For sample data, assume Spain (ES) if no location data
+                country_code = "ES"
+                photos_count = 0  # Sample trips have no photos yet
+                trip_date = trip.start_date.date() if trip.start_date else datetime.now().date()
+
+                await stats_service.update_stats_on_trip_publish(
+                    user_id=user.id,
+                    distance_km=trip.distance_km,
+                    country_code=country_code,
+                    photos_count=photos_count,
+                    trip_date=trip_date,
+                )
+                published_count += 1
+
             status_marker = "[DRAFT]" if trip.status == TripStatus.DRAFT else "[OK]"
             print(f"  {status_marker} {trip.title[:50]}... ({trip.distance_km}km, {trip.difficulty.value})")
             created_count += 1
@@ -218,6 +240,8 @@ async def seed_trips(username: str = "testuser", count: int = None):
         print(f"\n[SUCCESS] Se crearon {created_count} viajes exitosamente")
         print(f"   Usuario: {user.username}")
         print(f"   Email: {user.email}")
+        print(f"   Viajes publicados: {published_count} (estadísticas actualizadas)")
+        print(f"   Borradores: {created_count - published_count}")
         print(f"\nPrueba en: http://localhost:5173/feed")
 
 

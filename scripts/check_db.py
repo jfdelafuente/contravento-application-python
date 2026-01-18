@@ -143,11 +143,15 @@ async def main():
 
     elif mode == "local-minimal":
         # PostgreSQL minimal Docker (port 5432)
-        connection_string = "postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db"
+        # Connection from host machine (use localhost, not postgres service name)
+        # Credentials from .env.local-minimal.example
+        connection_string = "postgresql+asyncpg://contravento_local:local_dev_password@localhost:5432/contravento_local"
         success = await check_postgresql(connection_string)
 
     elif mode == "local-full":
         # PostgreSQL full Docker (port 5432)
+        # Connection from host machine (use localhost, not postgres service name)
+        # Credentials from .env.local.example
         connection_string = "postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db"
         success = await check_postgresql(connection_string)
 

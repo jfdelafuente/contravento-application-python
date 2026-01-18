@@ -6,7 +6,7 @@
  * - useInfiniteFeed: Infinite scroll hook with load more functionality
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFeed, FeedItem, FeedResponse } from '../services/feedService';
 
 /**
@@ -113,6 +113,19 @@ export const useFeed = (page: number = 1, limit: number = 10): UseFeedReturn => 
     fetchFeed();
   }, [page, limit]);
 
+  // Listen for follow status changes to refetch feed (Feature 004 - US1)
+  useEffect(() => {
+    const handleFollowChange = () => {
+      fetchFeed();
+    };
+
+    window.addEventListener('followStatusChanged', handleFollowChange);
+
+    return () => {
+      window.removeEventListener('followStatusChanged', handleFollowChange);
+    };
+  }, [page, limit]);
+
   return {
     trips,
     totalCount,
@@ -206,10 +219,20 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Prevent concurrent fetches
+  const isFetchingRef = useRef<boolean>(false);
+
   /**
    * Fetch a specific page and append to trips array
    */
   const fetchPage = async (pageNumber: number, append: boolean = false) => {
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    isFetchingRef.current = true;
+
     try {
       // Set appropriate loading state
       if (append) {
@@ -224,7 +247,16 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
 
       if (append) {
         // Append to existing trips (infinite scroll)
-        setTrips((prev) => [...prev, ...response.trips]);
+        setTrips((prev) => {
+          // TEMPORARY FIX: Deduplicate trips by trip_id
+          // TODO: Fix backend hybrid feed algorithm to prevent duplicate trips across pages
+          // Issue: Backend's hybrid algorithm (followed users + community backfill) can return
+          // the same trip in multiple pages when transitioning from followed to community content
+          const existingIds = new Set(prev.map(t => t.trip_id));
+          const newTrips = response.trips.filter(t => !existingIds.has(t.trip_id));
+
+          return [...prev, ...newTrips];
+        });
       } else {
         // Replace trips (initial load or refetch)
         setTrips(response.trips);
@@ -263,6 +295,7 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
       } else {
         setIsLoading(false);
       }
+      isFetchingRef.current = false;
     }
   };
 
@@ -285,8 +318,36 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
 
   // Initial fetch on mount
   useEffect(() => {
-    fetchPage(1, false);
+    // Prevent double-fetch in React StrictMode
+    let cancelled = false;
+
+    const initialFetch = async () => {
+      if (!cancelled) {
+        await fetchPage(1, false);
+      }
+    };
+
+    initialFetch();
+
+    return () => {
+      cancelled = true;
+    };
   }, [limit]); // Only re-fetch if limit changes
+
+  // Listen for follow status changes to refetch feed (Feature 004 - US1)
+  useEffect(() => {
+    const handleFollowChange = () => {
+      // Reset to page 1 and refetch
+      setPage(1);
+      fetchPage(1, false);
+    };
+
+    window.addEventListener('followStatusChanged', handleFollowChange);
+
+    return () => {
+      window.removeEventListener('followStatusChanged', handleFollowChange);
+    };
+  }, [limit]); // Only depend on limit, not refetch (avoid circular dependency)
 
   return {
     trips,
