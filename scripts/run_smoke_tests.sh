@@ -189,8 +189,9 @@ if [ "$MODE" = "local-minimal" ] || [ "$MODE" = "local-full" ]; then
         print_fail "Docker not found" "Docker is required for mode: $MODE"
     else
         # Check if postgres container is running
-        if docker ps --format '{{.Names}}' 2>/dev/null | grep -q postgres; then
-            CONTAINER_NAME=$(docker ps --format '{{.Names}}' | grep postgres | head -n1)
+        # Look for containers with 'postgres' or 'db' in the name
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -qE '(postgres|db)'; then
+            CONTAINER_NAME=$(docker ps --format '{{.Names}}' | grep -E '(postgres|db)' | head -n1)
             print_pass "PostgreSQL container running ($CONTAINER_NAME)"
         else
             print_fail "PostgreSQL container not running" "Run ./deploy.sh $MODE to start containers"
