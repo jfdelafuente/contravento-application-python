@@ -27,14 +27,16 @@
 
 /* Size variants */
 .follow-button--small {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
   gap: 0.25rem;
+  max-width: 100px;
+  white-space: nowrap;
 }
 
 .follow-button--small .follow-button__icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .follow-button--medium {
