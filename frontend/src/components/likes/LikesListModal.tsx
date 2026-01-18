@@ -1,7 +1,55 @@
 import React, { useEffect, useRef } from 'react';
-import { Heart, X, User } from 'lucide-react';
 import { useTripLikes } from '../../hooks/useTripLikes';
 import './LikesListModal.css';
+
+// Inline SVG icons (to avoid adding lucide-react dependency)
+const HeartIcon = ({ size = 20, fill = 'currentColor', className }: { size?: number; fill?: string; className?: string }) => (
+  <svg
+    className={className}
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+);
+
+const XIcon = ({ size = 24 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+const UserIcon = ({ size = 20 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
 
 interface LikesListModalProps {
   tripId: string;
@@ -136,7 +184,7 @@ export const LikesListModal: React.FC<LikesListModalProps> = ({
         {/* Header */}
         <div className="likes-list-modal-header">
           <div className="likes-list-modal-title-container">
-            <Heart className="likes-list-modal-icon" size={20} fill="currentColor" />
+            <HeartIcon className="likes-list-modal-icon" size={20} fill="currentColor" />
             <div>
               <h2 id="likes-modal-title" className="likes-list-modal-title">
                 Me gusta
@@ -149,7 +197,7 @@ export const LikesListModal: React.FC<LikesListModalProps> = ({
             onClick={onClose}
             aria-label="Cerrar modal de likes"
           >
-            <X size={24} />
+            <XIcon size={24} />
           </button>
         </div>
 
@@ -179,7 +227,7 @@ export const LikesListModal: React.FC<LikesListModalProps> = ({
           {/* Empty state */}
           {!isLoading && !error && likes.length === 0 && (
             <div className="likes-list-empty">
-              <Heart size={48} className="likes-list-empty-icon" />
+              <HeartIcon className="likes-list-empty-icon" size={48} />
               <p>Aún no hay likes en este viaje</p>
               <span className="likes-list-empty-hint">Sé el primero en darle me gusta</span>
             </div>
@@ -215,7 +263,7 @@ export const LikesListModal: React.FC<LikesListModalProps> = ({
                           />
                         ) : (
                           <div className="likes-list-item-avatar-placeholder">
-                            <User size={20} />
+                            <UserIcon size={20} />
                           </div>
                         )}
                       </div>
