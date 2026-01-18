@@ -12,6 +12,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TripGallery } from '../components/trips/TripGallery';
 import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
+import { LikeButton } from '../components/likes/LikeButton';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import type { LocationSelection } from '../types/geocoding';
@@ -493,6 +494,39 @@ export const TripDetailPage: React.FC = () => {
                   className={`trip-detail-page__difficulty ${getDifficultyClass(trip.difficulty)}`}
                 >
                   {getDifficultyLabel(trip.difficulty)}
+                </div>
+              )}
+
+              {/* Like Button (Feature 004 - US2) */}
+              {!isOwner && trip.status === 'published' && (
+                <div className="trip-detail-page__meta-item">
+                  <LikeButton
+                    tripId={trip.trip_id}
+                    initialLiked={trip.is_liked || false}
+                    initialCount={trip.like_count || 0}
+                    size="medium"
+                    showCount={true}
+                  />
+                </div>
+              )}
+
+              {/* Like Count (owner-only - TC-US2-005) */}
+              {isOwner && trip.status === 'published' && (
+                <div className="trip-detail-page__meta-item trip-detail-page__like-count-readonly">
+                  <svg
+                    className="trip-detail-page__meta-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  <span className="trip-detail-page__meta-text">
+                    {trip.like_count || 0} {trip.like_count === 1 ? 'like' : 'likes'}
+                  </span>
                 </div>
               )}
             </div>

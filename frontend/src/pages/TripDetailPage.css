@@ -134,6 +134,15 @@
   border-radius: 6px;
 }
 
+/* Like Count (Read-only for owner - TC-US2-005) */
+.trip-detail-page__like-count-readonly {
+  color: #666;
+}
+
+.trip-detail-page__like-count-readonly .trip-detail-page__meta-icon {
+  color: #9ca3af;
+}
+
 /* ============================================================================
    Owner Actions (T039)
    ============================================================================ */
