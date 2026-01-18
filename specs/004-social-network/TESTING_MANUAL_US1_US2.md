@@ -719,11 +719,11 @@ poetry run python scripts/seed_trips.py
 
 - [x] TC-US2-001: Like a Trip ✅ Passed (2026-01-18)
 - [x] TC-US2-002: Unlike a Trip ✅ Passed (2026-01-18)
-- [ ] TC-US2-003: Optimistic UI
-- [ ] TC-US2-004: Error Rollback
+- [x] TC-US2-003: Optimistic UI ✅ Passed (2026-01-18)
+- [x] TC-US2-004: Error Rollback ✅ Passed (2026-01-18)
 - [x] TC-US2-005: Prevent Self-Like ✅ Passed (2026-01-18)
 - [ ] TC-US2-006: Prevent Duplicate Like
-- [ ] TC-US2-007: Loading State
+- [x] TC-US2-007: Loading State ✅ Passed (2026-01-18)
 - [ ] TC-US2-008: Get Likes List (⚠️ UI not implemented)
 - [x] TC-US2-009: Counter Accuracy ✅ Passed (2026-01-18)
 - [ ] TC-US2-010: Accessibility
