@@ -922,7 +922,7 @@ poetry run python scripts/seed_trips.py
 - [x] TC-US2-003: Optimistic UI ✅ Passed (2026-01-18)
 - [x] TC-US2-004: Error Rollback ✅ Passed (2026-01-18)
 - [x] TC-US2-005: Prevent Self-Like ✅ Passed (2026-01-18)
-- [ ] TC-US2-006: Prevent Duplicate Like
+- [x] TC-US2-006: Prevent Duplicate Like ✅ Passed (2026-01-18)
 - [x] TC-US2-007: Loading State ✅ Passed (2026-01-18)
 - [ ] TC-US2-008: Get Likes List (⚠️ UI not implemented)
 - [x] TC-US2-009: Counter Accuracy ✅ Passed (2026-01-18)
