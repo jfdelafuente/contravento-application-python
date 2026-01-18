@@ -53,6 +53,7 @@ async def get_public_trips(
         description=f"Items per page (default: {settings.public_feed_page_size}, max: {settings.public_feed_max_page_size})",
     ),
     db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> PublicTripListResponse:
     """
     T021: Get public trips feed for homepage (Feature 013).
@@ -148,6 +149,17 @@ async def get_public_trips(
             )
             like_count = like_count_result.scalar() or 0
 
+            # Check if current user has liked this trip (Feature 004 - US2)
+            is_liked = None
+            if current_user:
+                like_result = await db.execute(
+                    select(Like).where(
+                        Like.trip_id == trip.trip_id,
+                        Like.user_id == current_user.id
+                    )
+                )
+                is_liked = like_result.scalar_one_or_none() is not None
+
             # Create PublicTripSummary
             public_trip = PublicTripSummary(
                 trip_id=trip.trip_id,
@@ -159,7 +171,7 @@ async def get_public_trips(
                 author=author,
                 published_at=trip.published_at,
                 like_count=like_count,  # Feature 004 - US2
-                is_liked=None,  # Feature 004 - US2 (public endpoint, no authentication)
+                is_liked=is_liked,  # Feature 004 - US2 (None if not authenticated, True/False if authenticated)
             )
             public_trips.append(public_trip)
 
