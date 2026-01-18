@@ -182,7 +182,11 @@ fi
 print_test "Database connectivity check"
 # Use Poetry to run Python script with correct dependencies
 if command -v poetry &> /dev/null && [ -f "backend/pyproject.toml" ]; then
-    DB_OUTPUT=$(cd backend && poetry run python ../scripts/check_db.py "$MODE" 2>&1) || true
+    # Run in subshell to avoid changing current directory
+    DB_OUTPUT=$(
+        cd backend || exit 1
+        poetry run python ../scripts/check_db.py "$MODE" 2>&1
+    ) || true
 else
     # Fallback to system Python if Poetry not available
     DB_OUTPUT=$(python scripts/check_db.py "$MODE" 2>&1) || true
@@ -214,6 +218,9 @@ if [ "$MODE" = "local-full" ] || [ "$MODE" = "staging" ]; then
     else
         print_fail "Frontend request failed" "Connection timeout or network error"
     fi
+else
+    # Skip Test 5 for modes without frontend
+    echo -e "${YELLOW}⊘${NC} Skipping: Static files test (not applicable for mode: ${MODE})"
 fi
 
 # Re-enable exit-on-error
