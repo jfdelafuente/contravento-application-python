@@ -726,7 +726,7 @@ poetry run python scripts/seed_trips.py
 - [x] TC-US2-007: Loading State ✅ Passed (2026-01-18)
 - [ ] TC-US2-008: Get Likes List (⚠️ UI not implemented)
 - [x] TC-US2-009: Counter Accuracy ✅ Passed (2026-01-18)
-- [ ] TC-US2-010: Accessibility
+- [x] TC-US2-010: Accessibility ✅ Passed (2026-01-18)
 
 ### Integration Tests
 
