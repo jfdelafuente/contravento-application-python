@@ -897,7 +897,7 @@ poetry run python scripts/seed_trips.py
 - [x] TC-US1-001: Access Feed (Authenticated) ✅ Passed (2026-01-18)
 - [ ] TC-US1-002: Feed Content (Followed Users) 🆕 DESBLOQUEADO - Follow UI implementada
 - [x] TC-US1-003: Feed Content (Popular Backfill) ✅ Passed (2026-01-18)
-- [ ] TC-US1-004: Infinite Scroll Pagination
+- [x] TC-US1-004: Infinite Scroll Pagination ⚠️ Passed with Bug Found (2026-01-18) - Backend duplicate trips issue, frontend workaround applied (see BUGS_FOUND_TESTING.md)
 - [ ] TC-US1-005: Skeleton Loading State
 - [x] TC-US1-006: Unauthorized Access ✅ Passed (2026-01-18)
 - [x] TC-US1-007: Empty State ✅ Passed (2026-01-18)
@@ -1035,3 +1035,27 @@ After completing tests, fill out:
 **Not Tested**:
 - TC-US1-013 (Error Rollback) - Requires network failure simulation
 - TC-US1-017 (Full Accessibility) - Screen reader testing pending
+
+---
+
+## Bugs Found During Testing
+
+See [BUGS_FOUND_TESTING.md](BUGS_FOUND_TESTING.md) for complete bug reports.
+
+### Bug #1: Duplicate Trips in Infinite Scroll Pagination
+
+**Discovered During**: TC-US1-004
+**Severity**: Medium
+**Status**: ⚠️ Workaround Applied
+
+**Summary**: Backend hybrid feed algorithm returns duplicate trips across pagination boundaries when transitioning from "followed users" content to "community backfill" content.
+
+**Root Cause**: `backend/src/services/feed_service.py` - Backfill logic only excludes trips from current page, not ALL previous pages.
+
+**Workaround**: Frontend deduplication in `useFeed.ts` hook filters out duplicate `trip_id` values during infinite scroll append.
+
+**Action Required**: Fix backend `FeedService.get_personalized_feed()` hybrid algorithm to ensure no trip appears in multiple pages.
+
+**Test Result**: ⚠️ PASS (with workaround) - Feature works correctly for users, but backend needs refactoring.
+
+**Commit**: c315c67
