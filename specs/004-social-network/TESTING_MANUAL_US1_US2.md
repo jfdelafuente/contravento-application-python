@@ -706,25 +706,25 @@ poetry run python scripts/seed_trips.py
 
 ### US1: Feed Personalizado
 
-- [ ] TC-US1-001: Access Feed (Authenticated)
-- [ ] TC-US1-002: Feed Content (Followed Users)
-- [ ] TC-US1-003: Feed Content (Popular Backfill)
+- [x] TC-US1-001: Access Feed (Authenticated) ✅ Passed (2026-01-18)
+- [ ] TC-US1-002: Feed Content (Followed Users) ⚠️ BLOQUEADO - Requiere implementar Follow UI (frontend)
+- [x] TC-US1-003: Feed Content (Popular Backfill) ✅ Passed (2026-01-18)
 - [ ] TC-US1-004: Infinite Scroll Pagination
 - [ ] TC-US1-005: Skeleton Loading State
 - [ ] TC-US1-006: Unauthorized Access
 - [ ] TC-US1-007: Empty State
-- [ ] TC-US1-008: Trip Card Click
+- [x] TC-US1-008: Trip Card Click ✅ Passed (2026-01-18)
 
 ### US2: Likes/Me Gusta
 
-- [ ] TC-US2-001: Like a Trip
-- [ ] TC-US2-002: Unlike a Trip
+- [x] TC-US2-001: Like a Trip ✅ Passed (2026-01-18)
+- [x] TC-US2-002: Unlike a Trip ✅ Passed (2026-01-18)
 - [ ] TC-US2-003: Optimistic UI
 - [ ] TC-US2-004: Error Rollback
-- [ ] TC-US2-005: Prevent Self-Like
+- [x] TC-US2-005: Prevent Self-Like ✅ Passed (2026-01-18)
 - [ ] TC-US2-006: Prevent Duplicate Like
 - [ ] TC-US2-007: Loading State
-- [ ] TC-US2-008: Get Likes List
+- [ ] TC-US2-008: Get Likes List (⚠️ UI not implemented)
 - [ ] TC-US2-009: Counter Accuracy
 - [ ] TC-US2-010: Accessibility
 
