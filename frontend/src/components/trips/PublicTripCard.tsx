@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import { PublicTripSummary } from '../../types/trip';
 import { LikeButton } from '../likes/LikeButton';
 import { FollowButton } from '../social/FollowButton';
-import { useAuth } from '../../hooks/useAuth';
 import './PublicTripCard.css';
 
 interface PublicTripCardProps {
@@ -62,7 +61,6 @@ const getPhotoUrl = (url: string | null | undefined): string => {
  */
 export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const handleClick = () => {
     navigate(`/trips/${trip.trip_id}`);
@@ -105,15 +103,12 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
             )}
             <span className="public-trip-card__author-name">{trip.author.username}</span>
           </div>
-          {user && (
-            <FollowButton
-              userId={trip.author.user_id}
-              initialFollowing={trip.author.is_following || false}
-              currentUserId={user.user_id}
-              size="small"
-              variant="secondary"
-            />
-          )}
+          <FollowButton
+            userId={trip.author.user_id}
+            initialFollowing={trip.author.is_following || false}
+            size="small"
+            variant="secondary"
+          />
         </div>
 
         {/* Metadata (Location, Distance, Date) */}

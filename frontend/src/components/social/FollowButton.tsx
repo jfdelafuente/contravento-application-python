@@ -21,7 +21,6 @@ import './FollowButton.css';
 interface FollowButtonProps {
   userId: string;
   initialFollowing?: boolean;
-  currentUserId?: string;
   size?: 'small' | 'medium' | 'large';
   variant?: 'primary' | 'secondary';
 }
@@ -29,7 +28,6 @@ interface FollowButtonProps {
 export const FollowButton: React.FC<FollowButtonProps> = ({
   userId,
   initialFollowing = false,
-  currentUserId,
   size = 'medium',
   variant = 'primary',
 }) => {
@@ -38,8 +36,15 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     initialFollowing
   );
 
-  // Don't show button if user is viewing their own profile
-  if (currentUserId && currentUserId === userId) {
+  // Get current user from localStorage
+  const currentUserStr = localStorage.getItem('user');
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  const currentUserId = currentUser?.user_id;
+
+  // Don't show button if:
+  // 1. Not authenticated (no current user)
+  // 2. User is viewing their own profile
+  if (!currentUserId || currentUserId === userId) {
     return null;
   }
 
