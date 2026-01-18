@@ -905,15 +905,15 @@ poetry run python scripts/seed_trips.py
 
 **Follow/Unfollow Tests** (NEW - Feature 004 Follow UI):
 
-- [ ] TC-US1-009: Follow Button Display
-- [ ] TC-US1-010: Follow User from Feed
-- [ ] TC-US1-011: Unfollow User from Feed
-- [ ] TC-US1-012: Follow Button - Optimistic UI
-- [ ] TC-US1-013: Follow Button - Error Rollback
-- [ ] TC-US1-014: Feed Updates After Follow
-- [ ] TC-US1-015: Follow Button - Prevent Self-Follow
-- [ ] TC-US1-016: Follow Button - Loading State
-- [ ] TC-US1-017: Follow Button - Accessibility
+- [x] TC-US1-009: Follow Button Display ✅ Passed (2026-01-18) - Button displays correctly in both feeds with appropriate size
+- [x] TC-US1-010: Follow User from Feed ✅ Passed (2026-01-18) - Optimistic UI + auto-refetch working perfectly
+- [x] TC-US1-011: Unfollow User from Feed ✅ Passed (2026-01-18) - State persists correctly across page reloads
+- [x] TC-US1-012: Follow Button - Optimistic UI ✅ Passed (2026-01-18) - Instant state change before API response
+- [ ] TC-US1-013: Follow Button - Error Rollback ⚠️ Not tested (requires network failure simulation)
+- [x] TC-US1-014: Feed Updates After Follow ✅ Passed (2026-01-18) - Auto-refetch updates all buttons (~500ms delay)
+- [x] TC-US1-015: Follow Button - Prevent Self-Follow ✅ Passed (2026-01-18) - Button hidden on own trips (verified in PublicFeedPage)
+- [x] TC-US1-016: Follow Button - Loading State ✅ Passed (2026-01-18) - Button disabled during API call, prevents double-clicks
+- [ ] TC-US1-017: Follow Button - Accessibility ⚠️ Partially tested (keyboard navigation works, screen reader not tested)
 
 ### US2: Likes/Me Gusta
 
@@ -1003,6 +1003,35 @@ After completing tests, fill out:
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2026-01-17
+**Document Version**: 1.1
+**Last Updated**: 2026-01-18
 **Next Review**: After Phase 5 (Comments) implementation
+
+---
+
+## Test Execution Notes (2026-01-18)
+
+### Follow/Unfollow UI Testing Completed ✅
+
+**Tests Executed**: TC-US1-009 through TC-US1-016 (7/9 completed)
+
+**Results**: See detailed test results in [TEST_RESULTS_FOLLOW_UI.md](TEST_RESULTS_FOLLOW_UI.md)
+
+**Summary**:
+- ✅ All core follow/unfollow functionality working correctly
+- ✅ Optimistic UI provides instant feedback
+- ✅ Auto-refetch keeps all buttons in sync across feeds
+- ✅ State persists across page reloads
+- ✅ Performance meets targets (<500ms API, <1s refetch)
+
+**Issues Fixed During Testing**:
+1. Button size too large - reduced via CSS adjustments
+2. Feed endpoint missing `is_following` field - added to backend schema
+3. Frontend calling wrong API routes - corrected to `/users/{username}/follow`
+4. User not persisting in localStorage - fixed in AuthContext
+
+**Commits**: 8 commits (9c3e4f8...33fff9c) - See TEST_RESULTS_FOLLOW_UI.md for details
+
+**Not Tested**:
+- TC-US1-013 (Error Rollback) - Requires network failure simulation
+- TC-US1-017 (Full Accessibility) - Screen reader testing pending
