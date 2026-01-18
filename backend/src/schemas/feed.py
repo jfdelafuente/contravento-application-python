@@ -22,6 +22,7 @@ class UserSummary(BaseModel):
     Minimal user data needed for displaying feed item authors.
     """
 
+    user_id: str = Field(..., description="User UUID (Feature 004 - US1)")
     username: str = Field(..., description="Username")
     full_name: Optional[str] = Field(None, description="Full display name (nullable)")
     profile_photo_url: Optional[str] = Field(

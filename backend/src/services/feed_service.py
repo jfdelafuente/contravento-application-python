@@ -305,6 +305,7 @@ class FeedService:
 
         # Author (UserSummary)
         author = {
+            "user_id": trip.user.id,  # Feature 004 - US1
             "username": trip.user.username,
             "full_name": trip.user.profile.full_name if trip.user.profile else None,
             "profile_photo_url": (
