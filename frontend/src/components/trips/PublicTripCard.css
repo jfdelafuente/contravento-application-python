@@ -124,6 +124,16 @@
   color: #999;
 }
 
+/* Interactions (Feature 004 - US2) */
+.public-trip-card__interactions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e5e5;
+  margin-top: 0.5rem;
+}
+
 /* Responsive Design */
 @media (min-width: 640px) {
   .public-trip-card__content {
@@ -178,6 +188,10 @@
   }
 
   .public-trip-card__metadata {
+    border-top-color: #333;
+  }
+
+  .public-trip-card__interactions {
     border-top-color: #333;
   }
 }

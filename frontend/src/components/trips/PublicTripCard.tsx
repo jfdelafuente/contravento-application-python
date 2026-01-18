@@ -8,6 +8,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PublicTripSummary } from '../../types/trip';
+import { LikeButton } from '../likes/LikeButton';
 import './PublicTripCard.css';
 
 interface PublicTripCardProps {
@@ -161,6 +162,17 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
             </svg>
             <span>{formatDate(trip.start_date)}</span>
           </div>
+        </div>
+
+        {/* Like Button (Feature 004 - US2) */}
+        <div className="public-trip-card__interactions">
+          <LikeButton
+            tripId={trip.trip_id}
+            initialLiked={trip.is_liked || false}
+            initialCount={trip.like_count}
+            size="small"
+            showCount={true}
+          />
         </div>
       </div>
     </article>
