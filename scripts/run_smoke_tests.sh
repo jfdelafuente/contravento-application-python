@@ -128,59 +128,57 @@ echo ""
 
 # Test 1: Health check endpoint
 print_test "Health check - GET /health"
-if RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" "${BASE_URL}/health" 2>&1); then
-    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-    BODY=$(echo "$RESPONSE" | sed '$d')
+RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" "${BASE_URL}/health" 2>&1) || true
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+BODY=$(echo "$RESPONSE" | sed '$d')
 
-    if [ "$HTTP_CODE" = "200" ]; then
-        # Verify response contains "status" field
-        if echo "$BODY" | grep -q '"status"'; then
-            print_pass "Health endpoint returned 200 OK"
-        else
-            print_fail "Health endpoint missing 'status' field" "Response: $BODY"
-        fi
+if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" = "200" ]; then
+    # Verify response contains "status" field
+    if echo "$BODY" | grep -q '"status"'; then
+        print_pass "Health endpoint returned 200 OK"
     else
-        print_fail "Health endpoint returned HTTP $HTTP_CODE" "Expected 200"
+        print_fail "Health endpoint missing 'status' field" "Response: $BODY"
     fi
+elif [ -n "$HTTP_CODE" ]; then
+    print_fail "Health endpoint returned HTTP $HTTP_CODE" "Expected 200"
 else
     print_fail "Health endpoint request failed" "Connection timeout or network error"
 fi
 
 # Test 2: Auth endpoint - Invalid login (should return 401)
 print_test "Auth endpoint - POST /auth/login (invalid credentials)"
-if RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" \
+RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" \
     -X POST "${BASE_URL}/auth/login" \
     -H "Content-Type: application/json" \
-    -d '{"login":"invalid_user","password":"wrong_password"}' 2>&1); then
-    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    -d '{"login":"invalid_user","password":"wrong_password"}' 2>&1) || true
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 
-    if [ "$HTTP_CODE" = "401" ]; then
-        print_pass "Auth endpoint correctly rejects invalid credentials (401)"
-    else
-        print_fail "Auth endpoint returned HTTP $HTTP_CODE" "Expected 401 for invalid credentials"
-    fi
+if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" = "401" ]; then
+    print_pass "Auth endpoint correctly rejects invalid credentials (401)"
+elif [ -n "$HTTP_CODE" ]; then
+    print_fail "Auth endpoint returned HTTP $HTTP_CODE" "Expected 401 for invalid credentials"
 else
     print_fail "Auth endpoint request failed" "Connection timeout or network error"
 fi
 
 # Test 3: Protected endpoint - GET /auth/me without token (should return 401)
 print_test "Protected endpoint - GET /auth/me (no token)"
-if RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" \
-    "${BASE_URL}/auth/me" 2>&1); then
-    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" \
+    "${BASE_URL}/auth/me" 2>&1) || true
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 
-    if [ "$HTTP_CODE" = "401" ]; then
-        print_pass "Protected endpoint correctly requires authentication (401)"
-    else
-        print_fail "Protected endpoint returned HTTP $HTTP_CODE" "Expected 401 without token"
-    fi
+if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" = "401" ]; then
+    print_pass "Protected endpoint correctly requires authentication (401)"
+elif [ -n "$HTTP_CODE" ]; then
+    print_fail "Protected endpoint returned HTTP $HTTP_CODE" "Expected 401 without token"
 else
     print_fail "Protected endpoint request failed" "Connection timeout or network error"
 fi
 
 # Test 4: Database connectivity (via Python script)
 print_test "Database connectivity check"
-if python scripts/check_db.py "$MODE" 2>&1 | grep -q "Database connection successful"; then
+DB_OUTPUT=$(python scripts/check_db.py "$MODE" 2>&1) || true
+if echo "$DB_OUTPUT" | grep -q "Database connection successful"; then
     print_pass "Database connection verified"
 else
     print_fail "Database connection failed" "See check_db.py output for details"
@@ -189,21 +187,20 @@ fi
 # Test 5: Static files (only for full/staging with frontend)
 if [ "$MODE" = "local-full" ] || [ "$MODE" = "staging" ]; then
     print_test "Static files - GET / (frontend)"
-    if RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" \
-        "${BASE_URL}/" 2>&1); then
-        HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-        BODY=$(echo "$RESPONSE" | sed '$d')
+    RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$TIMEOUT" \
+        "${BASE_URL}/" 2>&1) || true
+    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    BODY=$(echo "$RESPONSE" | sed '$d')
 
-        if [ "$HTTP_CODE" = "200" ]; then
-            # Verify HTML response
-            if echo "$BODY" | grep -q "<html"; then
-                print_pass "Frontend static files served (200 OK)"
-            else
-                print_fail "Frontend returned 200 but no HTML" "Response may be malformed"
-            fi
+    if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" = "200" ]; then
+        # Verify HTML response
+        if echo "$BODY" | grep -q "<html"; then
+            print_pass "Frontend static files served (200 OK)"
         else
-            print_fail "Frontend returned HTTP $HTTP_CODE" "Expected 200"
+            print_fail "Frontend returned 200 but no HTML" "Response may be malformed"
         fi
+    elif [ -n "$HTTP_CODE" ]; then
+        print_fail "Frontend returned HTTP $HTTP_CODE" "Expected 200"
     else
         print_fail "Frontend request failed" "Connection timeout or network error"
     fi
