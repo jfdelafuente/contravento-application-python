@@ -712,7 +712,7 @@ poetry run python scripts/seed_trips.py
 - [ ] TC-US1-004: Infinite Scroll Pagination
 - [ ] TC-US1-005: Skeleton Loading State
 - [x] TC-US1-006: Unauthorized Access ✅ Passed (2026-01-18)
-- [ ] TC-US1-007: Empty State
+- [x] TC-US1-007: Empty State ✅ Passed (2026-01-18)
 - [x] TC-US1-008: Trip Card Click ✅ Passed (2026-01-18)
 
 ### US2: Likes/Me Gusta
