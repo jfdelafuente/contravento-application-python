@@ -9,6 +9,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FeedItem as FeedItemType } from '../../services/feedService';
 import { LikeButton } from '../likes/LikeButton';
+import { FollowButton } from '../social/FollowButton';
 import './FeedItem.css';
 
 interface FeedItemProps {
@@ -133,25 +134,33 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
 
       {/* Trip Content */}
       <div className="feed-item__content">
-        {/* Author */}
+        {/* Author with Follow Button */}
         <div className="feed-item__author">
-          {item.author.profile_photo_url ? (
-            <img
-              src={getPhotoUrl(item.author.profile_photo_url)}
-              alt={item.author.username}
-              className="feed-item__author-avatar"
-            />
-          ) : (
-            <div className="feed-item__author-avatar feed-item__author-avatar--placeholder">
-              {item.author.username.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div className="feed-item__author-info">
-            <span className="feed-item__author-username">{item.author.username}</span>
-            {item.author.full_name && (
-              <span className="feed-item__author-fullname">{item.author.full_name}</span>
+          <div className="feed-item__author-main">
+            {item.author.profile_photo_url ? (
+              <img
+                src={getPhotoUrl(item.author.profile_photo_url)}
+                alt={item.author.username}
+                className="feed-item__author-avatar"
+              />
+            ) : (
+              <div className="feed-item__author-avatar feed-item__author-avatar--placeholder">
+                {item.author.username.charAt(0).toUpperCase()}
+              </div>
             )}
+            <div className="feed-item__author-info">
+              <span className="feed-item__author-username">{item.author.username}</span>
+              {item.author.full_name && (
+                <span className="feed-item__author-fullname">{item.author.full_name}</span>
+              )}
+            </div>
           </div>
+          <FollowButton
+            userId={item.author.user_id}
+            initialFollowing={item.author.is_following || false}
+            size="small"
+            variant="secondary"
+          />
         </div>
 
         {/* Title */}
