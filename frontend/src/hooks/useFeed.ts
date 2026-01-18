@@ -113,6 +113,19 @@ export const useFeed = (page: number = 1, limit: number = 10): UseFeedReturn => 
     fetchFeed();
   }, [page, limit]);
 
+  // Listen for follow status changes to refetch feed (Feature 004 - US1)
+  useEffect(() => {
+    const handleFollowChange = () => {
+      fetchFeed();
+    };
+
+    window.addEventListener('followStatusChanged', handleFollowChange);
+
+    return () => {
+      window.removeEventListener('followStatusChanged', handleFollowChange);
+    };
+  }, [page, limit]);
+
   return {
     trips,
     totalCount,
@@ -287,6 +300,19 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
   useEffect(() => {
     fetchPage(1, false);
   }, [limit]); // Only re-fetch if limit changes
+
+  // Listen for follow status changes to refetch feed (Feature 004 - US1)
+  useEffect(() => {
+    const handleFollowChange = () => {
+      refetch();
+    };
+
+    window.addEventListener('followStatusChanged', handleFollowChange);
+
+    return () => {
+      window.removeEventListener('followStatusChanged', handleFollowChange);
+    };
+  }, [refetch]);
 
   return {
     trips,

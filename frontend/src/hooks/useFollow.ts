@@ -54,6 +54,12 @@ export function useFollow(
 
       // Success - optimistic update was correct
       setIsLoading(false);
+
+      // Emit custom event to notify other components (Feature 004 - US1)
+      // This allows feed pages to refetch data and update all follow buttons
+      window.dispatchEvent(new CustomEvent('followStatusChanged', {
+        detail: { username, isFollowing: !previousFollowing }
+      }));
     } catch (error: any) {
       // Rollback optimistic update
       setIsFollowing(previousFollowing);
