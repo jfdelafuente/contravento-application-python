@@ -14,9 +14,10 @@
 
 import React, { useState } from 'react';
 import { Comment } from '../../services/commentService';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { getPhotoUrl } from '../../utils/tripHelpers';
 import './CommentItem.css';
 
 interface CommentItemProps {
@@ -65,26 +66,22 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     }
   };
 
-  const getProfilePhotoUrl = (url: string | null | undefined): string => {
-    if (!url) {
-      return '/images/placeholders/profile-placeholder.jpg';
-    }
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${url}`;
-  };
-
   return (
     <>
       <article className="comment-item">
         <div className="comment-item-header">
           <div className="comment-item-author">
-            <img
-              src={getProfilePhotoUrl(comment.author?.profile_photo_url)}
-              alt={comment.author?.username || 'Usuario'}
-              className="comment-item-avatar"
-            />
+            {comment.author?.profile_photo_url ? (
+              <img
+                src={getPhotoUrl(comment.author.profile_photo_url)}
+                alt={comment.author?.username || 'Usuario'}
+                className="comment-item-avatar"
+              />
+            ) : (
+              <div className="comment-item-avatar comment-item-avatar--placeholder">
+                {(comment.author?.username || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="comment-item-author-info">
               <span className="comment-item-author-name">
                 {comment.author?.full_name || comment.author?.username || 'Usuario'}
@@ -95,63 +92,44 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             </div>
           </div>
 
-          {isAuthor && (
-            <div className="comment-item-actions">
-              <button
-                onClick={handleEdit}
-                className="comment-item-action-edit"
-                aria-label="Editar comentario"
-                title="Editar"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={handleDelete}
-                className="comment-item-action-delete"
-                aria-label="Eliminar comentario"
-                title="Eliminar"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
         </div>
 
-        <div className="comment-item-content">
-          <div dangerouslySetInnerHTML={{ __html: comment.content }} />
-        </div>
+        <div className="comment-item-content" dangerouslySetInnerHTML={{ __html: comment.content }} />
 
         <div className="comment-item-footer">
           <time className="comment-item-timestamp" dateTime={comment.created_at}>
             {formatTimestamp(comment.created_at)}
+            {comment.is_edited && (
+              <span className="comment-item-edited-marker"> · editado</span>
+            )}
           </time>
-          {comment.is_edited && (
-            <span className="comment-item-edited" title="Este comentario ha sido editado">
-              · editado
-            </span>
+
+          {isAuthor && (
+            <div className="comment-item-actions">
+              <button
+                onClick={handleEdit}
+                className="comment-item-action-button comment-item-action-button--edit"
+                aria-label="Editar comentario"
+              >
+                Editar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="comment-item-action-button comment-item-action-button--delete"
+                aria-label="Eliminar comentario"
+              >
+                Eliminar
+              </button>
+            </div>
           )}
         </div>
       </article>
 
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="delete-confirm-overlay" onClick={cancelDelete}>
-          <div className="delete-confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="delete-confirm-icon">
+        <div className="comment-item-delete-dialog-overlay" onClick={cancelDelete}>
+          <div className="comment-item-delete-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="comment-item-delete-dialog-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -161,15 +139,15 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 />
               </svg>
             </div>
-            <h3 className="delete-confirm-title">¿Eliminar comentario?</h3>
-            <p className="delete-confirm-message">
+            <h3 className="comment-item-delete-dialog-title">¿Eliminar comentario?</h3>
+            <p className="comment-item-delete-dialog-text">
               Esta acción es permanente y no se puede deshacer.
             </p>
-            <div className="delete-confirm-actions">
-              <button onClick={cancelDelete} className="delete-confirm-cancel">
+            <div className="comment-item-delete-dialog-actions">
+              <button onClick={cancelDelete} className="comment-item-delete-dialog-button comment-item-delete-dialog-button--cancel">
                 Cancelar
               </button>
-              <button onClick={confirmDelete} className="delete-confirm-delete">
+              <button onClick={confirmDelete} className="comment-item-delete-dialog-button comment-item-delete-dialog-button--confirm">
                 Eliminar
               </button>
             </div>
