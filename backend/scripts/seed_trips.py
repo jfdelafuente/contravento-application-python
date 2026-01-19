@@ -54,6 +54,11 @@ Highlights:
         "difficulty": TripDifficulty.MODERATE,
         "status": TripStatus.PUBLISHED,
         "tags": ["vías verdes", "aceite", "andalucía", "turismo"],
+        "location": {
+            "name": "Jaén, Andalucía",
+            "latitude": 37.7796,
+            "longitude": -3.7849,
+        },
     },
     {
         "title": "Ruta Bikepacking Pirineos - Valle de Ordesa",
@@ -77,6 +82,11 @@ El paisaje compensa con creces el esfuerzo: cascadas, lagos glaciares, bosques d
         "difficulty": TripDifficulty.DIFFICULT,
         "status": TripStatus.PUBLISHED,
         "tags": ["bikepacking", "montaña", "pirineos", "camping"],
+        "location": {
+            "name": "Parque Nacional de Ordesa y Monte Perdido",
+            "latitude": 42.6667,
+            "longitude": 0.0333,
+        },
     },
     {
         "title": "Camino de Santiago en Bici - Etapa León a Astorga",
@@ -98,6 +108,11 @@ Mañana continúo hacia Ponferrada. El plan es llegar a Santiago en 10 días."""
         "difficulty": TripDifficulty.EASY,
         "status": TripStatus.PUBLISHED,
         "tags": ["camino de santiago", "cultural", "peregrino"],
+        "location": {
+            "name": "León",
+            "latitude": 42.5987,
+            "longitude": -5.5671,
+        },
     },
     {
         "title": "Vuelta al Lago de Sanabria - Zamora",
@@ -114,6 +129,11 @@ Llevé la bici de montaña (ruedas 29") y fue perfecta para este terreno. Tubele
         "difficulty": TripDifficulty.MODERATE,
         "status": TripStatus.PUBLISHED,
         "tags": ["mtb", "lago", "zamora", "naturaleza"],
+        "location": {
+            "name": "Lago de Sanabria",
+            "latitude": 42.1167,
+            "longitude": -6.7167,
+        },
     },
     {
         "title": "Borrador: Planificando la Transpirenaica",
@@ -135,6 +155,11 @@ Cualquier consejo es bienvenido!""",
         "difficulty": TripDifficulty.VERY_DIFFICULT,
         "status": TripStatus.DRAFT,
         "tags": ["transpirenaica", "proyecto", "verano"],
+        "location": {
+            "name": "Cabo de Creus",
+            "latitude": 42.3189,
+            "longitude": 3.3164,
+        },
     },
 ]
 
@@ -185,8 +210,9 @@ async def seed_trips(username: str = "testuser", count: int = None):
         created_count = 0
         published_count = 0
         for trip_data in trips_to_create:
-            # Extract tags from trip_data
+            # Extract tags and location from trip_data
             tag_names = trip_data.pop("tags", [])
+            location_data = trip_data.pop("location", None)
 
             # Set published_at for published trips
             is_published = trip_data.get("status") == TripStatus.PUBLISHED
@@ -201,6 +227,18 @@ async def seed_trips(username: str = "testuser", count: int = None):
             )
             db.add(trip)
             await db.flush()
+
+            # Add location if provided
+            if location_data:
+                trip_location = TripLocation(
+                    location_id=str(uuid4()),
+                    trip_id=trip.trip_id,
+                    name=location_data["name"],
+                    latitude=location_data["latitude"],
+                    longitude=location_data["longitude"],
+                    sequence=0,  # First/main location
+                )
+                db.add(trip_location)
 
             # Add tags via TripTag association
             for tag_name in tag_names:
@@ -217,7 +255,7 @@ async def seed_trips(username: str = "testuser", count: int = None):
 
             # Update user stats for published trips
             if is_published:
-                # For sample data, assume Spain (ES) if no location data
+                # For sample data, default to Spain (ES)
                 country_code = "ES"
                 photos_count = 0  # Sample trips have no photos yet
                 trip_date = trip.start_date.date() if trip.start_date else datetime.now().date()
@@ -231,8 +269,10 @@ async def seed_trips(username: str = "testuser", count: int = None):
                 )
                 published_count += 1
 
+            # Show location in output
+            location_str = f" @ {location_data['name']}" if location_data else ""
             status_marker = "[DRAFT]" if trip.status == TripStatus.DRAFT else "[OK]"
-            print(f"  {status_marker} {trip.title[:50]}... ({trip.distance_km}km, {trip.difficulty.value})")
+            print(f"  {status_marker} {trip.title[:50]}... ({trip.distance_km}km, {trip.difficulty.value}){location_str}")
             created_count += 1
 
         await db.commit()
