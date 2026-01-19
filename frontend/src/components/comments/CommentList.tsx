@@ -14,6 +14,7 @@
 import React, { useState, useCallback } from 'react';
 import { useComments } from '../../hooks/useComments';
 import { useComment } from '../../hooks/useComment';
+import { useAuth } from '../../contexts/AuthContext';
 import { Comment } from '../../services/commentService';
 import { CommentForm } from './CommentForm';
 import { CommentItem } from './CommentItem';
@@ -25,6 +26,7 @@ interface CommentListProps {
 }
 
 export const CommentList: React.FC<CommentListProps> = ({ tripId, tripOwnerId }) => {
+  const { user } = useAuth();
   const { comments, total, isLoading, error, refetch, loadMore, hasMore } =
     useComments(tripId);
   const { remove } = useComment();
@@ -141,16 +143,24 @@ export const CommentList: React.FC<CommentListProps> = ({ tripId, tripOwnerId })
         </>
       )}
 
-      {/* Comment Form - Always at the bottom */}
-      <div className="comment-list-form">
-        <CommentForm
-          tripId={tripId}
-          editingComment={editingComment}
-          onCommentCreated={handleCommentCreated}
-          onCommentUpdated={handleCommentUpdated}
-          onCancel={handleCancelEdit}
-        />
-      </div>
+      {/* Comment Form - Only for authenticated users */}
+      {user ? (
+        <div className="comment-list-form">
+          <CommentForm
+            tripId={tripId}
+            editingComment={editingComment}
+            onCommentCreated={handleCommentCreated}
+            onCommentUpdated={handleCommentUpdated}
+            onCancel={handleCancelEdit}
+          />
+        </div>
+      ) : (
+        <div className="comment-list-login-prompt">
+          <p>
+            <a href="/login">Inicia sesión</a> para escribir un comentario
+          </p>
+        </div>
+      )}
     </div>
   );
 };

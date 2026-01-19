@@ -38,6 +38,37 @@
 }
 
 /* ============================================================
+ * Login prompt (unauthenticated users)
+ * ============================================================ */
+
+.comment-list-login-prompt {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background-color: var(--color-background-secondary, #f9fafb);
+  border-radius: 12px;
+  border: 2px solid var(--color-border, #e5e7eb);
+  margin-bottom: 1rem;
+}
+
+.comment-list-login-prompt p {
+  font-size: 1rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+}
+
+.comment-list-login-prompt a {
+  color: var(--color-primary, #2563eb);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.comment-list-login-prompt a:hover {
+  color: var(--color-primary-dark, #1d4ed8);
+  text-decoration: underline;
+}
+
+/* ============================================================
  * Comments items list
  * ============================================================ */
 

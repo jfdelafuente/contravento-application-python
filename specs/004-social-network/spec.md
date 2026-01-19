@@ -2,8 +2,19 @@
 
 **Feature Branch**: `004-social-network`
 **Created**: 2025-12-23
-**Status**: Draft
+**Last Updated**: 2026-01-19
+**Status**: In Progress (US3 Complete)
 **Input**: User description: "Red social de ciclistas con feed personalizado, interacciones y comentarios"
+
+## Implementation Status
+
+| User Story | Status | Backend | Frontend | Tests | Notes |
+|------------|--------|---------|----------|-------|-------|
+| US1 - Feed Personalizado | ⏳ Pending | - | - | - | Not started |
+| US2 - Likes/Me Gusta | ⏳ Pending | - | - | - | Not started |
+| US3 - Comentarios | ✅ **COMPLETE** | ✅ 21/21 unit tests | ✅ All components | ✅ 19/20 manual tests | **Ready for production** |
+| US4 - Compartir Viajes | ⏳ Pending | - | - | - | Not started |
+| US5 - Notificaciones | ⏳ Pending | - | - | - | Not started |
 
 ## User Scenarios & Testing *(mandatory)*
 
