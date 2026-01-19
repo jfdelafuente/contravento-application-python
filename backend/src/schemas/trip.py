@@ -414,11 +414,12 @@ class TripResponse(BaseModel):
             tags = [trip_tag.tag for trip_tag in obj.trip_tags]
 
             # Build author UserSummary from trip.user (Feature 004)
+            # User model has basic fields (username), UserProfile has extended fields (full_name, photo_url)
             author_data = {
                 "user_id": obj.user.id,
                 "username": obj.user.username,
-                "full_name": obj.user.full_name,
-                "profile_photo_url": obj.user.profile_photo_url,
+                "full_name": obj.user.profile.full_name if obj.user.profile else None,
+                "profile_photo_url": obj.user.profile.photo_url if obj.user.profile else None,
                 "is_following": getattr(obj.user, "is_following", None),
             }
             author = UserSummary.model_validate(author_data)

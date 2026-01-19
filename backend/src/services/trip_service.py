@@ -117,6 +117,7 @@ class TripService:
             PermissionError: If access denied due to visibility settings
         """
         # Query trip with relationships (eager load user for visibility check)
+        from src.models.user import UserProfile
         result = await self.db.execute(
             select(Trip)
             .where(Trip.trip_id == trip_id)
@@ -124,7 +125,7 @@ class TripService:
                 selectinload(Trip.photos),
                 selectinload(Trip.locations),
                 selectinload(Trip.trip_tags).selectinload(TripTag.tag),
-                selectinload(Trip.user),  # Need user for trip_visibility check
+                selectinload(Trip.user).selectinload(User.profile),  # Need user + profile for author info (Feature 004)
             )
         )
         trip = result.scalar_one_or_none()
