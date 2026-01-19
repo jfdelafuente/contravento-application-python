@@ -62,13 +62,13 @@ async def commenter_user(db_session: AsyncSession) -> User:
 async def test_trip(db_session: AsyncSession, trip_owner: User) -> Trip:
     """Create a test trip for commenting."""
     trip = Trip(
-        id=str(uuid4()),
+        trip_id=str(uuid4()),
         user_id=trip_owner.id,
         title="Test Trip for Comments",
         description="This is a test trip for comment functionality",
         start_date=datetime.now(UTC).date(),
         distance_km=50.0,
-        status="PUBLISHED",
+        status="published",
         created_at=datetime.now(UTC),
     )
     db_session.add(trip)
@@ -101,14 +101,14 @@ async def test_create_comment_success(
 
     # Act
     comment = await CommentService.create_comment(
-        db_session, trip_id=test_trip.id, user_id=commenter_user.id, content=content
+        db_session, trip_id=test_trip.trip_id, user_id=commenter_user.id, content=content
     )
 
     # Assert
     assert comment.id is not None
     assert comment.content == content
     assert comment.user_id == commenter_user.id
-    assert comment.trip_id == test_trip.id
+    assert comment.trip_id == test_trip.trip_id
     assert comment.is_edited is False
     assert comment.created_at is not None
     assert comment.updated_at is None
@@ -137,13 +137,13 @@ async def test_create_comment_content_validation(
     # Test empty content
     with pytest.raises(ValueError, match="entre 1 y 500 caracteres"):
         await CommentService.create_comment(
-            db_session, trip_id=test_trip.id, user_id=commenter_user.id, content=""
+            db_session, trip_id=test_trip.trip_id, user_id=commenter_user.id, content=""
         )
 
     # Test whitespace-only content
     with pytest.raises(ValueError, match="entre 1 y 500 caracteres"):
         await CommentService.create_comment(
-            db_session, trip_id=test_trip.id, user_id=commenter_user.id, content="   "
+            db_session, trip_id=test_trip.trip_id, user_id=commenter_user.id, content="   "
         )
 
     # Test content too long (>500 chars)
@@ -151,7 +151,7 @@ async def test_create_comment_content_validation(
     with pytest.raises(ValueError, match="entre 1 y 500 caracteres"):
         await CommentService.create_comment(
             db_session,
-            trip_id=test_trip.id,
+            trip_id=test_trip.trip_id,
             user_id=commenter_user.id,
             content=long_content,
         )
@@ -170,13 +170,13 @@ async def test_create_comment_on_draft_trip_fails(
     """
     # Create draft trip
     draft_trip = Trip(
-        id=str(uuid4()),
+        trip_id=str(uuid4()),
         user_id=trip_owner.id,
         title="Draft Trip",
         description="Draft trip should not allow comments",
         start_date=datetime.now(UTC).date(),
         distance_km=30.0,
-        status="DRAFT",
+        status="draft",
         created_at=datetime.now(UTC),
     )
     db_session.add(draft_trip)
@@ -186,7 +186,7 @@ async def test_create_comment_on_draft_trip_fails(
     with pytest.raises(ValueError, match="solo puede comentarse en viajes publicados"):
         await CommentService.create_comment(
             db_session,
-            trip_id=draft_trip.id,
+            trip_id=draft_trip.trip_id,
             user_id=commenter_user.id,
             content="This should fail",
         )
@@ -213,7 +213,7 @@ async def test_update_comment_success(
     # Create comment
     comment = await CommentService.create_comment(
         db_session,
-        trip_id=test_trip.id,
+        trip_id=test_trip.trip_id,
         user_id=commenter_user.id,
         content="Original content",
     )
@@ -254,7 +254,7 @@ async def test_update_comment_only_owner_can_edit(
     # Create comment
     comment = await CommentService.create_comment(
         db_session,
-        trip_id=test_trip.id,
+        trip_id=test_trip.trip_id,
         user_id=commenter_user.id,
         content="Original content",
     )
@@ -288,7 +288,7 @@ async def test_delete_comment_by_author(
     # Create comment
     comment = await CommentService.create_comment(
         db_session,
-        trip_id=test_trip.id,
+        trip_id=test_trip.trip_id,
         user_id=commenter_user.id,
         content="This will be deleted",
     )
@@ -320,7 +320,7 @@ async def test_delete_comment_by_trip_owner(
     # Create comment
     comment = await CommentService.create_comment(
         db_session,
-        trip_id=test_trip.id,
+        trip_id=test_trip.trip_id,
         user_id=commenter_user.id,
         content="Comment on trip",
     )
@@ -330,7 +330,7 @@ async def test_delete_comment_by_trip_owner(
         db_session,
         comment_id=comment.id,
         user_id=trip_owner.id,
-        trip_id=test_trip.id,  # Pass trip_id to verify ownership
+        trip_id=test_trip.trip_id,  # Pass trip_id to verify ownership
     )
 
     # Verify deletion
@@ -367,7 +367,7 @@ async def test_delete_comment_unauthorized(
     # Create comment
     comment = await CommentService.create_comment(
         db_session,
-        trip_id=test_trip.id,
+        trip_id=test_trip.trip_id,
         user_id=commenter_user.id,
         content="Protected comment",
     )
@@ -398,37 +398,37 @@ async def test_get_trip_comments_pagination(
     - Pagination works correctly (limit, offset)
     - Total count is accurate
     """
-    # Create 15 comments
+    # Create 8 comments (stay under rate limit of 10/hour)
     comments = []
-    for i in range(15):
+    for i in range(8):
         comment = await CommentService.create_comment(
             db_session,
-            trip_id=test_trip.id,
+            trip_id=test_trip.trip_id,
             user_id=commenter_user.id,
             content=f"Comment {i + 1}",
         )
         comments.append(comment)
 
-    # Get first page (10 items)
+    # Get first page (5 items)
     result = await CommentService.get_trip_comments(
-        db_session, trip_id=test_trip.id, limit=10, offset=0
+        db_session, trip_id=test_trip.trip_id, limit=5, offset=0
     )
 
-    assert result["total"] == 15
-    assert len(result["items"]) == 10
+    assert result["total"] == 8
+    assert len(result["items"]) == 5
     # Verify chronological order (oldest first)
     assert result["items"][0].content == "Comment 1"
-    assert result["items"][9].content == "Comment 10"
+    assert result["items"][4].content == "Comment 5"
 
-    # Get second page (5 items)
+    # Get second page (3 items)
     result_page2 = await CommentService.get_trip_comments(
-        db_session, trip_id=test_trip.id, limit=10, offset=10
+        db_session, trip_id=test_trip.trip_id, limit=5, offset=5
     )
 
-    assert result_page2["total"] == 15
-    assert len(result_page2["items"]) == 5
-    assert result_page2["items"][0].content == "Comment 11"
-    assert result_page2["items"][4].content == "Comment 15"
+    assert result_page2["total"] == 8
+    assert len(result_page2["items"]) == 3
+    assert result_page2["items"][0].content == "Comment 6"
+    assert result_page2["items"][2].content == "Comment 8"
 
 
 # ============================================================
@@ -452,7 +452,7 @@ async def test_comment_rate_limiting(
     for i in range(10):
         comment = await CommentService.create_comment(
             db_session,
-            trip_id=test_trip.id,
+            trip_id=test_trip.trip_id,
             user_id=commenter_user.id,
             content=f"Rate limit test comment {i + 1}",
         )
@@ -462,7 +462,7 @@ async def test_comment_rate_limiting(
     with pytest.raises(ValueError, match="límite de 10 comentarios por hora"):
         await CommentService.create_comment(
             db_session,
-            trip_id=test_trip.id,
+            trip_id=test_trip.trip_id,
             user_id=commenter_user.id,
             content="This should be rate limited",
         )
@@ -485,7 +485,7 @@ async def test_comment_rate_limit_resets_after_hour(
         comment = Comment(
             id=str(uuid4()),
             user_id=commenter_user.id,
-            trip_id=test_trip.id,
+            trip_id=test_trip.trip_id,
             content=f"Old comment {i + 1}",
             created_at=old_timestamp,
             is_edited=False,
@@ -496,7 +496,7 @@ async def test_comment_rate_limit_resets_after_hour(
     # New comment should succeed (old comments don't count)
     new_comment = await CommentService.create_comment(
         db_session,
-        trip_id=test_trip.id,
+        trip_id=test_trip.trip_id,
         user_id=commenter_user.id,
         content="New comment after rate limit reset",
     )

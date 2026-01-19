@@ -48,11 +48,11 @@ class CommentService:
         await check_comment_rate_limit(db, user_id, limit=10, hours=1)
 
         # Verify trip exists and is published
-        result = await db.execute(select(Trip).where(Trip.id == trip_id))
+        result = await db.execute(select(Trip).where(Trip.trip_id == trip_id))
         trip = result.scalar_one_or_none()
         if not trip:
             raise ValueError('El viaje no existe')
-        if trip.status != 'PUBLISHED':
+        if trip.status != 'published':
             raise ValueError('El comentario solo puede comentarse en viajes publicados')
 
         # Sanitize HTML
