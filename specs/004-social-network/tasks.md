@@ -148,9 +148,13 @@ This work extends US1 with follow/unfollow functionality across all pages:
 
 ---
 
-## Phase 4: User Story 2 - Likes/Me Gusta (P2) 🎯 MVP (30 tasks)
+## Phase 4: User Story 2 - Likes/Me Gusta (P2) 🎯 MVP (30 tasks) ✅ COMPLETE
 
 **Goal**: Implement like/unlike functionality with optimistic UI updates
+
+**Backend Status**: ✅ 20/20 tasks completed (Tests + Implementation)
+**Frontend Status**: ✅ 10/10 tasks completed (Services + Hooks + Components + Integration)
+**Manual Testing**: ✅ Completed - All acceptance scenarios validated
 
 **Independent Test**:
 - View a published trip
@@ -159,44 +163,44 @@ This work extends US1 with follow/unfollow functionality across all pages:
 - Verify like appears in "Viajes que me gustan" section
 - Verify trip owner sees like in "who liked" list
 
-### Tests (TDD - Write FIRST) (11 tasks)
+### Tests (TDD - Write FIRST) (11 tasks) ✅ COMPLETED
 
-- [ ] T041 [P] [US2] Write unit test for LikeService.like_trip() in backend/tests/unit/test_like_service.py
-- [ ] T042 [P] [US2] Write unit test for LikeService.unlike_trip() in backend/tests/unit/test_like_service.py
-- [ ] T043 [P] [US2] Write unit test for LikeService.get_trip_likes() pagination in backend/tests/unit/test_like_service.py
-- [ ] T044 [P] [US2] Write unit test for preventing duplicate likes (FR-010) in backend/tests/unit/test_like_service.py
-- [ ] T045 [P] [US2] Write unit test for preventing self-likes (FR-011) in backend/tests/unit/test_like_service.py
-- [ ] T046 [P] [US2] Write integration test for POST /trips/{id}/like in backend/tests/integration/test_likes_api.py
-- [ ] T047 [P] [US2] Write integration test for DELETE /trips/{id}/like in backend/tests/integration/test_likes_api.py
-- [ ] T048 [P] [US2] Write integration test for GET /trips/{id}/likes in backend/tests/integration/test_likes_api.py
-- [ ] T049 [P] [US2] Write integration test for like (unauthorized - 401) in backend/tests/integration/test_likes_api.py
-- [ ] T050 [P] [US2] Write integration test for duplicate like (400) in backend/tests/integration/test_likes_api.py
-- [ ] T051 [P] [US2] Write integration test for self-like (400) in backend/tests/integration/test_likes_api.py
+- [X] T041 [P] [US2] Write unit test for LikeService.like_trip() in backend/tests/unit/test_like_service.py
+- [X] T042 [P] [US2] Write unit test for LikeService.unlike_trip() in backend/tests/unit/test_like_service.py
+- [X] T043 [P] [US2] Write unit test for LikeService.get_trip_likes() pagination in backend/tests/unit/test_like_service.py
+- [X] T044 [P] [US2] Write unit test for preventing duplicate likes (FR-010) in backend/tests/unit/test_like_service.py
+- [X] T045 [P] [US2] Write unit test for preventing self-likes (FR-011) in backend/tests/unit/test_like_service.py
+- [X] T046 [P] [US2] Write integration test for POST /trips/{id}/like in backend/tests/integration/test_likes_api.py
+- [X] T047 [P] [US2] Write integration test for DELETE /trips/{id}/like in backend/tests/integration/test_likes_api.py
+- [X] T048 [P] [US2] Write integration test for GET /trips/{id}/likes in backend/tests/integration/test_likes_api.py
+- [X] T049 [P] [US2] Write integration test for like (unauthorized - 401) in backend/tests/integration/test_likes_api.py
+- [X] T050 [P] [US2] Write integration test for duplicate like (400) in backend/tests/integration/test_likes_api.py
+- [X] T051 [P] [US2] Write integration test for self-like (400) in backend/tests/integration/test_likes_api.py
 
-### Backend Implementation (9 tasks)
+### Backend Implementation (9 tasks) ✅ COMPLETED
 
-- [ ] T052 [US2] Create Like model in backend/src/models/like.py
-- [ ] T053 [US2] Create LikeResponse Pydantic schema in backend/src/schemas/like.py
-- [ ] T054 [US2] Create LikesListResponse Pydantic schema in backend/src/schemas/like.py
-- [ ] T055 [US2] Implement LikeService.like_trip() with validations in backend/src/services/like_service.py
-- [ ] T056 [US2] Implement LikeService.unlike_trip() in backend/src/services/like_service.py
-- [ ] T057 [US2] Implement LikeService.get_trip_likes() with pagination in backend/src/services/like_service.py
-- [ ] T058 [US2] Create POST /trips/{id}/like endpoint in backend/src/api/likes.py
-- [ ] T059 [US2] Create DELETE /trips/{id}/like endpoint in backend/src/api/likes.py
-- [ ] T060 [US2] Create GET /trips/{id}/likes endpoint in backend/src/api/likes.py
+- [X] T052 [US2] Create Like model in backend/src/models/like.py
+- [X] T053 [US2] Create LikeResponse Pydantic schema in backend/src/schemas/like.py
+- [X] T054 [US2] Create LikesListResponse Pydantic schema in backend/src/schemas/like.py
+- [X] T055 [US2] Implement LikeService.like_trip() with validations in backend/src/services/like_service.py
+- [X] T056 [US2] Implement LikeService.unlike_trip() in backend/src/services/like_service.py
+- [X] T057 [US2] Implement LikeService.get_trip_likes() with pagination in backend/src/services/like_service.py
+- [X] T058 [US2] Create POST /trips/{id}/like endpoint in backend/src/api/likes.py
+- [X] T059 [US2] Create DELETE /trips/{id}/like endpoint in backend/src/api/likes.py
+- [X] T060 [US2] Create GET /trips/{id}/likes endpoint in backend/src/api/likes.py
 
-### Frontend Implementation (10 tasks)
+### Frontend Implementation (10 tasks) ✅ COMPLETED
 
-- [ ] T061 [P] [US2] Create LikeService with likeTrip(), unlikeTrip() in frontend/src/services/likeService.ts
-- [ ] T062 [P] [US2] Create useLike() custom hook with optimistic updates in frontend/src/hooks/useLike.ts
-- [ ] T063 [P] [US2] Create LikeButton component with heart icon in frontend/src/components/likes/LikeButton.tsx
-- [ ] T064 [P] [US2] Create LikesList modal component in frontend/src/components/likes/LikesList.tsx
-- [ ] T065 [US2] Integrate LikeButton into FeedItem component in frontend/src/components/feed/FeedItem.tsx
-- [ ] T066 [US2] Integrate LikeButton into TripDetailPage in frontend/src/pages/TripDetailPage.tsx
-- [ ] T067 [US2] Register likes router in backend/src/main.py
-- [ ] T068 [US2] Run unit tests to verify LikeService implementation (SC-006: <200ms)
-- [ ] T069 [US2] Manual test: Verify like toggle responds in <200ms (SC-006)
-- [ ] T070 [US2] Manual test: Verify optimistic update rollback on error
+- [X] T061 [P] [US2] Create LikeService with likeTrip(), unlikeTrip() in frontend/src/services/likeService.ts
+- [X] T062 [P] [US2] Create useLike() custom hook with optimistic updates in frontend/src/hooks/useLike.ts
+- [X] T063 [P] [US2] Create LikeButton component with heart icon in frontend/src/components/likes/LikeButton.tsx
+- [X] T064 [US2] Create LikesList modal component in frontend/src/components/likes/LikesList.tsx
+- [X] T065 [US2] Integrate LikeButton into FeedItem component in frontend/src/components/feed/FeedItem.tsx
+- [X] T066 [US2] Integrate LikeButton into TripDetailPage in frontend/src/pages/TripDetailPage.tsx
+- [X] T067 [US2] Register likes router in backend/src/main.py
+- [X] T068 [US2] Run unit tests to verify LikeService implementation (SC-006: <200ms)
+- [X] T069 [US2] Manual test: Verify like toggle responds in <200ms (SC-006)
+- [X] T070 [US2] Manual test: Verify optimistic update rollback on error
 
 ---
 
