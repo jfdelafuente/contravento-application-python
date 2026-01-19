@@ -98,12 +98,21 @@
   margin: 0 0 16px 0;
 }
 
-/* Author Section (Feature 004) */
+/* Metadata + Author Container (Feature 004) */
+.trip-detail-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Author Section (Feature 004) - Right-aligned in meta row */
 .trip-detail-page__author {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-left: auto;
 }
 
 .trip-detail-page__author-link {
@@ -120,8 +129,8 @@
 }
 
 .trip-detail-page__author-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border-color, #e5e7eb);
@@ -134,7 +143,7 @@
   background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--primary-dark, #1d4ed8) 100%);
   color: white;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
 }
 
@@ -145,21 +154,14 @@
 }
 
 .trip-detail-page__author-username {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary, #111827);
 }
 
 .trip-detail-page__author-fullname {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--text-secondary, #6b7280);
-}
-
-.trip-detail-page__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
 }
 
 .trip-detail-page__meta-item {
