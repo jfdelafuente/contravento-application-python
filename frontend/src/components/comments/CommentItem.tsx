@@ -60,8 +60,28 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const formatTimestamp = (isoString: string) => {
     try {
       const date = new Date(isoString);
-      return formatDistanceToNow(date, { addSuffix: true, locale: es });
-    } catch {
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      const diffInMinutes = Math.floor(diffInSeconds / 60);
+      const diffInHours = Math.floor(diffInMinutes / 60);
+
+      // Custom Spanish formatting (exact minutes/hours, no rounding)
+      if (diffInSeconds < 60) {
+        return 'hace unos segundos';
+      } else if (diffInMinutes === 1) {
+        return 'hace 1 minuto';
+      } else if (diffInMinutes < 60) {
+        return `hace ${diffInMinutes} minutos`;
+      } else if (diffInHours === 1) {
+        return 'hace 1 hora';
+      } else if (diffInHours < 24) {
+        return `hace ${diffInHours} horas`;
+      } else {
+        // For older comments (24+ hours), use date-fns
+        return formatDistanceToNow(date, { addSuffix: true, locale: es });
+      }
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
       return isoString;
     }
   };

@@ -8,9 +8,9 @@ Schemas:
 - CommentsListResponse: Paginated list of comments (T088)
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CommentCreateInput(BaseModel):
@@ -109,7 +109,15 @@ class CommentResponse(BaseModel):
         None, description="Comment author details (optional)"
     )
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(
+        from_attributes=True,
+        # Serialize datetimes as ISO 8601 with 'Z' suffix for UTC
+        json_encoders={
+            datetime: lambda v: v.replace(tzinfo=UTC).isoformat().replace("+00:00", "Z")
+            if v and not v.tzinfo
+            else (v.isoformat().replace("+00:00", "Z") if v else None)
+        },
+    )
 
 
 class CommentsListResponse(BaseModel):
