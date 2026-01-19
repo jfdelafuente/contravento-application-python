@@ -22,6 +22,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.trip import Trip
 from src.models.user import User
+from src.utils.security import create_access_token
+
+
+def get_auth_headers(user: User) -> dict[str, str]:
+    """
+    Generate authentication headers for a given user.
+
+    Args:
+        user: User model instance
+
+    Returns:
+        Dictionary with Authorization header containing JWT token
+    """
+    access_token = create_access_token({"sub": user.id, "username": user.username})
+    return {"Authorization": f"Bearer {access_token}"}
 
 
 @pytest.fixture
@@ -62,13 +77,13 @@ async def commenter_user(db_session: AsyncSession) -> User:
 async def published_trip(db_session: AsyncSession, trip_owner: User) -> Trip:
     """Create a published trip."""
     trip = Trip(
-        id=str(uuid4()),
+        trip_id=str(uuid4()),
         user_id=trip_owner.id,
         title="API Test Trip for Comments",
         description="Testing comments API with this trip",
         start_date=datetime.now(UTC).date(),
         distance_km=150.0,
-        status="PUBLISHED",
+        status="published",
         created_at=datetime.now(UTC),
     )
     db_session.add(trip)
@@ -87,7 +102,6 @@ async def test_create_comment_success(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T077: POST /trips/{id}/comments creates comment successfully.
@@ -102,9 +116,9 @@ async def test_create_comment_success(
 
     # Act
     response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json=comment_data,
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
 
     # Assert
@@ -113,7 +127,7 @@ async def test_create_comment_success(
     assert data["success"] is True
     assert data["data"]["content"] == comment_data["content"]
     assert data["data"]["user_id"] == commenter_user.id
-    assert data["data"]["trip_id"] == published_trip.id
+    assert data["data"]["trip_id"] == published_trip.trip_id
     assert data["data"]["is_edited"] is False
     assert "created_at" in data["data"]
 
@@ -123,7 +137,6 @@ async def test_create_comment_validation(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T077: POST /trips/{id}/comments validates content (FR-017).
@@ -135,9 +148,9 @@ async def test_create_comment_validation(
     """
     # Test empty content
     response_empty = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": ""},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_empty.status_code == 400
     assert "entre 1 y 500 caracteres" in response_empty.json()["error"]["message"]
@@ -145,9 +158,9 @@ async def test_create_comment_validation(
     # Test content too long
     long_content = "a" * 501
     response_long = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": long_content},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_long.status_code == 400
     assert "entre 1 y 500 caracteres" in response_long.json()["error"]["message"]
@@ -163,7 +176,6 @@ async def test_get_trip_comments_success(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T078: GET /trips/{id}/comments returns paginated comments (FR-018, FR-024).
@@ -177,13 +189,13 @@ async def test_get_trip_comments_success(
     # Create 3 comments
     for i in range(3):
         await client.post(
-            f"/trips/{published_trip.id}/comments",
+            f"/trips/{published_trip.trip_id}/comments",
             json={"content": f"Comment {i + 1}"},
-            headers=auth_headers(commenter_user),
+            headers=get_auth_headers(commenter_user),
         )
 
     # Get comments (unauthenticated - should work)
-    response = await client.get(f"/trips/{published_trip.id}/comments")
+    response = await client.get(f"/trips/{published_trip.trip_id}/comments")
 
     # Assert
     assert response.status_code == 200
@@ -201,7 +213,6 @@ async def test_get_trip_comments_pagination(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T078: GET /trips/{id}/comments supports pagination (FR-024).
@@ -214,14 +225,14 @@ async def test_get_trip_comments_pagination(
     # Create 15 comments
     for i in range(15):
         await client.post(
-            f"/trips/{published_trip.id}/comments",
+            f"/trips/{published_trip.trip_id}/comments",
             json={"content": f"Comment {i + 1}"},
-            headers=auth_headers(commenter_user),
+            headers=get_auth_headers(commenter_user),
         )
 
     # Get first page (10 items)
     response_page1 = await client.get(
-        f"/trips/{published_trip.id}/comments?limit=10&offset=0"
+        f"/trips/{published_trip.trip_id}/comments?limit=10&offset=0"
     )
     assert response_page1.status_code == 200
     data_page1 = response_page1.json()["data"]
@@ -231,7 +242,7 @@ async def test_get_trip_comments_pagination(
 
     # Get second page (5 items)
     response_page2 = await client.get(
-        f"/trips/{published_trip.id}/comments?limit=10&offset=10"
+        f"/trips/{published_trip.trip_id}/comments?limit=10&offset=10"
     )
     assert response_page2.status_code == 200
     data_page2 = response_page2.json()["data"]
@@ -250,7 +261,6 @@ async def test_update_comment_success(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T079: PUT /comments/{id} updates comment and sets is_edited (FR-020).
@@ -264,9 +274,9 @@ async def test_update_comment_success(
     """
     # Create comment
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Original content"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
@@ -274,7 +284,7 @@ async def test_update_comment_success(
     update_response = await client.put(
         f"/comments/{comment_id}",
         json={"content": "Updated content after editing"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
 
     # Assert
@@ -292,7 +302,6 @@ async def test_update_comment_only_owner_can_edit(
     published_trip: Trip,
     commenter_user: User,
     trip_owner: User,
-    auth_headers: dict,
 ):
     """
     Test T079: Only comment author can edit their own comment.
@@ -303,9 +312,9 @@ async def test_update_comment_only_owner_can_edit(
     """
     # Create comment as commenter_user
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Original content"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
@@ -313,7 +322,7 @@ async def test_update_comment_only_owner_can_edit(
     update_response = await client.put(
         f"/comments/{comment_id}",
         json={"content": "Trying to edit someone else's comment"},
-        headers=auth_headers(trip_owner),
+        headers=get_auth_headers(trip_owner),
     )
 
     # Assert
@@ -334,7 +343,6 @@ async def test_delete_comment_by_author(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T080: DELETE /comments/{id} allows author to delete (FR-021).
@@ -346,15 +354,15 @@ async def test_delete_comment_by_author(
     """
     # Create comment
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "This will be deleted"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
     # Delete comment
     delete_response = await client.delete(
-        f"/comments/{comment_id}", headers=auth_headers(commenter_user)
+        f"/comments/{comment_id}", headers=get_auth_headers(commenter_user)
     )
 
     # Assert deletion
@@ -362,7 +370,7 @@ async def test_delete_comment_by_author(
 
     # Verify comment no longer exists
     get_response = await client.get(
-        f"/trips/{published_trip.id}/comments", headers=auth_headers(commenter_user)
+        f"/trips/{published_trip.trip_id}/comments", headers=get_auth_headers(commenter_user)
     )
     comments = get_response.json()["data"]["items"]
     assert not any(c["id"] == comment_id for c in comments)
@@ -374,7 +382,6 @@ async def test_delete_comment_by_trip_owner(
     published_trip: Trip,
     commenter_user: User,
     trip_owner: User,
-    auth_headers: dict,
 ):
     """
     Test T080: DELETE /comments/{id} allows trip owner to delete (FR-022 - moderation).
@@ -385,15 +392,15 @@ async def test_delete_comment_by_trip_owner(
     """
     # Create comment
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Comment to be moderated"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
     # Trip owner deletes comment (moderation)
     delete_response = await client.delete(
-        f"/comments/{comment_id}", headers=auth_headers(trip_owner)
+        f"/comments/{comment_id}", headers=get_auth_headers(trip_owner)
     )
 
     # Assert
@@ -406,7 +413,6 @@ async def test_delete_comment_unauthorized(
     published_trip: Trip,
     commenter_user: User,
     db_session: AsyncSession,
-    auth_headers: dict,
 ):
     """
     Test T080: Only comment author or trip owner can delete comment.
@@ -429,15 +435,15 @@ async def test_delete_comment_unauthorized(
 
     # Create comment
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Protected comment"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
     # Try to delete as unauthorized user
     delete_response = await client.delete(
-        f"/comments/{comment_id}", headers=auth_headers(other_user)
+        f"/comments/{comment_id}", headers=get_auth_headers(other_user)
     )
 
     # Assert
@@ -464,7 +470,7 @@ async def test_create_comment_unauthorized(client: AsyncClient, published_trip: 
     """
     # Try to create comment without authentication
     response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Unauthenticated comment"},
     )
 
@@ -475,7 +481,7 @@ async def test_create_comment_unauthorized(client: AsyncClient, published_trip: 
 
 @pytest.mark.asyncio
 async def test_update_comment_unauthorized(
-    client: AsyncClient, published_trip: Trip, commenter_user: User, auth_headers: dict
+    client: AsyncClient, published_trip: Trip, commenter_user: User
 ):
     """
     Test T081: PUT /comments/{id} requires authentication.
@@ -485,9 +491,9 @@ async def test_update_comment_unauthorized(
     """
     # Create comment first
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Original content"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
@@ -502,7 +508,7 @@ async def test_update_comment_unauthorized(
 
 @pytest.mark.asyncio
 async def test_delete_comment_unauthorized(
-    client: AsyncClient, published_trip: Trip, commenter_user: User, auth_headers: dict
+    client: AsyncClient, published_trip: Trip, commenter_user: User
 ):
     """
     Test T081: DELETE /comments/{id} requires authentication.
@@ -512,9 +518,9 @@ async def test_delete_comment_unauthorized(
     """
     # Create comment first
     create_response = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "Comment to delete"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     comment_id = create_response.json()["data"]["id"]
 
@@ -535,7 +541,6 @@ async def test_comment_rate_limit_exceeded(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T082: POST /trips/{id}/comments enforces rate limit (10/hour).
@@ -547,17 +552,17 @@ async def test_comment_rate_limit_exceeded(
     # Create 10 comments (should succeed)
     for i in range(10):
         response = await client.post(
-            f"/trips/{published_trip.id}/comments",
+            f"/trips/{published_trip.trip_id}/comments",
             json={"content": f"Rate limit test comment {i + 1}"},
-            headers=auth_headers(commenter_user),
+            headers=get_auth_headers(commenter_user),
         )
         assert response.status_code == 201
 
     # 11th comment should be rate limited
     response_limited = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": "This should be rate limited"},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
 
     # Assert
@@ -576,7 +581,6 @@ async def test_comment_xss_prevention(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T083: POST /trips/{id}/comments sanitizes HTML to prevent XSS.
@@ -590,9 +594,9 @@ async def test_comment_xss_prevention(
     # Test script tag removal
     malicious_script = "<script>alert('XSS')</script>Great trip!"
     response_script = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": malicious_script},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_script.status_code == 201
     sanitized_content = response_script.json()["data"]["content"]
@@ -603,9 +607,9 @@ async def test_comment_xss_prevention(
     # Test event handler removal
     malicious_onclick = '<div onclick="alert(\'XSS\')">Click me</div>'
     response_onclick = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": malicious_onclick},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_onclick.status_code == 201
     sanitized_onclick = response_onclick.json()["data"]["content"]
@@ -616,9 +620,9 @@ async def test_comment_xss_prevention(
     # Test safe HTML is preserved
     safe_html = "<p>This is <b>bold</b> and <i>italic</i> text.</p>"
     response_safe = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": safe_html},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_safe.status_code == 201
     safe_content = response_safe.json()["data"]["content"]
@@ -632,7 +636,6 @@ async def test_comment_iframe_and_object_removal(
     client: AsyncClient,
     published_trip: Trip,
     commenter_user: User,
-    auth_headers: dict,
 ):
     """
     Test T083: HTML sanitization removes <iframe> and <object> tags.
@@ -644,9 +647,9 @@ async def test_comment_iframe_and_object_removal(
     # Test iframe removal
     malicious_iframe = '<iframe src="https://evil.com/steal.html"></iframe>Comment'
     response_iframe = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": malicious_iframe},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_iframe.status_code == 201
     sanitized = response_iframe.json()["data"]["content"]
@@ -657,9 +660,9 @@ async def test_comment_iframe_and_object_removal(
     # Test object removal
     malicious_object = '<object data="evil.swf"></object>Text'
     response_object = await client.post(
-        f"/trips/{published_trip.id}/comments",
+        f"/trips/{published_trip.trip_id}/comments",
         json={"content": malicious_object},
-        headers=auth_headers(commenter_user),
+        headers=get_auth_headers(commenter_user),
     )
     assert response_object.status_code == 201
     sanitized_obj = response_object.json()["data"]["content"]
