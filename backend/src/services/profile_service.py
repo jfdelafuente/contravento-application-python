@@ -76,6 +76,11 @@ class ProfileService:
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
+        # Check privacy settings (T118 - Privacy enforcement)
+        is_owner = viewer_username == username
+        if user.profile_visibility == 'private' and not is_owner:
+            raise ValueError(f"El perfil de '{username}' es privado")
+
         # Get or create profile
         profile = user.profile
         if not profile:
@@ -95,9 +100,6 @@ class ProfileService:
                 total_kilometers=stats.total_kilometers,
                 achievements_count=stats.achievements_count,
             )
-
-        # Build response respecting privacy
-        is_owner = viewer_username == username
 
         # Convert relative photo URLs to absolute URLs for backward compatibility
         photo_url = profile.profile_photo_url

@@ -9,20 +9,27 @@
  * User Profile (from backend API)
  * Complete user profile data including bio, location, cycling preferences,
  * and privacy settings.
+ * Matches ProfileResponse schema from backend.
  */
 export interface UserProfile {
-  user_id: string;
   username: string;
-  email: string;
+  full_name?: string;
   bio?: string;
+  photo_url?: string;
   location?: string;
   cycling_type?: string;
-  photo_url?: string;
-  is_verified: boolean;
   profile_visibility: 'public' | 'private';
   trip_visibility: 'public' | 'followers' | 'private';
+  show_email: boolean;
+  show_location: boolean;
+  followers_count: number;
+  following_count: number;
+  stats?: {
+    total_trips: number;
+    total_kilometers: number;
+    achievements_count: number;
+  };
   created_at: string;
-  updated_at: string;
 }
 
 /**

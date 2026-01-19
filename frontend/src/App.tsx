@@ -31,6 +31,9 @@ const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage').then(module =
 // Personalized Feed (Feature 004)
 const FeedPage = lazy(() => import('./pages/FeedPage').then(module => ({ default: module.FeedPage })));
 
+// User Profile (Feature 004 - Social Network)
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then(module => ({ default: module.UserProfilePage })));
+
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
   <div className="loading-container">
@@ -130,6 +133,9 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* User Profile (Feature 004 - Social Network) */}
+              <Route path="/users/:username" element={<UserProfilePage />} />
 
               {/* Legal pages */}
               <Route path="/terms-of-service" element={<TermsOfServicePage />} />
