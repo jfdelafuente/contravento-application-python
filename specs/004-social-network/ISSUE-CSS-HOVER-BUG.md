@@ -186,4 +186,37 @@ None
 
 **Created**: 2026-01-19
 **Last Updated**: 2026-01-19
-**Status**: Open
+**Status**: ✅ FIXED (pending verification)
+
+---
+
+## Fix Applied
+
+**Date**: 2026-01-19
+**File**: `frontend/src/components/likes/LikeButton.css` (lines 75-86)
+
+**Solution Implemented**: Opción A - `pointer-events: none` for non-clickable counters
+
+**CSS Changes**:
+```css
+/* Count */
+.like-button__count {
+  font-weight: 500;
+  min-width: 1.5rem;
+  text-align: center;
+  color: inherit; /* Asegurar herencia por defecto */
+}
+
+/* Non-clickable count (when likeCount = 0) - Fix for CSS hover bug */
+.like-button__count:not(.like-button__count--clickable) {
+  color: currentColor; /* Mantener color heredado del padre */
+  pointer-events: none; /* Prevenir cualquier interacción visual */
+}
+```
+
+**How it works**:
+- Selector targets counters WITHOUT `--clickable` class (i.e., `likeCount = 0`)
+- `pointer-events: none` disables ALL mouse interactions (hover, click, cursor change)
+- Does NOT affect counters WITH `--clickable` class (`likeCount > 0`)
+
+**Testing**: See `CSS-HOVER-BUG-FIX-TESTING.md` for manual testing guide

@@ -76,6 +76,13 @@
   font-weight: 500;
   min-width: 1.5rem;
   text-align: center;
+  color: inherit; /* Asegurar herencia por defecto */
+}
+
+/* Non-clickable count (when likeCount = 0) - Fix for CSS hover bug */
+.like-button__count:not(.like-button__count--clickable) {
+  color: currentColor; /* Mantener color heredado del padre */
+  pointer-events: none; /* Prevenir cualquier interacción visual */
 }
 
 /* Clickable count (for opening likes list) */
