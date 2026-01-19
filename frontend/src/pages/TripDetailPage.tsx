@@ -15,6 +15,7 @@ import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
 import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
+import { CommentList } from '../components/comments/CommentList';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import type { LocationSelection } from '../types/geocoding';
@@ -674,6 +675,13 @@ export const TripDetailPage: React.FC = () => {
                 onMarkerDrag={handleMarkerDrag}
               />
             </Suspense>
+          </section>
+        )}
+
+        {/* Comments Section (Feature 004 - US3) */}
+        {trip.status === 'published' && (
+          <section className="trip-detail-page__section">
+            <CommentList tripId={trip.trip_id} />
           </section>
         )}
 
