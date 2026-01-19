@@ -14,6 +14,7 @@ import { TripGallery } from '../components/trips/TripGallery';
 import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
 import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
+import { FollowButton } from '../components/social/FollowButton';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import type { LocationSelection } from '../types/geocoding';
@@ -445,6 +446,37 @@ export const TripDetailPage: React.FC = () => {
         <div className="trip-detail-page__header">
           <div className="trip-detail-page__header-content">
             <h1 className="trip-detail-page__title">{trip.title}</h1>
+
+            {/* Author (Feature 004) */}
+            <div className="trip-detail-page__author">
+              <Link to={`/users/${trip.author.username}`} className="trip-detail-page__author-link">
+                {trip.author.profile_photo_url ? (
+                  <img
+                    src={getPhotoUrl(trip.author.profile_photo_url)}
+                    alt={trip.author.username}
+                    className="trip-detail-page__author-avatar"
+                  />
+                ) : (
+                  <div className="trip-detail-page__author-avatar trip-detail-page__author-avatar--placeholder">
+                    {trip.author.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="trip-detail-page__author-info">
+                  <span className="trip-detail-page__author-username">{trip.author.username}</span>
+                  {trip.author.full_name && (
+                    <span className="trip-detail-page__author-fullname">{trip.author.full_name}</span>
+                  )}
+                </div>
+              </Link>
+              {!isOwner && (
+                <FollowButton
+                  username={trip.author.username}
+                  initialFollowing={trip.author.is_following || false}
+                  size="small"
+                  variant="secondary"
+                />
+              )}
+            </div>
 
             {/* Metadata */}
             <div className="trip-detail-page__meta">

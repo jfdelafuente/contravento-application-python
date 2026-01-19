@@ -146,6 +146,10 @@ class TripService:
             trip.like_count = 0
             trip.is_liked = None
 
+            # Add is_following to user object (Feature 004)
+            # Owner viewing their own draft, so is_following is None
+            trip.user.is_following = None
+
             return trip
 
         # Check visibility - Published trips with trip_visibility
@@ -199,6 +203,22 @@ class TripService:
         # Add dynamic attributes to trip object
         trip.like_count = like_count
         trip.is_liked = is_liked
+
+        # Calculate is_following status for trip author (Feature 004)
+        # Owner never "follows" themselves
+        is_following = None
+        if current_user_id and not is_owner:
+            from src.models.social import Follow
+            follow_result = await self.db.execute(
+                select(Follow).where(
+                    Follow.follower_id == current_user_id,
+                    Follow.following_id == trip.user_id
+                )
+            )
+            is_following = follow_result.scalar_one_or_none() is not None
+
+        # Add is_following to user object (will be used by TripResponse.model_validate)
+        trip.user.is_following = is_following
 
         return trip
 

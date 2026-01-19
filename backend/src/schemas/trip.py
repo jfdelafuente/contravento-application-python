@@ -14,6 +14,8 @@ try:
 except ImportError:
     from typing import Self
 
+from src.schemas.feed import UserSummary  # Feature 004 - Author info in trip detail
+
 
 # ============================================================================
 # Request Schemas (Input)
@@ -365,6 +367,7 @@ class TripResponse(BaseModel):
     Attributes:
         trip_id: Unique trip identifier
         user_id: Trip author's user ID
+        author: Trip author's profile summary (Feature 004)
         title: Trip title
         description: HTML description (sanitized)
         status: Trip status (draft/published)
@@ -384,6 +387,7 @@ class TripResponse(BaseModel):
 
     trip_id: str = Field(..., description="Unique trip identifier")
     user_id: str = Field(..., description="Trip author's user ID")
+    author: UserSummary = Field(..., description="Trip author's profile summary (Feature 004)")
     title: str = Field(..., description="Trip title")
     description: str = Field(..., description="Trip description (HTML)")
     status: str = Field(..., description="Trip status (draft/published)")
@@ -408,10 +412,22 @@ class TripResponse(BaseModel):
         if hasattr(obj, "trip_tags"):
             # Extract tags from trip_tags relationship
             tags = [trip_tag.tag for trip_tag in obj.trip_tags]
+
+            # Build author UserSummary from trip.user (Feature 004)
+            author_data = {
+                "user_id": obj.user.id,
+                "username": obj.user.username,
+                "full_name": obj.user.full_name,
+                "profile_photo_url": obj.user.profile_photo_url,
+                "is_following": getattr(obj.user, "is_following", None),
+            }
+            author = UserSummary.model_validate(author_data)
+
             # Create a dict with all attributes
             data = {
                 "trip_id": obj.trip_id,
                 "user_id": obj.user_id,
+                "author": author,
                 "title": obj.title,
                 "description": obj.description,
                 "status": obj.status.value if hasattr(obj.status, "value") else obj.status,
