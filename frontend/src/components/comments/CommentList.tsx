@@ -47,8 +47,13 @@ export const CommentList: React.FC<CommentListProps> = ({ tripId }) => {
 
   const handleEdit = useCallback((comment: Comment) => {
     setEditingComment(comment);
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to form at bottom
+    setTimeout(() => {
+      const formElement = document.querySelector('.comment-list-form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   }, []);
 
   const handleDelete = useCallback(
@@ -82,17 +87,6 @@ export const CommentList: React.FC<CommentListProps> = ({ tripId }) => {
         <h3 className="comment-list-title">
           Comentarios ({total})
         </h3>
-      </div>
-
-      {/* Comment Form */}
-      <div className="comment-list-form">
-        <CommentForm
-          tripId={tripId}
-          editingComment={editingComment}
-          onCommentCreated={handleCommentCreated}
-          onCommentUpdated={handleCommentUpdated}
-          onCancel={handleCancelEdit}
-        />
       </div>
 
       {/* Comments List */}
@@ -144,6 +138,17 @@ export const CommentList: React.FC<CommentListProps> = ({ tripId }) => {
           )}
         </>
       )}
+
+      {/* Comment Form - Always at the bottom */}
+      <div className="comment-list-form">
+        <CommentForm
+          tripId={tripId}
+          editingComment={editingComment}
+          onCommentCreated={handleCommentCreated}
+          onCommentUpdated={handleCommentUpdated}
+          onCancel={handleCancelEdit}
+        />
+      </div>
     </div>
   );
 };
