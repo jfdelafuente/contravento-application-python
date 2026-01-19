@@ -9,10 +9,11 @@
 
 ## Bug #1: Duplicate Trips in Infinite Scroll Pagination
 
-**Status**: ⚠️ **WORKAROUND APPLIED** (Frontend fix in place, backend fix needed)
+**Status**: ✅ **FIXED** (Backend Sequential Algorithm + Frontend workaround removed)
 **Severity**: Medium
 **Found During**: TC-US1-004 (Infinite Scroll Pagination)
-**Commit**: c315c67
+**Found in Commit**: c315c67
+**Fixed**: 2026-01-19
 
 ### Description
 
@@ -99,44 +100,80 @@ return [...prev, ...newTrips];
 3. Paginate the merged result set
 4. No duplicates possible due to deterministic ordering
 
+### Fix Applied ✅
+
+**Date**: 2026-01-19
+**Solution**: Option 1 - Sequential Algorithm (simplest and most robust)
+
+**Backend Changes** (`backend/src/services/feed_service.py`):
+
+1. **Refactored `get_personalized_feed()`** (lines 28-124):
+   - Implemented Sequential Algorithm:
+     - Show ALL trips from followed users first (pages 1...N)
+     - When followed trips exhausted, show community backfill (pages N+1...)
+   - Added count-only optimization: `_get_followed_trips(limit=0)` to get total count
+   - Calculate phase transition point: `offset < followed_count`
+   - Handle page boundaries correctly (backfill remaining space on last followed page)
+
+2. **Enhanced `_get_community_trips()`** (lines 249-252, 287):
+   - Added query to get `followed_user_ids` from `Follow` table
+   - Filter out trips from followed users: `not_(Trip.user_id.in_(followed_user_ids))`
+   - Applied filter to both main query and count query
+   - Ensures community trips ONLY show unfollowed users
+
+**Frontend Changes** (`frontend/src/hooks/useFeed.ts`):
+- **Removed deduplication workaround** (lines 248-258):
+  - Changed from: `const newTrips = response.trips.filter(t => !existingIds.has(t.trip_id))`
+  - Changed to: `setTrips((prev) => [...prev, ...response.trips])`
+  - Simple append now works correctly (no duplicates from backend)
+
+**Testing** (`backend/tests/integration/test_feed_api.py`):
+- ✅ Added `test_feed_pagination_no_duplicates` (lines 318-466):
+  - Creates testuser following user1 (7 trips)
+  - Creates user2 not followed (5 trips)
+  - Fetches all 3 pages (limit=5 per page)
+  - Verifies NO duplicates: `len(all_trip_ids) == len(unique_trip_ids)`
+  - Verifies sequential ordering: followed trips appear before community trips
+  - **Result**: Test PASSED ✅
+
+**New Fixture** (`backend/tests/fixtures/feature_013_fixtures.py`):
+- Added `current_user` fixture for feed pagination tests (lines 201-227)
+
 ### Files Affected
 
-**Frontend** (✅ Fixed):
-- `frontend/src/hooks/useFeed.ts` - Deduplication workaround applied
+**Backend** (✅ FIXED):
+- `backend/src/services/feed_service.py` - Sequential Algorithm implemented
+- `backend/tests/integration/test_feed_api.py` - Integration test added
+- `backend/tests/fixtures/feature_013_fixtures.py` - New fixture added
 
-**Backend** (⚠️ Needs fix):
-- `backend/src/services/feed_service.py` - Hybrid algorithm logic
-- `backend/tests/integration/test_feed_service.py` - Add pagination duplicate test
+**Frontend** (✅ FIXED):
+- `frontend/src/hooks/useFeed.ts` - Deduplication workaround removed
 
 ### Testing Impact
 
-**Test Result**: TC-US1-004 = ⚠️ **PASS (with workaround)**
+**Test Result**: TC-US1-004 = ✅ **PASS (Backend fix verified)**
 
-- ✅ Infinite scroll loads more trips
-- ✅ No visual duplicates shown to user
+- ✅ Infinite scroll loads more trips (no duplicates)
+- ✅ Backend Sequential Algorithm working correctly
+- ✅ Integration test passing (12 unique trips across 3 pages)
+- ✅ Frontend workaround removed (clean code)
 - ✅ Loading spinner appears correctly
-- ⚠️ Backend pagination has bug (workaround applied)
-
-**Next Steps**:
-1. Create backend issue to fix hybrid feed algorithm
-2. Add integration test for pagination without duplicates
-3. Remove frontend workaround after backend fix
-4. Re-test TC-US1-004 to verify end-to-end fix
 
 ---
 
 ## Summary
 
-| Bug ID | Severity | Status | Workaround | Backend Fix Needed |
-|--------|----------|--------|------------|-------------------|
-| #1 - Duplicate Trips | Medium | ⚠️ Mitigated | ✅ Frontend dedup | ⚠️ Yes - feed_service.py |
+| Bug ID | Severity | Status | Backend Fix | Frontend Fix | Integration Test |
+|--------|----------|--------|-------------|--------------|------------------|
+| #1 - Duplicate Trips | Medium | ✅ FIXED | ✅ Sequential Algorithm | ✅ Workaround removed | ✅ test_feed_pagination_no_duplicates |
 
 **Total Bugs Found**: 1
 **Critical Bugs**: 0
-**Blocking Bugs**: 0 (workaround in place)
+**Blocking Bugs**: 0
+**Fixed Bugs**: 1 ✅
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2026-01-18
+**Document Version**: 2.0
+**Last Updated**: 2026-01-19
 **Maintained by**: Claude Code

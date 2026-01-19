@@ -247,16 +247,7 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
 
       if (append) {
         // Append to existing trips (infinite scroll)
-        setTrips((prev) => {
-          // TEMPORARY FIX: Deduplicate trips by trip_id
-          // TODO: Fix backend hybrid feed algorithm to prevent duplicate trips across pages
-          // Issue: Backend's hybrid algorithm (followed users + community backfill) can return
-          // the same trip in multiple pages when transitioning from followed to community content
-          const existingIds = new Set(prev.map(t => t.trip_id));
-          const newTrips = response.trips.filter(t => !existingIds.has(t.trip_id));
-
-          return [...prev, ...newTrips];
-        });
+        setTrips((prev) => [...prev, ...response.trips]);
       } else {
         // Replace trips (initial load or refetch)
         setTrips(response.trips);

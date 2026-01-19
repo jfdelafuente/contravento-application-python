@@ -47,13 +47,13 @@
 - ✅ Accessibility: ARIA labels, keyboard navigation
 - ✅ Loading states con spinners
 
-**Testing Manual Completado** (50% - 14/28 tests):
+**Testing Manual Completado** (54% - 15/28 tests):
 
-**US1: Feed Personalizado** (62% - 5/8 tests):
+**US1: Feed Personalizado** (75% - 6/8 tests):
 - ✅ TC-US1-001: Access Feed (Authenticated)
 - ⚠️ TC-US1-002: Feed Content (Followed Users) - BLOQUEADO (requiere Follow UI)
 - ✅ TC-US1-003: Feed Content (Popular Backfill)
-- ⏳ TC-US1-004: Infinite Scroll Pagination - PENDING
+- ✅ TC-US1-004: Infinite Scroll Pagination - FIXED (Bug #1 resolved 2026-01-19)
 - ⏳ TC-US1-005: Skeleton Loading State - PENDING
 - ✅ TC-US1-006: Unauthorized Access
 - ✅ TC-US1-007: Empty State
@@ -71,14 +71,21 @@
 - ✅ TC-US2-009: Counter Accuracy
 - ✅ TC-US2-010: Accessibility
 
-**Integration Tests** (100% - 3/3 tests):
+**Integration Tests** (100% - 4/4 tests):
 - ✅ TC-INT-001: Like from Feed
 - ✅ TC-INT-002: Like Affects Feed Ordering
 - ✅ TC-INT-003: Feed Updates After Like
+- ✅ TC-INT-004: Feed Pagination No Duplicates (Bug #1 fix verification)
 
 **Bug Fixes Realizados**:
 1. ✅ Fix seed_trips.py - No actualizaba user_stats table (integrado StatsService)
 2. ✅ Fix useLike hook - Error message extraction (backend structure: error.response.data.error.message)
+3. ✅ **Bug #1: Duplicate Trips in Infinite Scroll** (2026-01-19):
+   - Backend: Implemented Sequential Algorithm in feed_service.py
+   - Backend: Enhanced _get_community_trips() to exclude followed users
+   - Frontend: Removed deduplication workaround in useFeed.ts
+   - Testing: Added test_feed_pagination_no_duplicates integration test
+   - Status: ✅ FIXED & VERIFIED
 
 **User Stories Pendientes** (diferidas para siguientes fases):
 - 🔜 **US3**: Comentarios en Viajes (Priority: P3)

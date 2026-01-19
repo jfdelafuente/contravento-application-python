@@ -196,3 +196,32 @@ async def published_trip_with_location(db_session: AsyncSession, public_user: Us
     await db_session.commit()
     await db_session.refresh(trip)
     return trip
+
+
+@pytest.fixture
+async def current_user(db_session: AsyncSession) -> User:
+    """
+    Create the current authenticated user for feed tests.
+
+    This fixture creates a regular user (testuser_pagination) that will be used
+    for authentication in feed pagination tests.
+    """
+    from src.utils.security import hash_password
+
+    user = User(
+        username="testuser_pagination",
+        email="testuser@example.com",
+        hashed_password=hash_password("TestPass123!"),
+        is_verified=True,
+        profile_visibility="public",
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    # Add profile
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
+
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
