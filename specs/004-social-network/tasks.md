@@ -65,6 +65,41 @@ All tasks follow strict checklist format:
 **Backend Status**: ✅ 18/18 tasks completed (Tests + Implementation)
 **Frontend Status**: ✅ 10/10 tasks completed (Services + Hooks + Components + Page + Routing)
 **Manual Testing**: ✅ 2/2 tests completed (T039-T040) - All success criteria met!
+**Follow/Unfollow UI**: ✅ COMPLETED (2026-01-19) - See [SESSION_FOLLOW_UI.md](SESSION_FOLLOW_UI.md)
+
+### Follow/Unfollow UI Integration (Additional Work - 2026-01-19)
+
+This work extends US1 with follow/unfollow functionality across all pages:
+
+**Completed Features**:
+
+- ✅ Follow/Unfollow from user profile pages (integrated with backend API)
+- ✅ Follow/Unfollow from feed cards (both `/` and `/feed`)
+- ✅ Follow/Unfollow from trip detail page
+- ✅ Automatic state synchronization across all components (no page refresh)
+- ✅ Clickable author links navigate to user profiles
+
+**Git Commits** (pushed to `origin/004-social-network`):
+
+- `5b9f5af` - Integrate Follow/Unfollow UI with profile API
+- `8d3ad83` - Clickable author links in feed cards
+- `f59d60c` - Synchronize follow button state across all feed items
+- `0ef1712` - Add author section with follow button to trip detail page
+- `d435926` - Load UserProfile when building trip author summary
+- `9fc9f2c` - Use correct field name profile_photo_url from UserProfile
+- `0ff2349` - Align author section with metadata in trip detail
+
+**Files Modified**:
+
+- Backend: `backend/src/schemas/trip.py`, `backend/src/services/trip_service.py`
+- Frontend: `frontend/src/hooks/useFollow.ts`, `frontend/src/hooks/useFeed.ts`, `frontend/src/components/feed/FeedItem.tsx`, `frontend/src/components/trips/PublicTripCard.tsx`, `frontend/src/pages/TripDetailPage.tsx`, `frontend/src/pages/TripDetailPage.css`, `frontend/src/types/trip.ts`
+
+**Technical Achievements**:
+
+- Optimistic UI with cross-component state synchronization using custom events
+- Efficient cached data updates (no full refetch)
+- Proper event bubbling control for nested clickable elements
+- SQLAlchemy eager loading for related entities (User → UserProfile)
 
 **Independent Test**:
 - Create multiple users with published trips
