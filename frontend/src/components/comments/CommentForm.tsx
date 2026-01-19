@@ -14,6 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComment } from '../../hooks/useComment';
 import { Comment } from '../../services/commentService';
+import './CommentForm.css';
 
 interface CommentFormProps {
   tripId: string;

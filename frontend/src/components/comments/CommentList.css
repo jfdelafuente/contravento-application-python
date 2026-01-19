@@ -1,0 +1,172 @@
+/**
+ * CommentList Component Styles (Feature 004 - US3: Comentarios)
+ *
+ * Styles for the comments list container with pagination.
+ */
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ============================================================
+ * Header with comment count
+ * ============================================================ */
+
+.comment-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+}
+
+.comment-list-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+/* ============================================================
+ * Comment form section
+ * ============================================================ */
+
+.comment-list-form {
+  margin-bottom: 1rem;
+}
+
+/* ============================================================
+ * Comments items list
+ * ============================================================ */
+
+.comment-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ============================================================
+ * Load more button
+ * ============================================================ */
+
+.comment-list-load-more {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+.comment-list-load-more-button {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-primary, #2563eb);
+  background-color: transparent;
+  border: 2px solid var(--color-primary, #2563eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-list-load-more-button:hover:not(:disabled) {
+  background-color: var(--color-primary, #2563eb);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+.comment-list-load-more-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+ * Loading state (skeletons)
+ * ============================================================ */
+
+.comment-list-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ============================================================
+ * Empty state
+ * ============================================================ */
+
+.comment-list-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background-color: var(--color-background-secondary, #f9fafb);
+  border-radius: 12px;
+  border: 2px dashed var(--color-border, #e5e7eb);
+}
+
+.comment-list-empty p {
+  font-size: 1.125rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0 0 0.5rem 0;
+}
+
+.comment-list-empty-hint {
+  font-size: 0.875rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  font-style: italic;
+}
+
+/* ============================================================
+ * Error state
+ * ============================================================ */
+
+.comment-list-error {
+  padding: 1.5rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+}
+
+.comment-list-error p {
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+}
+
+.comment-list-retry {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: #dc2626;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.comment-list-retry:hover {
+  background-color: #b91c1c;
+}
+
+/* ============================================================
+ * Responsive design
+ * ============================================================ */
+
+@media (max-width: 640px) {
+  .comment-list-title {
+    font-size: 1.25rem;
+  }
+
+  .comment-list-empty {
+    padding: 2rem 1rem;
+  }
+
+  .comment-list-empty p {
+    font-size: 1rem;
+  }
+
+  .comment-list-load-more-button {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+}

@@ -17,6 +17,7 @@ import { Comment } from '../../services/commentService';
 import { useAuth } from '../../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import './CommentItem.css';
 
 interface CommentItemProps {
   comment: Comment;

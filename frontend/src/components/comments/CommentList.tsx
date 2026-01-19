@@ -17,6 +17,7 @@ import { useComment } from '../../hooks/useComment';
 import { Comment } from '../../services/commentService';
 import { CommentForm } from './CommentForm';
 import { CommentItem } from './CommentItem';
+import './CommentList.css';
 
 interface CommentListProps {
   tripId: string;

@@ -1,0 +1,350 @@
+/**
+ * CommentItem Component Styles (Feature 004 - US3: Comentarios)
+ *
+ * Styles for individual comment display with author info and actions.
+ */
+
+.comment-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.comment-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================
+ * Header with author info and timestamp
+ * ============================================================ */
+
+.comment-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.comment-item-author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.comment-item-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.comment-item-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.comment-item-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0; /* Allow text truncation */
+}
+
+.comment-item-author-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comment-item-author-username {
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comment-item-timestamp {
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.comment-item-edited-marker {
+  font-style: italic;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* ============================================================
+ * Comment content
+ * ============================================================ */
+
+.comment-item-content {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #374151);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ============================================================
+ * Action buttons (edit/delete)
+ * ============================================================ */
+
+.comment-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.comment-item-action-button {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.comment-item-action-button--edit {
+  color: var(--color-primary, #2563eb);
+}
+
+.comment-item-action-button--edit:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.comment-item-action-button--delete {
+  color: #dc2626;
+}
+
+.comment-item-action-button--delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* ============================================================
+ * Skeleton loader (loading state in CommentList)
+ * ============================================================ */
+
+.comment-item-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 12px;
+}
+
+.comment-item-skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.comment-item-skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.comment-item-skeleton-author {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.comment-item-skeleton-name {
+  width: 120px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.comment-item-skeleton-username {
+  width: 80px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.comment-item-skeleton-content {
+  width: 100%;
+  height: 60px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.comment-item-skeleton-footer {
+  width: 150px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================================
+ * Delete confirmation dialog
+ * ============================================================ */
+
+.comment-item-delete-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.comment-item-delete-dialog {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.comment-item-delete-dialog-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  color: #dc2626;
+}
+
+.comment-item-delete-dialog-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.comment-item-delete-dialog-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+  text-align: center;
+  margin: 0 0 0.75rem 0;
+}
+
+.comment-item-delete-dialog-text {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+}
+
+.comment-item-delete-dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.comment-item-delete-dialog-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-item-delete-dialog-button--cancel {
+  color: var(--color-text-secondary, #6b7280);
+  background-color: var(--color-background-tertiary, #f3f4f6);
+}
+
+.comment-item-delete-dialog-button--cancel:hover {
+  background-color: #e5e7eb;
+}
+
+.comment-item-delete-dialog-button--confirm {
+  color: white;
+  background-color: #dc2626;
+}
+
+.comment-item-delete-dialog-button--confirm:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.comment-item-delete-dialog-button--confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================================
+ * Responsive design
+ * ============================================================ */
+
+@media (max-width: 640px) {
+  .comment-item {
+    padding: 0.875rem;
+  }
+
+  .comment-item-header {
+    flex-wrap: wrap;
+  }
+
+  .comment-item-timestamp {
+    width: 100%;
+    margin-top: -0.25rem;
+    margin-left: 48px; /* Align with author info */
+  }
+
+  .comment-item-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .comment-item-delete-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .comment-item-delete-dialog-button {
+    width: 100%;
+  }
+}
