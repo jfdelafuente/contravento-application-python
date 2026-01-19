@@ -1,6 +1,6 @@
 // src/hooks/useFollow.ts
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { followUser, unfollowUser } from '../services/followService';
 import { toast } from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ import { toast } from 'react-hot-toast';
  * - Error rollback on failure
  * - Loading state management
  * - Spanish error messages
+ * - Syncs with prop changes (for feed synchronization)
  *
  * @param username - Username to follow/unfollow
  * @param initialFollowing - Initial following state
@@ -23,6 +24,12 @@ export function useFollow(
 ) {
   const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowing);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Sync state with prop changes (Feature 004 - US1)
+  // This allows feed synchronization when other FollowButtons trigger updates
+  useEffect(() => {
+    setIsFollowing(initialFollowing);
+  }, [initialFollowing, username]);
 
   /**
    * Toggle follow/unfollow with optimistic updates.
@@ -56,7 +63,7 @@ export function useFollow(
       setIsLoading(false);
 
       // Emit custom event to notify other components (Feature 004 - US1)
-      // This allows feed pages to refetch data and update all follow buttons
+      // This allows feed pages to update all follow buttons for this user
       window.dispatchEvent(new CustomEvent('followStatusChanged', {
         detail: { username, isFollowing: !previousFollowing }
       }));
