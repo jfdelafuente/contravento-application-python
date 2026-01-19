@@ -681,7 +681,7 @@ export const TripDetailPage: React.FC = () => {
         {/* Comments Section (Feature 004 - US3) */}
         {trip.status === 'published' && (
           <section className="trip-detail-page__section">
-            <CommentList tripId={trip.trip_id} />
+            <CommentList tripId={trip.trip_id} tripOwnerId={trip.user_id} />
           </section>
         )}
 

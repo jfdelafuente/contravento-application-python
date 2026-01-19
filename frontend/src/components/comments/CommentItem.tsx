@@ -22,12 +22,14 @@ import './CommentItem.css';
 
 interface CommentItemProps {
   comment: Comment;
+  tripOwnerId?: string; // ID of the trip owner (for moderation)
   onEdit?: (comment: Comment) => void;
   onDelete?: (commentId: string) => void;
 }
 
 export const CommentItem: React.FC<CommentItemProps> = ({
   comment,
+  tripOwnerId,
   onEdit,
   onDelete,
 }) => {
@@ -35,6 +37,8 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isAuthor = user && comment.user_id === user.user_id;
+  const isTripOwner = user && tripOwnerId && user.user_id === tripOwnerId;
+  const canDelete = isAuthor || isTripOwner; // Author or trip owner can delete (FR-022)
 
   const handleEdit = () => {
     if (onEdit) {
@@ -124,22 +128,33 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             )}
           </time>
 
-          {isAuthor && (
+          {/* Show actions if user is author OR trip owner (FR-022 moderation) */}
+          {(isAuthor || canDelete) && (
             <div className="comment-item-actions">
-              <button
-                onClick={handleEdit}
-                className="comment-item-action-button comment-item-action-button--edit"
-                aria-label="Editar comentario"
-              >
-                Editar
-              </button>
-              <button
-                onClick={handleDelete}
-                className="comment-item-action-button comment-item-action-button--delete"
-                aria-label="Eliminar comentario"
-              >
-                Eliminar
-              </button>
+              {/* Only author can edit their own comment */}
+              {isAuthor && (
+                <button
+                  onClick={handleEdit}
+                  className="comment-item-action-button comment-item-action-button--edit"
+                  aria-label="Editar comentario"
+                >
+                  Editar
+                </button>
+              )}
+              {/* Author or trip owner can delete (FR-022) */}
+              {canDelete && (
+                <button
+                  onClick={handleDelete}
+                  className="comment-item-action-button comment-item-action-button--delete"
+                  aria-label={
+                    isTripOwner && !isAuthor
+                      ? "Eliminar comentario (moderación)"
+                      : "Eliminar comentario"
+                  }
+                >
+                  Eliminar
+                </button>
+              )}
             </div>
           )}
         </div>

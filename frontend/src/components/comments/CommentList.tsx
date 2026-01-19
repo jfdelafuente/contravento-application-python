@@ -21,9 +21,10 @@ import './CommentList.css';
 
 interface CommentListProps {
   tripId: string;
+  tripOwnerId?: string; // ID of the trip owner (for moderation capabilities)
 }
 
-export const CommentList: React.FC<CommentListProps> = ({ tripId }) => {
+export const CommentList: React.FC<CommentListProps> = ({ tripId, tripOwnerId }) => {
   const { comments, total, isLoading, error, refetch, loadMore, hasMore } =
     useComments(tripId);
   const { remove } = useComment();
@@ -118,6 +119,7 @@ export const CommentList: React.FC<CommentListProps> = ({ tripId }) => {
               <CommentItem
                 key={comment.id}
                 comment={comment}
+                tripOwnerId={tripOwnerId}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
