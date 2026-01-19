@@ -113,10 +113,26 @@ export const useFeed = (page: number = 1, limit: number = 10): UseFeedReturn => 
     fetchFeed();
   }, [page, limit]);
 
-  // Listen for follow status changes to refetch feed (Feature 004 - US1)
+  // Listen for follow status changes to update cached feed items (Feature 004 - US1)
   useEffect(() => {
-    const handleFollowChange = () => {
-      fetchFeed();
+    const handleFollowChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ username: string; isFollowing: boolean }>;
+      const { username, isFollowing } = customEvent.detail;
+
+      // Update cached feed items' is_following status for this author
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) =>
+          trip.author.username === username
+            ? {
+                ...trip,
+                author: {
+                  ...trip.author,
+                  is_following: isFollowing,
+                },
+              }
+            : trip
+        )
+      );
     };
 
     window.addEventListener('followStatusChanged', handleFollowChange);
@@ -124,7 +140,7 @@ export const useFeed = (page: number = 1, limit: number = 10): UseFeedReturn => 
     return () => {
       window.removeEventListener('followStatusChanged', handleFollowChange);
     };
-  }, [page, limit]);
+  }, []); // No dependencies - event handler updates state directly
 
   return {
     trips,
@@ -247,16 +263,7 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
 
       if (append) {
         // Append to existing trips (infinite scroll)
-        setTrips((prev) => {
-          // TEMPORARY FIX: Deduplicate trips by trip_id
-          // TODO: Fix backend hybrid feed algorithm to prevent duplicate trips across pages
-          // Issue: Backend's hybrid algorithm (followed users + community backfill) can return
-          // the same trip in multiple pages when transitioning from followed to community content
-          const existingIds = new Set(prev.map(t => t.trip_id));
-          const newTrips = response.trips.filter(t => !existingIds.has(t.trip_id));
-
-          return [...prev, ...newTrips];
-        });
+        setTrips((prev) => [...prev, ...response.trips]);
       } else {
         // Replace trips (initial load or refetch)
         setTrips(response.trips);
@@ -334,12 +341,26 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
     };
   }, [limit]); // Only re-fetch if limit changes
 
-  // Listen for follow status changes to refetch feed (Feature 004 - US1)
+  // Listen for follow status changes to update cached feed items (Feature 004 - US1)
   useEffect(() => {
-    const handleFollowChange = () => {
-      // Reset to page 1 and refetch
-      setPage(1);
-      fetchPage(1, false);
+    const handleFollowChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ username: string; isFollowing: boolean }>;
+      const { username, isFollowing } = customEvent.detail;
+
+      // Update cached feed items' is_following status for this author
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) =>
+          trip.author.username === username
+            ? {
+                ...trip,
+                author: {
+                  ...trip.author,
+                  is_following: isFollowing,
+                },
+              }
+            : trip
+        )
+      );
     };
 
     window.addEventListener('followStatusChanged', handleFollowChange);
@@ -347,7 +368,7 @@ export const useInfiniteFeed = (limit: number = 10): UseInfiniteFeedReturn => {
     return () => {
       window.removeEventListener('followStatusChanged', handleFollowChange);
     };
-  }, [limit]); // Only depend on limit, not refetch (avoid circular dependency)
+  }, []); // No dependencies - event handler updates state directly
 
   return {
     trips,

@@ -24,6 +24,7 @@ interface LikeButtonProps {
   initialCount?: number;
   size?: 'small' | 'medium' | 'large';
   showCount?: boolean;
+  onCountClick?: (e: React.MouseEvent) => void; // Callback when clicking the count (e.g., to open likes list)
 }
 
 export const LikeButton: React.FC<LikeButtonProps> = ({
@@ -32,6 +33,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   initialCount = 0,
   size = 'medium',
   showCount = true,
+  onCountClick,
 }) => {
   const { isLiked, likeCount, isLoading, toggleLike } = useLike(
     tripId,
@@ -42,6 +44,13 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // Prevent event bubbling to parent (FeedItem)
     toggleLike();
+  };
+
+  const handleCountClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering like button
+    if (onCountClick) {
+      onCountClick(e);
+    }
   };
 
   return (
@@ -67,7 +76,13 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
       </svg>
 
       {showCount && (
-        <span className="like-button__count" aria-label={`${likeCount} likes`}>
+        <span
+          className={`like-button__count ${onCountClick && likeCount > 0 ? 'like-button__count--clickable' : ''}`}
+          aria-label={`${likeCount} likes`}
+          onClick={onCountClick && likeCount > 0 ? handleCountClick : undefined}
+          role={onCountClick && likeCount > 0 ? 'button' : undefined}
+          tabIndex={onCountClick && likeCount > 0 ? 0 : undefined}
+        >
           {likeCount}
         </span>
       )}

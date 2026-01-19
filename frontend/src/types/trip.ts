@@ -10,6 +10,17 @@
 // ============================================================================
 
 /**
+ * User summary for trip author (Feature 004)
+ */
+export interface TripAuthor {
+  user_id: string;
+  username: string;
+  full_name: string | null;
+  profile_photo_url: string | null;
+  is_following: boolean | null;
+}
+
+/**
  * Complete trip data from backend API
  *
  * Used in:
@@ -23,6 +34,9 @@ export interface Trip {
 
   /** Trip owner's user ID (UUID) */
   user_id: string;
+
+  /** Trip author's profile summary (Feature 004) */
+  author: TripAuthor;
 
   /** Trip title (1-200 characters) */
   title: string;

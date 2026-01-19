@@ -21,6 +21,7 @@ from sqlalchemy.orm import joinedload
 
 from src.config import settings
 from src.models.user import User, UserProfile
+from src.models.social import Follow
 from src.schemas.profile import (
     PrivacySettings,
     ProfileResponse,
@@ -76,6 +77,11 @@ class ProfileService:
         if not user:
             raise ValueError(f"El usuario '{username}' no existe")
 
+        # Check privacy settings (T118 - Privacy enforcement)
+        is_owner = viewer_username == username
+        if user.profile_visibility == 'private' and not is_owner:
+            raise ValueError(f"El perfil de '{username}' es privado")
+
         # Get or create profile
         profile = user.profile
         if not profile:
@@ -96,13 +102,29 @@ class ProfileService:
                 achievements_count=stats.achievements_count,
             )
 
-        # Build response respecting privacy
-        is_owner = viewer_username == username
-
         # Convert relative photo URLs to absolute URLs for backward compatibility
         photo_url = profile.profile_photo_url
         if photo_url and photo_url.startswith("/storage/"):
             photo_url = f"{settings.backend_url}{photo_url}"
+
+        # Query follow status if viewer is authenticated (Feature 004 - US1)
+        is_following = None
+        if viewer_username and not is_owner:
+            # Get viewer's user ID
+            viewer_result = await self.db.execute(
+                select(User.id).where(User.username == viewer_username)
+            )
+            viewer_id = viewer_result.scalar_one_or_none()
+
+            if viewer_id:
+                # Check if viewer follows this user
+                follow_result = await self.db.execute(
+                    select(Follow).where(
+                        Follow.follower_id == viewer_id,
+                        Follow.following_id == user.id
+                    )
+                )
+                is_following = follow_result.scalar_one_or_none() is not None
 
         return ProfileResponse(
             username=user.username,
@@ -117,6 +139,7 @@ class ProfileService:
             show_location=profile.show_location,
             followers_count=profile.followers_count,
             following_count=profile.following_count,
+            is_following=is_following,
             stats=stats_preview,
             created_at=user.created_at,
         )

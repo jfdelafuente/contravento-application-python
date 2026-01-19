@@ -110,12 +110,24 @@ async def get_user_profile(
         return profile
 
     except ValueError as e:
+        error_msg = str(e)
+
+        # Check if it's a private profile error
+        if "es privado" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "PRIVATE_PROFILE",
+                    "message": error_msg,
+                },
+            )
+
         # User not found
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
                 "code": "USER_NOT_FOUND",
-                "message": str(e),
+                "message": error_msg,
             },
         )
     except Exception as e:

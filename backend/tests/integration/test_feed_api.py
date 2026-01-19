@@ -313,3 +313,154 @@ async def test_feed_empty_response(
     assert data["trips"] == []
     assert data["total_count"] == 0
     assert data["has_more"] is False
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_feed_pagination_no_duplicates(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    current_user: User,  # testuser_pagination from fixture
+):
+    """
+    Bug #1 Fix Verification: Test that pagination doesn't return duplicate trips.
+
+    Sequential Algorithm:
+    1. Show ALL trips from followed users first (pages 1...N)
+    2. When exhausted, show community backfill (pages N+1...)
+    3. No duplicates possible due to sequential ordering
+
+    Test Scenario:
+    - testuser_pagination (current_user) follows user1 (has 7 trips)
+    - testuser_pagination doesn't follow user2 (has 5 trips)
+    - Pagination: limit=5 per page
+    - Page 1: 5 followed trips (user1)
+    - Page 2: 2 followed trips + 3 community trips
+    - Page 3: 2 community trips
+    - No trip should appear more than once
+    """
+    from src.models.user import UserProfile
+    from src.utils.security import create_access_token
+
+    testuser_id = current_user.id
+
+    # Create user1 (followed) with 7 trips
+    user1 = User(
+        username="user1_followed",
+        email="user1@example.com",
+        hashed_password="$2b$12$dummyhash",
+        is_verified=True,
+    )
+    db_session.add(user1)
+    await db_session.flush()
+
+    # Create profile for user1
+    profile1 = UserProfile(user_id=user1.id)
+    db_session.add(profile1)
+
+    # Create user2 (not followed) with 5 trips
+    user2 = User(
+        username="user2_community",
+        email="user2@example.com",
+        hashed_password="$2b$12$dummyhash",
+        is_verified=True,
+    )
+    db_session.add(user2)
+    await db_session.flush()
+
+    # Create profile for user2
+    profile2 = UserProfile(user_id=user2.id)
+    db_session.add(profile2)
+
+    # testuser follows user1
+    follow = Follow(id=str(uuid.uuid4()), follower_id=testuser_id, following_id=user1.id)
+    db_session.add(follow)
+
+    # Create 7 trips for user1 (followed)
+    user1_trip_ids = []
+    for i in range(7):
+        trip = Trip(
+            trip_id=str(uuid.uuid4()),
+            user_id=user1.id,
+            title=f"User1 Trip {i+1}",
+            description="Published trip from followed user",
+            start_date=datetime.now(UTC).date(),
+            status=TripStatus.PUBLISHED,
+            published_at=datetime.now(UTC),
+        )
+        db_session.add(trip)
+        user1_trip_ids.append(trip.trip_id)
+
+    # Create 5 trips for user2 (community)
+    user2_trip_ids = []
+    for i in range(5):
+        trip = Trip(
+            trip_id=str(uuid.uuid4()),
+            user_id=user2.id,
+            title=f"User2 Trip {i+1}",
+            description="Published trip from community",
+            start_date=datetime.now(UTC).date(),
+            status=TripStatus.PUBLISHED,
+            published_at=datetime.now(UTC),
+        )
+        db_session.add(trip)
+        user2_trip_ids.append(trip.trip_id)
+
+    await db_session.commit()
+
+    # Create auth headers for testuser_pagination
+    token = create_access_token({"sub": current_user.id, "username": current_user.username})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Fetch all pages and collect all trip IDs
+    all_trip_ids = []
+    page = 1
+    limit = 5
+
+    while True:
+        response = await client.get(
+            f"/feed?page={page}&limit={limit}",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        # Collect trip IDs from this page
+        page_trip_ids = [trip["trip_id"] for trip in data["trips"]]
+        all_trip_ids.extend(page_trip_ids)
+
+        # Check for duplicates within this page
+        assert len(page_trip_ids) == len(set(page_trip_ids)), (
+            f"Page {page} contains duplicate trips"
+        )
+
+        if not data["has_more"]:
+            break
+
+        page += 1
+
+    # Verify NO duplicates across ALL pages
+    unique_trip_ids = set(all_trip_ids)
+    assert len(all_trip_ids) == len(unique_trip_ids), (
+        f"Found {len(all_trip_ids) - len(unique_trip_ids)} duplicate trips across pages. "
+        f"Total trips: {len(all_trip_ids)}, Unique: {len(unique_trip_ids)}"
+    )
+
+    # Verify total count matches
+    assert len(all_trip_ids) == 12, (
+        f"Expected 12 total trips (7 followed + 5 community), got {len(all_trip_ids)}"
+    )
+
+    # Verify sequential ordering: all user1 trips should appear before user2 trips
+    user1_indices = [i for i, tid in enumerate(all_trip_ids) if tid in user1_trip_ids]
+    user2_indices = [i for i, tid in enumerate(all_trip_ids) if tid in user2_trip_ids]
+
+    # All user1 trips (followed) should appear before any user2 trip (community)
+    if user1_indices and user2_indices:
+        last_user1_index = max(user1_indices)
+        first_user2_index = min(user2_indices)
+        assert last_user1_index < first_user2_index, (
+            f"Sequential algorithm violated: followed trips should appear before community trips. "
+            f"Last user1 at index {last_user1_index}, first user2 at index {first_user2_index}"
+        )

@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-18 (23:50)
-**Estado actual**: Feature 004 (US1+US2) COMPLETADA ✅ | Listo para nueva feature
+**Última actualización**: 2026-01-19
+**Estado actual**: Feature 004 (Red Social - US1/US2) EN DESARROLLO 🚧
 
 ---
 
@@ -10,15 +10,9 @@
 ### Opción A: Configurar CI/CD en GitHub ⭐ RECOMENDADO
 **Estimación**: 1-2 horas | **Prioridad**: Alta | **Impacto**: Alto
 
-Activar los 4 workflows de GitHub Actions ya implementados en Feature 001-testing-qa para habilitar testing automatizado en cada PR.
-
-**Beneficios**:
-- ✅ Testing automatizado en cada PR
-- ✅ Prevención de bugs en producción
-- ✅ Code quality enforcement
-- ✅ Deployment automatizado a staging
-
-**Ver detalles**: Sección "Opción A: Configurar CI/CD" más abajo
+**Repositorio**: En branch `004-social-network` (23+ commits)
+**Fase actual**: Follow/Unfollow UI implementado, listo para testing manual
+**Último trabajo**: 2026-01-19 - Implementado Follow/Unfollow UI integration (desbloquea TC-US1-002)
 
 ---
 
@@ -51,17 +45,83 @@ Activar los 4 workflows de GitHub Actions ya implementados en Feature 001-testin
 - ✅ `PublicFeedPage` - Feed público con like button
 - ✅ `FollowButton` component con optimistic UI (3 tamaños)
 - ✅ `LikeButton` component con optimistic UI updates
-- ✅ `FeedItem` component para feed personalizado
-- ✅ `useFollow` hook con auto-refetch pattern
-- ✅ `useLike` hook con error rollback
-- ✅ `useFeed` hook con deduplicación (workaround Bug #1)
-- ✅ `followService` y `likeService` para API calls
-- ✅ Auto-refetch con custom events (`followStatusChanged`)
+- ✅ `useLike` hook con error rollback y Spanish messages
+- ✅ `likeService` para llamadas API (POST/DELETE)
+- ✅ **`FollowButton` component** con optimistic UI updates (2026-01-19)
+- ✅ **`useFollow` hook** con error rollback (2026-01-19)
+- ✅ **`followService`** para llamadas API (POST/DELETE) (2026-01-19)
+- ✅ **Follow/Unfollow UI integration** en UserProfilePage (2026-01-19)
 - ✅ Diseño rústico aplicado (Playfair Display, earth tones)
 - ✅ Accessibility: ARIA labels, keyboard navigation
 - ✅ Loading states con spinners
 
-**Testing Manual Completado** (90% - 27/30 tests):
+**Testing Manual Completado** (54% - 15/28 tests):
+
+**US1: Feed Personalizado** (75% - 6/8 tests):
+- ✅ TC-US1-001: Access Feed (Authenticated)
+- 🔓 TC-US1-002: Feed Content (Followed Users) - **DESBLOQUEADO** (Follow UI implementado 2026-01-19, listo para testing)
+- ✅ TC-US1-003: Feed Content (Popular Backfill)
+- ✅ TC-US1-004: Infinite Scroll Pagination - FIXED (Bug #1 resolved 2026-01-19)
+- ⏳ TC-US1-005: Skeleton Loading State - PENDING
+- ✅ TC-US1-006: Unauthorized Access
+- ✅ TC-US1-007: Empty State
+- ✅ TC-US1-008: Trip Card Click
+
+**US2: Likes/Me Gusta** (80% - 8/10 tests):
+- ✅ TC-US2-001: Like a Trip
+- ✅ TC-US2-002: Unlike a Trip
+- ✅ TC-US2-003: Optimistic UI
+- ✅ TC-US2-004: Error Rollback
+- ✅ TC-US2-005: Prevent Self-Like
+- ⏳ TC-US2-006: Prevent Duplicate Like - PENDING
+- ✅ TC-US2-007: Loading State
+- ⚠️ TC-US2-008: Get Likes List - BLOQUEADO (UI not implemented)
+- ✅ TC-US2-009: Counter Accuracy
+- ✅ TC-US2-010: Accessibility
+
+**Integration Tests** (100% - 4/4 tests):
+- ✅ TC-INT-001: Like from Feed
+- ✅ TC-INT-002: Like Affects Feed Ordering
+- ✅ TC-INT-003: Feed Updates After Like
+- ✅ TC-INT-004: Feed Pagination No Duplicates (Bug #1 fix verification)
+
+**Bug Fixes Realizados**:
+1. ✅ Fix seed_trips.py - No actualizaba user_stats table (integrado StatsService)
+2. ✅ Fix useLike hook - Error message extraction (backend structure: error.response.data.error.message)
+3. ✅ **Bug #1: Duplicate Trips in Infinite Scroll** (2026-01-19):
+   - Backend: Implemented Sequential Algorithm in feed_service.py
+   - Backend: Enhanced _get_community_trips() to exclude followed users
+   - Frontend: Removed deduplication workaround in useFeed.ts
+   - Testing: Added test_feed_pagination_no_duplicates integration test
+   - Status: ✅ FIXED & VERIFIED
+
+**Feature Enhancements Realizados**:
+1. ✅ **Follow/Unfollow UI Integration** (2026-01-19):
+   - Backend: Added `is_following` field to ProfileResponse schema
+   - Backend: ProfileService.get_profile() queries Follow table for authenticated users
+   - Frontend: Updated UserProfile type to include `is_following`
+   - Frontend: UserProfilePage passes real follow status to FollowButton
+   - Impact: Desbloquea TC-US1-002 (Feed Content - Followed Users)
+   - Testing: Ver specs/004-social-network/FOLLOW_BUTTON_TESTING.md
+
+**User Stories Pendientes** (diferidas para siguientes fases):
+- 🔜 **US3**: Comentarios en Viajes (Priority: P3)
+- 🔜 **US4**: Compartir Viajes (Priority: P4)
+- 🔜 **US5**: Notificaciones de Interacciones (Priority: P5)
+
+**Próximos Pasos en Feature 004**:
+1. ✅ ~~Implementar Follow/Unfollow UI (frontend) para desbloquear TC-US1-002~~ - **COMPLETADO** (2026-01-19)
+2. **Testing manual de Follow/Unfollow UI** (ver specs/004-social-network/FOLLOW_BUTTON_TESTING.md):
+   - Verificar estado inicial del botón (Following vs Seguir)
+   - Probar follow/unfollow actions con optimistic updates
+   - Verificar persistencia después de page refresh
+   - Probar integración con feed (TC-US1-002)
+3. Continuar testing manual pendiente (TC-US1-005, TC-US2-006)
+4. Completar tests de Performance Validation (4 tests)
+5. Completar tests de Accessibility (3 tests)
+6. Implementar Likes List UI (frontend) para desbloquear TC-US2-008
+6. Merge a develop cuando testing alcance 90%+
+7. Continuar con US3 (Comentarios) en nueva fase
 
 - **US1 Core**: 8/8 tests pasados (100%) ✅
 - **US1 Follow/Unfollow**: 7/9 tests pasados (78%)

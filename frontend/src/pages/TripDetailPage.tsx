@@ -13,6 +13,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { TripGallery } from '../components/trips/TripGallery';
 import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
 import { LikeButton } from '../components/likes/LikeButton';
+import { LikesListModal } from '../components/likes/LikesListModal';
+import { FollowButton } from '../components/social/FollowButton';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import type { LocationSelection } from '../types/geocoding';
@@ -51,6 +53,9 @@ export const TripDetailPage: React.FC = () => {
   const [isMapEditMode, setIsMapEditMode] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
   const { geocode } = useReverseGeocode();
+
+  // Likes list modal state (Feature 004 - US2)
+  const [showLikesModal, setShowLikesModal] = useState(false);
 
   // Fetch trip details
   useEffect(() => {
@@ -506,13 +511,22 @@ export const TripDetailPage: React.FC = () => {
                     initialCount={trip.like_count || 0}
                     size="medium"
                     showCount={true}
+                    onCountClick={trip.like_count && trip.like_count > 0 ? () => setShowLikesModal(true) : undefined}
                   />
                 </div>
               )}
 
               {/* Like Count (owner-only - TC-US2-005) */}
               {isOwner && trip.status === 'published' && (
-                <div className="trip-detail-page__meta-item trip-detail-page__like-count-readonly">
+                <div
+                  className={`trip-detail-page__meta-item trip-detail-page__like-count-readonly ${
+                    trip.like_count && trip.like_count > 0 ? 'trip-detail-page__like-count-clickable' : ''
+                  }`}
+                  onClick={trip.like_count && trip.like_count > 0 ? () => setShowLikesModal(true) : undefined}
+                  role={trip.like_count && trip.like_count > 0 ? 'button' : undefined}
+                  tabIndex={trip.like_count && trip.like_count > 0 ? 0 : undefined}
+                  title={trip.like_count && trip.like_count > 0 ? 'Ver usuarios que dieron like' : undefined}
+                >
                   <svg
                     className="trip-detail-page__meta-icon"
                     viewBox="0 0 24 24"
@@ -529,6 +543,37 @@ export const TripDetailPage: React.FC = () => {
                   </span>
                 </div>
               )}
+
+              {/* Author (Feature 004) - Right-aligned */}
+              <div className="trip-detail-page__author">
+                <Link to={`/users/${trip.author.username}`} className="trip-detail-page__author-link">
+                  {trip.author.profile_photo_url ? (
+                    <img
+                      src={getPhotoUrl(trip.author.profile_photo_url)}
+                      alt={trip.author.username}
+                      className="trip-detail-page__author-avatar"
+                    />
+                  ) : (
+                    <div className="trip-detail-page__author-avatar trip-detail-page__author-avatar--placeholder">
+                      {trip.author.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="trip-detail-page__author-info">
+                    <span className="trip-detail-page__author-username">{trip.author.username}</span>
+                    {trip.author.full_name && (
+                      <span className="trip-detail-page__author-fullname">{trip.author.full_name}</span>
+                    )}
+                  </div>
+                </Link>
+                {!isOwner && (
+                  <FollowButton
+                    username={trip.author.username}
+                    initialFollowing={trip.author.is_following || false}
+                    size="small"
+                    variant="secondary"
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -709,6 +754,16 @@ export const TripDetailPage: React.FC = () => {
         onConfirm={handleConfirmLocation}
         onCancel={handleCancelLocation}
       />
+
+      {/* Likes List Modal (Feature 004 - US2, TC-US2-008) */}
+      {trip && (
+        <LikesListModal
+          tripId={trip.trip_id}
+          tripTitle={trip.title}
+          isOpen={showLikesModal}
+          onClose={() => setShowLikesModal(false)}
+        />
+      )}
     </div>
   );
 };

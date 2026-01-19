@@ -98,11 +98,70 @@
   margin: 0 0 16px 0;
 }
 
+/* Metadata + Author Container (Feature 004) */
 .trip-detail-page__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
   align-items: center;
+  justify-content: space-between;
+}
+
+/* Author Section (Feature 004) - Right-aligned in meta row */
+.trip-detail-page__author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.trip-detail-page__author-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+.trip-detail-page__author-link:hover {
+  opacity: 0.8;
+}
+
+.trip-detail-page__author-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color, #e5e7eb);
+}
+
+.trip-detail-page__author-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color, #2563eb) 0%, var(--primary-dark, #1d4ed8) 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.trip-detail-page__author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trip-detail-page__author-username {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.trip-detail-page__author-fullname {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
 }
 
 .trip-detail-page__meta-item {
@@ -141,6 +200,29 @@
 
 .trip-detail-page__like-count-readonly .trip-detail-page__meta-icon {
   color: #9ca3af;
+}
+
+/* Clickable like count (opens likes list) */
+.trip-detail-page__like-count-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 0.5rem !important;
+  margin: -0.5rem;
+}
+
+.trip-detail-page__like-count-clickable:hover {
+  background-color: rgba(255, 71, 87, 0.1);
+  color: #ff4757;
+}
+
+.trip-detail-page__like-count-clickable:hover .trip-detail-page__meta-icon {
+  color: #ff4757;
+}
+
+.trip-detail-page__like-count-clickable:focus {
+  outline: 2px solid #ff4757;
+  outline-offset: 2px;
 }
 
 /* ============================================================================
