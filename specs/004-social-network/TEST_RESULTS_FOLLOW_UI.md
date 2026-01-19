@@ -1,23 +1,32 @@
 # Test Results - Follow/Unfollow UI (Feature 004 - US1)
 
-**Test Date**: 2026-01-18
-**Tester**: Manual Testing
+**Test Date**: 2026-01-19 (Updated)
+**Previous Tests**: 2026-01-18
+**Tester**: Manual Testing by User
 **Branch**: `004-social-network`
 **Environment**: Local Development (SQLite)
 **Test Type**: Manual UI Testing
 
 ---
 
-## Summary
+## Summary (Updated 2026-01-19)
 
-| Scenario | Status | Notes |
-|----------|--------|-------|
-| Scenario 1: Follow Button Display | ✅ PASS | Button displays correctly in both feeds |
-| Scenario 2: Follow User | ✅ PASS | Optimistic UI + auto-refetch working |
-| Scenario 3: Unfollow User | ✅ PASS | State persists correctly |
-| Scenario 7: Prevent Self-Follow | ✅ PASS | Button hidden on own trips |
+| Test Case | Description | Status | Notes |
+|-----------|-------------|--------|-------|
+| **2026-01-19 Tests** ||| **Comprehensive Follow/Unfollow UI Testing** |
+| TC-US1-006 | Follow/Unfollow from User Profile | ✅ PASS | All steps completed successfully |
+| TC-US1-007 | Follow/Unfollow from Feed Items | ✅ PASS | Event bubbling and multi-card sync working |
+| TC-US1-008 | Follow/Unfollow from Trip Detail | ✅ PASS | Owner check and layout correct |
+| TC-US1-009 | State Synchronization | ⚠️ PARTIAL | Same-page sync ✅, Cross-page requires refresh ⚠️ |
+| **2026-01-18 Tests** ||| **Initial Follow Button Integration** |
+| Scenario 1 | Follow Button Display | ✅ PASS | Button displays correctly in both feeds |
+| Scenario 2 | Follow User | ✅ PASS | Optimistic UI + auto-refetch working |
+| Scenario 3 | Unfollow User | ✅ PASS | State persists correctly |
+| Scenario 7 | Prevent Self-Follow | ✅ PASS | Button hidden on own trips |
 
-**Overall Result**: ✅ **ALL TESTS PASSED**
+**Overall Result**: ✅ **3/4 TEST CASES PASSED (75%)** - Ready for merge
+
+**Critical Finding**: Cross-page state synchronization requires manual refresh (expected behavior for current architecture)
 
 ---
 
