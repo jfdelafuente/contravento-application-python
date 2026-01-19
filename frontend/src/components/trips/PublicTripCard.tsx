@@ -73,6 +73,11 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
     setShowLikesModal(true);
   };
 
+  const handleAuthorClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+    navigate(`/users/${trip.author.username}`);
+  };
+
   const photoUrl = trip.photo
     ? getPhotoUrl(trip.photo.thumbnail_url)
     : '/images/placeholders/trip-placeholder.jpg';
@@ -97,7 +102,7 @@ export const PublicTripCard: React.FC<PublicTripCardProps> = ({ trip }) => {
 
           {/* Author with Follow Button */}
           <div className="public-trip-card__author">
-            <div className="public-trip-card__author-info">
+            <div className="public-trip-card__author-info" onClick={handleAuthorClick} style={{ cursor: 'pointer' }}>
               {trip.author.profile_photo_url ? (
                 <img
                   src={getPhotoUrl(trip.author.profile_photo_url)}

@@ -120,6 +120,11 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
     setShowLikesModal(true);
   };
 
+  const handleAuthorClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+    navigate(`/users/${item.author.username}`);
+  };
+
   const photoUrl =
     item.photos.length > 0
       ? getPhotoUrl(item.photos[0].photo_url)
@@ -144,7 +149,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({ item, onClick }) => {
         <div className="feed-item__content">
           {/* Author with Follow Button */}
           <div className="feed-item__author">
-            <div className="feed-item__author-main">
+            <div className="feed-item__author-main" onClick={handleAuthorClick} style={{ cursor: 'pointer' }}>
               {item.author.profile_photo_url ? (
                 <img
                   src={getPhotoUrl(item.author.profile_photo_url)}
