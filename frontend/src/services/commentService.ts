@@ -10,7 +10,7 @@
  * Related tasks: T098
  */
 
-import api from './api';
+import { api } from './api';
 
 /**
  * Minimal user details for comment author
