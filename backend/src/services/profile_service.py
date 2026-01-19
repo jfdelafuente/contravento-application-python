@@ -21,6 +21,7 @@ from sqlalchemy.orm import joinedload
 
 from src.config import settings
 from src.models.user import User, UserProfile
+from src.models.social import Follow
 from src.schemas.profile import (
     PrivacySettings,
     ProfileResponse,
@@ -106,6 +107,25 @@ class ProfileService:
         if photo_url and photo_url.startswith("/storage/"):
             photo_url = f"{settings.backend_url}{photo_url}"
 
+        # Query follow status if viewer is authenticated (Feature 004 - US1)
+        is_following = None
+        if viewer_username and not is_owner:
+            # Get viewer's user ID
+            viewer_result = await self.db.execute(
+                select(User.id).where(User.username == viewer_username)
+            )
+            viewer_id = viewer_result.scalar_one_or_none()
+
+            if viewer_id:
+                # Check if viewer follows this user
+                follow_result = await self.db.execute(
+                    select(Follow).where(
+                        Follow.follower_id == viewer_id,
+                        Follow.following_id == user.id
+                    )
+                )
+                is_following = follow_result.scalar_one_or_none() is not None
+
         return ProfileResponse(
             username=user.username,
             full_name=profile.full_name,
@@ -119,6 +139,7 @@ class ProfileService:
             show_location=profile.show_location,
             followers_count=profile.followers_count,
             following_count=profile.following_count,
+            is_following=is_following,
             stats=stats_preview,
             created_at=user.created_at,
         )

@@ -54,6 +54,7 @@ class ProfileResponse(BaseModel):
         show_location: Privacy setting for location visibility
         followers_count: Number of followers
         following_count: Number of users followed
+        is_following: Whether current user follows this user (Feature 004 - US1, None if not authenticated)
         stats: Stats preview (T180)
         created_at: Account creation timestamp
     """
@@ -72,6 +73,7 @@ class ProfileResponse(BaseModel):
     show_location: bool = Field(..., description="Location visibility in public profile")
     followers_count: int = Field(default=0, description="Number of followers")
     following_count: int = Field(default=0, description="Number of users followed")
+    is_following: Optional[bool] = Field(None, description="Whether current user follows this user (Feature 004 - US1, None if not authenticated)")
     stats: Optional[ProfileStatsPreview] = Field(None, description="Stats preview")
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
 

@@ -180,7 +180,7 @@ export const UserProfilePage: React.FC = () => {
               {!isOwnProfile && user && (
                 <FollowButton
                   username={profile.username}
-                  initialFollowing={false}
+                  initialFollowing={profile.is_following || false}
                   size="medium"
                   variant="primary"
                 />

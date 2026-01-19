@@ -24,6 +24,7 @@ export interface UserProfile {
   show_location: boolean;
   followers_count: number;
   following_count: number;
+  is_following?: boolean | null;  // Feature 004 - US1 (null if not authenticated, true/false if authenticated)
   stats?: {
     total_trips: number;
     total_kilometers: number;
