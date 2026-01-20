@@ -1472,16 +1472,16 @@ const __dirname = path.dirname(__filename);
 
 **Issues identificados**:
 
-1. **RegisterPage redirects wrong location**:
+1. **RegisterPage redirects to verify-email (CORRECTO - NO CAMBIAR)**:
    - **Actual**: Redirects to `/verify-email` after registration (line 21 in RegisterPage.tsx)
-   - **Expected**: Redirect to `/login` with success message
-   - **Fix**: Update `handleSuccess()` in RegisterPage.tsx
+   - **Decisión**: El flujo actual es correcto (registro → verificar email → login)
+   - **Fix Aplicado**: ✅ Actualizado E2E test para esperar redirect a `/verify-email` (commit fd472c1)
 
-2. **LoginForm field name mismatch**:
+2. **LoginForm field name mismatch (CORREGIDO)**:
    - **Backend API**: Expects `login` field (accepts username OR email)
-   - **Frontend**: Uses `name="email"` field (only accepts email)
+   - **Frontend**: Usaba `name="email"` field (only accepts email)
    - **E2E Tests**: Correctly use `input[name="login"]` per backend spec
-   - **Fix**: Update LoginForm.tsx to use `login` field and accept both username/email
+   - **Fix Aplicado**: ✅ Updated LoginForm.tsx to use `login` field and accept both username/email (commit fd472c1)
 
 3. **Validation error messages don't match**:
    - **E2E Expects**: "nombre de usuario.*requerido", "email.*requerido", "contraseña.*requerida"
@@ -1499,8 +1499,8 @@ const __dirname = path.dirname(__filename);
 
 **Solución definitiva** (tareas pendientes):
 ```markdown
-- [ ] Fix RegisterPage redirect: /verify-email → /login
-- [ ] Update LoginForm: name="email" → name="login" (accept username OR email)
+- [x] ✅ Fix RegisterPage redirect: Actualizado E2E test para esperar /verify-email (commit en branch fix/e2e-auth-frontend-backend-mismatch)
+- [x] ✅ Update LoginForm: name="email" → name="login" (accept username OR email) - commit fd472c1
 - [ ] Align validation messages with E2E test expectations
 - [ ] Improve backend error display in RegisterForm (field-specific errors)
 - [ ] Add E2E test for email verification flow (/verify-email page)

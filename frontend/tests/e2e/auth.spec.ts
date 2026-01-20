@@ -40,9 +40,9 @@ test.describe('User Registration Flow (T046)', () => {
     // Submit form (Turnstile will be mocked in test environment)
     await page.click('button[type="submit"]');
 
-    // Should redirect to login page with success message
-    await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
-    await expect(page.locator('text=/registro exitoso|cuenta creada/i')).toBeVisible();
+    // Should redirect to verify-email page with success message
+    await expect(page).toHaveURL(/\/verify-email/, { timeout: 10000 });
+    await expect(page.locator('text=/registro exitoso|revisa tu email/i')).toBeVisible();
   });
 
   test('should show validation errors for invalid input', async ({ page }) => {
