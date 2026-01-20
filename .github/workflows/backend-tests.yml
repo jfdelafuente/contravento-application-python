@@ -149,7 +149,7 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test_db
-          SECRET_KEY: test_secret_key_for_ci_pipeline_12345678
+          SECRET_KEY: test_secret_key_for_ci_pipeline_minimum_52_characters_required
           ENVIRONMENT: test
         run: |
           poetry run pytest tests/integration/ \
@@ -223,14 +223,14 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
-          SECRET_KEY: test_secret_key_for_smoke_tests_12345678
+          SECRET_KEY: test_secret_key_for_smoke_tests_minimum_52_characters_required
         run: poetry run alembic upgrade head
 
       - name: Start backend server
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
-          SECRET_KEY: test_secret_key_for_smoke_tests_12345678
+          SECRET_KEY: test_secret_key_for_smoke_tests_minimum_52_characters_required
           ENVIRONMENT: test
         run: |
           poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 &
