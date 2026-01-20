@@ -1497,13 +1497,19 @@ const __dirname = path.dirname(__filename);
 - E2E tests pass with retries (max 3 attempts)
 - Workflow doesn't block on E2E failures (allowed to continue)
 
-**Solución definitiva** (tareas pendientes):
+**Solución definitiva** (tareas completadas):
 ```markdown
-- [x] ✅ Fix RegisterPage redirect: Actualizado E2E test para esperar /verify-email (commit en branch fix/e2e-auth-frontend-backend-mismatch)
+- [x] ✅ Fix RegisterPage redirect: Actualizado E2E test para esperar /verify-email - commit f2b1e58
 - [x] ✅ Update LoginForm: name="email" → name="login" (accept username OR email) - commit fd472c1
-- [ ] Align validation messages with E2E test expectations
-- [ ] Improve backend error display in RegisterForm (field-specific errors)
+- [x] ✅ Align validation messages with E2E test expectations - commit e24c6ef
+- [x] ✅ Improve backend error display in RegisterForm (field-specific errors) - commit e24c6ef
+```
+
+**Tareas opcionales** (mejoras futuras):
+
+```markdown
 - [ ] Add E2E test for email verification flow (/verify-email page)
+- [ ] Enable real-time username/email availability checking (requires backend endpoints)
 ```
 
 **Cómo monitorear**:
