@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
-import StatsSection from '../components/dashboard/StatsSection';
+import { StatsOverview } from '../components/dashboard/StatsOverview';
 import RecentTripsSection from '../components/dashboard/RecentTripsSection';
 import QuickActionsSection from '../components/dashboard/QuickActionsSection';
 import AchievementsSection from '../components/dashboard/AchievementsSection';
@@ -86,8 +86,8 @@ export const DashboardPage: React.FC = () => {
             )}
           </div>
 
-          {/* Stats Section - FR-001 */}
-          <StatsSection />
+          {/* Stats Section - FR-001 (Feature 015: Dashboard Redesign) */}
+          <StatsOverview className="mb-8" />
 
           {/* Achievements Section - FR-003 */}
           <AchievementsSection />
