@@ -20,8 +20,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.tag import Tag
-from src.models.trip import Trip, TripDifficulty, TripStatus
+from src.models.trip import Tag, Trip, TripDifficulty, TripStatus
 from src.models.user import User, UserProfile, UserRole
 from src.utils.security import hash_password
 
