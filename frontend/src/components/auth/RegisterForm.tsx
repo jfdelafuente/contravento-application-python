@@ -40,7 +40,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-  onSuccess: () => void;
+  onSuccess: (userData?: { is_verified?: boolean }) => void;
   onError: (error: string) => void;
 }
 
@@ -168,8 +168,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onError }
         acceptTerms: data.acceptTerms,
       };
 
-      await authService.register(registerData);
-      onSuccess();
+      const userData = await authService.register(registerData);
+
+      // Pass user data to parent component to determine redirect behavior
+      // In testing environment, is_verified will be true
+      onSuccess(userData);
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message ||
                           error.message ||

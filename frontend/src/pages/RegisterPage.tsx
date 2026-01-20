@@ -10,16 +10,29 @@ export const RegisterPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSuccess = () => {
+  const handleSuccess = (userData?: { is_verified?: boolean }) => {
     setErrorMessage(null);
-    setSuccessMessage(
-      'Registro exitoso! Revisa tu email para verificar tu cuenta antes de iniciar sesión.'
-    );
 
-    // Redirect to verify email page after 3 seconds
-    setTimeout(() => {
-      navigate('/verify-email');
-    }, 3000);
+    // Check if user was auto-verified (testing environment)
+    if (userData?.is_verified) {
+      setSuccessMessage(
+        'Registro exitoso! Tu cuenta ha sido verificada automáticamente. Serás redirigido al inicio de sesión...'
+      );
+
+      // Redirect to login page after 3 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
+    } else {
+      setSuccessMessage(
+        'Registro exitoso! Revisa tu email para verificar tu cuenta antes de iniciar sesión.'
+      );
+
+      // Redirect to verify email page after 3 seconds
+      setTimeout(() => {
+        navigate('/verify-email');
+      }, 3000);
+    }
   };
 
   const handleError = (error: string) => {
