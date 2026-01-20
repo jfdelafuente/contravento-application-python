@@ -13,8 +13,8 @@ export interface AuthContextType {
   /** Computed authentication status */
   isAuthenticated: boolean;
 
-  /** Login function */
-  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  /** Login function (accepts username or email) */
+  login: (login: string, password: string, rememberMe: boolean) => Promise<void>;
 
   /** Register function */
   register: (data: RegisterFormData) => Promise<void>;
@@ -83,7 +83,7 @@ export interface AuthError {
 }
 
 export const AUTH_ERROR_MESSAGES: Record<AuthErrorCode, string> = {
-  INVALID_CREDENTIALS: 'Email o contraseña incorrectos',
+  INVALID_CREDENTIALS: 'Usuario o contraseña incorrectos',
   EMAIL_NOT_VERIFIED: 'Debes verificar tu email antes de iniciar sesión',
   ACCOUNT_BLOCKED: 'Cuenta bloqueada temporalmente. Inténtalo más tarde.',
   INVALID_TOKEN: 'El enlace de verificación no es válido',

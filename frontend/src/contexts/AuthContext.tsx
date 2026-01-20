@@ -43,11 +43,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const login = async (
-    email: string,
+    login: string,
     password: string,
     rememberMe: boolean
   ): Promise<void> => {
-    const userData = await authService.login(email, password, rememberMe);
+    const userData = await authService.login(login, password, rememberMe);
     setUser(userData);
     // Also store user in localStorage for components that need it
     localStorage.setItem('user', JSON.stringify(userData));

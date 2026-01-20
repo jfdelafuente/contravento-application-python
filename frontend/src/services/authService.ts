@@ -52,16 +52,21 @@ export const authService = {
    *
    * Note: Backend does not support remember_me or turnstile_token yet.
    * These parameters are kept for future implementation.
+   *
+   * @param login - Username or email address
+   * @param password - User password
+   * @param _rememberMe - (Future) Remember me option
+   * @param _turnstileToken - (Future) Turnstile CAPTCHA token
    */
   async login(
-    email: string,
+    login: string,
     password: string,
     _rememberMe: boolean, // Prefixed with _ to indicate intentionally unused
     _turnstileToken?: string // Prefixed with _ to indicate intentionally unused
   ): Promise<User> {
-    // Backend expects 'login' field (username or email), not 'email'
+    // Backend expects 'login' field (accepts username or email)
     const payload = {
-      login: email, // Backend accepts email in 'login' field
+      login,
       password,
     };
 
