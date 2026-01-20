@@ -1451,6 +1451,73 @@ const __dirname = path.dirname(__filename);
 
 ---
 
+#### ⚠️ E2E Tests Failing (Frontend Auth Mismatch - Enero 2026)
+
+**Error**: 4 E2E auth tests failing in GitHub Actions workflow
+```
+1) [chromium] › tests/e2e/auth.spec.ts - should complete full registration workflow
+   Expected redirect to /login, got /register
+
+2) [chromium] › tests/e2e/auth.spec.ts - should show validation errors for invalid input
+   Validation messages not visible
+
+3) [chromium] › tests/e2e/auth.spec.ts - should prevent duplicate username registration
+   Error message "nombre de usuario.*ya existe" not shown
+
+4) [chromium] › tests/e2e/auth.spec.ts - should login with valid credentials
+   input[name="login"] not found (form has name="email" instead)
+```
+
+**Causa**: Frontend implementation doesn't match backend API contract
+
+**Issues identificados**:
+
+1. **RegisterPage redirects wrong location**:
+   - **Actual**: Redirects to `/verify-email` after registration (line 21 in RegisterPage.tsx)
+   - **Expected**: Redirect to `/login` with success message
+   - **Fix**: Update `handleSuccess()` in RegisterPage.tsx
+
+2. **LoginForm field name mismatch**:
+   - **Backend API**: Expects `login` field (accepts username OR email)
+   - **Frontend**: Uses `name="email"` field (only accepts email)
+   - **E2E Tests**: Correctly use `input[name="login"]` per backend spec
+   - **Fix**: Update LoginForm.tsx to use `login` field and accept both username/email
+
+3. **Validation error messages don't match**:
+   - **E2E Expects**: "nombre de usuario.*requerido", "email.*requerido", "contraseña.*requerida"
+   - **Frontend Shows**: Different Spanish text from Zod schema
+   - **Fix**: Align Zod error messages with E2E test expectations
+
+4. **Duplicate username error not displayed**:
+   - **Backend**: Returns field-specific error with `field: "username"` and `message: "El nombre de usuario ya existe"`
+   - **Frontend**: Catches error but might not display it correctly
+   - **Fix**: Ensure field-specific errors from backend are shown in RegisterForm
+
+**Solución temporal**:
+- E2E tests pass with retries (max 3 attempts)
+- Workflow doesn't block on E2E failures (allowed to continue)
+
+**Solución definitiva** (tareas pendientes):
+```markdown
+- [ ] Fix RegisterPage redirect: /verify-email → /login
+- [ ] Update LoginForm: name="email" → name="login" (accept username OR email)
+- [ ] Align validation messages with E2E test expectations
+- [ ] Improve backend error display in RegisterForm (field-specific errors)
+- [ ] Add E2E test for email verification flow (/verify-email page)
+```
+
+**Cómo monitorear**:
+1. Check Playwright report artifacts in GitHub Actions
+2. View screenshots/videos in `playwright-report` artifact
+3. Run locally: `cd frontend && npm run test:e2e`
+
+**Referencias**:
+- Backend API contract: `backend/src/schemas/auth.py` (LoginRequest uses `login` field)
+- E2E tests: `frontend/tests/e2e/auth.spec.ts`
+- Frontend components: `frontend/src/pages/LoginPage.tsx`, `RegisterPage.tsx`
+
+---
+
 ### Problemas Comunes Generales
 
 #### 1. Workflow No Se Ejecuta
