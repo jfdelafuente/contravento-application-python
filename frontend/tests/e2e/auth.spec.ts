@@ -38,8 +38,9 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
     await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
-    // Wait for Turnstile to load and auto-verify (testing key 1x00000000000000000000AA always passes)
-    await page.waitForTimeout(2000);
+    // Wait for Turnstile to load, auto-verify AND trigger onSuccess callback
+    // Testing key 1x00000000000000000000AA always passes, but callback needs time to execute
+    await page.waitForTimeout(3000);
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -86,8 +87,9 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
     await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
-    // Wait for Turnstile to load and auto-verify (testing key 1x00000000000000000000AA always passes)
-    await page.waitForTimeout(2000);
+    // Wait for Turnstile to load, auto-verify AND trigger onSuccess callback
+    // Testing key 1x00000000000000000000AA always passes, but callback needs time to execute
+    await page.waitForTimeout(3000);
 
     await page.click('button[type="submit"]');
 
