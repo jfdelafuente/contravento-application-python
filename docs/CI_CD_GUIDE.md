@@ -266,64 +266,300 @@ Archivos generados durante el workflow que se guardan:
 
 ## Workflows Implementados
 
-ContraVento tiene **4 workflows principales** configurados en `.github/workflows/`:
+ContraVento tiene **3 workflows principales** configurados en `.github/workflows/`:
 
-### 1. Backend Tests (`backend-tests.yml`)
+**Archivos actuales**:
+- `ci.yml` - Pipeline principal de CI/CD (Backend Tests + E2E Tests + Security Scan)
+- `backend-tests.yml` - Tests backend aislados (Unit, Integration, Smoke, Coverage)
+- `frontend-tests.yml` - Tests frontend aislados (Lint, Unit, E2E)
 
-**Propósito**: Validar calidad y funcionalidad del backend Python/FastAPI
+### 1. CI Pipeline (`ci.yml`)
+
+**Propósito**: Pipeline principal de integración continua con validación completa del stack
 
 **Triggers**:
-- Push a main, develop, feature/*
-- Pull requests a main/develop
-- Cambios en `backend/` o archivos de workflow
+- Push a ramas `main`, `develop`
+- Pull requests a `main`, `develop`
+- Manual (workflow_dispatch)
 
 **Jobs**:
 
-#### Job 1: `lint-and-type-check`
+#### Job 1: `backend-tests`
 ```yaml
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 steps:
-  - Setup Python 3.12
-  - Install Poetry dependencies
+  - Setup Python 3.12 + Poetry
+  - Install dependencies (with cache)
   - Run Black (formatting check)
   - Run Ruff (linting)
   - Run MyPy (type checking)
+  - Setup PostgreSQL service container
+  - Run pytest with coverage (tests can fail with || true)
+  - Upload test results
+  - Upload coverage artifact
 ```
 
 **Verifica**:
 - ✅ Código formateado correctamente (black)
 - ✅ Sin errores de linting (ruff)
 - ✅ Type hints correctos (mypy)
+- ⚠️ Tests ejecutados (pueden fallar sin bloquear con `|| true`)
+- ⚠️ Cobertura reportada (no bloquea si <90%)
 
-#### Job 2: `test`
+**Configuración importante**:
 ```yaml
+env:
+  SECRET_KEY: test_secret_key_for_ci_cd_pipeline_minimum_32_chars  # 52 chars
+  DATABASE_URL: postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test_db
+  ENVIRONMENT: test
+```
+
+**Artefactos generados**:
+- `pytest-results` (JUnit XML)
+- `backend-coverage-report` (HTML coverage)
+
+**Tiempo de ejecución**: ~5-7 minutos
+
+---
+
+#### Job 2: `frontend-tests`
+```yaml
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 steps:
-  - Setup Python 3.12
+  - Setup Node.js 20.x (with npm cache)
   - Install dependencies
-  - Run pytest with coverage
-  - Generate coverage report
-  - Upload coverage artifact
+  - Run ESLint (linting)
+  - Run TypeScript compiler check
+  - Run Vitest unit tests (can fail with || true)
+  - Upload test results
 ```
 
 **Verifica**:
-- ✅ Todos los tests pasan
-- ✅ Cobertura ≥ 90%
-- ✅ Tests unitarios e integración
+- ✅ Código sin errores de linting (ESLint)
+- ✅ Tipos TypeScript correctos (tsc)
+- ⚠️ Tests ejecutados (pueden fallar sin bloquear con `|| true`)
 
 **Artefactos generados**:
-- `coverage-report/` (HTML con detalles de cobertura)
+- `vitest-results` (test results)
 
 **Tiempo de ejecución**: ~3-5 minutos
 
 ---
 
-### 2. Frontend Tests (`frontend-tests.yml`)
+#### Job 3: `e2e-tests`
+```yaml
+needs: [backend-tests, frontend-tests]  # Depende de jobs anteriores
 
-**Propósito**: Validar calidad y funcionalidad del frontend React/TypeScript
+services:
+  postgres:  # PostgreSQL para backend E2E
+    image: postgres:16-alpine
+
+steps:
+  - Setup Node.js 20.x
+  - Setup Python 3.12 + Poetry
+  - Install backend + frontend dependencies
+  - Run database migrations (alembic upgrade head)
+  - Start backend server (uvicorn en background)
+  - Start frontend dev server (vite en background)
+  - Install Playwright browsers
+  - Run Playwright E2E tests
+  - Upload Playwright report (if tests fail)
+```
+
+**Verifica**:
+- ✅ Backend y frontend inician correctamente
+- ✅ Migraciones se aplican sin errores
+- ✅ Tests E2E pasan en navegadores (chromium, firefox, webkit)
+- ✅ Flujos completos de usuario funcionan
+
+**Configuración importante**:
+```yaml
+env:
+  SECRET_KEY: test_secret_key_for_e2e_tests_minimum_52_characters_required  # 62 chars
+  DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
+  VITE_APP_URL: http://localhost:5173
+  VITE_API_URL: http://localhost:8000
+```
+
+**Artefactos generados**:
+- `playwright-report` (solo si fallan tests - screenshots, videos, traces)
+
+**Tiempo de ejecución**: ~8-12 minutos
+
+---
+
+#### Job 4: `security-scan`
+```yaml
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+steps:
+  - Initialize CodeQL (JavaScript-TypeScript, Python)
+  - Autobuild projects
+  - Perform CodeQL Analysis
+  - Upload SARIF results to GitHub Security
+```
+
+**Verifica**:
+- ✅ Vulnerabilidades de seguridad conocidas
+- ✅ Code injection patterns
+- ✅ SQL injection risks
+- ✅ XSS vulnerabilities
+- ✅ Hardcoded secrets
+
+**Reportes**:
+- GitHub Security → Code scanning alerts
+- SARIF files uploadados automáticamente
+
+**Tiempo de ejecución**: ~10-15 minutos
+
+---
+
+### 2. Backend Tests (Isolated) (`backend-tests.yml`)
+
+**Propósito**: Tests backend exhaustivos sin dependencias del frontend
 
 **Triggers**:
-- Push a main, develop, feature/*
-- Pull requests a main/develop
-- Cambios en `frontend/` o archivos de workflow
+- Push/PR a main, develop
+- Cambios en `backend/**` o `.github/workflows/backend-tests.yml`
+- Manual (workflow_dispatch)
+
+**Jobs**:
+
+#### Job 1: `lint-and-format`
+```yaml
+steps:
+  - Setup Python 3.12
+  - Install Poetry dependencies (with cache)
+  - Check code formatting (black --check)
+  - Lint code (ruff check)
+  - Type checking (mypy)
+```
+
+**Tiempo de ejecución**: ~2-3 minutos
+
+---
+
+#### Job 2: `unit-tests`
+```yaml
+strategy:
+  matrix:
+    python-version: ['3.12']
+
+steps:
+  - Setup Python ${{ matrix.python-version }}
+  - Install dependencies
+  - Run unit tests with coverage
+  - Upload coverage to Codecov
+  - Upload test results artifact
+  - Upload coverage HTML report
+```
+
+**Verifica**:
+- ✅ Tests unitarios en tests/unit/
+- ✅ Cobertura por módulo
+- ✅ Coverage XML + HTML reports
+
+**Tiempo de ejecución**: ~3-4 minutos
+
+---
+
+#### Job 3: `integration-tests`
+```yaml
+services:
+  postgres:
+    image: postgres:16-alpine
+    env:
+      POSTGRES_USER: contravento_test
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: contravento_test_db
+
+steps:
+  - Setup Python 3.12
+  - Install dependencies
+  - Run integration tests with coverage
+  - Upload coverage to Codecov
+```
+
+**Configuración importante**:
+```yaml
+env:
+  SECRET_KEY: test_secret_key_for_ci_pipeline_minimum_52_characters_required  # 62 chars
+  DATABASE_URL: postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test_db
+```
+
+**Tiempo de ejecución**: ~4-6 minutos
+
+---
+
+#### Job 4: `smoke-tests`
+```yaml
+services:
+  postgres:
+    image: postgres:16-alpine
+
+steps:
+  - Setup Python 3.12
+  - Install dependencies
+  - Run database migrations
+  - Start backend server
+  - Run smoke tests (bash scripts/run_smoke_tests.sh)
+  - Stop backend server
+```
+
+**Configuración importante**:
+```yaml
+env:
+  SECRET_KEY: test_secret_key_for_smoke_tests_minimum_52_characters_required  # 62 chars
+```
+
+**Verifica**:
+- ✅ Servidor inicia correctamente
+- ✅ Health checks pasan
+- ✅ Endpoints críticos responden
+
+**Tiempo de ejecución**: ~3-4 minutos
+
+---
+
+#### Job 5: `coverage-check`
+```yaml
+needs: [unit-tests, integration-tests]
+
+steps:
+  - Run all tests with coverage
+  - Verify coverage ≥90% threshold
+  - Upload final coverage report
+```
+
+**Verifica**:
+- ✅ Cobertura combinada ≥90%
+- ✅ Genera reporte final para Codecov
+
+**Tiempo de ejecución**: ~5-7 minutos
+
+**Total Backend Tests Workflow**: ~15-20 minutos
+
+---
+
+### 3. Frontend Tests (Isolated) (`frontend-tests.yml`)
+
+**Propósito**: Tests frontend exhaustivos con E2E integrado
+
+**Triggers**:
+- Push/PR a main, develop
+- Cambios en `frontend/**` o `.github/workflows/frontend-tests.yml`
+- Manual (workflow_dispatch)
 
 **Jobs**:
 
@@ -333,158 +569,96 @@ steps:
   - Setup Node.js 20.x
   - Install npm dependencies (with cache)
   - Run ESLint (linting)
-  - Run TypeScript compiler (type check)
+  - Run TypeScript compiler check (tsc --noEmit)
 ```
 
 **Verifica**:
-- ✅ Código sin errores de linting
+- ✅ Código sin errores de linting (ESLint)
 - ✅ Tipos TypeScript correctos
-- ✅ Imports válidos
+- ✅ No unused imports
 
-#### Job 2: `test`
+**Tiempo de ejecución**: ~2-3 minutos
+
+---
+
+#### Job 2: `unit-tests`
 ```yaml
 steps:
   - Setup Node.js 20.x
   - Install dependencies
   - Run Vitest with coverage
-  - Generate coverage report
   - Upload coverage artifact
 ```
 
 **Verifica**:
-- ✅ Tests unitarios pasan
-- ✅ Cobertura ≥ 80%
-- ✅ Componentes React funcionan
+- ✅ Tests unitarios en tests/unit/
+- ✅ Cobertura de componentes React
+- ✅ Coverage report generado
 
-#### Job 3: `build`
-```yaml
-steps:
-  - Setup Node.js 20.x
-  - Install dependencies
-  - Build production bundle
-  - Verify bundle size
-```
-
-**Verifica**:
-- ✅ Aplicación compila sin errores
-- ✅ Bundle optimizado (<500 KB gzipped)
-- ✅ Sin warnings de producción
-
-**Artefactos generados**:
-- `frontend-coverage/` (Reporte de cobertura)
-- `frontend-build/` (Bundle de producción)
-
-**Tiempo de ejecución**: ~4-6 minutos
+**Tiempo de ejecución**: ~3-4 minutos
 
 ---
 
-### 3. E2E Tests (`e2e-tests.yml`)
-
-**Propósito**: Validar flujos completos de usuario con Playwright
-
-**Triggers**:
-- Push a main, develop
-- Pull requests a main/develop
-- Cambios en `frontend/tests/e2e/` o archivos de workflow
-- Manual (workflow_dispatch)
-
-**Jobs**:
-
-#### Job 1: `e2e-tests`
+#### Job 3: `e2e-tests`
 ```yaml
-strategy:
-  matrix:
-    browser: [chromium, firefox, webkit]
+services:
+  postgres:
+    image: postgres:16-alpine
 
 steps:
   - Setup Node.js 20.x
-  - Install dependencies
+  - Setup Python 3.12 + Poetry
+  - Install backend + frontend dependencies
+  - Run database migrations
+  - Start backend server (background)
+  - Start frontend dev server (background)
   - Install Playwright browsers
-  - Start backend (FastAPI)
-  - Start frontend (Vite)
-  - Wait for services (health checks)
-  - Run Playwright tests
-  - Upload artifacts (screenshots, videos, traces)
+  - Run Playwright E2E tests
+  - Upload Playwright report (on failure)
+```
+
+**Configuración importante**:
+```yaml
+env:
+  SECRET_KEY: test_secret_key_for_e2e_tests_minimum_52_characters_required  # 62 chars
+  DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
+  VITE_APP_URL: http://localhost:5173
+  VITE_API_URL: http://localhost:8000
 ```
 
 **Verifica**:
-- ✅ 57 tests E2E en 3 navegadores (171 ejecuciones)
-- ✅ Autenticación funciona
-- ✅ Creación de viajes funciona
-- ✅ Feed público funciona
-- ✅ Mapas interactivos funcionan
-
-**Matrix Strategy**:
-El workflow ejecuta tests en paralelo en 3 navegadores:
-
-```yaml
-matrix:
-  browser: [chromium, firefox, webkit]
-```
-
-**Resultado**: 3 jobs simultáneos (uno por navegador)
+- ✅ Backend + frontend inician correctamente
+- ✅ Migraciones se aplican sin errores
+- ✅ Tests E2E pasan en navegadores
+- ✅ Flujos completos de usuario funcionan
 
 **Artefactos generados**:
-- `playwright-report-chromium/` (Reporte HTML + screenshots)
-- `playwright-report-firefox/` (Reporte HTML + screenshots)
-- `playwright-report-webkit/` (Reporte HTML + screenshots)
-- Videos de tests fallidos (automático)
-- Traces para debugging (automático)
+- `playwright-report` (screenshots, videos, traces - solo si falla)
 
-**Tiempo de ejecución**: ~8-12 minutos (paralelo)
+**Tiempo de ejecución**: ~8-12 minutos
+
+**Total Frontend Tests Workflow**: ~13-19 minutos
 
 ---
 
-### 4. Deployment (`deploy-staging.yml`)
+## Resumen de Workflows
 
-**Propósito**: Desplegar automáticamente a staging después de CI exitoso
+| Workflow | Jobs | Duración Total | Cuándo usar |
+|----------|------|----------------|-------------|
+| **ci.yml** | Backend Tests + Frontend Tests + E2E + Security | ~25-35 min | Push/PR a main/develop (validación completa) |
+| **backend-tests.yml** | Lint + Unit + Integration + Smoke + Coverage | ~15-20 min | Desarrollo backend (validación exhaustiva) |
+| **frontend-tests.yml** | Lint + Unit + E2E | ~13-19 min | Desarrollo frontend (validación exhaustiva) |
 
-**Triggers**:
-- Push a rama `develop`
-- Manual (workflow_dispatch)
+---
 
-**Jobs**:
+### Archivo de Workflows Eliminados
 
-#### Job 1: `build`
-```yaml
-steps:
-  - Checkout code
-  - Setup Docker Buildx
-  - Login to Docker Hub
-  - Build backend image
-  - Build frontend image
-  - Tag images (staging-YYYYMMDD-SHA)
-  - Push images to registry
-```
+Los siguientes workflows mencionados en versiones anteriores ya NO existen:
 
-**Genera**:
-- `contravento-backend:staging-20260116-a1b2c3d`
-- `contravento-frontend:staging-20260116-a1b2c3d`
-
-#### Job 2: `deploy`
-```yaml
-steps:
-  - SSH to staging server
-  - Pull latest images
-  - Update docker-compose.yml
-  - Run docker compose up -d
-  - Wait for services to start
-  - Run smoke tests
-  - Notify team (Slack/Discord)
-```
-
-**Verifica**:
-- ✅ Servicios iniciados correctamente
-- ✅ Health checks pasan
-- ✅ Smoke tests pasan
-- ✅ No errores en logs
-
-**Notificaciones**:
-- ✅ Slack: Deploy exitoso con link a staging
-- ❌ Slack: Deploy fallido con logs de error
-- 📧 Email: Resumen de deploy (opcional)
-
-**Tiempo de ejecución**: ~5-8 minutos
+- ❌ `e2e-tests.yml` (ahora está integrado en `ci.yml` y `frontend-tests.yml`)
+- ❌ `deploy-staging.yml` (deployment se maneja por separado)
+- ❌ `deploy-production.yml` (deployment se maneja por separado)
+- ❌ `performance-tests.yml` (no implementado aún)
 
 ---
 
@@ -612,13 +786,13 @@ Protection rules:
 ```
 .github/
 └── workflows/
-    ├── backend-tests.yml          # Tests backend (pytest)
-    ├── frontend-tests.yml         # Tests frontend (Vitest)
-    ├── e2e-tests.yml              # Tests E2E (Playwright)
-    ├── deploy-staging.yml         # Deploy a staging
-    ├── deploy-production.yml      # Deploy a production (manual)
-    └── performance-tests.yml      # Tests de performance (nightly)
+    ├── ci.yml                     # Pipeline principal (Backend + Frontend + E2E + Security)
+    ├── backend-tests.yml          # Tests backend exhaustivos (Unit + Integration + Smoke + Coverage)
+    ├── frontend-tests.yml         # Tests frontend exhaustivos (Lint + Unit + E2E)
+    └── README.md                  # Documentación de workflows
 ```
+
+**Nota**: No hay workflows de deployment en este directorio. El deployment se maneja por separado.
 
 ### Anatomía de un Workflow
 
@@ -1198,7 +1372,86 @@ curl -L -H "Authorization: token $GITHUB_TOKEN" \
 
 ## Troubleshooting
 
-### Problemas Comunes
+### Problemas Comunes Resueltos en Enero 2026
+
+#### ⚠️ SECRET_KEY demasiado corto (Pydantic ValidationError)
+
+**Error**:
+```
+pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+secret_key
+  String should have at least 32 characters [type=string_too_short]
+```
+
+**Causa**: Las `SECRET_KEY` en workflows tenían 28-40 caracteres, pero Pydantic requiere ≥32 (recomendado ≥52)
+
+**Solución aplicada**:
+- ✅ `ci.yml`: `test_secret_key_for_ci_cd_pipeline_minimum_32_chars` (52 chars)
+- ✅ `ci.yml` (E2E): `test_secret_key_for_e2e_tests_minimum_52_characters_required` (62 chars)
+- ✅ `backend-tests.yml`: `test_secret_key_for_ci_pipeline_minimum_52_characters_required` (62 chars)
+- ✅ `backend-tests.yml` (Smoke): `test_secret_key_for_smoke_tests_minimum_52_characters_required` (62 chars)
+- ✅ `frontend-tests.yml`: `test_secret_key_for_e2e_tests_minimum_52_characters_required` (62 chars)
+
+**Cómo evitar**: Siempre usa `SECRET_KEY` con ≥52 caracteres en todos los ambientes de CI
+
+---
+
+#### ⚠️ __dirname is not defined (ES modules)
+
+**Error**:
+```
+ReferenceError: __dirname is not defined
+   at setup/global-setup.ts:46
+```
+
+**Causa**: El proyecto usa módulos ES (`type: "module"` en package.json), pero el código usaba `__dirname` que solo existe en CommonJS
+
+**Solución aplicada en `frontend/tests/e2e/setup/global-setup.ts`**:
+```typescript
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+```
+
+**Cómo evitar**: Siempre usa `import.meta.url` + `fileURLToPath()` en módulos ES, nunca `__dirname` directamente
+
+---
+
+#### ⚠️ Tests fallan pero workflow pasa (o viceversa)
+
+**Problema**: Los tests ejecutan y fallan, pero el workflow marca "Success" porque se usa `|| true`
+
+**Explicación**: En la configuración actual:
+- ✅ **Quality checks bloquean**: Black, Ruff, ESLint, MyPy, TSC
+- ⚠️ **Tests NO bloquean**: pytest, vitest (se ejecutan con `|| true`)
+- ✅ **Objetivo**: Permitir que el pipeline continue mientras se arreglan tests legacy
+
+**Configuración en workflows**:
+```yaml
+# ci.yml - Backend Tests
+- name: Run tests with coverage
+  run: poetry run pytest --cov=src --cov-report=xml --cov-report=term -v || true
+
+# ci.yml - Frontend Tests
+- name: Run unit tests
+  run: npm run test:unit -- --coverage || true
+```
+
+**Interpretación de resultados**:
+- ✅ **Green checkmark**: Quality checks pasaron + tests ejecutados (pueden haber fallado)
+- ❌ **Red X**: Quality checks fallaron (lint, format, types)
+
+**Cómo revisar tests reales**:
+1. Click en el job (ej: "backend-tests")
+2. Expande "Run tests with coverage"
+3. Busca línea con `=== X failed, Y passed ===`
+4. Revisa detalles de tests fallidos
+
+---
+
+### Problemas Comunes Generales
 
 #### 1. Workflow No Se Ejecuta
 
@@ -1737,10 +1990,9 @@ concurrency:
 
 | Workflow | Propósito | Triggers | Duración |
 |----------|-----------|----------|----------|
-| **backend-tests.yml** | Tests backend (pytest) | Push, PR | ~3-5 min |
-| **frontend-tests.yml** | Tests frontend (Vitest) | Push, PR | ~4-6 min |
-| **e2e-tests.yml** | Tests E2E (Playwright) | Push, PR | ~8-12 min |
-| **deploy-staging.yml** | Deploy a staging | Merge to develop | ~5-8 min |
+| **ci.yml** | Pipeline completo (Backend + Frontend + E2E + Security) | Push/PR a main, develop | ~25-35 min |
+| **backend-tests.yml** | Tests backend exhaustivos (Unit + Integration + Smoke + Coverage) | Push/PR (cambios en backend/) | ~15-20 min |
+| **frontend-tests.yml** | Tests frontend exhaustivos (Lint + Unit + E2E) | Push/PR (cambios en frontend/) | ~13-19 min |
 
 ### Beneficios
 
@@ -1773,6 +2025,17 @@ Developer → Commit → Push → GitHub Actions
 
 ---
 
-**Última actualización**: 2026-01-16
+**Última actualización**: 2026-01-20
 
-**Contacto**: Para preguntas sobre CI/CD, contacta al equipo de DevOps
+**Versión del documento**: 2.0 (actualizado con workflows reales de enero 2026)
+
+**Cambios importantes en esta versión**:
+- ✅ Documentación actualizada con workflows reales (`ci.yml`, `backend-tests.yml`, `frontend-tests.yml`)
+- ✅ Eliminadas referencias a workflows obsoletos (`e2e-tests.yml`, `deploy-staging.yml`)
+- ✅ Añadida configuración correcta de `SECRET_KEY` (≥52 caracteres para todos los workflows)
+- ✅ Documentados permisos de GitHub Actions para cada job
+- ✅ Añadido patrón `|| true` para tests que no bloquean el pipeline
+- ✅ Actualizada información sobre jobs de Security Scan con CodeQL
+- ✅ Corregidos tiempos de ejecución estimados basados en runs reales
+
+**Contacto**: Para preguntas sobre CI/CD, contacta al equipo de DevOps o revisa la documentación en GitHub Actions
