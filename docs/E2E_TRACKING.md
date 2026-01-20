@@ -117,6 +117,7 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P6 | Redirección post-registro (código) | `7639042` | ✅ Resuelto |
 | P7 | Redirección post-login | `ac189a3` | ✅ Resuelto |
 | P8 | Test registro espera /verify-email | `9a86db2` | ✅ Resuelto |
+| P9 | Mobile layout gap (sections touching) | `6337735` | ✅ Resuelto |
 | P11 | Login duplicate locator (strict mode) | `2dfb0da` | ✅ Resuelto |
 | P12 | POST /trips retorna null data | `1580d1a` | ✅ Resuelto |
 | P13 | CSS selector regex syntax error | `49aaa68` | ✅ Resuelto |
@@ -125,7 +126,6 @@ Tiempo: 10.0 minutos (límite alcanzado)
 
 | ID  | Problema                    | Prioridad | Dificultad | Archivo                 |
 |-----|-----------------------------|-----------|------------|-------------------------|
-| P9  | Duplicate heading mobile    | 🟡 Media  | Baja       | `landing.spec.ts:128`   |
 | P14 | Timeout general del suite   | 🟢 Baja   | Baja       | `playwright.config.ts`  |
 
 ---
@@ -426,5 +426,28 @@ Total: ~140/213 tests ejecutados (66%)
 
 ---
 
+### Ejecución #7 - Fix Mobile Layout Gap (P9)
+
+**Fecha**: 2026-01-20 (15:30 UTC aprox)
+
+**Commit**:
+
+- `6337735` - Add bottom margin to hero section on mobile
+
+**Problema resuelto**:
+
+- **P9 - Duplicate heading mobile / Mobile layout gap** (E2E test)
+  - Test "should stack sections vertically on mobile" fallaba porque las secciones se tocaban exactamente
+  - Error: `manifestoBox.y === heroBox.y + heroBox.height` (812.390625 === 812.390625)
+  - Test esperaba: `manifestoBox.y > heroBox.y + heroBox.height` (debe haber gap)
+  - Solución: Agregar `margin-bottom: var(--space-1)` a `.hero-section` en viewport móvil (< 768px)
+  - Archivo: `frontend/src/components/landing/HeroSection.css`
+
+**Impacto esperado**:
+
+- +1 test de Landing Page desbloqueado (mobile responsive behavior)
+
+---
+
 **Última actualización**: 2026-01-20
-**Próxima ejecución programada**: Después de fix P11 - EJECUTAR AHORA
+**Próxima ejecución programada**: Después de fix P9 - EJECUTAR AHORA
