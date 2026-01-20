@@ -38,26 +38,10 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
     await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
-    // Wait for Turnstile widget to load
-    await page.waitForTimeout(2000);
-
-    // Manually set Turnstile token via JavaScript (bypass flaky callback in E2E)
-    // In production, the widget's onSuccess callback handles this automatically
-    await page.evaluate(() => {
-      const form = document.querySelector('form');
-      if (form) {
-        // Create hidden input for turnstileToken if not exists
-        let tokenInput = form.querySelector('input[name="turnstileToken"]') as HTMLInputElement;
-        if (!tokenInput) {
-          tokenInput = document.createElement('input');
-          tokenInput.type = 'hidden';
-          tokenInput.name = 'turnstileToken';
-          form.appendChild(tokenInput);
-        }
-        // Set dummy token value (backend in testing mode doesn't validate)
-        tokenInput.value = 'dummy_e2e_token';
-      }
-    });
+    // Wait for Turnstile widget to load and auto-verify
+    // Testing key 1x00000000000000000000AA should auto-pass
+    // Give it generous time for the callback to execute
+    await page.waitForTimeout(5000);
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -104,23 +88,9 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
     await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
-    // Wait for Turnstile widget to load
-    await page.waitForTimeout(2000);
-
-    // Manually set Turnstile token via JavaScript (bypass flaky callback in E2E)
-    await page.evaluate(() => {
-      const form = document.querySelector('form');
-      if (form) {
-        let tokenInput = form.querySelector('input[name="turnstileToken"]') as HTMLInputElement;
-        if (!tokenInput) {
-          tokenInput = document.createElement('input');
-          tokenInput.type = 'hidden';
-          tokenInput.name = 'turnstileToken';
-          form.appendChild(tokenInput);
-        }
-        tokenInput.value = 'dummy_e2e_token';
-      }
-    });
+    // Wait for Turnstile widget to load and auto-verify
+    // Testing key should auto-pass, give generous time for callback
+    await page.waitForTimeout(5000);
 
     await page.click('button[type="submit"]');
 
