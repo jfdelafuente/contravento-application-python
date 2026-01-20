@@ -116,12 +116,13 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P5 | Variables entorno CI | `5c31c1d` | ✅ Resuelto |
 | P6 | Redirección post-registro (código) | `7639042` | ✅ Resuelto |
 | P7 | Redirección post-login | `ac189a3` | ✅ Resuelto |
+| P8 | Test registro espera /verify-email | `9a86db2` | ✅ Resuelto |
+| P12 | POST /trips retorna null data | `1580d1a` | ✅ Resuelto |
 
 ### 🔴 PENDIENTES
 
 | ID | Problema | Prioridad | Dificultad | Archivo |
 |----|----------|-----------|------------|---------|
-| P8 | Test registro espera /verify-email | 🔴 Alta | Baja | `auth.spec.ts:44` |
 | P9 | Duplicate heading mobile | 🟡 Media | Baja | `landing.spec.ts:128` |
 | P10 | Location editing tests fallan | 🟡 Media | Media | `location-editing.spec.ts` (todos) |
 | P11 | Timeout general del suite | 🟢 Baja | Baja | `playwright.config.ts` |
@@ -329,24 +330,31 @@ Tiempo: No reportado (probablemente <10 min por completarse)
 
 ---
 
-### Ejecución #4 - Fix POST /trips Endpoint
+### Ejecución #4 - Fixes Críticos (POST /trips + Registration Test)
 
 **Fecha**: 2026-01-20 (14:00 UTC aprox)
 
 **Commits**:
 
-- Fix `_load_trip_relationships` to load `user` and `user.profile` relationships
+- `1580d1a` - Fix `_load_trip_relationships` to load `user` and `user.profile` relationships
+- `9a86db2` - Fix E2E registration test to support auto-verification flow
 
-**Problema resuelto**:
+**Problemas resueltos**:
 
-- `POST /trips` ahora retorna trip data completo con `author` field
-- TripResponse.model_validate() puede serializar correctamente el Trip con user data
+1. **P12 - POST /trips retorna null data** (backend)
+   - `POST /trips` ahora retorna trip data completo con `author` field
+   - TripResponse.model_validate() puede serializar correctamente el Trip con user data
+
+2. **P8 - Test registro espera /verify-email** (E2E test)
+   - Test ahora detecta auto-verificación y espera redirect correcto
+   - Funciona en testing (→ /login) y producción (→ /verify-email)
 
 **Impacto esperado**:
 
 - +76 tests desbloqueados (Location Editing, Public Feed, Trip Creation)
+- +2-3 tests de registro arreglados
 
 ---
 
 **Última actualización**: 2026-01-20
-**Próxima ejecución programada**: Después de fix P12 (endpoint POST /trips) - EJECUTAR AHORA
+**Próxima ejecución programada**: Después de fixes P8 y P12 - EJECUTAR AHORA
