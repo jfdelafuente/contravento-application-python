@@ -14,10 +14,10 @@ export interface User {
   is_verified: boolean;
 
   /** Profile visibility setting (Feature 013) */
-  profile_visibility: 'public' | 'private';
+  profile_visibility?: 'public' | 'private';
 
   /** Trip visibility setting (Feature 013) */
-  trip_visibility: 'public' | 'followers' | 'private';
+  trip_visibility?: 'public' | 'followers' | 'private';
 
   /** Account creation timestamp */
   created_at: string; // ISO 8601
@@ -34,29 +34,11 @@ export interface User {
   /** Cycling type preference */
   cycling_type?: string;
 
-  /** Profile visibility setting */
-  profile_visibility?: 'public' | 'private';
-
-  /** Trip visibility setting */
-  trip_visibility?: 'public' | 'followers' | 'private';
-
   /** Optional profile data (deprecated - use flat properties above) */
   profile?: UserProfile;
 
   /** Optional statistics */
   stats?: UserStats;
-
-  /** Optional profile photo URL */
-  photo_url?: string;
-
-  /** Optional bio text */
-  bio?: string;
-
-  /** Optional location */
-  location?: string;
-
-  /** Optional cycling type */
-  cycling_type?: string;
 }
 
 export interface UserProfile {

@@ -34,14 +34,14 @@ export const CommentList: React.FC<CommentListProps> = ({ tripId, tripOwnerId })
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
 
   const handleCommentCreated = useCallback(
-    (newComment: Comment) => {
+    (_newComment: Comment) => {
       refetch(); // Refresh the comments list
     },
     [refetch]
   );
 
   const handleCommentUpdated = useCallback(
-    (updatedComment: Comment) => {
+    (_updatedComment: Comment) => {
       setEditingComment(null);
       refetch(); // Refresh to show updated comment
     },

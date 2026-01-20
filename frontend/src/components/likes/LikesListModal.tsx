@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { useTripLikes } from '../../hooks/useTripLikes';
 import './LikesListModal.css';
 
@@ -247,7 +246,7 @@ export const LikesListModal: React.FC<LikesListModalProps> = ({
                     <a
                       href={`/users/${like.user.username}`}
                       className="likes-list-item-link"
-                      onClick={(e) => {
+                      onClick={() => {
                         // Allow default navigation behavior
                         onClose(); // Close modal when clicking user
                       }}

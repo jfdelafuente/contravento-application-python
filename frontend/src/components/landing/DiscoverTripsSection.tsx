@@ -4,27 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getPublicTrips } from '../../services/tripsService';
 import { getPhotoUrl } from '../../utils/tripHelpers';
+import { TripListItem } from '../../types/trip';
 import './DiscoverTripsSection.css';
-
-interface Trip {
-  trip_id: string;
-  title: string;
-  author: {
-    user_id: string;
-    username: string;
-    profile_photo_url: string | null;
-  };
-  photo: {
-    photo_url: string;
-    thumbnail_url: string;
-  } | null;
-  location: {
-    name: string;
-  } | null;
-  start_date: string;
-  distance_km: number | null;
-  published_at: string;
-}
 
 /**
  * DiscoverTripsSection Component
@@ -33,7 +14,7 @@ interface Trip {
  * Shows trip cards with photo, title, and username.
  */
 export const DiscoverTripsSection: React.FC = () => {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<TripListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
