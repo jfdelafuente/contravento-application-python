@@ -79,13 +79,18 @@ class AuthService:
         if result.scalar_one_or_none():
             raise ValueError(f"El email '{data.email}' ya está registrado")
 
+        # In test environment, auto-verify users to simplify E2E testing
+        from src.config import settings
+
+        auto_verify = settings.app_env == "testing"
+
         # Create user
         user = User(
             username=data.username,
             email=data.email.lower(),
             hashed_password=hash_password(data.password),
             is_active=True,
-            is_verified=False,
+            is_verified=auto_verify,  # Auto-verify in test environment
         )
         self.db.add(user)
         await self.db.flush()  # Get user ID
@@ -94,26 +99,32 @@ class AuthService:
         profile = UserProfile(user_id=user.id)
         self.db.add(profile)
 
-        # Create verification token
-        token = create_access_token(
-            {"sub": user.id, "type": "email_verification"}, expires_delta=timedelta(hours=24)
-        )
+        # Only create verification token and send email if not auto-verified
+        if not auto_verify:
+            # Create verification token
+            token = create_access_token(
+                {"sub": user.id, "type": "email_verification"}, expires_delta=timedelta(hours=24)
+            )
 
-        # Store verification token
-        token_hash = hash_password(token)  # Hash token for security
-        password_reset = PasswordReset(
-            user_id=user.id,
-            token_hash=token_hash,
-            token_type="email_verification",
-            expires_at=datetime.now(UTC) + timedelta(hours=24),
-        )
-        self.db.add(password_reset)
+            # Store verification token
+            token_hash = hash_password(token)  # Hash token for security
+            password_reset = PasswordReset(
+                user_id=user.id,
+                token_hash=token_hash,
+                token_type="email_verification",
+                expires_at=datetime.now(UTC) + timedelta(hours=24),
+            )
+            self.db.add(password_reset)
 
-        await self.db.commit()
-        await self.db.refresh(user)
+            await self.db.commit()
+            await self.db.refresh(user)
 
-        # Send verification email
-        await send_verification_email(user.email, user.username, token)
+            # Send verification email
+            await send_verification_email(user.email, user.username, token)
+        else:
+            # In test environment, just commit without email
+            await self.db.commit()
+            await self.db.refresh(user)
 
         logger.info(f"User registered: {user.username} (ID: {user.id})")
 

@@ -85,10 +85,18 @@ async def register(
         auth_service = AuthService(db)
         user = await auth_service.register(data)
 
+        # Message depends on whether user was auto-verified (test environment)
+        from src.config import settings
+
+        if settings.app_env == "testing":
+            message = "Usuario registrado y verificado automáticamente (entorno de testing)."
+        else:
+            message = "Usuario registrado. Revisa tu email para verificar tu cuenta."
+
         return create_response(
             success=True,
             data=user.model_dump(),
-            message="Usuario registrado. Revisa tu email para verificar tu cuenta.",
+            message=message,
         )
 
     except ValueError as e:

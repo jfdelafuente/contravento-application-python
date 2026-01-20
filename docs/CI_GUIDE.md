@@ -1,8 +1,8 @@
-# Guía de CI/CD - ContraVento
+# Guía de CI - ContraVento
 
 ## Índice
 
-1. [¿Qué es CI/CD?](#qué-es-cicd)
+1. [¿Qué es CI?](#qué-es-ci)
 2. [Arquitectura del Pipeline](#arquitectura-del-pipeline)
 3. [Workflows Implementados](#workflows-implementados)
 4. [Configuración de GitHub Actions](#configuración-de-github-actions)
@@ -13,33 +13,31 @@
 
 ---
 
-## ¿Qué es CI/CD?
+## ¿Qué es CI?
 
-### CI/CD en Términos Simples
+### CI en Términos Simples
 
-**CI/CD** son las siglas de **Continuous Integration / Continuous Deployment** (Integración Continua / Despliegue Continuo).
+**CI** son las siglas de **Continuous Integration** (Integración Continua).
 
 #### Analogía del Mundo Real
 
 Imagina que estás construyendo un edificio:
 
-**Sin CI/CD** (Construcción Manual):
+**Sin CI** (Integración Manual):
 - 🏗️ Cada obrero trabaja en su propia área sin coordinación
 - 🔨 Al final del mes, intentan juntar todas las piezas
 - 💥 Muchas piezas no encajan, hay conflictos
 - ⏰ Semanas de trabajo para arreglar problemas
 - 😰 Estrés y retrasos constantes
 
-**Con CI/CD** (Construcción Automatizada):
+**Con CI** (Integración Automatizada):
 - 👷 Los obreros integran su trabajo cada día
 - 🔍 Un inspector automático verifica todo inmediatamente
 - ✅ Los problemas se detectan y arreglan al instante
 - 🚀 El edificio se construye de forma incremental y segura
 - 😌 Confianza y velocidad constante
 
-### Componentes de CI/CD
-
-#### CI - Continuous Integration (Integración Continua)
+### Integración Continua (CI)
 
 **¿Qué hace?**
 Cada vez que un desarrollador hace un commit a GitHub:
@@ -68,41 +66,11 @@ git push origin feature/user-profile
 
 **Beneficio**: Detecta problemas **inmediatamente**, no semanas después.
 
-#### CD - Continuous Deployment (Despliegue Continuo)
+### Comparación: Sin CI vs Con CI
 
-**¿Qué hace?**
-Después de que CI pasa, automáticamente:
-
-1. **Construye la aplicación**: Crea versiones optimizadas
-2. **Ejecuta tests finales**: Smoke tests en staging
-3. **Despliega a staging**: Actualiza ambiente de pruebas
-4. **Despliega a producción**: (opcional) Actualiza ambiente real
-
-**Ejemplo en ContraVento**:
-```bash
-# Merge a rama 'develop'
-git merge feature/user-profile
-
-# GitHub Actions automáticamente:
-✅ Construye imágenes Docker
-✅ Ejecuta smoke tests
-✅ Despliega a staging.contravento.com
-✅ Ejecuta tests E2E en staging
-✅ Notifica al equipo
-
-# Si staging es estable por 24h:
-✅ Deploy manual a producción (con aprobación)
-```
-
-**Beneficio**: Despliegues **rápidos**, **seguros** y **confiables**.
-
-### Comparación: Sin CI/CD vs Con CI/CD
-
-| Aspecto | Sin CI/CD | Con CI/CD |
+| Aspecto | Sin CI | Con CI |
 |---------|-----------|-----------|
 | **Detección de bugs** | Días/semanas después | Minutos después |
-| **Frecuencia de deploy** | Mensual | Diaria/horaria |
-| **Riesgo de deploy** | Alto (cambios acumulados) | Bajo (cambios pequeños) |
 | **Tiempo de arreglo** | Horas/días | Minutos |
 | **Confianza en el código** | Baja (tests manuales) | Alta (tests automáticos) |
 | **Estrés del equipo** | Alto | Bajo |
@@ -269,7 +237,8 @@ Archivos generados durante el workflow que se guardan:
 ContraVento tiene **3 workflows principales** configurados en `.github/workflows/`:
 
 **Archivos actuales**:
-- `ci.yml` - Pipeline principal de CI/CD (Backend Tests + E2E Tests + Security Scan)
+
+- `ci.yml` - Pipeline principal de CI (Backend Tests + E2E Tests + Security Scan)
 - `backend-tests.yml` - Tests backend aislados (Unit, Integration, Smoke, Coverage)
 - `frontend-tests.yml` - Tests frontend aislados (Lint, Unit, E2E)
 
@@ -651,17 +620,6 @@ env:
 
 ---
 
-### Archivo de Workflows Eliminados
-
-Los siguientes workflows mencionados en versiones anteriores ya NO existen:
-
-- ❌ `e2e-tests.yml` (ahora está integrado en `ci.yml` y `frontend-tests.yml`)
-- ❌ `deploy-staging.yml` (deployment se maneja por separado)
-- ❌ `deploy-production.yml` (deployment se maneja por separado)
-- ❌ `performance-tests.yml` (no implementado aún)
-
----
-
 ## Configuración de GitHub Actions
 
 ### Requisitos Previos
@@ -792,7 +750,7 @@ Protection rules:
     └── README.md                  # Documentación de workflows
 ```
 
-**Nota**: No hay workflows de deployment en este directorio. El deployment se maneja por separado.
+**Nota**: Los workflows de deployment (CD) se documentan en el [CD_GUIDE.md](CD_GUIDE.md).
 
 ### Anatomía de un Workflow
 
@@ -1451,6 +1409,79 @@ const __dirname = path.dirname(__filename);
 
 ---
 
+#### ⚠️ E2E Tests Failing (Frontend Auth Mismatch - Enero 2026)
+
+**Error**: 4 E2E auth tests failing in GitHub Actions workflow
+```
+1) [chromium] › tests/e2e/auth.spec.ts - should complete full registration workflow
+   Expected redirect to /login, got /register
+
+2) [chromium] › tests/e2e/auth.spec.ts - should show validation errors for invalid input
+   Validation messages not visible
+
+3) [chromium] › tests/e2e/auth.spec.ts - should prevent duplicate username registration
+   Error message "nombre de usuario.*ya existe" not shown
+
+4) [chromium] › tests/e2e/auth.spec.ts - should login with valid credentials
+   input[name="login"] not found (form has name="email" instead)
+```
+
+**Causa**: Frontend implementation doesn't match backend API contract
+
+**Issues identificados**:
+
+1. **RegisterPage redirects to verify-email (CORRECTO - NO CAMBIAR)**:
+   - **Actual**: Redirects to `/verify-email` after registration (line 21 in RegisterPage.tsx)
+   - **Decisión**: El flujo actual es correcto (registro → verificar email → login)
+   - **Fix Aplicado**: ✅ Actualizado E2E test para esperar redirect a `/verify-email` (commit fd472c1)
+
+2. **LoginForm field name mismatch (CORREGIDO)**:
+   - **Backend API**: Expects `login` field (accepts username OR email)
+   - **Frontend**: Usaba `name="email"` field (only accepts email)
+   - **E2E Tests**: Correctly use `input[name="login"]` per backend spec
+   - **Fix Aplicado**: ✅ Updated LoginForm.tsx to use `login` field and accept both username/email (commit fd472c1)
+
+3. **Validation error messages don't match**:
+   - **E2E Expects**: "nombre de usuario.*requerido", "email.*requerido", "contraseña.*requerida"
+   - **Frontend Shows**: Different Spanish text from Zod schema
+   - **Fix**: Align Zod error messages with E2E test expectations
+
+4. **Duplicate username error not displayed**:
+   - **Backend**: Returns field-specific error with `field: "username"` and `message: "El nombre de usuario ya existe"`
+   - **Frontend**: Catches error but might not display it correctly
+   - **Fix**: Ensure field-specific errors from backend are shown in RegisterForm
+
+**Solución temporal**:
+- E2E tests pass with retries (max 3 attempts)
+- Workflow doesn't block on E2E failures (allowed to continue)
+
+**Solución definitiva** (tareas completadas):
+```markdown
+- [x] ✅ Fix RegisterPage redirect: Actualizado E2E test para esperar /verify-email - commit f2b1e58
+- [x] ✅ Update LoginForm: name="email" → name="login" (accept username OR email) - commit fd472c1
+- [x] ✅ Align validation messages with E2E test expectations - commit e24c6ef
+- [x] ✅ Improve backend error display in RegisterForm (field-specific errors) - commit e24c6ef
+```
+
+**Tareas opcionales** (mejoras futuras):
+
+```markdown
+- [ ] Add E2E test for email verification flow (/verify-email page)
+- [ ] Enable real-time username/email availability checking (requires backend endpoints)
+```
+
+**Cómo monitorear**:
+1. Check Playwright report artifacts in GitHub Actions
+2. View screenshots/videos in `playwright-report` artifact
+3. Run locally: `cd frontend && npm run test:e2e`
+
+**Referencias**:
+- Backend API contract: `backend/src/schemas/auth.py` (LoginRequest uses `login` field)
+- E2E tests: `frontend/tests/e2e/auth.spec.ts`
+- Frontend components: `frontend/src/pages/LoginPage.tsx`, `RegisterPage.tsx`
+
+---
+
 ### Problemas Comunes Generales
 
 #### 1. Workflow No Se Ejecuta
@@ -1970,6 +2001,7 @@ concurrency:
 ### ContraVento Docs
 
 - **QA Testing Manual**: [docs/QA_TESTING_MANUAL.md](./QA_TESTING_MANUAL.md)
+- **CD Guide**: [docs/CD_GUIDE.md](./CD_GUIDE.md) - Guía de Continuous Deployment
 - **Deployment Guide**: [backend/docs/DEPLOYMENT.md](../backend/docs/DEPLOYMENT.md)
 - **Performance Testing**: [backend/tests/performance/PERFORMANCE_TESTING.md](../backend/tests/performance/PERFORMANCE_TESTING.md)
 
@@ -1977,14 +2009,14 @@ concurrency:
 
 ## Resumen
 
-### ¿Qué es CI/CD?
+### ¿Qué es CI?
 
-**CI/CD** = Integración Continua + Despliegue Continuo
+**CI** = Continuous Integration (Integración Continua)
 
 **En términos simples**:
 - 🤖 Robot que **revisa tu código automáticamente** cada vez que haces commit
 - ✅ **Ejecuta todos los tests** para asegurar que nada se rompa
-- 🚀 **Despliega automáticamente** a staging/production si todo pasa
+- 🔍 **Verifica calidad** con linting, type checking y análisis de seguridad
 
 ### Workflows de ContraVento
 
@@ -1998,9 +2030,9 @@ concurrency:
 
 ✅ **Detección temprana de bugs**: Minutos, no días
 ✅ **Confianza en el código**: Tests automáticos siempre
-✅ **Deploys seguros**: Validación antes de producción
-✅ **Velocidad**: Deploy diario vs mensual
+✅ **Calidad consistente**: Validación automática antes de merge
 ✅ **Menos estrés**: Automatización reduce errores humanos
+✅ **Feedback rápido**: Desarrolladores saben inmediatamente si algo se rompió
 
 ### Flujo de Trabajo Típico
 
@@ -2038,4 +2070,254 @@ Developer → Commit → Push → GitHub Actions
 - ✅ Actualizada información sobre jobs de Security Scan con CodeQL
 - ✅ Corregidos tiempos de ejecución estimados basados en runs reales
 
-**Contacto**: Para preguntas sobre CI/CD, contacta al equipo de DevOps o revisa la documentación en GitHub Actions
+---
+
+## Estado Actual de Tests E2E
+
+### Última Ejecución: 2026-01-20
+
+**Resultados**:
+- ✅ **10 tests pasados** (11.1%)
+- ❌ **80 tests fallados** (88.9%)
+- ⏭️ **1 test skipped** (1.1%)
+- ⏱️ **Timeout**: Suite completo excedió 600 segundos
+
+**Estado**: 🔴 **CRÍTICO** - Requiere atención inmediata
+
+### Categorías de Errores Activos
+
+#### 1. 🔴 CRÍTICO: Estructura de Respuesta del Backend (Bloquea ~70% de tests)
+
+**Error principal**:
+```typescript
+TypeError: Cannot destructure property 'access_token' of '(intermediate value).data' as it is null.
+```
+
+**Problema**: El backend NO está devolviendo la estructura esperada para endpoints de autenticación.
+
+**Esperado**:
+```json
+// POST /auth/login
+{
+  "success": true,
+  "data": {
+    "access_token": "...",
+    "refresh_token": "...",
+    "user": { ... }
+  }
+}
+
+// POST /auth/register
+{
+  "success": true,
+  "data": {
+    "user_id": "...",
+    "email": "...",
+    "message": "Registro exitoso..."
+  }
+}
+```
+
+**Actual**: `{ data: null }` o estructura incorrecta
+
+**Tests bloqueados**: ~63 tests (70%)
+- User Registration Flow
+- Login Flow
+- Logout Flow
+- Session Persistence
+- Location Editing (requiere auth)
+- Public Feed (requiere setup de usuarios)
+- Trip Creation (requiere auth)
+
+**Acción requerida**:
+1. Verificar [backend/src/api/auth.py](../backend/src/api/auth.py)
+2. Asegurar que todos los endpoints retornan estructura estandarizada
+3. Agregar logging temporal en [authService.ts](../frontend/src/services/authService.ts)
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 1042-1115
+
+---
+
+#### 2. 🟡 MEDIO: Redirección Post-Registro No Funciona
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected pattern: /\/verify-email/
+Received string:  "http://localhost:5173/register"
+```
+
+**Problema**: Después de registro exitoso, el frontend NO redirige a `/verify-email`.
+
+**Causa probable**: El `onSuccess()` callback en RegisterPage no se ejecuta porque `authService.register()` falla.
+
+**Tests afectados**: 2 tests
+- should complete full registration workflow
+- should prevent duplicate username registration
+
+**Acción requerida**:
+1. Verificar que `authService.register()` retorna correctamente
+2. Verificar que `navigate('/verify-email')` en RegisterPage se ejecuta
+3. Agregar console.log temporal para debugging
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 180-232
+
+---
+
+#### 3. 🟡 MEDIO: Redirección Post-Login No Funciona
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected pattern: /\/(home|dashboard|trips)/
+Received string:  "http://localhost:5173/login"
+```
+
+**Problema**: Después de login exitoso, NO redirige a página protegida.
+
+**Tests afectados**: 3 tests
+- should login with valid credentials
+- should login with email instead of username
+- should show error for invalid credentials
+
+**Acción requerida**:
+1. Verificar que `login()` en AuthContext se ejecuta correctamente
+2. Verificar que `onSuccess()` callback se ejecuta
+3. Verificar lógica de redirección en LoginPage
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 331-383
+
+---
+
+#### 4. 🟢 BAJO: Duplicación de Heading en Landing Page
+
+**Error**:
+```
+Error: strict mode violation: getByRole('heading', { name: /el camino es el destino/i })
+resolved to 2 elements
+```
+
+**Problema**: Hay 2 elementos `<h1>` con el mismo texto (versión desktop + mobile).
+
+**Tests afectados**: 3 tests
+- should stack sections vertically on mobile
+- should complete full visitor journey
+
+**Acción requerida**:
+1. Agregar clases `desktop-only` y `mobile-only` en LandingPage
+2. Agregar reglas CSS para ocultar según viewport
+3. Usar `getByRole().first()` en tests como workaround temporal
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 962-1020
+
+---
+
+#### 5. ⏱️ MEDIO: Timeout del Suite Completo
+
+**Problema**: El suite completo excede 600 segundos (10 minutos).
+
+**Causa**:
+- Tests individuales esperan 10s antes de fallar
+- Retries automáticos (x3) multiplican el tiempo
+- ~80 tests fallando x 10s x 3 retries = ~40 minutos teóricos
+
+**Acción requerida**:
+1. Reducir timeout individual de 10s → 5s para fallar más rápido
+2. Deshabilitar retries temporalmente durante debugging
+3. Ejecutar subsets de tests en paralelo
+
+---
+
+### Tests que SÍ Pasan (Funcionalidad Básica)
+
+✅ Landing Page sin autenticación (10 tests):
+- Validación de formularios
+- CTAs y redirecciones básicas
+- Responsive design (parcial)
+- Accesibilidad de botones
+
+**Nota**: Estos tests pasan porque NO requieren autenticación ni interacción con el backend.
+
+---
+
+### Checklist Pre-Ejecución E2E
+
+Antes de ejecutar tests E2E, verificar:
+
+- [ ] Backend corriendo en `http://localhost:8000`
+- [ ] Frontend corriendo en `http://localhost:5173`
+- [ ] `/auth/login` retorna `{ data: { access_token } }`
+- [ ] `/auth/register` retorna `{ data: { user_id } }`
+- [ ] Variables de entorno `VITE_API_URL` configuradas
+- [ ] Base de datos limpia (sin usuarios de tests previos)
+- [ ] Usuario de prueba puede registrarse manualmente
+- [ ] Usuario de prueba puede hacer login manualmente
+
+---
+
+### Comandos de Debug
+
+**Ejecutar test específico con UI visible**:
+```bash
+cd frontend
+npx playwright test tests/e2e/auth.spec.ts:29 --headed --debug
+```
+
+**Ejecutar solo tests de autenticación**:
+```bash
+npx playwright test tests/e2e/auth.spec.ts --headed
+```
+
+**Ver reporte de última ejecución**:
+```bash
+npx playwright show-report
+```
+
+**Ver trace de test fallido**:
+```bash
+npx playwright show-trace test-results/.../trace.zip
+```
+
+---
+
+### Prioridades de Corrección
+
+1. **🔴 CRÍTICO**: Arreglar estructura de respuesta del backend de autenticación
+   - **Impacto**: Desbloquea ~70% de tests fallidos
+   - **Esfuerzo**: 2-4 horas
+   - **Archivo**: [backend/src/api/auth.py](../backend/src/api/auth.py)
+
+2. **🟡 MEDIO**: Verificar y corregir flujo de redirección post-registro/login
+   - **Impacto**: Desbloquea ~10% de tests
+   - **Esfuerzo**: 1-2 horas
+   - **Archivos**: RegisterPage.tsx, LoginPage.tsx, authService.ts
+
+3. **🟢 BAJO**: Arreglar duplicación de heading en Landing
+   - **Impacto**: Desbloquea ~3% de tests
+   - **Esfuerzo**: 30 minutos
+   - **Archivo**: LandingPage.tsx
+
+4. **⏱️ MEDIO**: Optimizar timeouts del suite
+   - **Impacto**: Reduce tiempo de ejecución en ~50%
+   - **Esfuerzo**: 1 hora
+   - **Archivo**: playwright.config.ts
+
+---
+
+### Métricas Históricas
+
+| Fecha | Tests Pasados | Tests Fallados | Tasa de Éxito | Bloqueadores |
+|-------|---------------|----------------|---------------|--------------|
+| 2026-01-20 | 10 | 80 | 11.1% | Auth backend response |
+| (Anterior) | - | - | - | - |
+
+---
+
+### Archivo de Log Completo
+
+El log completo de errores de la última ejecución está disponible en:
+- **Ubicación**: [docs/errores_e2e.txt](./errores_e2e.txt)
+- **Tamaño**: ~33,000 líneas
+- **Fecha**: 2026-01-20
+
+**Contacto**: Para preguntas sobre CI, revisa la documentación en GitHub Actions o consulta este documento

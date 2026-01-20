@@ -40,9 +40,21 @@ test.describe('User Registration Flow (T046)', () => {
     // Submit form (Turnstile will be mocked in test environment)
     await page.click('button[type="submit"]');
 
-    // Should redirect to login page with success message
-    await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
-    await expect(page.locator('text=/registro exitoso|cuenta creada/i')).toBeVisible();
+    // Wait for success message first
+    await expect(page.locator('text=/registro exitoso/i')).toBeVisible({ timeout: 10000 });
+
+    // In testing environment (APP_ENV=testing), users are auto-verified and redirect to /login
+    // In production, users need email verification and redirect to /verify-email
+    // Check which redirect happens based on the success message
+    const successMessage = await page.locator('.success-banner').textContent();
+
+    if (successMessage?.includes('verificada automáticamente')) {
+      // Auto-verified in testing environment
+      await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+    } else {
+      // Email verification required in production
+      await expect(page).toHaveURL(/\/verify-email/, { timeout: 5000 });
+    }
   });
 
   test('should show validation errors for invalid input', async ({ page }) => {

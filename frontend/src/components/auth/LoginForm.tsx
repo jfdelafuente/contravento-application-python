@@ -12,7 +12,7 @@ import './LoginForm.css';
 
 // Validation schema
 const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
+  login: z.string().min(1, 'Usuario o email requerido'),
   password: z.string().min(1, 'La contraseña es requerida'),
   rememberMe: z.boolean().optional(),
 });
@@ -32,7 +32,7 @@ interface LoginFormProps {
  * Login form with Remember Me, account blocking, and error handling
  *
  * Handles:
- * - Email/password validation
+ * - Username/email + password validation (accepts both)
  * - Remember Me checkbox (affects refresh token duration)
  * - Account blocking with countdown timer (5 failed attempts = 15min block)
  * - Email verification enforcement
@@ -66,7 +66,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     try {
       await login(
-        data.email,
+        data.login,
         data.password,
         data.rememberMe ?? false
       );
@@ -114,7 +114,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         apiError.response.data?.error?.code === 'INVALID_CREDENTIALS'
       ) {
         const remainingAttempts = apiError.response.data?.error?.remaining_attempts;
-        let message = 'Email o contraseña incorrectos.';
+        let message = 'Usuario o contraseña incorrectos.';
 
         if (remainingAttempts !== undefined && remainingAttempts > 0) {
           message += ` Tienes ${remainingAttempts} ${remainingAttempts === 1 ? 'intento' : 'intentos'} restantes.`;
@@ -165,20 +165,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
       )}
 
-      {/* Email field */}
+      {/* Login field (username or email) */}
       <div className="form-field">
-        <label htmlFor="email">Email</label>
+        <label htmlFor="login">Usuario o Email</label>
         <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          {...register('email')}
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? 'email-error' : undefined}
+          id="login"
+          type="text"
+          autoComplete="username"
+          placeholder="usuario123 o tu@email.com"
+          {...register('login')}
+          aria-invalid={!!errors.login}
+          aria-describedby={errors.login ? 'login-error' : undefined}
         />
-        {errors.email && (
-          <span id="email-error" className="field-error" role="alert">
-            {errors.email.message}
+        {errors.login && (
+          <span id="login-error" className="field-error" role="alert">
+            {errors.login.message}
           </span>
         )}
       </div>
