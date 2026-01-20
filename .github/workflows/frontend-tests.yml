@@ -62,7 +62,7 @@ jobs:
 
       - name: Run unit tests with coverage
         working-directory: frontend
-        run: npm run test -- --coverage --reporter=junit --reporter=default
+        run: npm run test:unit -- --coverage --reporter=junit --reporter=default
 
       - name: Upload test results
         if: always()
@@ -267,7 +267,7 @@ jobs:
 
       - name: Run accessibility tests
         working-directory: frontend
-        run: echo "⚠️ Accessibility tests not yet configured (test:a11y script pending implementation)"
+        run: npm run test:a11y
 
       - name: Upload accessibility report
         if: always()
