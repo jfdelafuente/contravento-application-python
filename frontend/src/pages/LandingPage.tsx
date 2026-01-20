@@ -33,7 +33,7 @@ import './LandingPage.css';
 export const LandingPage: React.FC = () => {
   const { user, isLoading } = useAuth();
 
-  // SEO Configuration
+  // SEO Configuration - must be called before any conditional returns
   const seoConfig = {
     title: 'ContraVento - Pedalear para Conectar',
     description:
@@ -41,6 +41,7 @@ export const LandingPage: React.FC = () => {
     image: '/src/assets/images/landing/hero.jpg',
     url: 'https://contravento.com',
   };
+  useSEO(seoConfig);
 
   // Show loading indicator while checking authentication
   if (isLoading) {
@@ -59,7 +60,6 @@ export const LandingPage: React.FC = () => {
   // Render landing page for unauthenticated visitors
   return (
     <>
-      {useSEO(seoConfig)}
       <Header />
       <main className="landing-page" aria-label="Landing Page - ContraVento">
         <HeroSection />
