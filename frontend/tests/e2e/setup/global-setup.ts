@@ -10,6 +10,11 @@
 import { chromium, FullConfig } from '@playwright/test';
 import path from 'path';
 import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const FRONTEND_URL = process.env.VITE_APP_URL || 'http://localhost:5173';
 const API_URL = process.env.VITE_API_URL || 'http://localhost:8000';
