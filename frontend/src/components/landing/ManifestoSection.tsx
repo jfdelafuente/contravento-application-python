@@ -28,9 +28,9 @@ export const ManifestoSection: React.FC = () => {
       <div className="manifesto-grid">
         {/* Pillar 1: El camino es el destino */}
         <div className="manifesto-pillar">
-          <h3 className="manifesto-pillar-title">El camino es el destino</h3>
+          <h3 className="manifesto-pillar-title">El viaje importa más</h3>
           <p className="manifesto-pillar-description">
-            El viaje importa más que el destino. Cada pedalada es una oportunidad para
+            El camino es el destino. Cada pedalada es una oportunidad para
             descubrir, reflexionar y conectar con el entorno y contigo mismo.
           </p>
         </div>
