@@ -1,5 +1,5 @@
 import { api } from './api';
-import { TripSummary } from '../types/trip';
+import { TripSummary, PublicTripSummary } from '../types/trip';
 
 interface GetTripsParams {
   username: string;
@@ -20,7 +20,7 @@ interface TripsApiResponse {
 }
 
 interface PublicTripsApiResponse {
-  trips: TripSummary[];
+  trips: PublicTripSummary[];
   pagination: {
     total: number;
     page: number;
