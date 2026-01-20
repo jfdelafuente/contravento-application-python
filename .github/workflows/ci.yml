@@ -155,7 +155,7 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test_db
-          SECRET_KEY: test_secret_key_for_ci_12345678
+          SECRET_KEY: test_secret_key_for_ci_cd_pipeline_minimum_32_chars
           ENVIRONMENT: test
         run: |
           poetry run pytest \
