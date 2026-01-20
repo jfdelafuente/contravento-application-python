@@ -397,6 +397,7 @@ class TripService:
             select(Trip)
             .where(Trip.trip_id == trip.trip_id)
             .options(
+                selectinload(Trip.user).selectinload(User.profile),
                 selectinload(Trip.photos),
                 selectinload(Trip.locations),
                 selectinload(Trip.trip_tags).selectinload(TripTag.tag),
@@ -405,6 +406,7 @@ class TripService:
         loaded_trip = result.scalar_one()
 
         # Update current trip instance with loaded relationships
+        trip.user = loaded_trip.user
         trip.photos = loaded_trip.photos
         trip.locations = loaded_trip.locations
         trip.trip_tags = loaded_trip.trip_tags
