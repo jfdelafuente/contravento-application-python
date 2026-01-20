@@ -651,17 +651,6 @@ env:
 
 ---
 
-### Archivo de Workflows Eliminados
-
-Los siguientes workflows mencionados en versiones anteriores ya NO existen:
-
-- ❌ `e2e-tests.yml` (ahora está integrado en `ci.yml` y `frontend-tests.yml`)
-- ❌ `deploy-staging.yml` (deployment se maneja por separado)
-- ❌ `deploy-production.yml` (deployment se maneja por separado)
-- ❌ `performance-tests.yml` (no implementado aún)
-
----
-
 ## Configuración de GitHub Actions
 
 ### Requisitos Previos
