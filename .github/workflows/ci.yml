@@ -264,14 +264,14 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
-          SECRET_KEY: test_secret_key_e2e_12345678
+          SECRET_KEY: test_secret_key_for_e2e_tests_minimum_52_characters_required
         run: poetry run alembic upgrade head
 
       - name: Start backend
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
-          SECRET_KEY: test_secret_key_e2e_12345678
+          SECRET_KEY: test_secret_key_for_e2e_tests_minimum_52_characters_required
           ENVIRONMENT: test
         run: |
           poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 &
