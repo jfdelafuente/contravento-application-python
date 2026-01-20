@@ -132,11 +132,14 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P23 | Logout no espera navegación | (pendiente) | ✅ Resuelto |
 | P24 | Public routes timeout con networkidle | (pendiente) | ✅ Resuelto |
 | P25 | Test reliability improvements | (pendiente) | ✅ Resuelto |
-| P26 | Turnstile widget no inicializado antes de envío | (pendiente) | ✅ Resuelto |
+| P26 | Turnstile widget no inicializado antes de envío | (pendiente) | ⚠️ Parcial |
 
 ### 🔴 PENDIENTES
 
 | ID  | Problema                                      | Prioridad | Dificultad | Archivo                    |
+|-----|-----------------------------------------------|-----------|------------|----------------------------|
+| P27 | Turnstile callback no ejecuta en E2E (P26 continuación) | 🔴 Alta | Alta | `frontend/tests/e2e/auth.spec.ts` |
+| P28 | Logout no redirige a /login | 🔴 Alta | Media | `frontend/tests/e2e/auth.spec.ts:241` |
 |-----|-----------------------------------------------|-----------|------------|----------------------------|
 | P14 | Timeout general del suite                     | 🟢 Baja   | Baja       | `playwright.config.ts`     |
 
@@ -831,9 +834,121 @@ await page.click('button[type="submit"]');
 
 ---
 
-**Última actualización**: 2026-01-20
-**Próxima ejecución programada**: Validar P26 fix - EJECUTAR AHORA
+### P27 - Turnstile callback no ejecuta confiablemente en E2E (Continuación de P26)
 
-**Resumen de problemas nuevos**: 12 problemas adicionales identificados (P15-P26)
-- 🔴 Alta prioridad: 9 (P15, P16, P17, P19, P22, P23, P25, P26)
-- 🟡 Media prioridad: 3 (P18, P20, P21, P24)
+**Prioridad**: 🔴 Alta (Blocker para registration tests)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:44, 93`
+**Tests afectados**:
+- User Registration Flow (T046) - should complete full registration workflow
+- User Registration Flow (T046) - should prevent duplicate username registration
+
+**Problema**:
+Widget de Cloudflare Turnstile muestra "Success" ✓ visualmente pero el callback `onSuccess` NO se ejecuta confiablemente en tests E2E de Playwright.
+
+**Investigación realizada**:
+1. ✅ Backend retorna `is_verified=true` en testing mode
+2. ✅ Frontend renderiza banners correctamente
+3. ✅ Checkbox marcado, formulario lleno
+4. ✅ Testing key `1x00000000000000000000AA` configurada
+5. ✅ Widget carga y muestra "Success" en <2s
+6. ❌ Callback `onSuccess` NO ejecuta → `setValue('turnstileToken', token)` no ocurre → validación falla → form no envía
+
+**Intentos fallidos**:
+- ❌ `waitForTimeout(2000)` - Insuficiente
+- ❌ `waitForTimeout(3000)` - Insuficiente
+- ❌ Manual token injection con `document.createElement('input')` - React Hook Form no lee inputs dinámicos
+- ❌ Buscar callbacks en `window.turnstile` y llamarlos - Demasiado frágil, callbacks no expuestos
+- ⏳ `waitForTimeout(5000)` - **Pendiente validación**
+
+**Evidencia**:
+- Screenshot muestra: widget con ✓ "Success", checkbox marcado, botón activo
+- Pero: URL sigue en `/register` (no navega), error context muestra form sin enviar
+
+**Diferencia entre navegadores**:
+- ✅ WebKit: PASA el registration workflow (callback ejecuta eventualmente)
+- ❌ Chromium: FALLA consistentemente (callback nunca ejecuta o tarda >5s)
+- ❌ Firefox: Timeouts en múltiples tests (problemas generales de performance)
+
+**Solución recomendada**:
+Deshabilitar Turnstile completamente en modo E2E:
+
+```typescript
+// frontend/src/components/auth/TurnstileWidget.tsx
+export const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
+  onVerify,
+  onError,
+  action = 'register',
+}) => {
+  // Auto-verify in E2E mode
+  useEffect(() => {
+    if (import.meta.env.VITE_E2E_MODE === 'true') {
+      onVerify('e2e_bypass_token');
+    }
+  }, [onVerify]);
+
+  // Skip rendering widget in E2E
+  if (import.meta.env.VITE_E2E_MODE === 'true') {
+    return <div className="turnstile-widget">E2E Mode - Auto-verified</div>;
+  }
+
+  // Normal widget for production
+  return (
+    <Turnstile
+      siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+      onSuccess={onVerify}
+      onError={handleError}
+      ...
+    />
+  );
+};
+```
+
+```typescript
+// playwright.config.ts
+use: {
+  ...
+  env: {
+    VITE_E2E_MODE: 'true',
+  },
+},
+```
+
+**Estado actual**: Esperando validación de 5s wait. Si falla, implementar bypass.
+
+---
+
+### P28 - Logout no redirige a /login
+
+**Prioridad**: 🔴 Alta (Seguridad)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:241`
+**Test afectado**: Logout Flow (T047) - should logout and clear session
+
+**Error**:
+```
+TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+Expected: /\/login/
+```
+
+**Descripción**:
+Usuario autenticado hace click en "Cerrar sesión" pero NO redirige a `/login`.
+
+**Screenshot evidence**:
+Error context muestra que botón "Cerrar sesión" existe y es visible, pero después de click no ocurre navegación.
+
+**Análisis pendiente**:
+- Verificar implementación del botón logout en frontend
+- Verificar que `onClick` llama correctamente a `authService.logout()`
+- Verificar que logout hace `navigate('/login')` después de invalidar token
+- Verificar que no hay errores de JavaScript bloqueando navegación
+
+**Estado**: Pendiente investigación (problema diferente a Turnstile)
+
+---
+
+**Última actualización**: 2026-01-20 17:45
+**Próxima acción**: Validar si 5s wait resuelve P27, si no → implementar bypass de Turnstile
+
+**Resumen de problemas**: 14 problemas identificados (P15-P28)
+- ✅ Resueltos: 10 (P15-P25)
+- ⚠️ Parciales: 1 (P26 → P27)
+- 🔴 Pendientes: 3 (P27, P28, P14)
