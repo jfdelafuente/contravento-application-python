@@ -128,6 +128,9 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P19 | Protected routes no redirigen a /login | (pendiente) | ✅ Resuelto |
 | P20 | Test de rutas públicas mal escrito | (pendiente) | ✅ Resuelto |
 | P21 | Landing page no redirige usuarios autenticados | (pendiente) | ✅ Resuelto |
+| P22 | Registro sin checkbox de términos | (pendiente) | ✅ Resuelto |
+| P23 | Logout no espera navegación | (pendiente) | ✅ Resuelto |
+| P24 | Public routes timeout con networkidle | (pendiente) | ✅ Resuelto |
 
 ### 🔴 PENDIENTES
 
