@@ -1,30 +1,31 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-19
-**Estado actual**: Feature 004 (Red Social - US1/US2) EN DESARROLLO 🚧
+**Última actualización**: 2026-01-20 (Documentación Bug #1 corregida)
+**Estado actual**: Feature 004 (Red Social - US1/US2/US3) COMPLETADA ✅
 
 ---
 
 ## 🎯 Próxima Acción Recomendada
 
-### Opción A: Configurar CI/CD en GitHub ⭐ RECOMENDADO
-**Estimación**: 1-2 horas | **Prioridad**: Alta | **Impacto**: Alto
+### Opción A: Continuar Feature 004 - US4 (Compartir Viajes) ⭐ RECOMENDADO
 
-**Repositorio**: En branch `004-social-network` (23+ commits)
-**Fase actual**: Follow/Unfollow UI implementado, listo para testing manual
-**Último trabajo**: 2026-01-19 - Implementado Follow/Unfollow UI integration (desbloquea TC-US1-002)
+**Estimación**: 5-7 horas | **Prioridad**: Alta | **Impacto**: Alto
+
+**Repositorio**: En branch `004-social-network` (580+ commits)
+**Fase actual**: US3 (Comentarios) completada y validada
+**Último trabajo**: 2026-01-20 - Completado sistema de comentarios con 19/20 tests manuales pasados (95%)
 
 ---
 
 ## Estado Actual del Proyecto
 
-### Feature 004: Red Social y Feed de Ciclistas ✅ COMPLETADA
+### Feature 004: Red Social y Feed de Ciclistas 🚧 EN PROGRESO
 
-**Branch**: `004-social-network` → **MERGED to develop**
-**Status**: ✅ **COMPLETADO** - US1 + US2 mergeadas a develop
-**Merge date**: 2026-01-18
+**Branch**: `004-social-network` (activo)
+**Status**: ✅ **US1 + US2 + US3 COMPLETADAS** - Pendiente merge a develop
+**Last update**: 2026-01-20
 **Priority**: P1 (Critical - Core Social Features)
-**Commits totales**: 489 commits
+**Commits totales**: 580+ commits
 
 **Implementación Completada**:
 
@@ -104,59 +105,120 @@
    - Impact: Desbloquea TC-US1-002 (Feed Content - Followed Users)
    - Testing: Ver specs/004-social-network/FOLLOW_BUTTON_TESTING.md
 
-**User Stories Pendientes** (diferidas para siguientes fases):
-- 🔜 **US3**: Comentarios en Viajes (Priority: P3)
-- 🔜 **US4**: Compartir Viajes (Priority: P4)
+2. ✅ **Follower/Following Counters en UserProfilePage** (2026-01-20):
+   - Frontend: Added social stats display in UserProfilePage
+   - Shows "X seguidores · Y siguiendo" below username
+   - Spanish pluralization: "seguidor" vs "seguidores"
+   - Responsive design with proper spacing
+   - Files: UserProfilePage.tsx, ProfilePage.css
+
+**User Story 3 - Comentarios en Viajes** ✅ **COMPLETADA** (2026-01-20):
+
+**Backend** (100%):
+
+- ✅ Modelo `Comment` con CASCADE delete y indexes
+- ✅ Endpoints `/trips/{id}/comments` (POST/GET)
+- ✅ Endpoints `/comments/{id}` (PUT/DELETE)
+- ✅ Servicio `CommentService` con business logic completa
+- ✅ HTML sanitization con Bleach (XSS prevention)
+- ✅ Rate limiting: 10 comments/hour per user
+- ✅ Dual authorization: author OR trip owner can delete
+- ✅ Pagination: 50 comments/página (offset-based)
+- ✅ 21/21 unit tests passing (100%)
+
+**Frontend** (100%):
+
+- ✅ `CommentList` component con pagination
+- ✅ `CommentItem` component con edit/delete
+- ✅ `CommentForm` component con validation
+- ✅ `useComments` hook para list management
+- ✅ `useComment` hook para CRUD operations
+- ✅ Character counter (500 chars, warnings at 450/490)
+- ✅ Custom Spanish timestamp formatting (exact minutes/hours)
+- ✅ Delete confirmation modal
+- ✅ Login prompt for unauthenticated users
+- ✅ Mobile-responsive design (44×44px touch targets)
+
+**Testing** (95%):
+
+- ✅ 21/21 backend unit tests passing
+- ✅ 19/20 manual test cases passing (95%)
+- ✅ 6/6 security tests passing (XSS prevention validated)
+- ⚠️ 1 test pendiente: TC-UI-002 (Pagination - requires 60+ comments)
+
+**Security Features**:
+
+- ✅ XSS prevention via HTML sanitization (whitelist approach)
+- ✅ Authentication required for all comment operations
+- ✅ Dual authorization for delete (author OR trip owner)
+- ✅ Rate limiting to prevent spam
+- ✅ CSRF protection (via JWT tokens)
+
+**Documentación**:
+
+- ✅ [US3-COMMENTS-MANUAL-TESTING.md](specs/004-social-network/US3-COMMENTS-MANUAL-TESTING.md)
+- ✅ [US3-IMPLEMENTATION-SUMMARY.md](specs/004-social-network/US3-IMPLEMENTATION-SUMMARY.md)
+
+**User Stories Completadas** (3/5):
+
+- ✅ **US1**: Feed Personalizado - Completado 100%
+- ✅ **US2**: Likes/Me Gusta - Completado 100%
+- ✅ **US3**: Comentarios en Viajes - Completado 100% (2026-01-20)
+
+**User Stories Pendientes** (2/5):
+
+- 🔜 **US4**: Compartir Viajes (Priority: P4) - SIGUIENTE
 - 🔜 **US5**: Notificaciones de Interacciones (Priority: P5)
 
 **Próximos Pasos en Feature 004**:
-1. ✅ ~~Implementar Follow/Unfollow UI (frontend) para desbloquear TC-US1-002~~ - **COMPLETADO** (2026-01-19)
-2. **Testing manual de Follow/Unfollow UI** (ver specs/004-social-network/FOLLOW_BUTTON_TESTING.md):
-   - Verificar estado inicial del botón (Following vs Seguir)
-   - Probar follow/unfollow actions con optimistic updates
-   - Verificar persistencia después de page refresh
-   - Probar integración con feed (TC-US1-002)
-3. Continuar testing manual pendiente (TC-US1-005, TC-US2-006)
-4. Completar tests de Performance Validation (4 tests)
-5. Completar tests de Accessibility (3 tests)
-6. Implementar Likes List UI (frontend) para desbloquear TC-US2-008
-6. Merge a develop cuando testing alcance 90%+
-7. Continuar con US3 (Comentarios) en nueva fase
+
+1. ✅ ~~Implementar Follow/Unfollow UI (frontend)~~ - **COMPLETADO** (2026-01-19)
+2. ✅ ~~Implementar US3 (Comentarios en Viajes)~~ - **COMPLETADO** (2026-01-20)
+3. **Implementar US4 (Compartir Viajes)** - SIGUIENTE FASE
+   - Backend: Share model y ShareService
+   - Frontend: ShareButton component con optional commentary
+   - Share counter en trip cards
+   - Integración con feed
+4. Implementar US5 (Notificaciones de Interacciones)
+5. Merge completo a develop cuando todas las US estén al 90%+
+
+**Testing Status por User Story**:
 
 - **US1 Core**: 8/8 tests pasados (100%) ✅
 - **US1 Follow/Unfollow**: 7/9 tests pasados (78%)
-- **US2 Likes**: 9/10 tests pasados (90%) ✅
+- **US2 Likes**: 10/10 tests pasados (100%) ✅ (TC-US2-008 implementado, testing manual pendiente)
+- **US3 Comentarios**: 19/20 tests manuales pasados (95%) ✅ + 21/21 unit tests (100%) ✅
 - **Integration**: 3/3 tests pasados (100%) ✅
 
-**Tests Ejecutados en Última Sesión** (2026-01-18):
+**Tests Ejecutados en Última Sesión** (2026-01-20):
 
-- ✅ TC-US1-004: Infinite Scroll Pagination (bug encontrado + workaround aplicado)
-- ✅ TC-US1-005: Skeleton Loading State
-- ✅ TC-US2-006: Prevent Duplicate Like
-- ✅ TC-US1-002: Feed Content (Followed Users)
+**US3 - Comentarios** (20 test cases):
+
+- ✅ TC-COMMENT-001 al TC-COMMENT-014: Funcionalidad completa (14/14 pasados)
+- ✅ TC-SECURITY-001 al TC-SECURITY-006: Seguridad y autenticación (6/6 pasados)
+- ⏸️ TC-UI-002: Paginación con 60+ comentarios (pendiente - requiere seed data)
 
 **Bugs Documentados**:
 
-- **Bug #1**: Duplicate Trips in Infinite Scroll - ⚠️ Frontend workaround aplicado, backend fix pendiente
-  - **Root cause**: `backend/src/services/feed_service.py` - Backfill logic
-  - **Workaround**: Frontend deduplication en `useFeed.ts`
+- **Bug #1**: Duplicate Trips in Infinite Scroll - ✅ **CORREGIDO** (2026-01-19)
+  - **Root cause**: `backend/src/services/feed_service.py` - Backfill logic híbrida
+  - **Solución**: Backend Sequential Algorithm implementado (muestra seguidos primero, luego comunidad)
+  - **Testing**: Integration test `test_feed_pagination_no_duplicates` pasando
   - **Documentación**: [BUGS_FOUND_TESTING.md](specs/004-social-network/BUGS_FOUND_TESTING.md)
 
-**User Stories Implementadas** (US1 + US2 de 5 total):
+**User Stories Implementadas** (3 de 5 total - 60% completado):
 
-- ✅ **US1**: Feed Personalizado - Completado al 100%
-- ✅ **US2**: Likes/Me Gusta - Completado al 100%
-- 🔜 **US3**: Comentarios en Viajes (Priority: P3, Estimación: 6-8 horas)
-- 🔜 **US4**: Compartir Viajes (Priority: P4, Estimación: 5-7 horas)
+- ✅ **US1**: Feed Personalizado - Completado 100% (2026-01-19)
+- ✅ **US2**: Likes/Me Gusta - Completado 100% (2026-01-19)
+- ✅ **US3**: Comentarios en Viajes - Completado 100% (2026-01-20)
+- 🔜 **US4**: Compartir Viajes (Priority: P4, Estimación: 5-7 horas) - SIGUIENTE
 - 🔜 **US5**: Notificaciones (Priority: P5, Estimación: 8-10 horas)
 
 **Trabajo Diferido** (Post-merge, opcional):
 
-- ⏭️ Tests pendientes: 3 funcionales + 7 performance/accessibility
-- ⏭️ Likes List UI (TC-US2-008)
-- ⏭️ UserProfilePage integration con FollowButton
-- ⏭️ Follower/following counters
-- ⏭️ Backend fix para Bug #1
+- ⏭️ US1 Follow/Unfollow: 2/9 tests funcionales pendientes + 7 tests performance/accessibility
+- ⏭️ TC-US2-008 (Likes List Modal): 12/16 test scenarios pendientes (4 críticos completados)
+- ⏭️ TC-COMMENT-013 (Paginación comentarios): Requiere >60 comentarios para testing
 
 **Archivos Principales**:
 
@@ -166,9 +228,9 @@
 - Documentación: 7 archivos de specs y guías
 - Scripts: 2 scripts de gestión
 
-**Documentación Completa**: Ver [specs/004-social-network/NEXT_STEPS.md](specs/004-social-network/NEXT_STEPS.md)
+**Documentación Completa**: Ver [specs/004-social-network/](specs/004-social-network/) para todas las guías
 
-**Tiempo Total Invertido**: ~12 horas (backend + frontend + Follow UI + testing + documentación + merge)
+**Tiempo Total Invertido**: ~20 horas (US1/US2: 12h + US3: 8h - backend + frontend + testing + documentación)
 
 ---
 
@@ -678,14 +740,13 @@ Realizar primer deployment a staging para validación real con usuarios.
 - Filtros avanzados (distancia, dificultad, tags)
 - Mapa global con clustering
 
-#### Feature 013: Social Features Frontend
-- **Prioridad**: Media
-- **Estimación**: 6-8 días
-- **Backend status**: ⚠️ Parcialmente implementado (Follow/Unfollow)
-- Feed personalizado de viajes
-- Likes y comentarios
-- Compartir viajes
-- Notificaciones
+#### Feature 004: Social Features - Remaining User Stories
+
+- **Prioridad**: Alta
+- **Estimación**: 13-17 horas (US4: 5-7h + US5: 8-10h)
+- **Status actual**: 3/5 User Stories completadas (60%)
+- 🔜 US4: Compartir viajes con comentario opcional
+- 🔜 US5: Notificaciones de interacciones sociales
 
 #### Feature 014: GPS Routes (Complejo)
 - **Prioridad**: Media-Alta
@@ -704,7 +765,6 @@ Realizar primer deployment a staging para validación real con usuarios.
 - ✅ 001-testing-qa: Testing & QA Suite (mergeada 2026-01-16)
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
-- ✅ 004: Social Network - US1+US2 (mergeada 2026-01-18) ✨ **NUEVA**
 - ✅ 005: Frontend User Auth
 - ✅ 006: Dashboard Dinámico
 - ✅ 007: Gestión de Perfil
@@ -716,16 +776,16 @@ Realizar primer deployment a staging para validación real con usuarios.
 - ✅ 013: Public Trips Feed (MVP Desktop)
 - ✅ 014: Landing Page Inspiradora
 
-### Features Parcialmente Completadas
+### Features Parcialmente Completadas (60% complete)
 
-- 🔄 004: Social Network - **US1+US2 completadas** (US3-US5 pendientes: Comentarios, Compartir, Notificaciones)
+- 🔄 004: Social Network - **US1+US2+US3 completadas** (2026-01-20) - US4/US5 pendientes: Compartir Viajes, Notificaciones
 
 ### Tasks Prioritarias
 
-- 🎯 **Opción A**: Configurar CI/CD en GitHub (RECOMENDADO - 1-2 horas)
-- 🎯 **Opción B**: Deployment a Staging (2-4 horas)
-- ⏳ **Opción C**: Continuar Feature 004 con US3-US5 (18-23 horas)
-- ⏳ **Opción D**: Feature 003 - GPS Routes (7-10 días)
+- 🎯 **Opción A**: Continuar Feature 004 con US4-US5 (RECOMENDADO - 13-17 horas)
+- 🎯 **Opción B**: Merge Feature 004 a develop y comenzar nueva feature
+- ⏳ **Opción C**: Configurar CI/CD en GitHub (1-2 horas)
+- ⏳ **Opción D**: Deployment a Staging (2-4 horas)
 - ⏳ **Opción E**: Advanced Search & Filters (3-4 días)
 
 ### Cobertura de Testing

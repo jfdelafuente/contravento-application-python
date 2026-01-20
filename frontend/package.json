@@ -24,6 +24,7 @@
     "@hookform/resolvers": "^3.10.0",
     "@marsidev/react-turnstile": "^0.7.0",
     "axios": "^1.6.5",
+    "date-fns": "^3.0.0",
     "leaflet": "1.9.x",
     "lodash.debounce": "^4.0.8",
     "react": "^18.2.0",

@@ -566,6 +566,34 @@
   background: var(--color-gray-50);
 }
 
+/* Social Stats - Followers/Following counters (Feature 004 - US1) */
+.profile-social-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.profile-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.profile-stat strong {
+  font-weight: 700;
+  color: var(--color-forest);
+}
+
+.profile-stat-separator {
+  color: var(--color-gray-400);
+  font-weight: 400;
+  margin: 0 var(--space-1);
+}
+
 /* Animations */
 @keyframes slideUp {
   from {

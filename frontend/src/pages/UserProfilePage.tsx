@@ -187,6 +187,17 @@ export const UserProfilePage: React.FC = () => {
               )}
             </div>
 
+            {/* Social Stats - Followers/Following counters */}
+            <div className="profile-social-stats">
+              <span className="profile-stat">
+                <strong>{profile.followers_count ?? 0}</strong> {profile.followers_count === 1 ? 'seguidor' : 'seguidores'}
+              </span>
+              <span className="profile-stat-separator">·</span>
+              <span className="profile-stat">
+                <strong>{profile.following_count ?? 0}</strong> siguiendo
+              </span>
+            </div>
+
             {/* Bio */}
             {profile.bio && (
               <div className="profile-field">
