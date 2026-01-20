@@ -77,6 +77,9 @@ jobs:
 
       - name: Run unit tests with coverage
         working-directory: backend
+        env:
+          SECRET_KEY: test_secret_key_for_unit_tests_minimum_52_characters_required
+          APP_ENV: testing
         run: |
           poetry run pytest tests/unit/ \
             --cov=src \
@@ -150,7 +153,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test_db
           SECRET_KEY: test_secret_key_for_ci_pipeline_minimum_52_characters_required
-          ENVIRONMENT: test
+          APP_ENV: testing
         run: |
           poetry run pytest tests/integration/ \
             --cov=src \
@@ -231,7 +234,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://contravento:contraventopass@localhost:5432/contravento_db
           SECRET_KEY: test_secret_key_for_smoke_tests_minimum_52_characters_required
-          ENVIRONMENT: test
+          APP_ENV: testing
         run: |
           poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 &
           echo $! > backend.pid
@@ -274,6 +277,10 @@ jobs:
 
       - name: Run all tests with coverage
         working-directory: backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://contravento_test:test_password@localhost:5432/contravento_test_db
+          SECRET_KEY: test_secret_key_for_coverage_tests_minimum_52_characters_required
+          APP_ENV: testing
         run: |
           poetry run pytest \
             --cov=src \
