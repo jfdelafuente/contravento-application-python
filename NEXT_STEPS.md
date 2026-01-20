@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-20 (Documentación Bug #1 corregida)
-**Estado actual**: Feature 004 (Red Social - US1/US2/US3) COMPLETADA ✅
+**Última actualización**: 2026-01-20 (Feature 004 US1+US2+US3 mergeada a develop)
+**Estado actual**: Feature 004 (Red Social - US1/US2/US3) MERGEADA A DEVELOP ✅
 
 ---
 
@@ -11,230 +11,101 @@
 
 **Estimación**: 5-7 horas | **Prioridad**: Alta | **Impacto**: Alto
 
-**Repositorio**: En branch `004-social-network` (580+ commits)
-**Fase actual**: US3 (Comentarios) completada y validada
-**Último trabajo**: 2026-01-20 - Completado sistema de comentarios con 19/20 tests manuales pasados (95%)
+**Repositorio**: Trabajo futuro en branch `004-social-network`
+**Fase actual**: US1+US2+US3 mergeadas a develop exitosamente (2026-01-20)
+**Último trabajo**: 2026-01-20 - Completado merge de US1+US2+US3 (Feed, Likes, Comentarios)
+**Próximo hito**: US4 (Compartir Viajes) y US5 (Notificaciones)
 
 ---
 
 ## Estado Actual del Proyecto
 
-### Feature 004: Red Social y Feed de Ciclistas 🚧 EN PROGRESO
+## Features Completadas ✅
 
-**Branch**: `004-social-network` (activo)
-**Status**: ✅ **US1 + US2 + US3 COMPLETADAS** - Pendiente merge a develop
-**Last update**: 2026-01-20
+### Feature 004: Red Social y Feed de Ciclistas (✅ PARCIALMENTE MERGEADA - US1+US2+US3)
+
+**Branch**: `004-social-network` → **MERGED to develop** (US1+US2+US3)
+**Status**: ✅ **60% COMPLETADO** - US1+US2+US3 mergeadas a develop
+**Merge date**: 2026-01-20
 **Priority**: P1 (Critical - Core Social Features)
 **Commits totales**: 580+ commits
 
-**Implementación Completada**:
-
-**Backend** (100%):
-- ✅ Modelo `Follow` con relaciones many-to-many
-- ✅ Modelo `Like` con unique constraint (user_id + trip_id)
-- ✅ Endpoints `/feed` con lógica híbrida (seguidos + popular backfill)
-- ✅ Endpoints `/trips/{trip_id}/like` (POST/DELETE) con validaciones
-- ✅ Endpoints `/users/{username}/follow` (POST/DELETE)
-- ✅ Servicio `SocialService` completo
-- ✅ Servicio `LikeService` completo
-- ✅ Feed personalizado con paginación e infinite scroll
-- ✅ Eager loading optimizado (N+1 prevention)
-- ✅ Validaciones: prevent self-like, prevent duplicate like, prevent self-follow
-
-**Frontend** (100%):
-- ✅ `FeedPage` - Feed personalizado con infinite scroll
-- ✅ `PublicFeedPage` - Feed público con like button
-- ✅ `FollowButton` component con optimistic UI (3 tamaños)
-- ✅ `LikeButton` component con optimistic UI updates
-- ✅ `useLike` hook con error rollback y Spanish messages
-- ✅ `likeService` para llamadas API (POST/DELETE)
-- ✅ **`FollowButton` component** con optimistic UI updates (2026-01-19)
-- ✅ **`useFollow` hook** con error rollback (2026-01-19)
-- ✅ **`followService`** para llamadas API (POST/DELETE) (2026-01-19)
-- ✅ **Follow/Unfollow UI integration** en UserProfilePage (2026-01-19)
-- ✅ Diseño rústico aplicado (Playfair Display, earth tones)
-- ✅ Accessibility: ARIA labels, keyboard navigation
-- ✅ Loading states con spinners
-
-**Testing Manual Completado** (54% - 15/28 tests):
-
-**US1: Feed Personalizado** (75% - 6/8 tests):
-- ✅ TC-US1-001: Access Feed (Authenticated)
-- 🔓 TC-US1-002: Feed Content (Followed Users) - **DESBLOQUEADO** (Follow UI implementado 2026-01-19, listo para testing)
-- ✅ TC-US1-003: Feed Content (Popular Backfill)
-- ✅ TC-US1-004: Infinite Scroll Pagination - FIXED (Bug #1 resolved 2026-01-19)
-- ⏳ TC-US1-005: Skeleton Loading State - PENDING
-- ✅ TC-US1-006: Unauthorized Access
-- ✅ TC-US1-007: Empty State
-- ✅ TC-US1-008: Trip Card Click
-
-**US2: Likes/Me Gusta** (80% - 8/10 tests):
-- ✅ TC-US2-001: Like a Trip
-- ✅ TC-US2-002: Unlike a Trip
-- ✅ TC-US2-003: Optimistic UI
-- ✅ TC-US2-004: Error Rollback
-- ✅ TC-US2-005: Prevent Self-Like
-- ⏳ TC-US2-006: Prevent Duplicate Like - PENDING
-- ✅ TC-US2-007: Loading State
-- ⚠️ TC-US2-008: Get Likes List - BLOQUEADO (UI not implemented)
-- ✅ TC-US2-009: Counter Accuracy
-- ✅ TC-US2-010: Accessibility
-
-**Integration Tests** (100% - 4/4 tests):
-- ✅ TC-INT-001: Like from Feed
-- ✅ TC-INT-002: Like Affects Feed Ordering
-- ✅ TC-INT-003: Feed Updates After Like
-- ✅ TC-INT-004: Feed Pagination No Duplicates (Bug #1 fix verification)
-
-**Bug Fixes Realizados**:
-1. ✅ Fix seed_trips.py - No actualizaba user_stats table (integrado StatsService)
-2. ✅ Fix useLike hook - Error message extraction (backend structure: error.response.data.error.message)
-3. ✅ **Bug #1: Duplicate Trips in Infinite Scroll** (2026-01-19):
-   - Backend: Implemented Sequential Algorithm in feed_service.py
-   - Backend: Enhanced _get_community_trips() to exclude followed users
-   - Frontend: Removed deduplication workaround in useFeed.ts
-   - Testing: Added test_feed_pagination_no_duplicates integration test
-   - Status: ✅ FIXED & VERIFIED
-
-**Feature Enhancements Realizados**:
-1. ✅ **Follow/Unfollow UI Integration** (2026-01-19):
-   - Backend: Added `is_following` field to ProfileResponse schema
-   - Backend: ProfileService.get_profile() queries Follow table for authenticated users
-   - Frontend: Updated UserProfile type to include `is_following`
-   - Frontend: UserProfilePage passes real follow status to FollowButton
-   - Impact: Desbloquea TC-US1-002 (Feed Content - Followed Users)
-   - Testing: Ver specs/004-social-network/FOLLOW_BUTTON_TESTING.md
-
-2. ✅ **Follower/Following Counters en UserProfilePage** (2026-01-20):
-   - Frontend: Added social stats display in UserProfilePage
-   - Shows "X seguidores · Y siguiendo" below username
-   - Spanish pluralization: "seguidor" vs "seguidores"
-   - Responsive design with proper spacing
-   - Files: UserProfilePage.tsx, ProfilePage.css
-
-**User Story 3 - Comentarios en Viajes** ✅ **COMPLETADA** (2026-01-20):
-
-**Backend** (100%):
-
-- ✅ Modelo `Comment` con CASCADE delete y indexes
-- ✅ Endpoints `/trips/{id}/comments` (POST/GET)
-- ✅ Endpoints `/comments/{id}` (PUT/DELETE)
-- ✅ Servicio `CommentService` con business logic completa
-- ✅ HTML sanitization con Bleach (XSS prevention)
-- ✅ Rate limiting: 10 comments/hour per user
-- ✅ Dual authorization: author OR trip owner can delete
-- ✅ Pagination: 50 comments/página (offset-based)
-- ✅ 21/21 unit tests passing (100%)
-
-**Frontend** (100%):
-
-- ✅ `CommentList` component con pagination
-- ✅ `CommentItem` component con edit/delete
-- ✅ `CommentForm` component con validation
-- ✅ `useComments` hook para list management
-- ✅ `useComment` hook para CRUD operations
-- ✅ Character counter (500 chars, warnings at 450/490)
-- ✅ Custom Spanish timestamp formatting (exact minutes/hours)
-- ✅ Delete confirmation modal
-- ✅ Login prompt for unauthenticated users
-- ✅ Mobile-responsive design (44×44px touch targets)
-
-**Testing** (95%):
-
-- ✅ 21/21 backend unit tests passing
-- ✅ 19/20 manual test cases passing (95%)
-- ✅ 6/6 security tests passing (XSS prevention validated)
-- ⚠️ 1 test pendiente: TC-UI-002 (Pagination - requires 60+ comments)
-
-**Security Features**:
-
-- ✅ XSS prevention via HTML sanitization (whitelist approach)
-- ✅ Authentication required for all comment operations
-- ✅ Dual authorization for delete (author OR trip owner)
-- ✅ Rate limiting to prevent spam
-- ✅ CSRF protection (via JWT tokens)
-
-**Documentación**:
-
-- ✅ [US3-COMMENTS-MANUAL-TESTING.md](specs/004-social-network/US3-COMMENTS-MANUAL-TESTING.md)
-- ✅ [US3-IMPLEMENTATION-SUMMARY.md](specs/004-social-network/US3-IMPLEMENTATION-SUMMARY.md)
-
 **User Stories Completadas** (3/5):
-
-- ✅ **US1**: Feed Personalizado - Completado 100%
-- ✅ **US2**: Likes/Me Gusta - Completado 100%
-- ✅ **US3**: Comentarios en Viajes - Completado 100% (2026-01-20)
+- ✅ **US1**: Feed Personalizado (100%)
+- ✅ **US2**: Likes/Me Gusta (100%)
+- ✅ **US3**: Comentarios en Viajes (100%)
 
 **User Stories Pendientes** (2/5):
+- 🔜 **US4**: Compartir Viajes (Priority: P4) - Estimación: 5-7 horas
+- 🔜 **US5**: Notificaciones de Interacciones (Priority: P5) - Estimación: 8-10 horas
 
-- 🔜 **US4**: Compartir Viajes (Priority: P4) - SIGUIENTE
-- 🔜 **US5**: Notificaciones de Interacciones (Priority: P5)
+**Implementación Mergeada**:
 
-**Próximos Pasos en Feature 004**:
+**Backend**:
+- ✅ Modelos: Follow, Like, Comment con relaciones y constraints
+- ✅ Endpoints: /feed, /trips/{id}/like, /users/{username}/follow, /trips/{id}/comments
+- ✅ Servicios: SocialService, LikeService, CommentService, FeedService
+- ✅ Feed personalizado con algoritmo secuencial (Bug #1 fixed)
+- ✅ HTML sanitization (XSS prevention)
+- ✅ Rate limiting (10 comments/hour)
+- ✅ 21/21 unit tests passing (Comment service)
+- ✅ 43 integration tests (auth, profile, stats, trips, social)
 
-1. ✅ ~~Implementar Follow/Unfollow UI (frontend)~~ - **COMPLETADO** (2026-01-19)
-2. ✅ ~~Implementar US3 (Comentarios en Viajes)~~ - **COMPLETADO** (2026-01-20)
-3. **Implementar US4 (Compartir Viajes)** - SIGUIENTE FASE
-   - Backend: Share model y ShareService
-   - Frontend: ShareButton component con optional commentary
-   - Share counter en trip cards
-   - Integración con feed
-4. Implementar US5 (Notificaciones de Interacciones)
-5. Merge completo a develop cuando todas las US estén al 90%+
+**Frontend**:
+- ✅ FeedPage con infinite scroll
+- ✅ PublicFeedPage con like button
+- ✅ FollowButton component (optimistic UI, 3 tamaños)
+- ✅ LikeButton component con optimistic UI
+- ✅ LikesListModal con pagination infinita
+- ✅ CommentList, CommentItem, CommentForm components
+- ✅ UserProfilePage con FollowButton + follower/following counters
+- ✅ Custom hooks: useFeed, useLike, useFollow, useTripLikes, useComments, useComment
+- ✅ Diseño rústico consistente (Playfair Display, earth tones)
+- ✅ Accessibility (ARIA labels, keyboard navigation)
+- ✅ Mobile-responsive design (44×44px touch targets)
 
-**Testing Status por User Story**:
+**Testing**:
+- ✅ US1 Core: 8/8 tests pasados (100%)
+- ✅ US1 Follow/Unfollow: 7/9 tests pasados (78%)
+- ✅ US2 Likes: 10/10 tests pasados (100%)
+- ✅ US2 Likes List Modal: 4/16 tests críticos pasados (TC-US2-008)
+- ✅ US3 Comentarios: 19/20 tests manuales pasados (95%) + 21/21 unit tests (100%)
+- ✅ Integration: 4/4 tests pasados (100%)
 
-- **US1 Core**: 8/8 tests pasados (100%) ✅
-- **US1 Follow/Unfollow**: 7/9 tests pasados (78%)
-- **US2 Likes**: 10/10 tests pasados (100%) ✅ (TC-US2-008 implementado, testing manual pendiente)
-- **US3 Comentarios**: 19/20 tests manuales pasados (95%) ✅ + 21/21 unit tests (100%) ✅
-- **Integration**: 3/3 tests pasados (100%) ✅
+**Bug Fixes Realizados**:
+1. ✅ Bug #1: Duplicate Trips in Infinite Scroll (Sequential Algorithm implemented)
+2. ✅ CSS Hover Bug: Like counter con 0 likes mostraba hover effects (fixed)
+3. ✅ Profile Privacy: Private profiles return 403 FORBIDDEN (not 404)
+4. ✅ Missing imports: Link (react-router-dom) in LikesListModal
+5. ✅ TypeScript interfaces: UserProfile updated to match backend
+6. ✅ Backend privacy validation in ProfileService.get_profile()
 
-**Tests Ejecutados en Última Sesión** (2026-01-20):
-
-**US3 - Comentarios** (20 test cases):
-
-- ✅ TC-COMMENT-001 al TC-COMMENT-014: Funcionalidad completa (14/14 pasados)
-- ✅ TC-SECURITY-001 al TC-SECURITY-006: Seguridad y autenticación (6/6 pasados)
-- ⏸️ TC-UI-002: Paginación con 60+ comentarios (pendiente - requiere seed data)
-
-**Bugs Documentados**:
-
-- **Bug #1**: Duplicate Trips in Infinite Scroll - ✅ **CORREGIDO** (2026-01-19)
-  - **Root cause**: `backend/src/services/feed_service.py` - Backfill logic híbrida
-  - **Solución**: Backend Sequential Algorithm implementado (muestra seguidos primero, luego comunidad)
-  - **Testing**: Integration test `test_feed_pagination_no_duplicates` pasando
-  - **Documentación**: [BUGS_FOUND_TESTING.md](specs/004-social-network/BUGS_FOUND_TESTING.md)
-
-**User Stories Implementadas** (3 de 5 total - 60% completado):
-
-- ✅ **US1**: Feed Personalizado - Completado 100% (2026-01-19)
-- ✅ **US2**: Likes/Me Gusta - Completado 100% (2026-01-19)
-- ✅ **US3**: Comentarios en Viajes - Completado 100% (2026-01-20)
-- 🔜 **US4**: Compartir Viajes (Priority: P4, Estimación: 5-7 horas) - SIGUIENTE
-- 🔜 **US5**: Notificaciones (Priority: P5, Estimación: 8-10 horas)
-
-**Trabajo Diferido** (Post-merge, opcional):
-
-- ⏭️ US1 Follow/Unfollow: 2/9 tests funcionales pendientes + 7 tests performance/accessibility
-- ⏭️ TC-US2-008 (Likes List Modal): 12/16 test scenarios pendientes (4 críticos completados)
-- ⏭️ TC-COMMENT-013 (Paginación comentarios): Requiere >60 comentarios para testing
+**Documentación Generada**:
+- `specs/004-social-network/TC-US2-008_TEST_RESULTS.md` (400 lines)
+- `specs/004-social-network/TC-US2-008_TESTING_GUIDE.md` (406 lines)
+- `specs/004-social-network/US3-COMMENTS-MANUAL-TESTING.md` (965 lines)
+- `specs/004-social-network/US3-IMPLEMENTATION-SUMMARY.md` (635 lines)
+- `specs/004-social-network/BUGS_FOUND_TESTING.md`
+- `specs/004-social-network/FOLLOW_BUTTON_TESTING.md` (356 lines)
+- `specs/004-social-network/SCENARIO_1_WALKTHROUGH.md` (314 lines)
 
 **Archivos Principales**:
-
-- Backend: 6 archivos (models, services, API endpoints)
-- Frontend: 9 archivos nuevos (pages, components, hooks, services)
+- Backend: 10 archivos (models, services, API endpoints, tests)
+- Frontend: 18 archivos (pages, components, hooks, services, CSS)
 - Migrations: 2 migraciones
-- Documentación: 7 archivos de specs y guías
-- Scripts: 2 scripts de gestión
-
-**Documentación Completa**: Ver [specs/004-social-network/](specs/004-social-network/) para todas las guías
+- Tests: 6 archivos de testing
+- Documentación: 10 archivos de specs y guías
 
 **Tiempo Total Invertido**: ~20 horas (US1/US2: 12h + US3: 8h - backend + frontend + testing + documentación)
 
----
+**Post-Merge Steps (Trabajo Diferido)**:
+- ⏭️ Completar US4: Compartir Viajes (5-7 horas)
+- ⏭️ Completar US5: Notificaciones (8-10 horas)
+- ⏭️ US1 Follow/Unfollow: 2/9 tests funcionales pendientes
+- ⏭️ TC-US2-008 (Likes List Modal): 12/16 test scenarios pendientes
+- ⏭️ TC-COMMENT-013 (Paginación comentarios): Requiere >60 comentarios
 
-## Features Completadas ✅
+---
 
 ### Feature 014: Landing Page Inspiradora (✅ MERGEADA A DEVELOP)
 
@@ -760,11 +631,12 @@ Realizar primer deployment a staging para validación real con usuarios.
 
 ## Métricas de Progreso 📊
 
-### Features Completadas (14/15) 🎉
+### Features Completadas y Mergeadas (15/16) 🎉
 
 - ✅ 001-testing-qa: Testing & QA Suite (mergeada 2026-01-16)
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
+- ✅ 004: Social Network (US1+US2+US3) - **MERGEADA** (2026-01-20) - 60% completa
 - ✅ 005: Frontend User Auth
 - ✅ 006: Dashboard Dinámico
 - ✅ 007: Gestión de Perfil
@@ -776,9 +648,9 @@ Realizar primer deployment a staging para validación real con usuarios.
 - ✅ 013: Public Trips Feed (MVP Desktop)
 - ✅ 014: Landing Page Inspiradora
 
-### Features Parcialmente Completadas (60% complete)
+### Features Parcialmente Completadas (Trabajo Futuro)
 
-- 🔄 004: Social Network - **US1+US2+US3 completadas** (2026-01-20) - US4/US5 pendientes: Compartir Viajes, Notificaciones
+- 🔜 004: Social Network - **US4/US5 pendientes** (US4: Compartir Viajes, US5: Notificaciones) - Estimación: 13-17 horas
 
 ### Tasks Prioritarias
 
