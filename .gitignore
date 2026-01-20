@@ -101,6 +101,9 @@ Thumbs.db
 *~
 tmpclaude-*
 
+# Feature drafts (work in progress)
+feature/
+
 # Alembic
 alembic.ini
 !backend/alembic.ini
