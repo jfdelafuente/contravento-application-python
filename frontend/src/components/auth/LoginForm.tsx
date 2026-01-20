@@ -170,7 +170,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <label htmlFor="login">Usuario o Email</label>
         <input
           id="login"
-          name="login"
           type="text"
           autoComplete="username"
           placeholder="usuario123 o tu@email.com"
