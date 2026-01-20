@@ -38,7 +38,10 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
     await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
-    // Submit form (Turnstile will be mocked in test environment)
+    // Wait for Turnstile to load and auto-verify (testing key 1x00000000000000000000AA always passes)
+    await page.waitForTimeout(2000);
+
+    // Submit form
     await page.click('button[type="submit"]');
 
     // Wait for navigation - in testing mode redirects to /login, in production to /verify-email
@@ -82,6 +85,9 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="password"]', TEST_USER.password);
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
     await page.check('input[type="checkbox"]'); // Accept terms and conditions
+
+    // Wait for Turnstile to load and auto-verify (testing key 1x00000000000000000000AA always passes)
+    await page.waitForTimeout(2000);
 
     await page.click('button[type="submit"]');
 
