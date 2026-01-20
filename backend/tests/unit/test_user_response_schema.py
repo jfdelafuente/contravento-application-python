@@ -17,8 +17,8 @@ class TestUserResponseSchema:
     async def test_user_response_includes_privacy_fields(self, db_session, test_user):
         """Test that UserResponse includes profile_visibility and trip_visibility."""
         # Arrange
-        test_user.profile_visibility = 'private'
-        test_user.trip_visibility = 'followers'
+        test_user.profile_visibility = "private"
+        test_user.trip_visibility = "followers"
         await db_session.commit()
         await db_session.refresh(test_user)
 
@@ -26,8 +26,8 @@ class TestUserResponseSchema:
         response = UserResponse.from_user_model(test_user)
 
         # Assert
-        assert response.profile_visibility == 'private'
-        assert response.trip_visibility == 'followers'
+        assert response.profile_visibility == "private"
+        assert response.trip_visibility == "followers"
 
     async def test_user_response_includes_profile_fields_when_profile_exists(
         self, db_session, test_user
@@ -43,7 +43,7 @@ class TestUserResponseSchema:
         profile.profile_photo_url = "https://example.com/photo.jpg"
 
         # Manually set the profile on the user object (simulating eager load)
-        test_user.__dict__['profile'] = profile
+        test_user.__dict__["profile"] = profile
 
         # Act
         response = UserResponse.from_user_model(test_user)
@@ -96,7 +96,7 @@ class TestUserResponseSchema:
         profile.profile_photo_url = "https://example.com/pic.jpg"
 
         # Manually set the profile on the user object
-        test_user.__dict__['profile'] = profile
+        test_user.__dict__["profile"] = profile
 
         # Act
         response = UserResponse.from_user_model(test_user)
@@ -116,8 +116,8 @@ class TestUserResponseSchema:
     async def test_user_response_json_serialization(self, db_session, test_user):
         """Test that UserResponse can be serialized to JSON."""
         # Arrange
-        test_user.profile_visibility = 'private'
-        test_user.trip_visibility = 'followers'
+        test_user.profile_visibility = "private"
+        test_user.trip_visibility = "followers"
         await db_session.commit()
         await db_session.refresh(test_user)
 
@@ -126,6 +126,6 @@ class TestUserResponseSchema:
         json_str = response.model_dump_json()
 
         # Assert
-        assert '"profile_visibility":"private"' in json_str.replace(' ', '')
-        assert '"trip_visibility":"followers"' in json_str.replace(' ', '')
-        assert f'"user_id":"{test_user.id}"' in json_str.replace(' ', '')
+        assert '"profile_visibility":"private"' in json_str.replace(" ", "")
+        assert '"trip_visibility":"followers"' in json_str.replace(" ", "")
+        assert f'"user_id":"{test_user.id}"' in json_str.replace(" ", "")

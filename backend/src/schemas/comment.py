@@ -77,9 +77,7 @@ class UserSummaryForComment(BaseModel):
     user_id: str = Field(..., description="User ID")
     username: str = Field(..., description="Username")
     full_name: str | None = Field(None, description="Full name (nullable)")
-    profile_photo_url: str | None = Field(
-        None, description="Profile photo URL (nullable)"
-    )
+    profile_photo_url: str | None = Field(None, description="Profile photo URL (nullable)")
 
 
 class CommentResponse(BaseModel):
@@ -100,9 +98,7 @@ class CommentResponse(BaseModel):
     updated_at: datetime | None = Field(
         None, description="Last edit timestamp (null if not edited)"
     )
-    is_edited: bool = Field(
-        ..., description="True if comment was edited (FR-019, FR-020)"
-    )
+    is_edited: bool = Field(..., description="True if comment was edited (FR-019, FR-020)")
 
     # Optional: Include user details in response
     author: UserSummaryForComment | None = Field(

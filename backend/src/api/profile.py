@@ -458,9 +458,7 @@ async def change_password(
 
         # TODO: Send confirmation email (FR-012)
 
-        return create_response(
-            success=True, data=None, message="Contraseña cambiada correctamente"
-        )
+        return create_response(success=True, data=None, message="Contraseña cambiada correctamente")
 
     except ValueError as e:
         # User not found or incorrect current password

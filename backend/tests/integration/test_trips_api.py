@@ -1401,9 +1401,7 @@ class TestGPSCoordinatesIntegration:
     - T017: GET /trips/{trip_id} retrieves coordinates correctly
     """
 
-    async def test_create_trip_with_gps_coordinates(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_trip_with_gps_coordinates(self, client: AsyncClient, auth_headers: dict):
         """
         T016: Test creating a trip with GPS coordinates.
 
@@ -1527,9 +1525,7 @@ class TestGPSCoordinatesIntegration:
         assert loc["latitude"] is None
         assert loc["longitude"] is None
 
-    async def test_create_trip_with_mixed_locations(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_trip_with_mixed_locations(self, client: AsyncClient, auth_headers: dict):
         """
         T016: Test creating trip with some locations having GPS, others without.
 
@@ -1578,9 +1574,7 @@ class TestGPSCoordinatesIntegration:
         assert data["locations"][2]["latitude"] == 42.774444
         assert data["locations"][2]["longitude"] == -0.527778
 
-    async def test_create_trip_with_invalid_latitude(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_trip_with_invalid_latitude(self, client: AsyncClient, auth_headers: dict):
         """
         T016: Test that invalid latitude (>90 or <-90) is rejected.
 
@@ -1667,9 +1661,7 @@ class TestGPSCoordinatesIntegration:
             ],
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -1714,9 +1706,7 @@ class TestGPSCoordinatesIntegration:
             "locations": [{"name": "Vía Verde del Aceite"}],
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 
@@ -1733,9 +1723,7 @@ class TestGPSCoordinatesIntegration:
         assert loc["latitude"] is None
         assert loc["longitude"] is None
 
-    async def test_update_trip_coordinates(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_update_trip_coordinates(self, client: AsyncClient, auth_headers: dict):
         """
         T017: Test updating trip coordinates via PUT /trips/{trip_id}.
 
@@ -1753,9 +1741,7 @@ class TestGPSCoordinatesIntegration:
             ],
         }
 
-        create_response = await client.post(
-            "/trips", json=create_payload, headers=auth_headers
-        )
+        create_response = await client.post("/trips", json=create_payload, headers=auth_headers)
         assert create_response.status_code == 201
         trip_id = create_response.json()["data"]["trip_id"]
 

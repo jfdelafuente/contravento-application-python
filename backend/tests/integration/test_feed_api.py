@@ -180,9 +180,9 @@ async def test_feed_ordering_chronological_desc(
 
         # Verify DESC order (most recent first)
         for i in range(len(timestamps) - 1):
-            assert timestamps[i] >= timestamps[i + 1], (
-                f"Feed not ordered DESC: {timestamps[i]} should be >= {timestamps[i + 1]}"
-            )
+            assert (
+                timestamps[i] >= timestamps[i + 1]
+            ), f"Feed not ordered DESC: {timestamps[i]} should be >= {timestamps[i + 1]}"
 
 
 @pytest.mark.integration
@@ -281,9 +281,7 @@ async def test_feed_includes_author_info(
         # Type validation
         assert isinstance(author["username"], str)
         assert author["full_name"] is None or isinstance(author["full_name"], str)
-        assert author["profile_photo_url"] is None or isinstance(
-            author["profile_photo_url"], str
-        )
+        assert author["profile_photo_url"] is None or isinstance(author["profile_photo_url"], str)
 
 
 @pytest.mark.integration
@@ -431,9 +429,9 @@ async def test_feed_pagination_no_duplicates(
         all_trip_ids.extend(page_trip_ids)
 
         # Check for duplicates within this page
-        assert len(page_trip_ids) == len(set(page_trip_ids)), (
-            f"Page {page} contains duplicate trips"
-        )
+        assert len(page_trip_ids) == len(
+            set(page_trip_ids)
+        ), f"Page {page} contains duplicate trips"
 
         if not data["has_more"]:
             break
@@ -448,9 +446,9 @@ async def test_feed_pagination_no_duplicates(
     )
 
     # Verify total count matches
-    assert len(all_trip_ids) == 12, (
-        f"Expected 12 total trips (7 followed + 5 community), got {len(all_trip_ids)}"
-    )
+    assert (
+        len(all_trip_ids) == 12
+    ), f"Expected 12 total trips (7 followed + 5 community), got {len(all_trip_ids)}"
 
     # Verify sequential ordering: all user1 trips should appear before user2 trips
     user1_indices = [i for i, tid in enumerate(all_trip_ids) if tid in user1_trip_ids]

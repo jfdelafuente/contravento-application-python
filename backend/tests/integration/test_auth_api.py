@@ -23,9 +23,7 @@ from src.models.user import User
 class TestAuthRegistrationFlow:
     """Test complete user registration workflow."""
 
-    async def test_register_user_flow(
-        self, client: AsyncClient, db_session: AsyncSession
-    ):
+    async def test_register_user_flow(self, client: AsyncClient, db_session: AsyncSession):
         """
         Test complete registration flow: register → verify email → login → get JWT.
 
@@ -44,9 +42,9 @@ class TestAuthRegistrationFlow:
         }
 
         register_response = await client.post("/auth/register", json=register_data)
-        assert register_response.status_code == 201, (
-            f"Registration failed: {register_response.json()}"
-        )
+        assert (
+            register_response.status_code == 201
+        ), f"Registration failed: {register_response.json()}"
 
         register_data_resp = register_response.json()
         assert register_data_resp["success"] is True
@@ -59,9 +57,7 @@ class TestAuthRegistrationFlow:
         user_id = user_data["user_id"]  # Changed from "id" to "user_id"
 
         # Step 2: Verify user in database exists and is unverified
-        result = await db_session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await db_session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         assert user is not None
         assert user.is_verified is False
@@ -97,9 +93,7 @@ class TestAuthRegistrationFlow:
         await db_session.commit()
 
         login_response = await client.post("/auth/login", json=login_data)
-        assert login_response.status_code == 200, (
-            f"Login failed: {login_response.json()}"
-        )
+        assert login_response.status_code == 200, f"Login failed: {login_response.json()}"
 
         login_resp_data = login_response.json()
         assert login_resp_data["success"] is True
@@ -124,9 +118,7 @@ class TestAuthRegistrationFlow:
 class TestAuthLogin:
     """Test user login scenarios."""
 
-    async def test_login_valid_credentials(
-        self, client: AsyncClient, test_user: User
-    ):
+    async def test_login_valid_credentials(self, client: AsyncClient, test_user: User):
         """
         Test login with valid credentials returns JWT tokens.
 
@@ -201,9 +193,7 @@ class TestAuthLogin:
         assert response.status_code == 400  # Changed from 422 to 400
 
         # Missing login
-        response = await client.post(
-            "/auth/login", json={"password": "TestPass123!"}
-        )
+        response = await client.post("/auth/login", json={"password": "TestPass123!"})
         assert response.status_code == 400  # Changed from 422 to 400
 
 
@@ -234,12 +224,10 @@ class TestAuthTokenRefresh:
         old_access_token = tokens["access_token"]
 
         # Step 2: Use refresh token to get new access token (via query params)
-        refresh_response = await client.post(
-            f"/auth/refresh?refresh_token={refresh_token}"
-        )
-        assert refresh_response.status_code == 200, (
-            f"Token refresh failed: {refresh_response.json()}"
-        )
+        refresh_response = await client.post(f"/auth/refresh?refresh_token={refresh_token}")
+        assert (
+            refresh_response.status_code == 200
+        ), f"Token refresh failed: {refresh_response.json()}"
 
         refresh_data = refresh_response.json()
         assert refresh_data["success"] is True
@@ -268,9 +256,7 @@ class TestAuthTokenRefresh:
 
     async def test_refresh_invalid_token(self, client: AsyncClient):
         """Test refresh with invalid token returns 400 (validation error)."""
-        response = await client.post(
-            "/auth/refresh?refresh_token=invalid_token_here"
-        )
+        response = await client.post("/auth/refresh?refresh_token=invalid_token_here")
         # Returns 400 for validation error (invalid token format)
         assert response.status_code in [400, 401]
 
@@ -292,9 +278,7 @@ class TestAuthProtectedEndpoints:
         assert data["success"] is False
         assert "error" in data
 
-    async def test_protected_endpoint_with_invalid_token(
-        self, client: AsyncClient
-    ):
+    async def test_protected_endpoint_with_invalid_token(self, client: AsyncClient):
         """Test accessing protected endpoint with invalid token returns 401."""
         headers = {"Authorization": "Bearer invalid_token"}
         response = await client.get("/auth/me", headers=headers)

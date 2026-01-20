@@ -35,7 +35,9 @@ class UserResponse(BaseModel):
     email: str = Field(..., description="Email address")
     is_verified: bool = Field(..., description="Email verification status")
     profile_visibility: str = Field(..., description="Profile visibility: 'public' or 'private'")
-    trip_visibility: str = Field(..., description="Trip visibility: 'public', 'followers', or 'private'")
+    trip_visibility: str = Field(
+        ..., description="Trip visibility: 'public', 'followers', or 'private'"
+    )
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
 
     # Optional profile fields
@@ -78,7 +80,7 @@ class UserResponse(BaseModel):
         # Check if profile is already loaded to avoid triggering lazy load
         # Use hasattr to check if the relationship is loaded in the instance
         profile = None
-        if hasattr(user, '__dict__') and 'profile' in user.__dict__:
+        if hasattr(user, "__dict__") and "profile" in user.__dict__:
             profile = user.profile
 
         return cls(

@@ -97,7 +97,7 @@ class User(Base):
     # Privacy settings (Feature 013 - Public Trips Feed)
     profile_visibility: Mapped[str] = mapped_column(
         String(20),
-        default='public',
+        default="public",
         nullable=False,
         index=True,
         doc="Profile visibility: 'public' or 'private' - default: public",
@@ -105,7 +105,7 @@ class User(Base):
 
     trip_visibility: Mapped[str] = mapped_column(
         String(20),
-        default='public',
+        default="public",
         nullable=False,
         index=True,
         doc="Trip visibility: 'public', 'followers', or 'private' - default: public",

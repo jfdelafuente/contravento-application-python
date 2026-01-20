@@ -158,9 +158,9 @@ async def test_get_public_trips_ordered_by_published_at(
 
     # Verify descending order (newest first)
     for i in range(len(timestamps) - 1):
-        assert timestamps[i] >= timestamps[i + 1], (
-            f"Trips not ordered by published_at DESC: {timestamps[i]} < {timestamps[i + 1]}"
-        )
+        assert (
+            timestamps[i] >= timestamps[i + 1]
+        ), f"Trips not ordered by published_at DESC: {timestamps[i]} < {timestamps[i + 1]}"
 
 
 @pytest.mark.asyncio

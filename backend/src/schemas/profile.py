@@ -68,12 +68,17 @@ class ProfileResponse(BaseModel):
         None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
     profile_visibility: str = Field(..., description="Profile visibility: 'public' or 'private'")
-    trip_visibility: str = Field(..., description="Trip visibility: 'public', 'followers', or 'private'")
+    trip_visibility: str = Field(
+        ..., description="Trip visibility: 'public', 'followers', or 'private'"
+    )
     show_email: bool = Field(..., description="Email visibility in public profile")
     show_location: bool = Field(..., description="Location visibility in public profile")
     followers_count: int = Field(default=0, description="Number of followers")
     following_count: int = Field(default=0, description="Number of users followed")
-    is_following: Optional[bool] = Field(None, description="Whether current user follows this user (Feature 004 - US1, None if not authenticated)")
+    is_following: Optional[bool] = Field(
+        None,
+        description="Whether current user follows this user (Feature 004 - US1, None if not authenticated)",
+    )
     stats: Optional[ProfileStatsPreview] = Field(None, description="Stats preview")
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
 
@@ -136,13 +141,13 @@ class ProfileUpdateRequest(BaseModel):
     profile_visibility: Optional[str] = Field(
         None,
         description="Profile visibility: 'public' (visible to all) or 'private' (hidden from public feed)",
-        pattern="^(public|private)$"
+        pattern="^(public|private)$",
     )
 
     trip_visibility: Optional[str] = Field(
         None,
         description="Trip visibility: 'public' (all), 'followers' (followers only), or 'private' (owner only)",
-        pattern="^(public|followers|private)$"
+        pattern="^(public|followers|private)$",
     )
 
     show_email: Optional[bool] = Field(None, description="Show email in public profile")

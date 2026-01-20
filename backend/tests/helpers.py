@@ -325,9 +325,7 @@ async def load_fixture_trips(
 
         # Convert string dates to date objects
         if "start_date" in trip_data and trip_data["start_date"]:
-            trip_data["start_date"] = datetime.strptime(
-                trip_data["start_date"], "%Y-%m-%d"
-            ).date()
+            trip_data["start_date"] = datetime.strptime(trip_data["start_date"], "%Y-%m-%d").date()
         if "end_date" in trip_data and trip_data["end_date"]:
             trip_data["end_date"] = datetime.strptime(trip_data["end_date"], "%Y-%m-%d").date()
 

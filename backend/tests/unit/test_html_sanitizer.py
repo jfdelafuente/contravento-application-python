@@ -49,7 +49,7 @@ def test_sanitize_html_removes_event_handlers():
     - Other inline JavaScript is stripped
     """
     # Test onclick
-    malicious = '<div onclick="alert(\'XSS\')">Click me</div>'
+    malicious = "<div onclick=\"alert('XSS')\">Click me</div>"
     result = sanitize_html(malicious)
     assert "onclick" not in result
     assert "alert" not in result
@@ -78,14 +78,14 @@ def test_sanitize_html_removes_javascript_protocol():
     - data: URLs are stripped (can execute JS)
     """
     # Test javascript: protocol
-    malicious = '<a href="javascript:alert(\'XSS\')">Link</a>'
+    malicious = "<a href=\"javascript:alert('XSS')\">Link</a>"
     result = sanitize_html(malicious)
     assert "javascript:" not in result
     assert "alert" not in result
     assert "Link" in result
 
     # Test data: protocol
-    malicious2 = '<a href="data:text/html,<script>alert(\'XSS\')</script>">Data Link</a>'
+    malicious2 = "<a href=\"data:text/html,<script>alert('XSS')</script>\">Data Link</a>"
     result2 = sanitize_html(malicious2)
     assert "data:" not in result2
     assert "<script>" not in result2
@@ -169,7 +169,7 @@ def test_sanitize_html_removes_style_tags():
     assert "Text" in result
 
     # Test style attribute and div tag removal
-    malicious2 = '<div style="background: url(\'javascript:alert(1)\')">Text</div>'
+    malicious2 = "<div style=\"background: url('javascript:alert(1)')\">Text</div>"
     result2 = sanitize_html(malicious2)
     assert 'style="' not in result2
     assert "<div" not in result2

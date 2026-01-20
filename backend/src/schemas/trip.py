@@ -404,7 +404,10 @@ class TripResponse(BaseModel):
     )
     tags: list[TagResponse] = Field(default_factory=list, description="List of trip tags")
     like_count: int = Field(default=0, description="Number of likes (Feature 004 - US2)")
-    is_liked: Optional[bool] = Field(default=None, description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)")
+    is_liked: Optional[bool] = Field(
+        default=None,
+        description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)",
+    )
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -419,7 +422,9 @@ class TripResponse(BaseModel):
                 "user_id": obj.user.id,
                 "username": obj.user.username,
                 "full_name": obj.user.profile.full_name if obj.user.profile else None,
-                "profile_photo_url": obj.user.profile.profile_photo_url if obj.user.profile else None,
+                "profile_photo_url": obj.user.profile.profile_photo_url
+                if obj.user.profile
+                else None,
                 "is_following": getattr(obj.user, "is_following", None),
             }
             author = UserSummary.model_validate(author_data)
@@ -589,7 +594,9 @@ class PublicUserSummary(BaseModel):
     user_id: str = Field(..., description="Unique user identifier")
     username: str = Field(..., description="Username")
     profile_photo_url: Optional[str] = Field(None, description="Profile photo URL")
-    is_following: Optional[bool] = Field(None, description="Whether current user follows this user (Feature 004 - US1)")
+    is_following: Optional[bool] = Field(
+        None, description="Whether current user follows this user (Feature 004 - US1)"
+    )
 
     class Config:
         """Pydantic config."""
@@ -679,7 +686,10 @@ class PublicTripSummary(BaseModel):
     author: PublicUserSummary = Field(..., description="Trip author")
     published_at: datetime = Field(..., description="Publication timestamp (UTC)")
     like_count: int = Field(default=0, description="Number of likes (Feature 004 - US2)")
-    is_liked: Optional[bool] = Field(default=None, description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)")
+    is_liked: Optional[bool] = Field(
+        default=None,
+        description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)",
+    )
 
     class Config:
         """Pydantic config."""

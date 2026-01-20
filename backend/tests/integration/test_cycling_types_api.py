@@ -33,7 +33,9 @@ class TestPublicCyclingTypesEndpoint:
         active1 = CyclingType(
             code="mountain", display_name="Mountain", description="MTB", is_active=True
         )
-        active2 = CyclingType(code="road", display_name="Road", description="Road cycling", is_active=True)
+        active2 = CyclingType(
+            code="road", display_name="Road", description="Road cycling", is_active=True
+        )
         inactive = CyclingType(
             code="gravel", display_name="Gravel", description="Gravel riding", is_active=False
         )
@@ -110,7 +112,9 @@ class TestAdminCyclingTypesWorkflow:
         await db_session.commit()
 
         # Login
-        login_response = await client.post("/auth/login", json={"login": username, "password": password})
+        login_response = await client.post(
+            "/auth/login", json={"login": username, "password": password}
+        )
         assert login_response.status_code == 200
         access_token = login_response.json()["data"]["access_token"]
         auth_headers = {"Authorization": f"Bearer {access_token}"}
@@ -147,7 +151,10 @@ class TestAdminCyclingTypesWorkflow:
         assert type_data["display_name"] == "Cyclocross"
 
         # Step 5: Update the type
-        update_data = {"display_name": "Cyclocross Pro", "description": "Professional cyclocross racing"}
+        update_data = {
+            "display_name": "Cyclocross Pro",
+            "description": "Professional cyclocross racing",
+        }
 
         update_response = await client.put(
             "/admin/cycling-types/cyclocross", json=update_data, headers=auth_headers
@@ -287,7 +294,9 @@ class TestAdminCyclingTypesWorkflow:
         response = await client.delete("/admin/cycling-types/test")
         assert response.status_code == 401
 
-    async def test_admin_endpoints_require_admin_role(self, client: AsyncClient, regular_user_headers):
+    async def test_admin_endpoints_require_admin_role(
+        self, client: AsyncClient, regular_user_headers
+    ):
         """Test that admin endpoints return 403 for regular users."""
         # Test GET all
         response = await client.get("/admin/cycling-types", headers=regular_user_headers)
@@ -355,7 +364,9 @@ class TestCyclingTypeValidation:
         user.is_verified = True
         await db_session.commit()
 
-        login_response = await client.post("/auth/login", json={"login": username, "password": password})
+        login_response = await client.post(
+            "/auth/login", json={"login": username, "password": password}
+        )
         access_token = login_response.json()["data"]["access_token"]
         auth_headers = {"Authorization": f"Bearer {access_token}"}
 

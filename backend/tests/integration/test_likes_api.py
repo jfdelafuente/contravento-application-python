@@ -405,9 +405,7 @@ class TestGetTripLikes:
         await db_session.commit()
 
         # Act: Get first page
-        response = await client.get(
-            f"/trips/{published_trip.trip_id}/likes?page=1&limit=10"
-        )
+        response = await client.get(f"/trips/{published_trip.trip_id}/likes?page=1&limit=10")
 
         # Assert
         assert response.status_code == 200
@@ -417,9 +415,7 @@ class TestGetTripLikes:
         assert data["data"]["has_more"] is True
 
         # Act: Get second page
-        response_page2 = await client.get(
-            f"/trips/{published_trip.trip_id}/likes?page=2&limit=10"
-        )
+        response_page2 = await client.get(f"/trips/{published_trip.trip_id}/likes?page=2&limit=10")
 
         # Assert
         assert response_page2.status_code == 200

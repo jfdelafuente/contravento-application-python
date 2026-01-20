@@ -26,9 +26,7 @@ class UserSummaryForLike(BaseModel):
     """Minimal user details for likes list."""
 
     username: str = Field(..., description="Username")
-    profile_photo_url: str | None = Field(
-        None, description="Profile photo URL (nullable)"
-    )
+    profile_photo_url: str | None = Field(None, description="Profile photo URL (nullable)")
 
 
 class LikeItem(BaseModel):

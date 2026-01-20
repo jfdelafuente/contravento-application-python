@@ -154,17 +154,13 @@ class TestLikeTrip:
 
         assert "No puedes dar like a tu propio viaje" in str(exc_info.value)
 
-    async def test_like_nonexistent_trip_fails(
-        self, db_session: AsyncSession, liker_user: User
-    ):
+    async def test_like_nonexistent_trip_fails(self, db_session: AsyncSession, liker_user: User):
         """Test liking a non-existent trip raises ValueError."""
         fake_trip_id = str(uuid4())
 
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
-            await LikeService.like_trip(
-                db=db_session, user_id=liker_user.id, trip_id=fake_trip_id
-            )
+            await LikeService.like_trip(db=db_session, user_id=liker_user.id, trip_id=fake_trip_id)
 
         assert "Viaje no encontrado" in str(exc_info.value)
 
@@ -251,9 +247,7 @@ class TestUnlikeTrip:
 class TestGetTripLikes:
     """Tests for LikeService.get_trip_likes() - T043."""
 
-    async def test_get_trip_likes_pagination(
-        self, db_session: AsyncSession, published_trip: Trip
-    ):
+    async def test_get_trip_likes_pagination(self, db_session: AsyncSession, published_trip: Trip):
         """
         T043: Test pagination for trip likes.
 
@@ -305,9 +299,7 @@ class TestGetTripLikes:
         assert result_page2["page"] == 2
         assert result_page2["has_more"] is False
 
-    async def test_get_trip_likes_empty(
-        self, db_session: AsyncSession, published_trip: Trip
-    ):
+    async def test_get_trip_likes_empty(self, db_session: AsyncSession, published_trip: Trip):
         """
         Test fetching likes for a trip with no likes.
 

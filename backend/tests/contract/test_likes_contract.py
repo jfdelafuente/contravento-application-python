@@ -205,9 +205,7 @@ async def test_get_trip_likes_item_schema(
 
         assert isinstance(user["username"], str)
         assert user["full_name"] is None or isinstance(user["full_name"], str)
-        assert user["profile_photo_url"] is None or isinstance(
-            user["profile_photo_url"], str
-        )
+        assert user["profile_photo_url"] is None or isinstance(user["profile_photo_url"], str)
 
         # Validate created_at format (ISO 8601)
         created_at = like["created_at"]

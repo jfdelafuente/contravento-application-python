@@ -46,11 +46,9 @@ def get_schema_from_spec(spec: dict, path: str, method: str, response_code: str 
         Schema dict or None if not found
     """
     try:
-        response_schema = (
-            spec["paths"][path][method]["responses"][response_code]["content"][
-                "application/json"
-            ]["schema"]
-        )
+        response_schema = spec["paths"][path][method]["responses"][response_code]["content"][
+            "application/json"
+        ]["schema"]
 
         # Resolve $ref if present
         if "$ref" in response_schema:
@@ -199,9 +197,7 @@ async def test_get_feed_author_structure(
         # Type validation
         assert isinstance(author["username"], str)
         assert author["full_name"] is None or isinstance(author["full_name"], str)
-        assert author["profile_photo_url"] is None or isinstance(
-            author["profile_photo_url"], str
-        )
+        assert author["profile_photo_url"] is None or isinstance(author["profile_photo_url"], str)
 
 
 @pytest.mark.contract
@@ -263,9 +259,7 @@ async def test_get_feed_location_structure(
         # Type validation
         assert isinstance(location["name"], str)
         assert location["latitude"] is None or isinstance(location["latitude"], (int, float))
-        assert location["longitude"] is None or isinstance(
-            location["longitude"], (int, float)
-        )
+        assert location["longitude"] is None or isinstance(location["longitude"], (int, float))
 
 
 @pytest.mark.contract

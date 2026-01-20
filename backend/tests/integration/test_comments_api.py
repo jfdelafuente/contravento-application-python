@@ -231,9 +231,7 @@ async def test_get_trip_comments_pagination(
         )
 
     # Get first page (10 items)
-    response_page1 = await client.get(
-        f"/trips/{published_trip.trip_id}/comments?limit=10&offset=0"
-    )
+    response_page1 = await client.get(f"/trips/{published_trip.trip_id}/comments?limit=10&offset=0")
     assert response_page1.status_code == 200
     data_page1 = response_page1.json()["data"]
     assert data_page1["total"] == 15
@@ -328,8 +326,7 @@ async def test_update_comment_only_owner_can_edit(
     # Assert
     assert update_response.status_code == 403
     assert (
-        "Solo puedes editar tus propios comentarios"
-        in update_response.json()["error"]["message"]
+        "Solo puedes editar tus propios comentarios" in update_response.json()["error"]["message"]
     )
 
 
@@ -498,9 +495,7 @@ async def test_update_comment_unauthorized(
     comment_id = create_response.json()["data"]["id"]
 
     # Try to update without authentication
-    response = await client.put(
-        f"/comments/{comment_id}", json={"content": "Updated content"}
-    )
+    response = await client.put(f"/comments/{comment_id}", json={"content": "Updated content"})
 
     # Assert
     assert response.status_code == 401
@@ -605,7 +600,7 @@ async def test_comment_xss_prevention(
     assert "Great trip!" in sanitized_content
 
     # Test event handler removal
-    malicious_onclick = '<div onclick="alert(\'XSS\')">Click me</div>'
+    malicious_onclick = "<div onclick=\"alert('XSS')\">Click me</div>"
     response_onclick = await client.post(
         f"/trips/{published_trip.trip_id}/comments",
         json={"content": malicious_onclick},

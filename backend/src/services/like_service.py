@@ -102,9 +102,7 @@ class LikeService:
         }
 
     @staticmethod
-    async def unlike_trip(
-        db: AsyncSession, user_id: str, trip_id: str
-    ) -> dict[str, Any]:
+    async def unlike_trip(db: AsyncSession, user_id: str, trip_id: str) -> dict[str, Any]:
         """
         Unlike a trip (FR-009).
 
@@ -203,9 +201,7 @@ class LikeService:
                 "user": {
                     "username": like.user.username,
                     "profile_photo_url": (
-                        like.user.profile.profile_photo_url
-                        if like.user.profile
-                        else None
+                        like.user.profile.profile_photo_url if like.user.profile else None
                     ),
                 },
                 "created_at": like.created_at.isoformat() + "Z",
@@ -222,9 +218,7 @@ class LikeService:
         }
 
     @staticmethod
-    async def has_user_liked_trip(
-        db: AsyncSession, user_id: str, trip_id: str
-    ) -> bool:
+    async def has_user_liked_trip(db: AsyncSession, user_id: str, trip_id: str) -> bool:
         """
         Check if a user has liked a trip.
 

@@ -114,9 +114,7 @@ async def test_create_comment_success(
     assert comment.updated_at is None
 
     # Verify in database
-    result = await db_session.execute(
-        select(Comment).where(Comment.id == comment.id)
-    )
+    result = await db_session.execute(select(Comment).where(Comment.id == comment.id))
     db_comment = result.scalar_one_or_none()
     assert db_comment is not None
     assert db_comment.content == content
@@ -299,9 +297,7 @@ async def test_delete_comment_by_author(
     )
 
     # Verify deletion
-    result = await db_session.execute(
-        select(Comment).where(Comment.id == comment.id)
-    )
+    result = await db_session.execute(select(Comment).where(Comment.id == comment.id))
     db_comment = result.scalar_one_or_none()
     assert db_comment is None
 
@@ -334,9 +330,7 @@ async def test_delete_comment_by_trip_owner(
     )
 
     # Verify deletion
-    result = await db_session.execute(
-        select(Comment).where(Comment.id == comment.id)
-    )
+    result = await db_session.execute(select(Comment).where(Comment.id == comment.id))
     db_comment = result.scalar_one_or_none()
     assert db_comment is None
 
@@ -373,9 +367,7 @@ async def test_delete_comment_unauthorized(
     )
 
     # Try to delete as unauthorized user
-    with pytest.raises(
-        ValueError, match="No tienes permiso para eliminar este comentario"
-    ):
+    with pytest.raises(ValueError, match="No tienes permiso para eliminar este comentario"):
         await CommentService.delete_comment(
             db_session, comment_id=comment.id, user_id=other_user.id
         )

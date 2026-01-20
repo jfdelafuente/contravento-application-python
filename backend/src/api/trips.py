@@ -137,6 +137,7 @@ async def get_public_trips(
 
             # Count likes for this trip (Feature 004 - US2)
             from src.models.like import Like
+
             like_count_result = await db.execute(
                 select(func.count(Like.id)).where(Like.trip_id == trip.trip_id)
             )
@@ -147,20 +148,19 @@ async def get_public_trips(
             if current_user:
                 like_result = await db.execute(
                     select(Like).where(
-                        Like.trip_id == trip.trip_id,
-                        Like.user_id == current_user.id
+                        Like.trip_id == trip.trip_id, Like.user_id == current_user.id
                     )
                 )
                 is_liked = like_result.scalar_one_or_none() is not None
 
             # Check if current user follows this trip's author (Feature 004 - US1)
             from src.models.social import Follow
+
             is_following = None
             if current_user:
                 follow_result = await db.execute(
                     select(Follow).where(
-                        Follow.follower_id == current_user.id,
-                        Follow.following_id == trip.user.id
+                        Follow.follower_id == current_user.id, Follow.following_id == trip.user.id
                     )
                 )
                 is_following = follow_result.scalar_one_or_none() is not None
@@ -169,7 +169,9 @@ async def get_public_trips(
             author = PublicUserSummary(
                 user_id=trip.user.id,
                 username=trip.user.username,
-                profile_photo_url=trip.user.profile.profile_photo_url if trip.user.profile else None,
+                profile_photo_url=trip.user.profile.profile_photo_url
+                if trip.user.profile
+                else None,
                 is_following=is_following,  # Feature 004 - US1 (None if not authenticated, True/False if authenticated)
             )
 
@@ -319,8 +321,7 @@ async def get_trip(
     try:
         service = TripService(db)
         trip = await service.get_trip(
-            trip_id=trip_id,
-            current_user_id=current_user.id if current_user else None
+            trip_id=trip_id, current_user_id=current_user.id if current_user else None
         )
 
         # Convert to response schema
@@ -800,7 +801,9 @@ async def update_trip(
         service = TripService(db)
         # Convert Pydantic model to dict, excluding None values
         update_data = data.model_dump(exclude_none=True)
-        trip = await service.update_trip(trip_id=trip_id, user_id=current_user.id, update_data=update_data)
+        trip = await service.update_trip(
+            trip_id=trip_id, user_id=current_user.id, update_data=update_data
+        )
         trip_response = TripResponse.model_validate(trip)
         return {"success": True, "data": trip_response.model_dump(), "error": None}
     except PermissionError as e:

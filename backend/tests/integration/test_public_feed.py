@@ -56,15 +56,11 @@ class TestAnonymousPublicFeedAccess:
         }
 
         # Create and publish first two trips
-        pub1_response = await client.post(
-            "/trips", json=published_trip_1, headers=auth_headers
-        )
+        pub1_response = await client.post("/trips", json=published_trip_1, headers=auth_headers)
         pub1_id = pub1_response.json()["data"]["trip_id"]
         await client.post(f"/trips/{pub1_id}/publish", headers=auth_headers)
 
-        pub2_response = await client.post(
-            "/trips", json=published_trip_2, headers=auth_headers
-        )
+        pub2_response = await client.post("/trips", json=published_trip_2, headers=auth_headers)
         pub2_id = pub2_response.json()["data"]["trip_id"]
         await client.post(f"/trips/{pub2_id}/publish", headers=auth_headers)
 
@@ -92,9 +88,7 @@ class TestAnonymousPublicFeedAccess:
         for trip in trips:
             assert trip["status"].upper() == "PUBLISHED"
 
-    async def test_anonymous_access_feed_pagination(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_anonymous_access_feed_pagination(self, client: AsyncClient, auth_headers: dict):
         """Test public feed pagination works for anonymous users."""
         # Create and publish 5 trips
         for i in range(5):
@@ -103,9 +97,7 @@ class TestAnonymousPublicFeedAccess:
                 "description": f"Descripción pública del viaje número {i} con suficiente texto.",
                 "start_date": "2024-06-01",
             }
-            response = await client.post(
-                "/trips", json=trip_data, headers=auth_headers
-            )
+            response = await client.post("/trips", json=trip_data, headers=auth_headers)
             trip_id = response.json()["data"]["trip_id"]
             await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
@@ -136,9 +128,7 @@ class TestAnonymousPublicFeedAccess:
             "description": "Verificando que el email del usuario no se expone públicamente.",
             "start_date": "2024-06-01",
         }
-        response = await client.post(
-            "/trips", json=trip_data, headers=auth_headers
-        )
+        response = await client.post("/trips", json=trip_data, headers=auth_headers)
         trip_id = response.json()["data"]["trip_id"]
         await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
 
@@ -147,9 +137,7 @@ class TestAnonymousPublicFeedAccess:
         trips = feed_response.json()["trips"]
 
         # Find our trip
-        our_trip = next(
-            (t for t in trips if t["trip_id"] == trip_id), None
-        )
+        our_trip = next((t for t in trips if t["trip_id"] == trip_id), None)
         assert our_trip is not None
 
         # Verify email is not exposed
@@ -187,23 +175,17 @@ class TestAuthenticatedFeedAccess:
         }
 
         # Create and publish first trip
-        pub_response = await client.post(
-            "/trips", json=published_data, headers=auth_headers
-        )
+        pub_response = await client.post("/trips", json=published_data, headers=auth_headers)
         pub_id = pub_response.json()["data"]["trip_id"]
         await client.post(f"/trips/{pub_id}/publish", headers=auth_headers)
 
         # Create draft (don't publish)
-        draft_response = await client.post(
-            "/trips", json=draft_data, headers=auth_headers
-        )
+        draft_response = await client.post("/trips", json=draft_data, headers=auth_headers)
         draft_id = draft_response.json()["data"]["trip_id"]
 
         # Get user's own trips with authentication
         username = test_user.username
-        response = await client.get(
-            f"/users/{username}/trips", headers=auth_headers
-        )
+        response = await client.get(f"/users/{username}/trips", headers=auth_headers)
         assert response.status_code == 200
 
         data = response.json()
@@ -253,9 +235,7 @@ class TestAuthenticatedFeedAccess:
         await db_session.refresh(draft_trip)
 
         # Try to access other user's trips with current user's auth
-        response = await client.get(
-            f"/users/{other_user.username}/trips", headers=auth_headers
-        )
+        response = await client.get(f"/users/{other_user.username}/trips", headers=auth_headers)
 
         # Depending on implementation:
         # Option 1: Returns only published trips (drafts filtered out)
@@ -263,28 +243,20 @@ class TestAuthenticatedFeedAccess:
         if response.status_code == 200:
             trips = response.json()["data"]["trips"]
             # Verify other user's draft is NOT in the list
-            draft_ids = [
-                t["trip_id"]
-                for t in trips
-                if t["status"].upper() == "DRAFT"
-            ]
+            draft_ids = [t["trip_id"] for t in trips if t["status"].upper() == "DRAFT"]
             assert draft_trip.trip_id not in draft_ids
         elif response.status_code == 403:
             # Access forbidden to other user's trips
             pass
         else:
-            pytest.fail(
-                f"Unexpected status code: {response.status_code}"
-            )
+            pytest.fail(f"Unexpected status code: {response.status_code}")
 
 
 @pytest.mark.integration
 class TestAccessControl:
     """Test access control for trip editing and deletion."""
 
-    async def test_owner_can_edit_own_trip(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_owner_can_edit_own_trip(self, client: AsyncClient, auth_headers: dict):
         """
         Test owner can edit their own trip.
 
@@ -298,9 +270,7 @@ class TestAccessControl:
             "description": "Original description with enough text for validation purposes.",
             "start_date": "2024-06-01",
         }
-        response = await client.post(
-            "/trips", json=trip_data, headers=auth_headers
-        )
+        response = await client.post("/trips", json=trip_data, headers=auth_headers)
         trip_id = response.json()["data"]["trip_id"]
 
         # Update trip as owner
@@ -316,9 +286,7 @@ class TestAccessControl:
         updated_trip = update_response.json()["data"]
         assert updated_trip["title"] == "Updated Title"
 
-    async def test_owner_can_delete_own_trip(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_owner_can_delete_own_trip(self, client: AsyncClient, auth_headers: dict):
         """
         Test owner can delete their own trip.
 
@@ -332,23 +300,17 @@ class TestAccessControl:
             "description": "This trip will be deleted by its owner for testing purposes.",
             "start_date": "2024-06-01",
         }
-        response = await client.post(
-            "/trips", json=trip_data, headers=auth_headers
-        )
+        response = await client.post("/trips", json=trip_data, headers=auth_headers)
         trip_id = response.json()["data"]["trip_id"]
 
         # Delete trip as owner
-        delete_response = await client.delete(
-            f"/trips/{trip_id}", headers=auth_headers
-        )
+        delete_response = await client.delete(f"/trips/{trip_id}", headers=auth_headers)
 
         assert delete_response.status_code == 200
         assert delete_response.json()["success"] is True
 
         # Verify trip is deleted
-        get_response = await client.get(
-            f"/trips/{trip_id}", headers=auth_headers
-        )
+        get_response = await client.get(f"/trips/{trip_id}", headers=auth_headers)
         assert get_response.status_code == 404
 
     async def test_non_owner_cannot_edit_trip(
@@ -439,9 +401,7 @@ class TestAccessControl:
         await db_session.refresh(other_trip)
 
         # Try to delete as current user (not owner)
-        delete_response = await client.delete(
-            f"/trips/{other_trip.trip_id}", headers=auth_headers
-        )
+        delete_response = await client.delete(f"/trips/{other_trip.trip_id}", headers=auth_headers)
 
         # Should return 403 Forbidden
         assert delete_response.status_code == 403
@@ -449,9 +409,7 @@ class TestAccessControl:
         assert error["success"] is False
 
         # Verify trip still exists
-        result = await db_session.execute(
-            select(Trip).where(Trip.trip_id == other_trip.trip_id)
-        )
+        result = await db_session.execute(select(Trip).where(Trip.trip_id == other_trip.trip_id))
         still_exists = result.scalar_one_or_none()
         assert still_exists is not None
 
@@ -467,25 +425,19 @@ class TestAccessControl:
             "description": "Testing that anonymous users cannot edit trips.",
             "start_date": "2024-06-01",
         }
-        response = await client.post(
-            "/trips", json=trip_data, headers=auth_headers
-        )
+        response = await client.post("/trips", json=trip_data, headers=auth_headers)
         trip_id = response.json()["data"]["trip_id"]
 
         # Try to edit WITHOUT authentication
         update_data = {
             "title": "Anonymous Hack Attempt",
         }
-        update_response = await client.put(
-            f"/trips/{trip_id}", json=update_data
-        )
+        update_response = await client.put(f"/trips/{trip_id}", json=update_data)
 
         # Should return 401 Unauthorized
         assert update_response.status_code == 401
 
-    async def test_anonymous_cannot_delete_trip(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_anonymous_cannot_delete_trip(self, client: AsyncClient, auth_headers: dict):
         """Test that anonymous users cannot delete trips."""
         # Create trip
         trip_data = {
@@ -493,9 +445,7 @@ class TestAccessControl:
             "description": "Testing that anonymous users cannot delete trips.",
             "start_date": "2024-06-01",
         }
-        response = await client.post(
-            "/trips", json=trip_data, headers=auth_headers
-        )
+        response = await client.post("/trips", json=trip_data, headers=auth_headers)
         trip_id = response.json()["data"]["trip_id"]
 
         # Try to delete WITHOUT authentication

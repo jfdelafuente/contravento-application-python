@@ -101,7 +101,9 @@ async def get_trip_comments(
                 "user_id": comment.user.id,
                 "username": comment.user.username,
                 "full_name": comment.user.profile.full_name if comment.user.profile else None,
-                "profile_photo_url": comment.user.profile.profile_photo_url if comment.user.profile else None,
+                "profile_photo_url": comment.user.profile.profile_photo_url
+                if comment.user.profile
+                else None,
             }
             comment_dict["author"] = author_data
 
@@ -161,9 +163,7 @@ async def delete_comment(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     try:
-        result = await db.execute(
-            select(Comment).where(Comment.id == comment_id)
-        )
+        result = await db.execute(select(Comment).where(Comment.id == comment_id))
         comment = result.scalar_one_or_none()
 
         if not comment:

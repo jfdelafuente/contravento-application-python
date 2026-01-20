@@ -79,7 +79,7 @@ class ProfileService:
 
         # Check privacy settings (T118 - Privacy enforcement)
         is_owner = viewer_username == username
-        if user.profile_visibility == 'private' and not is_owner:
+        if user.profile_visibility == "private" and not is_owner:
             raise ValueError(f"El perfil de '{username}' es privado")
 
         # Get or create profile
@@ -120,8 +120,7 @@ class ProfileService:
                 # Check if viewer follows this user
                 follow_result = await self.db.execute(
                     select(Follow).where(
-                        Follow.follower_id == viewer_id,
-                        Follow.following_id == user.id
+                        Follow.follower_id == viewer_id, Follow.following_id == user.id
                     )
                 )
                 is_following = follow_result.scalar_one_or_none() is not None
@@ -197,17 +196,21 @@ class ProfileService:
 
         # Update profile_visibility in User model (Feature 013)
         if update_data.profile_visibility is not None:
-            if update_data.profile_visibility not in ['public', 'private']:
+            if update_data.profile_visibility not in ["public", "private"]:
                 raise ValueError("profile_visibility debe ser 'public' o 'private'")
             user.profile_visibility = update_data.profile_visibility
-            logger.info(f"Profile visibility updated to '{update_data.profile_visibility}' for user: {username}")
+            logger.info(
+                f"Profile visibility updated to '{update_data.profile_visibility}' for user: {username}"
+            )
 
         # Update trip_visibility in User model (Feature 013)
         if update_data.trip_visibility is not None:
-            if update_data.trip_visibility not in ['public', 'followers', 'private']:
+            if update_data.trip_visibility not in ["public", "followers", "private"]:
                 raise ValueError("trip_visibility debe ser 'public', 'followers' o 'private'")
             user.trip_visibility = update_data.trip_visibility
-            logger.info(f"Trip visibility updated to '{update_data.trip_visibility}' for user: {username}")
+            logger.info(
+                f"Trip visibility updated to '{update_data.trip_visibility}' for user: {username}"
+            )
 
         if update_data.show_email is not None:
             profile.show_email = update_data.show_email
@@ -302,9 +305,7 @@ class ProfileService:
             await self._delete_photo_file(profile.profile_photo_url)
 
         # Generate absolute URL with backend base URL
-        photo_url = (
-            f"{settings.backend_url}/storage/profile_photos/{datetime.now(UTC).strftime('%Y/%m')}/{final_path.name}"
-        )
+        photo_url = f"{settings.backend_url}/storage/profile_photos/{datetime.now(UTC).strftime('%Y/%m')}/{final_path.name}"
 
         # Update profile
         profile.profile_photo_url = photo_url

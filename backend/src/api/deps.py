@@ -170,7 +170,7 @@ async def get_optional_current_user(
 
 
 async def get_current_admin(
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """
     Dependency to verify current user has admin role.

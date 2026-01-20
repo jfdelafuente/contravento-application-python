@@ -118,6 +118,7 @@ class TripService:
         """
         # Query trip with relationships (eager load user for visibility check)
         from src.models.user import UserProfile
+
         result = await self.db.execute(
             select(Trip)
             .where(Trip.trip_id == trip_id)
@@ -125,7 +126,9 @@ class TripService:
                 selectinload(Trip.photos),
                 selectinload(Trip.locations),
                 selectinload(Trip.trip_tags).selectinload(TripTag.tag),
-                selectinload(Trip.user).selectinload(User.profile),  # Need user + profile for author info (Feature 004)
+                selectinload(Trip.user).selectinload(
+                    User.profile
+                ),  # Need user + profile for author info (Feature 004)
             )
         )
         trip = result.scalar_one_or_none()
@@ -154,12 +157,12 @@ class TripService:
             return trip
 
         # Check visibility - Published trips with trip_visibility
-        if trip.user.trip_visibility == 'private':
+        if trip.user.trip_visibility == "private":
             # Private trips: only owner can see
             if not is_owner:
                 raise PermissionError("Este viaje es privado y solo el propietario puede verlo")
 
-        elif trip.user.trip_visibility == 'followers':
+        elif trip.user.trip_visibility == "followers":
             # Followers-only trips: check if current user follows the owner
             if not is_owner:
                 if not current_user_id:
@@ -167,10 +170,10 @@ class TripService:
 
                 # Check if current user follows trip owner
                 from src.models.social import Follow
+
                 follow_result = await self.db.execute(
                     select(Follow).where(
-                        Follow.follower_id == current_user_id,
-                        Follow.following_id == trip.user_id
+                        Follow.follower_id == current_user_id, Follow.following_id == trip.user_id
                     )
                 )
                 is_follower = follow_result.scalar_one_or_none() is not None
@@ -194,10 +197,7 @@ class TripService:
         is_liked = None
         if current_user_id:
             like_result = await self.db.execute(
-                select(Like).where(
-                    Like.trip_id == trip_id,
-                    Like.user_id == current_user_id
-                )
+                select(Like).where(Like.trip_id == trip_id, Like.user_id == current_user_id)
             )
             is_liked = like_result.scalar_one_or_none() is not None
 
@@ -210,10 +210,10 @@ class TripService:
         is_following = None
         if current_user_id and not is_owner:
             from src.models.social import Follow
+
             follow_result = await self.db.execute(
                 select(Follow).where(
-                    Follow.follower_id == current_user_id,
-                    Follow.following_id == trip.user_id
+                    Follow.follower_id == current_user_id, Follow.following_id == trip.user_id
                 )
             )
             is_following = follow_result.scalar_one_or_none() is not None
@@ -953,10 +953,10 @@ class TripService:
             is_follower = False
             if current_user_id:
                 from src.models.social import Follow
+
                 follow_result = await self.db.execute(
                     select(Follow).where(
-                        Follow.follower_id == current_user_id,
-                        Follow.following_id == user_id
+                        Follow.follower_id == current_user_id, Follow.following_id == user_id
                     )
                 )
                 is_follower = follow_result.scalar_one_or_none() is not None
@@ -964,10 +964,10 @@ class TripService:
             # Apply trip_visibility filters
             if is_follower:
                 # Followers can see 'public' and 'followers' trips
-                query = query.where(User.trip_visibility.in_(['public', 'followers']))
+                query = query.where(User.trip_visibility.in_(["public", "followers"]))
             else:
                 # Public can only see 'public' trips
-                query = query.where(User.trip_visibility == 'public')
+                query = query.where(User.trip_visibility == "public")
 
         # Filter by status if provided (only applies if owner, since non-owners already filtered)
         elif status is not None:
@@ -1022,9 +1022,7 @@ class TripService:
 
         return list(tags)
 
-    async def get_public_trips(
-        self, page: int = 1, limit: int = 20
-    ) -> tuple[list[Trip], int]:
+    async def get_public_trips(self, page: int = 1, limit: int = 20) -> tuple[list[Trip], int]:
         """
         T019: Get published trips with public visibility for homepage feed (Feature 013).
 
@@ -1060,7 +1058,7 @@ class TripService:
             .join(User, Trip.user_id == User.id)
             .where(
                 Trip.status == TripStatus.PUBLISHED,  # Only published trips
-                User.trip_visibility == "public",     # Only public trips (Feature 013)
+                User.trip_visibility == "public",  # Only public trips (Feature 013)
             )
             .options(
                 selectinload(Trip.user).selectinload(User.profile),  # Eager load user with profile

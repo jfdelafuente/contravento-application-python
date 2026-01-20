@@ -97,9 +97,7 @@ class CyclingTypeCreateRequest(BaseModel):
         max_length=50,
         description="Unique code (lowercase, no spaces, e.g., 'bikepacking')",
     )
-    display_name: str = Field(
-        ..., min_length=2, max_length=100, description="Display name for UI"
-    )
+    display_name: str = Field(..., min_length=2, max_length=100, description="Display name for UI")
     description: Optional[str] = Field(
         None, max_length=500, description="Detailed description (optional)"
     )
@@ -164,9 +162,7 @@ class CyclingTypeUpdateRequest(BaseModel):
     display_name: Optional[str] = Field(
         None, min_length=2, max_length=100, description="Display name for UI"
     )
-    description: Optional[str] = Field(
-        None, max_length=500, description="Detailed description"
-    )
+    description: Optional[str] = Field(None, max_length=500, description="Detailed description")
     is_active: Optional[bool] = Field(None, description="Whether this type is active")
 
     @field_validator("display_name")

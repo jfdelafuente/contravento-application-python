@@ -82,7 +82,12 @@ class Trip(Base):
 
     # Metadata
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
     published_at = Column(DateTime(timezone=True), nullable=True)  # When first published
 
     # Relationships

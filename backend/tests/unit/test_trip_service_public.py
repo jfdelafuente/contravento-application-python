@@ -182,7 +182,7 @@ async def test_get_public_trips_pagination(
             user_id=public_user.id,
             title=f"Trip {i+1:02d}",
             description=f"Description {i+1}",
-            start_date=date(2024, 6, i+1 if i < 30 else 30),
+            start_date=date(2024, 6, i + 1 if i < 30 else 30),
             status=TripStatus.PUBLISHED,
             published_at=datetime(2024, 6, 1, 12, i),  # Different timestamps for sorting
         )

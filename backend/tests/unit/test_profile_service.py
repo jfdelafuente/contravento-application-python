@@ -166,77 +166,81 @@ class TestProfileServiceVisibility:
         """Test updating profile_visibility from public to private."""
         # Arrange
         profile_service = ProfileService(db_session)
-        assert test_user.profile_visibility == 'public'  # Default
+        assert test_user.profile_visibility == "public"  # Default
 
         # Act
-        update_data = ProfileUpdateRequest(profile_visibility='private')
+        update_data = ProfileUpdateRequest(profile_visibility="private")
         result = await profile_service.update_profile(test_user.username, update_data)
 
         # Assert
-        assert result.profile_visibility == 'private'
+        assert result.profile_visibility == "private"
 
         # Verify in database
         await db_session.refresh(test_user)
-        assert test_user.profile_visibility == 'private'
+        assert test_user.profile_visibility == "private"
 
     async def test_update_profile_visibility_to_public(self, db_session: AsyncSession, test_user):
         """Test updating profile_visibility from private to public."""
         # Arrange
         profile_service = ProfileService(db_session)
-        test_user.profile_visibility = 'private'
+        test_user.profile_visibility = "private"
         await db_session.commit()
 
         # Act
-        update_data = ProfileUpdateRequest(profile_visibility='public')
+        update_data = ProfileUpdateRequest(profile_visibility="public")
         result = await profile_service.update_profile(test_user.username, update_data)
 
         # Assert
-        assert result.profile_visibility == 'public'
+        assert result.profile_visibility == "public"
 
         # Verify in database
         await db_session.refresh(test_user)
-        assert test_user.profile_visibility == 'public'
+        assert test_user.profile_visibility == "public"
 
-    async def test_update_profile_visibility_invalid_value_raises_error(self, db_session: AsyncSession, test_user):
+    async def test_update_profile_visibility_invalid_value_raises_error(
+        self, db_session: AsyncSession, test_user
+    ):
         """Test that invalid profile_visibility value raises ValidationError."""
         from pydantic import ValidationError
 
         # Arrange & Act & Assert
         # Pydantic validates the pattern before reaching the service
         with pytest.raises(ValidationError) as exc_info:
-            ProfileUpdateRequest(profile_visibility='invalid')
+            ProfileUpdateRequest(profile_visibility="invalid")
 
         # Verify error message mentions pattern validation
         error_str = str(exc_info.value)
         assert "profile_visibility" in error_str.lower() or "pattern" in error_str.lower()
 
-    async def test_update_profile_visibility_with_other_fields(self, db_session: AsyncSession, test_user):
+    async def test_update_profile_visibility_with_other_fields(
+        self, db_session: AsyncSession, test_user
+    ):
         """Test updating profile_visibility along with other profile fields."""
         # Arrange
         profile_service = ProfileService(db_session)
 
         # Act
         update_data = ProfileUpdateRequest(
-            bio="New bio for testing",
-            location="Test City",
-            profile_visibility='private'
+            bio="New bio for testing", location="Test City", profile_visibility="private"
         )
         result = await profile_service.update_profile(test_user.username, update_data)
 
         # Assert
-        assert result.profile_visibility == 'private'
+        assert result.profile_visibility == "private"
         assert result.bio == "New bio for testing"
         assert result.location == "Test City"
 
         # Verify in database
         await db_session.refresh(test_user)
-        assert test_user.profile_visibility == 'private'
+        assert test_user.profile_visibility == "private"
 
-    async def test_update_profile_without_visibility_keeps_current(self, db_session: AsyncSession, test_user):
+    async def test_update_profile_without_visibility_keeps_current(
+        self, db_session: AsyncSession, test_user
+    ):
         """Test that not providing profile_visibility keeps the current value."""
         # Arrange
         profile_service = ProfileService(db_session)
-        test_user.profile_visibility = 'private'
+        test_user.profile_visibility = "private"
         await db_session.commit()
 
         # Act - update other fields without profile_visibility
@@ -244,8 +248,8 @@ class TestProfileServiceVisibility:
         result = await profile_service.update_profile(test_user.username, update_data)
 
         # Assert - visibility should remain private
-        assert result.profile_visibility == 'private'
+        assert result.profile_visibility == "private"
 
         # Verify in database
         await db_session.refresh(test_user)
-        assert test_user.profile_visibility == 'private'
+        assert test_user.profile_visibility == "private"

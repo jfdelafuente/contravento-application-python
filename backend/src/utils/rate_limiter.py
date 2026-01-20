@@ -21,7 +21,10 @@ RATE_LIMIT_WINDOW_HOURS = 1  # Time window in hours
 
 
 async def check_comment_rate_limit(
-    db: AsyncSession, user_id: str, limit: int = COMMENT_RATE_LIMIT, hours: int = RATE_LIMIT_WINDOW_HOURS
+    db: AsyncSession,
+    user_id: str,
+    limit: int = COMMENT_RATE_LIMIT,
+    hours: int = RATE_LIMIT_WINDOW_HOURS,
 ) -> tuple[bool, int]:
     """
     Check if user has exceeded comment rate limit (T089).
@@ -61,9 +64,7 @@ async def check_comment_rate_limit(
     return True, comment_count
 
 
-def rate_limit(
-    limit: int = COMMENT_RATE_LIMIT, hours: int = RATE_LIMIT_WINDOW_HOURS
-) -> Callable:
+def rate_limit(limit: int = COMMENT_RATE_LIMIT, hours: int = RATE_LIMIT_WINDOW_HOURS) -> Callable:
     """
     Decorator to enforce rate limiting on comment creation (T089).
 
@@ -92,9 +93,7 @@ def rate_limit(
             user_id = kwargs.get("user_id")
 
             if not db or not user_id:
-                raise ValueError(
-                    "rate_limit decorator requires db and user_id arguments"
-                )
+                raise ValueError("rate_limit decorator requires db and user_id arguments")
 
             # Check rate limit before calling function
             await check_comment_rate_limit(db, user_id, limit, hours)

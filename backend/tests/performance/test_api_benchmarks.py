@@ -31,9 +31,7 @@ from tests.helpers import create_user, create_trip
 class TestHealthEndpointBenchmark:
     """Benchmark health check endpoint (T068)."""
 
-    async def test_health_endpoint_latency(
-        self, client: AsyncClient, benchmark
-    ):
+    async def test_health_endpoint_latency(self, client: AsyncClient, benchmark):
         """
         Test GET /health latency.
 
@@ -102,9 +100,7 @@ class TestAuthEndpointsBenchmark:
         refresh_token = login_response.json()["data"]["refresh_token"]
 
         async def refresh():
-            response = await client.post(
-                f"/auth/refresh?refresh_token={refresh_token}"
-            )
+            response = await client.post(f"/auth/refresh?refresh_token={refresh_token}")
             assert response.status_code == 200
             return response
 
@@ -116,9 +112,7 @@ class TestAuthEndpointsBenchmark:
 class TestPublicFeedBenchmark:
     """Benchmark public feed endpoint (T068)."""
 
-    async def test_public_feed_latency_empty(
-        self, client: AsyncClient, benchmark
-    ):
+    async def test_public_feed_latency_empty(self, client: AsyncClient, benchmark):
         """
         Test GET /trips/public latency (empty feed).
 
@@ -191,9 +185,7 @@ class TestTripCreationBenchmark:
         }
 
         async def create():
-            response = await client.post(
-                "/trips", json=trip_data, headers=auth_headers
-            )
+            response = await client.post("/trips", json=trip_data, headers=auth_headers)
             assert response.status_code == 201
             return response
 
@@ -223,9 +215,7 @@ class TestTripCreationBenchmark:
         )
 
         async def publish():
-            response = await client.post(
-                f"/trips/{trip.trip_id}/publish", headers=auth_headers
-            )
+            response = await client.post(f"/trips/{trip.trip_id}/publish", headers=auth_headers)
             assert response.status_code == 200
             return response
 
@@ -279,9 +269,7 @@ class TestUserTripsListBenchmark:
 class TestDatabaseQueryBenchmark:
     """Benchmark database queries (T068-T069)."""
 
-    async def test_user_lookup_by_username(
-        self, db_session: AsyncSession, test_user, benchmark
-    ):
+    async def test_user_lookup_by_username(self, db_session: AsyncSession, test_user, benchmark):
         """
         Test User lookup by username query performance.
 

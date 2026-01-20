@@ -25,8 +25,7 @@ class UserSummary(BaseModel):
     user_id: str = Field(..., description="User UUID (Feature 004 - US1)")
     username: str = Field(..., description="Username")
     full_name: Optional[str] = Field(None, description="Full display name (nullable)")
-    profile_photo_url: Optional[str] = Field(
-        None, description="Profile photo URL (nullable)")
+    profile_photo_url: Optional[str] = Field(None, description="Profile photo URL (nullable)")
     is_following: Optional[bool] = Field(
         None, description="Whether current user follows this user (Feature 004 - US1)"
     )
@@ -117,15 +116,9 @@ class FeedItem(BaseModel):
     )
 
     # Social interaction counters (FR-006)
-    likes_count: int = Field(
-        default=0, ge=0, description="Number of likes on this trip"
-    )
-    comments_count: int = Field(
-        default=0, ge=0, description="Number of comments on this trip"
-    )
-    shares_count: int = Field(
-        default=0, ge=0, description="Number of shares on this trip"
-    )
+    likes_count: int = Field(default=0, ge=0, description="Number of likes on this trip")
+    comments_count: int = Field(default=0, ge=0, description="Number of comments on this trip")
+    shares_count: int = Field(default=0, ge=0, description="Number of shares on this trip")
 
     # User interaction state (FR-007)
     is_liked_by_me: bool = Field(
@@ -148,15 +141,11 @@ class FeedResponse(BaseModel):
     Based on OpenAPI spec: specs/004-social-network/contracts/social-api.yaml
     """
 
-    trips: list[FeedItem] = Field(
-        default_factory=list, description="Array of feed items"
-    )
+    trips: list[FeedItem] = Field(default_factory=list, description="Array of feed items")
     total_count: int = Field(..., ge=0, description="Total number of trips in feed")
     page: int = Field(..., ge=1, description="Current page number")
     limit: int = Field(..., ge=1, le=50, description="Items per page")
-    has_more: bool = Field(
-        ..., description="True if more pages exist beyond current page"
-    )
+    has_more: bool = Field(..., description="True if more pages exist beyond current page")
 
     class Config:
         from_attributes = True

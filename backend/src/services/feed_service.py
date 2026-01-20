@@ -143,9 +143,7 @@ class FeedService:
             Tuple of (trips list, total count)
         """
         # Get IDs of users that current user follows
-        following_query = select(Follow.following_id).where(
-            Follow.follower_id == user_id
-        )
+        following_query = select(Follow.following_id).where(Follow.follower_id == user_id)
 
         following_result = await db.execute(following_query)
         following_ids = [row[0] for row in following_result.fetchall()]
@@ -154,14 +152,11 @@ class FeedService:
             return [], 0
 
         # Build base query for count
-        count_base_query = (
-            select(Trip.trip_id)
-            .where(
-                and_(
-                    Trip.user_id.in_(following_ids),
-                    Trip.user_id != user_id,  # Exclude own trips
-                    Trip.status == TripStatus.PUBLISHED,
-                )
+        count_base_query = select(Trip.trip_id).where(
+            and_(
+                Trip.user_id.in_(following_ids),
+                Trip.user_id != user_id,  # Exclude own trips
+                Trip.status == TripStatus.PUBLISHED,
             )
         )
 
@@ -260,7 +255,9 @@ class FeedService:
             .where(
                 and_(
                     Trip.user_id != user_id,  # Exclude own trips
-                    not_(Trip.user_id.in_(followed_user_ids)) if followed_user_ids else True,  # Exclude followed users
+                    not_(Trip.user_id.in_(followed_user_ids))
+                    if followed_user_ids
+                    else True,  # Exclude followed users
                     Trip.status == TripStatus.PUBLISHED,
                     not_(Trip.trip_id.in_(exclude_trip_ids)) if exclude_trip_ids else True,
                 )
@@ -284,7 +281,9 @@ class FeedService:
             .where(
                 and_(
                     Trip.user_id != user_id,
-                    not_(Trip.user_id.in_(followed_user_ids)) if followed_user_ids else True,  # Exclude followed users
+                    not_(Trip.user_id.in_(followed_user_ids))
+                    if followed_user_ids
+                    else True,  # Exclude followed users
                     Trip.status == TripStatus.PUBLISHED,
                     not_(Trip.trip_id.in_(exclude_trip_ids)) if exclude_trip_ids else True,
                 )
@@ -335,8 +334,7 @@ class FeedService:
         if current_user_id and trip.user.id != current_user_id:
             follow_result = await db.execute(
                 select(Follow).where(
-                    Follow.follower_id == current_user_id,
-                    Follow.following_id == trip.user.id
+                    Follow.follower_id == current_user_id, Follow.following_id == trip.user.id
                 )
             )
             is_following = follow_result.scalar_one_or_none() is not None
@@ -353,10 +351,7 @@ class FeedService:
         }
 
         # Photos (PhotoSummary array)
-        photos = [
-            {"photo_url": photo.photo_url, "caption": photo.caption}
-            for photo in trip.photos
-        ]
+        photos = [{"photo_url": photo.photo_url, "caption": photo.caption} for photo in trip.photos]
 
         # Locations (LocationSummary array)
         locations = [
@@ -369,10 +364,7 @@ class FeedService:
         ]
 
         # Tags (TagSummary array)
-        tags = [
-            {"name": tt.tag.name, "normalized": tt.tag.normalized}
-            for tt in trip.trip_tags
-        ]
+        tags = [{"name": tt.tag.name, "normalized": tt.tag.normalized} for tt in trip.trip_tags]
 
         # Interaction counters
         likes_count = len(trip.likes)

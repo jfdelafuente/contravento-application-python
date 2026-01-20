@@ -47,9 +47,7 @@ async def like_trip(
     **Performance**: SC-006 (<200ms p95)
     """
     try:
-        result = await LikeService.like_trip(
-            db=db, user_id=current_user.id, trip_id=trip_id
-        )
+        result = await LikeService.like_trip(db=db, user_id=current_user.id, trip_id=trip_id)
         return result
     except ValueError as e:
         error_message = str(e)
@@ -86,9 +84,7 @@ async def unlike_trip(
     **Performance**: SC-007 (<100ms p95)
     """
     try:
-        result = await LikeService.unlike_trip(
-            db=db, user_id=current_user.id, trip_id=trip_id
-        )
+        result = await LikeService.unlike_trip(db=db, user_id=current_user.id, trip_id=trip_id)
         return result
     except ValueError as e:
         raise HTTPException(
@@ -101,9 +97,7 @@ async def unlike_trip(
 async def get_trip_likes(
     trip_id: str = Path(..., description="Trip ID"),
     page: int = Query(default=1, ge=1, description="Page number (min 1)"),
-    limit: int = Query(
-        default=20, ge=1, le=50, description="Items per page (min 1, max 50)"
-    ),
+    limit: int = Query(default=20, ge=1, le=50, description="Items per page (min 1, max 50)"),
     db: AsyncSession = Depends(get_db),
 ) -> LikesListResponse:
     """
@@ -123,8 +117,6 @@ async def get_trip_likes(
 
     **Performance**: SC-008 (<300ms p95 with 50 likes)
     """
-    result = await LikeService.get_trip_likes(
-        db=db, trip_id=trip_id, page=page, limit=limit
-    )
+    result = await LikeService.get_trip_likes(db=db, trip_id=trip_id, page=page, limit=limit)
 
     return result

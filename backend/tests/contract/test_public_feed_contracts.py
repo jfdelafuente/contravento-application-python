@@ -14,7 +14,13 @@ from src.models.trip import Trip
 
 
 # Load OpenAPI spec
-SPEC_PATH = Path(__file__).parent.parent.parent.parent / "specs" / "013-public-trips-feed" / "contracts" / "public-feed-api.yaml"
+SPEC_PATH = (
+    Path(__file__).parent.parent.parent.parent
+    / "specs"
+    / "013-public-trips-feed"
+    / "contracts"
+    / "public-feed-api.yaml"
+)
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +58,9 @@ def validate_response_schema(response_data: dict, schema: dict):
 
             # Handle nullable fields
             if value is None:
-                nullable = field_schema.get("nullable", False) or field_schema.get("anyOf") is not None
+                nullable = (
+                    field_schema.get("nullable", False) or field_schema.get("anyOf") is not None
+                )
                 assert nullable, f"Field {field} is null but not marked as nullable"
                 continue
 
@@ -62,9 +70,13 @@ def validate_response_schema(response_data: dict, schema: dict):
             elif expected_type == "integer":
                 assert isinstance(value, int), f"Field {field} should be integer, got {type(value)}"
             elif expected_type == "number":
-                assert isinstance(value, (int, float)), f"Field {field} should be number, got {type(value)}"
+                assert isinstance(
+                    value, (int, float)
+                ), f"Field {field} should be number, got {type(value)}"
             elif expected_type == "boolean":
-                assert isinstance(value, bool), f"Field {field} should be boolean, got {type(value)}"
+                assert isinstance(
+                    value, bool
+                ), f"Field {field} should be boolean, got {type(value)}"
             elif expected_type == "array":
                 assert isinstance(value, list), f"Field {field} should be array, got {type(value)}"
             elif expected_type == "object":

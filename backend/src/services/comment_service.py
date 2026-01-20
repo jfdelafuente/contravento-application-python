@@ -36,13 +36,9 @@ class CommentService:
         # Validate content
         content_trimmed = content.strip()
         if not content_trimmed or len(content_trimmed) < 1:
-            raise ValueError(
-                'El contenido del comentario debe tener entre 1 y 500 caracteres'
-            )
+            raise ValueError("El contenido del comentario debe tener entre 1 y 500 caracteres")
         if len(content_trimmed) > 500:
-            raise ValueError(
-                'El contenido del comentario debe tener entre 1 y 500 caracteres'
-            )
+            raise ValueError("El contenido del comentario debe tener entre 1 y 500 caracteres")
 
         # Check rate limit
         await check_comment_rate_limit(db, user_id, limit=10, hours=1)
@@ -51,9 +47,9 @@ class CommentService:
         result = await db.execute(select(Trip).where(Trip.trip_id == trip_id))
         trip = result.scalar_one_or_none()
         if not trip:
-            raise ValueError('El viaje no existe')
-        if trip.status != 'published':
-            raise ValueError('El comentario solo puede comentarse en viajes publicados')
+            raise ValueError("El viaje no existe")
+        if trip.status != "published":
+            raise ValueError("El comentario solo puede comentarse en viajes publicados")
 
         # Sanitize HTML
         sanitized_content = sanitize_html(content_trimmed)
@@ -85,23 +81,19 @@ class CommentService:
         # Validate content
         content_trimmed = content.strip()
         if not content_trimmed or len(content_trimmed) < 1:
-            raise ValueError(
-                'El contenido del comentario debe tener entre 1 y 500 caracteres'
-            )
+            raise ValueError("El contenido del comentario debe tener entre 1 y 500 caracteres")
         if len(content_trimmed) > 500:
-            raise ValueError(
-                'El contenido del comentario debe tener entre 1 y 500 caracteres'
-            )
+            raise ValueError("El contenido del comentario debe tener entre 1 y 500 caracteres")
 
         # Fetch comment
         result = await db.execute(select(Comment).where(Comment.id == comment_id))
         comment = result.scalar_one_or_none()
         if not comment:
-            raise ValueError('El comentario no existe')
+            raise ValueError("El comentario no existe")
 
         # Check authorization
         if comment.user_id != user_id:
-            raise ValueError('Solo puedes editar tus propios comentarios')
+            raise ValueError("Solo puedes editar tus propios comentarios")
 
         # Sanitize HTML
         sanitized_content = sanitize_html(content_trimmed)
@@ -126,20 +118,18 @@ class CommentService:
     ) -> None:
         # Fetch comment with trip relationship
         result = await db.execute(
-            select(Comment)
-            .options(selectinload(Comment.trip))
-            .where(Comment.id == comment_id)
+            select(Comment).options(selectinload(Comment.trip)).where(Comment.id == comment_id)
         )
         comment = result.scalar_one_or_none()
         if not comment:
-            raise ValueError('El comentario no existe')
+            raise ValueError("El comentario no existe")
 
         # Check authorization
         is_author = comment.user_id == user_id
         is_trip_owner = trip_id and comment.trip.user_id == user_id
 
         if not (is_author or is_trip_owner):
-            raise ValueError('No tienes permiso para eliminar este comentario')
+            raise ValueError("No tienes permiso para eliminar este comentario")
 
         # Delete comment
         await db.delete(comment)
@@ -179,8 +169,8 @@ class CommentService:
         comments = result.scalars().all()
 
         return {
-            'items': list(comments),
-            'total': total,
-            'limit': limit,
-            'offset': offset,
+            "items": list(comments),
+            "total": total,
+            "limit": limit,
+            "offset": offset,
         }
