@@ -36,6 +36,7 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="email"]', TEST_USER.email);
     await page.fill('input[name="password"]', TEST_USER.password);
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
+    await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
     // Submit form (Turnstile will be mocked in test environment)
     await page.click('button[type="submit"]');
@@ -88,6 +89,7 @@ test.describe('User Registration Flow (T046)', () => {
     await page.fill('input[name="email"]', `different_${TEST_USER.email}`);
     await page.fill('input[name="password"]', TEST_USER.password);
     await page.fill('input[name="confirmPassword"]', TEST_USER.password);
+    await page.check('input[type="checkbox"]'); // Accept terms and conditions
 
     await page.click('button[type="submit"]');
 
@@ -208,8 +210,11 @@ test.describe('Logout Flow (T047)', () => {
     // Click logout button (in user menu)
     await authenticatedPage.click('text=/cerrar sesión|logout/i');
 
-    // Should redirect to login page
-    await expect(authenticatedPage).toHaveURL(/\/login/, { timeout: 5000 });
+    // Wait for navigation to complete
+    await authenticatedPage.waitForURL(/\/login/, { timeout: 5000 });
+
+    // Verify we're on login page
+    await expect(authenticatedPage).toHaveURL(/\/login/);
 
     // Should not be able to access protected pages
     await authenticatedPage.goto(`${FRONTEND_URL}/trips/new`);
@@ -278,7 +283,7 @@ test.describe('Protected Routes (T048)', () => {
     ];
 
     for (const route of protectedRoutes) {
-      await page.goto(`${FRONTEND_URL}${route}`, { waitUntil: 'networkidle' });
+      await page.goto(`${FRONTEND_URL}${route}`);
 
       // Should redirect to login
       await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
@@ -294,7 +299,7 @@ test.describe('Protected Routes (T048)', () => {
     ];
 
     for (const route of publicRoutes) {
-      await page.goto(`${FRONTEND_URL}${route.path}`, { waitUntil: 'networkidle' });
+      await page.goto(`${FRONTEND_URL}${route.path}`);
 
       // Should stay on the same route (not redirect)
       await expect(page).toHaveURL(new RegExp(route.expectedUrl.replace('/', '\\/')));
