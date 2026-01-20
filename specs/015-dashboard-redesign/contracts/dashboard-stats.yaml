@@ -1,0 +1,159 @@
+openapi: 3.0.3
+info:
+  title: Dashboard Stats API
+  description: Endpoint para obtener estadísticas personales del usuario
+  version: 1.0.0
+
+paths:
+  /api/v1/dashboard/stats:
+    get:
+      summary: Get user dashboard statistics
+      description: Retorna estadísticas agregadas del usuario autenticado (trips, distance, followers, achievements)
+      tags:
+        - Dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estadísticas obtenidas exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/DashboardStats'
+                  error:
+                    type: "null"
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    DashboardStats:
+      type: object
+      required:
+        - user_id
+        - username
+        - total_trips
+        - total_distance_km
+        - towns_visited
+        - countries_visited
+        - total_photos
+        - followers_count
+        - following_count
+        - achievements_unlocked
+        - achievements_total
+        - last_updated
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: ID del usuario
+        username:
+          type: string
+          description: Nombre de usuario
+        total_trips:
+          type: integer
+          minimum: 0
+          description: Total de viajes publicados
+        total_distance_km:
+          type: number
+          format: float
+          minimum: 0
+          description: Kilómetros totales recorridos
+        towns_visited:
+          type: integer
+          minimum: 0
+          description: Número de pueblos visitados
+        countries_visited:
+          type: integer
+          minimum: 0
+          description: Número de países visitados
+        total_photos:
+          type: integer
+          minimum: 0
+          description: Total de fotos subidas
+        local_economic_impact_euros:
+          type: number
+          format: float
+          nullable: true
+          description: Impacto económico local estimado (EUR)
+        followers_count:
+          type: integer
+          minimum: 0
+          description: Número de seguidores
+        following_count:
+          type: integer
+          minimum: 0
+          description: Número de usuarios seguidos
+        achievements_unlocked:
+          type: integer
+          minimum: 0
+          description: Logros desbloqueados
+        achievements_total:
+          type: integer
+          minimum: 0
+          description: Total de logros disponibles
+        last_updated:
+          type: string
+          format: date-time
+          description: Última actualización de estadísticas
+
+  responses:
+    Unauthorized:
+      description: No autenticado o token inválido
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              data:
+                type: "null"
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: UNAUTHORIZED
+                  message:
+                    type: string
+                    example: Token de autenticación inválido
+
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              data:
+                type: "null"
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_ERROR
+                  message:
+                    type: string
+                    example: Error al obtener estadísticas
