@@ -112,6 +112,10 @@ jobs:
     name: Backend Tests
     runs-on: ubuntu-latest
     needs: backend-quality
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     services:
       postgres:
