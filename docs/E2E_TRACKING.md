@@ -118,14 +118,15 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P7 | Redirección post-login | `ac189a3` | ✅ Resuelto |
 | P8 | Test registro espera /verify-email | `9a86db2` | ✅ Resuelto |
 | P12 | POST /trips retorna null data | `1580d1a` | ✅ Resuelto |
+| P13 | CSS selector regex syntax error | `49aaa68` | ✅ Resuelto |
 
 ### 🔴 PENDIENTES
 
 | ID | Problema | Prioridad | Dificultad | Archivo |
 |----|----------|-----------|------------|---------|
 | P9 | Duplicate heading mobile | 🟡 Media | Baja | `landing.spec.ts:128` |
-| P10 | Location editing tests fallan | 🟡 Media | Media | `location-editing.spec.ts` (todos) |
-| P11 | Timeout general del suite | 🟢 Baja | Baja | `playwright.config.ts` |
+| P11 | Login duplicate locator | 🔴 Alta | Baja | `auth.spec.ts:128` |
+| P14 | Timeout general del suite | 🟢 Baja | Baja | `playwright.config.ts` |
 
 ---
 
@@ -354,7 +355,47 @@ Tiempo: No reportado (probablemente <10 min por completarse)
 - +76 tests desbloqueados (Location Editing, Public Feed, Trip Creation)
 - +2-3 tests de registro arreglados
 
+**Resultados reales** (archivo: `errores_e2e_e5445f5.txt`):
+
+```text
+✅ 16 passed (11% de ~140 ejecutados) → +1 vs Ejecución #3
+✘ 124 failed tests únicos (~197 con retries)
+⏭ 1 skipped
+Total: ~140/213 tests ejecutados (66%)
+```
+
+**✅ Validación de fixes**:
+
+- **P12 (POST /trips)**: ✅ CONFIRMADO - Tests de Location Editing ahora SE EJECUTAN (endpoint funciona)
+- **P8 (Test registro)**: ✅ CONFIRMADO - Lógica de auto-verificación detectada correctamente
+
+**🔴 Nuevo bloqueador identificado**:
+
+- **P13 - CSS Selector Regex Syntax Error**: 18 tests de Location Editing fallaban con syntax error de Playwright
+  - Causa: `button:has-text(/regex/i)` no es soportado
+  - Solución: Usar `getByRole()` y `filter()` APIs
+
+---
+
+### Ejecución #5 - Fix CSS Selector Syntax (P13)
+
+**Fecha**: 2026-01-20 (15:00 UTC aprox)
+
+**Commit**:
+
+- `49aaa68` - Fix CSS selector regex syntax in location-editing.spec.ts
+
+**Problema resuelto**:
+
+- **P13 - CSS Selector Regex Syntax Error** (E2E test)
+  - Reemplazadas 18 ocurrencias de selectores CSS inválidos
+  - Ahora usa APIs semánticas de Playwright (getByRole, getByTestId, filter)
+
+**Impacto esperado**:
+
+- +18 tests de Location Editing desbloqueados
+
 ---
 
 **Última actualización**: 2026-01-20
-**Próxima ejecución programada**: Después de fixes P8 y P12 - EJECUTAR AHORA
+**Próxima ejecución programada**: Después de fix P13 - EJECUTAR AHORA
