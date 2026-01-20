@@ -55,8 +55,7 @@ Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
   writable: true,
   configurable: true,
   value: vi.fn().mockImplementation(function(this: HTMLElement) {
-    const element = this;
-    _fullscreenElement = element;
+    _fullscreenElement = this;
     document.dispatchEvent(new Event('fullscreenchange'));
     return Promise.resolve();
   }),

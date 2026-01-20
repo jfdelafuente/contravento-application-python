@@ -268,7 +268,11 @@ class ProfileService:
             raise ValueError(str(e))
 
         # Generate filename
-        file_ext = photo_file.filename.split(".")[-1].lower()
+        if photo_file.filename and "." in photo_file.filename:
+            file_ext = photo_file.filename.split(".")[-1].lower()
+        else:
+            file_ext = "jpg"
+
         if file_ext not in ["jpg", "jpeg", "png", "webp"]:
             file_ext = "jpg"
 
