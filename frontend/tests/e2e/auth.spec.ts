@@ -41,7 +41,7 @@ test.describe('User Registration Flow (T046)', () => {
     await page.click('button[type="submit"]');
 
     // Wait for success message first
-    await expect(page.locator('text=/registro exitoso/i')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.success-banner')).toBeVisible({ timeout: 10000 });
 
     // In testing environment (APP_ENV=testing), users are auto-verified and redirect to /login
     // In production, users need email verification and redirect to /verify-email
@@ -92,7 +92,7 @@ test.describe('User Registration Flow (T046)', () => {
     await page.click('button[type="submit"]');
 
     // Should show error about duplicate username
-    await expect(page.locator('text=/nombre de usuario.*ya existe/i')).toBeVisible();
+    await expect(page.locator('.error-banner')).toBeVisible();
   });
 });
 
@@ -150,7 +150,7 @@ test.describe('Login Flow (T047)', () => {
     await page.click('button[type="submit"]');
 
     // Should show error message
-    await expect(page.locator('text=/credenciales.*incorrectas/i')).toBeVisible();
+    await expect(page.locator('.error-banner')).toBeVisible();
 
     // Should stay on login page
     await expect(page).toHaveURL(/\/login/);

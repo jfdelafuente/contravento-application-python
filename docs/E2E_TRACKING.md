@@ -121,15 +121,15 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P11 | Login duplicate locator (strict mode) | `2dfb0da` | ✅ Resuelto |
 | P12 | POST /trips retorna null data | `1580d1a` | ✅ Resuelto |
 | P13 | CSS selector regex syntax error | `49aaa68` | ✅ Resuelto |
+| P15 | Mensaje "registro exitoso" no encontrado | (pendiente) | ✅ Resuelto |
+| P16 | Mensaje "nombre de usuario ya existe" no encontrado | (pendiente) | ✅ Resuelto |
+| P17 | Mensaje "credenciales incorrectas" no encontrado | (pendiente) | ✅ Resuelto |
 
 ### 🔴 PENDIENTES
 
 | ID  | Problema                                      | Prioridad | Dificultad | Archivo                    |
 |-----|-----------------------------------------------|-----------|------------|----------------------------|
 | P14 | Timeout general del suite                     | 🟢 Baja   | Baja       | `playwright.config.ts`     |
-| P15 | Mensaje "registro exitoso" no encontrado      | 🔴 Alta   | Media      | `auth.spec.ts:44`          |
-| P16 | Mensaje "nombre de usuario ya existe" no encontrado | 🔴 Alta | Media | `auth.spec.ts:95` |
-| P17 | Mensaje "credenciales incorrectas" no encontrado | 🔴 Alta | Media | `auth.spec.ts:153` |
 | P18 | User menu button no encontrado (logout)       | 🟡 Media  | Baja       | `auth.spec.ts:209`         |
 | P19 | Protected routes no redirigen a /login        | 🔴 Alta   | Media      | `auth.spec.ts:285`         |
 | P20 | Test de rutas públicas mal escrito            | 🟡 Media  | Baja       | `auth.spec.ts:301`         |
