@@ -123,7 +123,7 @@ test.describe('Location Editing - Map Display (T053)', () => {
     await page.goto(`${FRONTEND_URL}/trips/${trip_id}`);
 
     // Should show edit/add location button
-    const editButton = page.locator('button:has-text(/editar.*ubicación|edit.*location|añadir.*ubicación/i)');
+    const editButton = page.getByRole('button', { name: /editar.*ubicación|edit.*location|añadir.*ubicación/i });
     await expect(editButton).toBeVisible();
   });
 
@@ -134,7 +134,7 @@ test.describe('Location Editing - Map Display (T053)', () => {
     await page.goto(`${FRONTEND_URL}/trips/${trip_id}`);
 
     // Should NOT show edit button
-    const editButton = page.locator('button:has-text(/editar.*ubicación|edit.*location/i)');
+    const editButton = page.getByRole('button', { name: /editar.*ubicación|edit.*location/i });
     await expect(editButton).not.toBeVisible();
   });
 });
@@ -152,7 +152,7 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
     await page.goto(`${FRONTEND_URL}/trips/${trip_id}`);
 
     // Enable edit mode
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     // Wait for map to be clickable
     await page.waitForSelector('.leaflet-container', { timeout: 10000 });
@@ -184,7 +184,7 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
     await page.waitForURL(/\/(home|dashboard|trips)/, { timeout: 10000 });
     await page.goto(`${FRONTEND_URL}/trips/${trip_id}`);
 
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     const mapContainer = page.locator('.leaflet-container');
     const mapBox = await mapContainer.boundingBox();
@@ -193,7 +193,7 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
       await page.mouse.click(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
 
       // Should show loading spinner during geocoding
-      const loadingSpinner = page.locator('[role="status"]:has-text(/obteniendo|loading/i)');
+      const loadingSpinner = page.getByRole('status').filter({ hasText: /obteniendo|loading/i });
 
       // Loading state may be very brief, so we check if it appears OR if modal shows immediately
       const hasLoading = await loadingSpinner.isVisible().catch(() => false);
@@ -214,7 +214,7 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
     await page.waitForURL(/\/(home|dashboard|trips)/, { timeout: 10000 });
     await page.goto(`${FRONTEND_URL}/trips/${trip_id}`);
 
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     const mapContainer = page.locator('.leaflet-container');
     const mapBox = await mapContainer.boundingBox();
@@ -231,7 +231,7 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
       await nameInput.fill('Custom Location Name');
 
       // Confirm location
-      await page.click('button:has-text(/confirmar|confirm/i)');
+      await page.getByRole('button', { name: /confirmar|confirm/i }).click();
 
       // Should add marker to map with custom name
       await expect(page.locator('.leaflet-marker-icon')).toBeVisible({ timeout: 5000 });
@@ -249,7 +249,7 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
     await page.waitForURL(/\/(home|dashboard|trips)/, { timeout: 10000 });
     await page.goto(`${FRONTEND_URL}/trips/${trip_id}`);
 
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     const mapContainer = page.locator('.leaflet-container');
     const mapBox = await mapContainer.boundingBox();
@@ -257,10 +257,10 @@ test.describe('Location Editing - Add Location via Map Click (T053)', () => {
     if (mapBox) {
       await page.mouse.click(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
 
-      await page.waitForSelector('button:has-text(/cancelar|cancel/i)', { timeout: 10000 });
+      await page.getByRole('button', { name: /cancelar|cancel/i }).waitFor({ timeout: 10000 });
 
       // Cancel location
-      await page.click('button:has-text(/cancelar|cancel/i)');
+      await page.getByRole('button', { name: /cancelar|cancel/i }).click();
 
       // Modal should close
       await expect(page.locator('text=/confirmar.*ubicación/i')).not.toBeVisible();
@@ -297,7 +297,7 @@ test.describe('Location Editing - Drag Marker to Adjust (T054)', () => {
     await page.waitForSelector('.leaflet-marker-icon', { timeout: 10000 });
 
     // Enable edit mode
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     // Marker should be draggable in edit mode
     const marker = page.locator('.leaflet-marker-icon').first();
@@ -344,7 +344,7 @@ test.describe('Location Editing - Drag Marker to Adjust (T054)', () => {
     // Original location name should be visible
     await expect(page.locator('text=Barcelona')).toBeVisible();
 
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     const marker = page.locator('.leaflet-marker-icon').first();
     const markerBox = await marker.boundingBox();
@@ -392,16 +392,16 @@ test.describe('Location Editing - Delete Location (T054)', () => {
     await page.waitForSelector('.leaflet-marker-icon', { timeout: 10000 });
 
     // Enable edit mode
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     // Click delete button for location
-    await page.click('button[data-testid="delete-location"]:has-text(/eliminar|delete/i)');
+    await page.getByTestId('delete-location').filter({ hasText: /eliminar|delete/i }).click();
 
     // Should show confirmation dialog
     await expect(page.locator('text=/eliminar.*ubicación|delete.*location/i')).toBeVisible();
 
     // Confirm deletion
-    await page.click('button:has-text(/confirmar|confirm|eliminar/i)');
+    await page.getByRole('button', { name: /confirmar|confirm|eliminar/i }).click();
 
     // Marker should be removed from map
     await expect(page.locator('.leaflet-marker-icon')).not.toBeVisible();
@@ -432,15 +432,15 @@ test.describe('Location Editing - Delete Location (T054)', () => {
 
     await page.waitForSelector('.leaflet-marker-icon', { timeout: 10000 });
 
-    await page.click('button:has-text(/editar.*ubicación|edit.*location/i)');
+    await page.getByRole('button', { name: /editar.*ubicación|edit.*location/i }).click();
 
     // Click delete button
-    await page.click('button[data-testid="delete-location"]:has-text(/eliminar|delete/i)');
+    await page.getByTestId('delete-location').filter({ hasText: /eliminar|delete/i }).click();
 
     await expect(page.locator('text=/eliminar.*ubicación|delete.*location/i')).toBeVisible();
 
     // Cancel deletion
-    await page.click('button:has-text(/cancelar|cancel/i)');
+    await page.getByRole('button', { name: /cancelar|cancel/i }).click();
 
     // Marker should still be visible
     await expect(page.locator('.leaflet-marker-icon')).toBeVisible();
