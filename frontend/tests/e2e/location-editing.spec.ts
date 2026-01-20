@@ -28,7 +28,7 @@ async function createUserWithTrip(page: Page) {
   };
 
   // Register user
-  await page.request.post(`${API_URL}/auth/register`, {
+  const registerResponse = await page.request.post(`${API_URL}/auth/register`, {
     data: {
       username: testUser.username,
       email: testUser.email,
@@ -37,7 +37,19 @@ async function createUserWithTrip(page: Page) {
     },
   });
 
-  // Login
+  const registerData = await registerResponse.json();
+
+  // Verify user is registered successfully
+  if (!registerData.success || !registerData.data) {
+    throw new Error(`Registration failed: ${registerData.error?.message || 'Unknown error'}`);
+  }
+
+  // IMPORTANT: For E2E tests, users must be verified before login
+  // In production, users would click the verification link in their email
+  // For testing, we need to manually verify the user via database
+  // This is handled by the backend test environment setup
+
+  // Login (will fail if user is not verified)
   const loginResponse = await page.request.post(`${API_URL}/auth/login`, {
     data: {
       login: testUser.username,
@@ -45,7 +57,17 @@ async function createUserWithTrip(page: Page) {
     },
   });
 
-  const { access_token } = (await loginResponse.json()).data;
+  const loginData = await loginResponse.json();
+
+  // Check if login was successful
+  if (!loginData.success || !loginData.data) {
+    throw new Error(
+      `Login failed: ${loginData.error?.message || 'Unknown error'}. ` +
+      `User may not be verified. Status: ${loginResponse.status()}`
+    );
+  }
+
+  const { access_token } = loginData.data;
 
   // Create trip
   const createResponse = await page.request.post(`${API_URL}/trips`, {
