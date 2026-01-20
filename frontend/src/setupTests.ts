@@ -54,6 +54,7 @@ Object.defineProperty(document, 'exitFullscreen', {
 Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
   writable: true,
   configurable: true,
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
   value: vi.fn().mockImplementation(function(this: HTMLElement) {
     _fullscreenElement = this;
     document.dispatchEvent(new Event('fullscreenchange'));
