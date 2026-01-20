@@ -1,15 +1,44 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-20 (Feature 004 US1+US2+US3 mergeada a develop)
-**Estado actual**: Feature 004 (Red Social - US1/US2/US3) MERGEADA A DEVELOP ✅
+**Última actualización**: 2026-01-20 (E2E Auth Tests mejorados 57.6% → 72.7% - Fix mergeado a develop)
+**Estado actual**: E2E Testing Suite - Mejoras en estabilidad de tests de autenticación ✅
 
 ---
 
 ## 🎯 Próxima Acción Recomendada
 
-### Opción A: Continuar Feature 004 - US4 (Compartir Viajes) ⭐ RECOMENDADO
+### Opción A: Continuar E2E Testing - Resolver P28 y P29 ⭐ RECOMENDADO
 
-**Estimación**: 5-7 horas | **Prioridad**: Alta | **Impacto**: Alto
+**Estimación**: 2-3 horas | **Prioridad**: Alta | **Impacto**: Alto (Estabilidad de tests)
+
+**Repositorio**: Branch `fix/e2e-auth-frontend-backend-mismatch` → **MERGED to develop** ✅
+**Fase actual**: 24/33 tests passing (72.7%) - Mejora de +15.1% sobre baseline
+**Último trabajo**: 2026-01-20 - Resueltos P15-P27 (12 problemas), mejorados tests de registro con Turnstile
+**Próximo hito**: Resolver P28 (logout redirect) y P29 (duplicate username error banner) para llegar a 27/33 tests (81.8%)
+
+**Problemas Pendientes**:
+- **P28** - Logout no redirige a `/login` (test: T047)
+  - Botón "Cerrar sesión" existe y es clickeable pero no navega
+  - Investigar implementación frontend del logout flow
+  - **Impacto**: Funcionalidad de seguridad crítica
+
+- **P29** - Duplicate username no muestra error banner (test: T046)
+  - Backend retorna error pero frontend no lo muestra
+  - Posible problema de timing similar a Turnstile
+  - **Impacto**: UX de validación de formularios
+
+**Por qué es prioritario**:
+- E2E tests son **bloqueadores para CI/CD** - necesitan pasar antes de activar pipelines
+- P28 afecta funcionalidad de seguridad (logout)
+- Resolver estos 2 problemas sube coverage a ~82% (excelente para MVP)
+
+**Documentación**: Ver [`docs/E2E_TRACKING.md`](docs/E2E_TRACKING.md) para análisis completo
+
+---
+
+### Opción B: Continuar Feature 004 - US4 (Compartir Viajes)
+
+**Estimación**: 5-7 horas | **Prioridad**: Media-Alta | **Impacto**: Alto
 
 **Repositorio**: Trabajo futuro en branch `004-social-network`
 **Fase actual**: US1+US2+US3 mergeadas a develop exitosamente (2026-01-20)
@@ -99,11 +128,64 @@
 **Tiempo Total Invertido**: ~20 horas (US1/US2: 12h + US3: 8h - backend + frontend + testing + documentación)
 
 **Post-Merge Steps (Trabajo Diferido)**:
+
 - ⏭️ Completar US4: Compartir Viajes (5-7 horas)
 - ⏭️ Completar US5: Notificaciones (8-10 horas)
 - ⏭️ US1 Follow/Unfollow: 2/9 tests funcionales pendientes
 - ⏭️ TC-US2-008 (Likes List Modal): 12/16 test scenarios pendientes
 - ⏭️ TC-COMMENT-013 (Paginación comentarios): Requiere >60 comentarios
+
+---
+
+### E2E Testing Suite - Auth Tests Improvements (✅ MERGEADA A DEVELOP)
+
+**Branch**: `fix/e2e-auth-frontend-backend-mismatch` → **MERGED to develop**
+**Status**: ✅ **PARCIALMENTE COMPLETADO** - Mejoras significativas en estabilidad de tests
+**Merge date**: 2026-01-20
+**Priority**: P1 (Critical - CI/CD Blocker)
+
+**Resultados Finales**:
+
+- ✅ **24/33 tests passing (72.7%)** - Mejora de +15.1% sobre baseline (57.6%)
+- ✅ Chromium: 9/11 passing (81.8%)
+- ✅ Firefox: 8/11 passing (72.7%)
+- ✅ WebKit: 9/11 passing (81.8%)
+
+**Problemas Resueltos (P15-P27)**: 12 problemas críticos
+
+1. ✅ **P15**: Registration success message not found → Changed to navigation wait
+2. ✅ **P16**: Duplicate username error selector → Changed to `.error-banner` class
+3. ✅ **P17**: Invalid credentials error selector → Changed to `.error-banner` class
+4. ✅ **P18**: User menu button not found → Removed unnecessary click
+5. ✅ **P19**: Protected routes not redirecting → Fixed route paths and wait strategy
+6. ✅ **P20**: Public routes test illogical → Rewrote to verify staying on same URL
+7. ✅ **P21**: Landing page redirect with mock token → Real API authentication
+8. ✅ **P22**: Registration missing checkbox → Added `page.check('input[type="checkbox"]')`
+9. ✅ **P23**: Logout not waiting → Added `waitForURL()` with 10s timeout
+10. ✅ **P24**: Public routes timeout → Removed `waitUntil: 'networkidle'`
+11. ✅ **P25**: General test reliability → Comprehensive timing improvements
+12. ✅ **P26-P27**: **Turnstile CAPTCHA callback timing** → Increased wait to 5s (MAJOR FIX)
+
+**Hallazgos Técnicos Clave**:
+
+- **Cloudflare Turnstile**: Widget muestra "Success" ✓ visualmente pero callback `onSuccess` tarda ~5s en ejecutar en E2E environment
+- **React Hook Form**: No lee inputs dinámicamente creados (imposible inyectar token manualmente)
+- **Testing Key**: `1x00000000000000000000AA` auto-pasa pero requiere tiempo para callback
+
+**Problemas Pendientes**:
+
+- 🔴 **P28**: Logout no redirige a `/login` (test: T047) - Funcionalidad de seguridad crítica
+- 🔴 **P29**: Duplicate username no muestra error banner (test: T046) - UX de validación
+
+**Documentación Generada**:
+
+- `docs/E2E_TRACKING.md` (1,016 lines) - Tracking completo de 15 problemas (P15-P29)
+
+**Commits mergeados**: 15 commits con fixes incrementales
+
+**Tiempo invertido**: ~4 horas (análisis + fixes + testing + documentación)
+
+**Siguiente Paso**: Resolver P28 y P29 para alcanzar ~82% coverage (27/33 tests)
 
 ---
 
