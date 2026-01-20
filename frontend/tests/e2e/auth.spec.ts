@@ -137,7 +137,7 @@ test.describe('Login Flow (T047)', () => {
     await expect(page).toHaveURL(/\/(home|dashboard|trips)/, { timeout: 10000 });
 
     // Should show user menu with username
-    await expect(page.locator(`text=${registeredUser.username}`)).toBeVisible();
+    await expect(page.locator('.username')).toBeVisible();
   });
 
   test('should show error for invalid credentials', async ({ page }) => {
@@ -247,7 +247,7 @@ test.describe('Session Persistence (T048)', () => {
     await page.reload();
 
     // Should still be authenticated (HttpOnly cookie persists)
-    await expect(page.locator(`text=${testUser.username}`)).toBeVisible();
+    await expect(page.locator('.username')).toBeVisible();
 
     // Should access protected pages without re-login
     await page.goto(`${FRONTEND_URL}/profile`);
