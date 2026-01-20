@@ -70,18 +70,34 @@ test.describe('Landing Page - Visitor CTA Journey (US4)', () => {
 });
 
 test.describe('Landing Page - Authenticated User Redirect (US1)', () => {
-  test('should redirect authenticated users to /trips/public', async ({ page, context }) => {
-    // Mock authenticated user by setting auth token in localStorage
-    await context.addCookies([
-      {
-        name: 'auth_token',
-        value: 'mock-jwt-token',
-        domain: 'localhost',
-        path: '/',
-      },
-    ]);
+  test('should redirect authenticated users to /trips/public', async ({ page }) => {
+    // Create and authenticate a user via API
+    const testUser = {
+      username: `landinguser_${Date.now()}`,
+      email: `landinguser_${Date.now()}@example.com`,
+      password: 'LandingTest123!',
+    };
 
-    // Navigate to landing page
+    // Register user via API
+    await page.request.post('http://localhost:8000/auth/register', {
+      data: {
+        username: testUser.username,
+        email: testUser.email,
+        password: testUser.password,
+        turnstile_token: 'dummy_token',
+      },
+    });
+
+    // Login via UI to get auth cookie
+    await page.goto('http://localhost:5173/login');
+    await page.fill('input[name="login"]', testUser.username);
+    await page.fill('input[name="password"]', testUser.password);
+    await page.click('button[type="submit"]');
+
+    // Wait for redirect after login
+    await page.waitForURL(/\/(home|dashboard|trips)/, { timeout: 10000 });
+
+    // Now navigate to landing page - should redirect to /trips/public
     await page.goto('http://localhost:5173/');
 
     // Verify redirect to /trips/public
