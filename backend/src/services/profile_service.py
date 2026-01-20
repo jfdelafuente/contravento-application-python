@@ -12,7 +12,6 @@ import asyncio
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 from fastapi import UploadFile
 from sqlalchemy import select
@@ -20,8 +19,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.config import settings
-from src.models.user import User, UserProfile
 from src.models.social import Follow
+from src.models.user import User, UserProfile
 from src.schemas.profile import (
     PrivacySettings,
     ProfileResponse,
@@ -51,7 +50,7 @@ class ProfileService:
         self.db = db
 
     async def get_profile(
-        self, username: str, viewer_username: Optional[str] = None
+        self, username: str, viewer_username: str | None = None
     ) -> ProfileResponse:
         """
         T118: Get user profile respecting privacy settings.

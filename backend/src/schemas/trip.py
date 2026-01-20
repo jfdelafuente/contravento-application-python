@@ -5,7 +5,6 @@ Pydantic models for trip request/response validation in API.
 """
 
 from datetime import date, datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -15,7 +14,6 @@ except ImportError:
     from typing import Self
 
 from src.schemas.feed import UserSummary  # Feature 004 - Author info in trip detail
-
 
 # ============================================================================
 # Request Schemas (Input)
@@ -34,14 +32,14 @@ class LocationInput(BaseModel):
     """
 
     name: str = Field(..., min_length=1, max_length=200, description="Location name")
-    country: Optional[str] = Field(None, max_length=100, description="Country name (optional)")
-    latitude: Optional[float] = Field(
+    country: str | None = Field(None, max_length=100, description="Country name (optional)")
+    latitude: float | None = Field(
         None,
         ge=-90.0,
         le=90.0,
         description="Latitud en grados decimales (opcional, -90 a 90)",
     )
-    longitude: Optional[float] = Field(
+    longitude: float | None = Field(
         None,
         ge=-180.0,
         le=180.0,
@@ -50,7 +48,7 @@ class LocationInput(BaseModel):
 
     @field_validator("latitude", "longitude")
     @classmethod
-    def round_coordinates(cls, v: Optional[float]) -> Optional[float]:
+    def round_coordinates(cls, v: float | None) -> float | None:
         """Enforce 6 decimal places precision for coordinates."""
         if v is None:
             return v
@@ -58,7 +56,7 @@ class LocationInput(BaseModel):
 
     @field_validator("latitude")
     @classmethod
-    def validate_latitude_range(cls, v: Optional[float]) -> Optional[float]:
+    def validate_latitude_range(cls, v: float | None) -> float | None:
         """Validate latitude range with Spanish error message."""
         if v is not None and not -90 <= v <= 90:
             raise ValueError("Latitud debe estar entre -90 y 90 grados")
@@ -66,7 +64,7 @@ class LocationInput(BaseModel):
 
     @field_validator("longitude")
     @classmethod
-    def validate_longitude_range(cls, v: Optional[float]) -> Optional[float]:
+    def validate_longitude_range(cls, v: float | None) -> float | None:
         """Validate longitude range with Spanish error message."""
         if v is not None and not -180 <= v <= 180:
             raise ValueError("Longitud debe estar entre -180 y 180 grados")
@@ -110,11 +108,11 @@ class TripCreateRequest(BaseModel):
         description="Trip description (HTML allowed, will be sanitized)",
     )
     start_date: date = Field(..., description="Trip start date (YYYY-MM-DD, cannot be in future)")
-    end_date: Optional[date] = Field(None, description="Trip end date (must be >= start_date)")
-    distance_km: Optional[float] = Field(
+    end_date: date | None = Field(None, description="Trip end date (must be >= start_date)")
+    distance_km: float | None = Field(
         None, ge=0.1, le=10000.0, description="Distance in kilometers"
     )
-    difficulty: Optional[str] = Field(
+    difficulty: str | None = Field(
         None,
         description="Difficulty level: easy, moderate, difficult, very_difficult",
     )
@@ -131,7 +129,7 @@ class TripCreateRequest(BaseModel):
 
     @field_validator("difficulty")
     @classmethod
-    def validate_difficulty(cls, v: Optional[str]) -> Optional[str]:
+    def validate_difficulty(cls, v: str | None) -> str | None:
         """Validate difficulty is one of allowed values."""
         if v is None:
             return None
@@ -204,21 +202,21 @@ class TripUpdateRequest(BaseModel):
         client_updated_at: Timestamp for optimistic locking
     """
 
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = Field(None, min_length=1, max_length=50000)
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    distance_km: Optional[float] = Field(None, ge=0.1, le=10000.0)
-    difficulty: Optional[str] = None
-    locations: Optional[list[LocationInput]] = Field(None, max_length=50)
-    tags: Optional[list[str]] = Field(None, max_length=10)
-    client_updated_at: Optional[datetime] = Field(
+    title: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = Field(None, min_length=1, max_length=50000)
+    start_date: date | None = None
+    end_date: date | None = None
+    distance_km: float | None = Field(None, ge=0.1, le=10000.0)
+    difficulty: str | None = None
+    locations: list[LocationInput] | None = Field(None, max_length=50)
+    tags: list[str] | None = Field(None, max_length=10)
+    client_updated_at: datetime | None = Field(
         None, description="Timestamp when client loaded the trip (optimistic locking)"
     )
 
     @field_validator("difficulty")
     @classmethod
-    def validate_difficulty(cls, v: Optional[str]) -> Optional[str]:
+    def validate_difficulty(cls, v: str | None) -> str | None:
         """Validate difficulty is one of allowed values."""
         if v is None:
             return None
@@ -229,7 +227,7 @@ class TripUpdateRequest(BaseModel):
 
     @field_validator("tags")
     @classmethod
-    def validate_tags(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+    def validate_tags(cls, v: list[str] | None) -> list[str] | None:
         """Validate each tag length."""
         if v is None:
             return None
@@ -302,8 +300,8 @@ class TripLocationResponse(BaseModel):
 
     location_id: str = Field(..., description="Unique location identifier")
     name: str = Field(..., description="Location name")
-    latitude: Optional[float] = Field(None, description="Latitude coordinate")
-    longitude: Optional[float] = Field(None, description="Longitude coordinate")
+    latitude: float | None = Field(None, description="Latitude coordinate")
+    longitude: float | None = Field(None, description="Longitude coordinate")
     sequence: int = Field(..., description="Order in route (0-based)")
 
     class Config:
@@ -338,10 +336,10 @@ class TripPhotoResponse(BaseModel):
     photo_id: str = Field(..., description="Unique photo identifier")
     photo_url: str = Field(..., description="URL to optimized photo")
     thumbnail_url: str = Field(..., description="URL to thumbnail")
-    caption: Optional[str] = Field(None, description="Photo caption")
+    caption: str | None = Field(None, description="Photo caption")
     display_order: int = Field(..., description="Display order (0-based)")
-    width: Optional[int] = Field(None, description="Original photo width")
-    height: Optional[int] = Field(None, description="Original photo height")
+    width: int | None = Field(None, description="Original photo width")
+    height: int | None = Field(None, description="Original photo height")
 
     class Config:
         """Pydantic config."""
@@ -392,19 +390,19 @@ class TripResponse(BaseModel):
     description: str = Field(..., description="Trip description (HTML)")
     status: str = Field(..., description="Trip status (draft/published)")
     start_date: date = Field(..., description="Start date")
-    end_date: Optional[date] = Field(None, description="End date")
-    distance_km: Optional[float] = Field(None, description="Distance in kilometers")
-    difficulty: Optional[str] = Field(None, description="Difficulty level")
+    end_date: date | None = Field(None, description="End date")
+    distance_km: float | None = Field(None, description="Distance in kilometers")
+    difficulty: str | None = Field(None, description="Difficulty level")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
     updated_at: datetime = Field(..., description="Last update timestamp (UTC)")
-    published_at: Optional[datetime] = Field(None, description="Publication timestamp (UTC)")
+    published_at: datetime | None = Field(None, description="Publication timestamp (UTC)")
     photos: list[TripPhotoResponse] = Field(default_factory=list, description="List of trip photos")
     locations: list[TripLocationResponse] = Field(
         default_factory=list, description="List of trip locations"
     )
     tags: list[TagResponse] = Field(default_factory=list, description="List of trip tags")
     like_count: int = Field(default=0, description="Number of likes (Feature 004 - US2)")
-    is_liked: Optional[bool] = Field(
+    is_liked: bool | None = Field(
         default=None,
         description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)",
     )
@@ -504,11 +502,11 @@ class TripListItemResponse(BaseModel):
     user_id: str = Field(..., description="Trip author's user ID")
     title: str = Field(..., description="Trip title")
     start_date: date = Field(..., description="Start date")
-    distance_km: Optional[float] = Field(None, description="Distance in kilometers")
+    distance_km: float | None = Field(None, description="Distance in kilometers")
     status: str = Field(..., description="Trip status")
     photo_count: int = Field(..., description="Number of photos")
     tag_names: list[str] = Field(default_factory=list, description="List of tag names")
-    thumbnail_url: Optional[str] = Field(None, description="First photo thumbnail URL")
+    thumbnail_url: str | None = Field(None, description="First photo thumbnail URL")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
 
     class Config:
@@ -593,8 +591,8 @@ class PublicUserSummary(BaseModel):
 
     user_id: str = Field(..., description="Unique user identifier")
     username: str = Field(..., description="Username")
-    profile_photo_url: Optional[str] = Field(None, description="Profile photo URL")
-    is_following: Optional[bool] = Field(
+    profile_photo_url: str | None = Field(None, description="Profile photo URL")
+    is_following: bool | None = Field(
         None, description="Whether current user follows this user (Feature 004 - US1)"
     )
 
@@ -680,13 +678,13 @@ class PublicTripSummary(BaseModel):
     trip_id: str = Field(..., description="Unique trip identifier")
     title: str = Field(..., description="Trip title")
     start_date: date = Field(..., description="Trip start date")
-    distance_km: Optional[float] = Field(None, description="Distance in kilometers")
-    photo: Optional[PublicPhotoSummary] = Field(None, description="First photo thumbnail")
-    location: Optional[PublicLocationSummary] = Field(None, description="First location")
+    distance_km: float | None = Field(None, description="Distance in kilometers")
+    photo: PublicPhotoSummary | None = Field(None, description="First photo thumbnail")
+    location: PublicLocationSummary | None = Field(None, description="First location")
     author: PublicUserSummary = Field(..., description="Trip author")
     published_at: datetime = Field(..., description="Publication timestamp (UTC)")
     like_count: int = Field(default=0, description="Number of likes (Feature 004 - US2)")
-    is_liked: Optional[bool] = Field(
+    is_liked: bool | None = Field(
         default=None,
         description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)",
     )

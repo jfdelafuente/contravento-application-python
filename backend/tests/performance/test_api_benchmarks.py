@@ -23,7 +23,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.helpers import create_user, create_trip
+from tests.helpers import create_trip
 
 
 @pytest.mark.performance
@@ -43,7 +43,7 @@ class TestHealthEndpointBenchmark:
             assert response.status_code == 200
             return response
 
-        result = benchmark(make_request)
+        benchmark(make_request)
         # pytest-benchmark automatically reports stats
 
 
@@ -75,7 +75,7 @@ class TestAuthEndpointsBenchmark:
             assert response.status_code == 200
             return response
 
-        result = benchmark(login)
+        benchmark(login)
 
     async def test_token_refresh_latency(
         self,
@@ -104,7 +104,7 @@ class TestAuthEndpointsBenchmark:
             assert response.status_code == 200
             return response
 
-        result = benchmark(refresh)
+        benchmark(refresh)
 
 
 @pytest.mark.performance
@@ -124,7 +124,7 @@ class TestPublicFeedBenchmark:
             assert response.status_code == 200
             return response
 
-        result = benchmark(fetch_feed)
+        benchmark(fetch_feed)
 
     async def test_public_feed_latency_with_data(
         self,
@@ -142,7 +142,7 @@ class TestPublicFeedBenchmark:
 
         # Seed database with 50 published trips
         for i in range(50):
-            trip = await create_trip(
+            await create_trip(
                 db_session,
                 test_user.id,
                 title=f"Benchmark Trip {i}",
@@ -157,7 +157,7 @@ class TestPublicFeedBenchmark:
             assert len(data["trips"]) == 10
             return response
 
-        result = benchmark(fetch_feed)
+        benchmark(fetch_feed)
 
 
 @pytest.mark.performance
@@ -189,7 +189,7 @@ class TestTripCreationBenchmark:
             assert response.status_code == 201
             return response
 
-        result = benchmark(create)
+        benchmark(create)
 
     async def test_publish_trip_latency(
         self,
@@ -219,7 +219,7 @@ class TestTripCreationBenchmark:
             assert response.status_code == 200
             return response
 
-        result = benchmark(publish)
+        benchmark(publish)
 
 
 @pytest.mark.performance
@@ -261,7 +261,7 @@ class TestUserTripsListBenchmark:
             assert len(data["data"]["trips"]) == 20
             return response
 
-        result = benchmark(fetch_trips)
+        benchmark(fetch_trips)
 
 
 @pytest.mark.performance
@@ -277,6 +277,7 @@ class TestDatabaseQueryBenchmark:
         """
 
         from sqlalchemy import select
+
         from src.models.user import User
 
         async def lookup():
@@ -287,7 +288,7 @@ class TestDatabaseQueryBenchmark:
             assert user is not None
             return user
 
-        result = benchmark(lookup)
+        benchmark(lookup)
 
     async def test_trip_query_with_relationships(
         self, db_session: AsyncSession, test_user, benchmark
@@ -300,6 +301,7 @@ class TestDatabaseQueryBenchmark:
 
         from sqlalchemy import select
         from sqlalchemy.orm import joinedload
+
         from src.models.trip import Trip
 
         # Create trip with relationships
@@ -325,7 +327,7 @@ class TestDatabaseQueryBenchmark:
             assert loaded_trip is not None
             return loaded_trip
 
-        result = benchmark(query)
+        benchmark(query)
 
 
 @pytest.mark.performance
@@ -348,7 +350,7 @@ class TestPasswordHashingBenchmark:
             assert hashed.startswith("$2b$")
             return hashed
 
-        result = benchmark(hash_pw)
+        benchmark(hash_pw)
 
     async def test_password_verification_latency(self, benchmark):
         """
@@ -366,4 +368,4 @@ class TestPasswordHashingBenchmark:
             assert is_valid is True
             return is_valid
 
-        result = benchmark(verify)
+        benchmark(verify)

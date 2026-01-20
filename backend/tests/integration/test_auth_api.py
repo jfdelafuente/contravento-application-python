@@ -13,8 +13,8 @@ Test coverage:
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.user import User
 
@@ -237,7 +237,7 @@ class TestAuthTokenRefresh:
         assert "access_token" in new_tokens
         assert "refresh_token" in new_tokens
         new_access_token = new_tokens["access_token"]
-        new_refresh_token = new_tokens["refresh_token"]
+        new_tokens["refresh_token"]
 
         # Step 3: Verify new access token works
         headers = {"Authorization": f"Bearer {new_access_token}"}
@@ -251,7 +251,7 @@ class TestAuthTokenRefresh:
         # Step 4: Verify old access token still works (until expiry)
         # Note: This may fail if token rotation invalidates old token
         old_headers = {"Authorization": f"Bearer {old_access_token}"}
-        old_me_response = await client.get("/auth/me", headers=old_headers)
+        await client.get("/auth/me", headers=old_headers)
         # Depending on app implementation, old token may be valid or invalid
 
     async def test_refresh_invalid_token(self, client: AsyncClient):

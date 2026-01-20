@@ -5,7 +5,6 @@ PasswordReset: Tokens for email verification and password reset
 """
 
 from datetime import UTC, datetime
-from typing import Optional
 from uuid import uuid4
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
@@ -72,7 +71,7 @@ class PasswordReset(Base):
         doc="Token expiration timestamp (UTC)",
     )
 
-    used_at: Mapped[Optional[datetime]] = mapped_column(
+    used_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
         doc="Timestamp when token was used (null = unused)",
@@ -86,7 +85,7 @@ class PasswordReset(Base):
     )
 
     # Additional metadata (renamed from 'metadata' to avoid SQLAlchemy reserved name conflict)
-    extra_metadata: Mapped[Optional[str]] = mapped_column(
+    extra_metadata: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
         doc="Optional JSON metadata (e.g., IP address, user agent)",

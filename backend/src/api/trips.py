@@ -6,7 +6,7 @@ Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008, FR-009, FR-010,
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
@@ -18,12 +18,12 @@ from src.config import settings
 from src.models.trip import TripStatus
 from src.models.user import User
 from src.schemas.trip import (
+    PaginationInfo,
+    PublicLocationSummary,
+    PublicPhotoSummary,
     PublicTripListResponse,
     PublicTripSummary,
     PublicUserSummary,
-    PublicPhotoSummary,
-    PublicLocationSummary,
-    PaginationInfo,
     TripCreateRequest,
     TripResponse,
     TripUpdateRequest,
@@ -53,7 +53,7 @@ async def get_public_trips(
         description=f"Items per page (default: {settings.public_feed_page_size}, max: {settings.public_feed_max_page_size})",
     ),
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> PublicTripListResponse:
     """
     T021: Get public trips feed for homepage (Feature 013).
@@ -294,7 +294,7 @@ async def create_trip(
 )
 async def get_trip(
     trip_id: str,
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """
@@ -909,12 +909,12 @@ async def delete_trip(
 )
 async def get_user_trips(
     username: str,
-    tag: Optional[str] = Query(None, description="Filter by tag name (case-insensitive)"),
-    status: Optional[TripStatus] = Query(None, description="Filter by trip status"),
+    tag: str | None = Query(None, description="Filter by tag name (case-insensitive)"),
+    status: TripStatus | None = Query(None, description="Filter by trip status"),
     limit: int = Query(50, ge=1, le=100, description="Maximum trips to return"),
     offset: int = Query(0, ge=0, description="Number of trips to skip"),
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> dict[str, Any]:
     """
     Get user's trips with optional filtering (T088, FR-025, Feature 013).

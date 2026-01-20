@@ -4,14 +4,14 @@ Contract tests for Public Trips Feed API (Feature 013 - T024).
 Validates that API responses match the OpenAPI specification.
 """
 
+from pathlib import Path
+
 import pytest
 import yaml
 from httpx import AsyncClient
-from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.trip import Trip
-
 
 # Load OpenAPI spec
 SPEC_PATH = (
@@ -26,7 +26,7 @@ SPEC_PATH = (
 @pytest.fixture(scope="module")
 def openapi_spec():
     """Load the OpenAPI specification for public feed endpoints."""
-    with open(SPEC_PATH, "r", encoding="utf-8") as f:
+    with open(SPEC_PATH, encoding="utf-8") as f:
         spec = yaml.safe_load(f)
     return spec
 
@@ -71,7 +71,7 @@ def validate_response_schema(response_data: dict, schema: dict):
                 assert isinstance(value, int), f"Field {field} should be integer, got {type(value)}"
             elif expected_type == "number":
                 assert isinstance(
-                    value, (int, float)
+                    value, int | float
                 ), f"Field {field} should be number, got {type(value)}"
             elif expected_type == "boolean":
                 assert isinstance(
@@ -206,7 +206,7 @@ async def test_get_public_trips_trip_summary_structure(
     assert isinstance(trip["trip_id"], str)
     assert isinstance(trip["title"], str)
     assert isinstance(trip["start_date"], str)
-    assert trip["distance_km"] is None or isinstance(trip["distance_km"], (int, float))
+    assert trip["distance_km"] is None or isinstance(trip["distance_km"], int | float)
     assert trip["photo"] is None or isinstance(trip["photo"], dict)
     assert trip["location"] is None or isinstance(trip["location"], dict)
     assert isinstance(trip["author"], dict)

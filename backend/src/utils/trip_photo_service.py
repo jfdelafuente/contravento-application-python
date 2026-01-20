@@ -11,7 +11,6 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 from PIL import Image, ImageOps
 
@@ -52,7 +51,7 @@ class TripPhotoService:
         """Initialize photo service."""
         pass
 
-    def validate_photo(self, photo_bytes: bytes, filename: str) -> Optional[str]:
+    def validate_photo(self, photo_bytes: bytes, filename: str) -> str | None:
         """
         Validate photo file.
 

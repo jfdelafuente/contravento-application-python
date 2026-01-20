@@ -8,7 +8,6 @@ with Spanish templates.
 import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
 
 import aiosmtplib
 
@@ -21,7 +20,7 @@ async def send_email(
     to_email: str,
     subject: str,
     body_text: str,
-    body_html: Optional[str] = None,
+    body_html: str | None = None,
 ) -> bool:
     """
     Send an email asynchronously.

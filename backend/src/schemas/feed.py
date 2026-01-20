@@ -5,10 +5,8 @@ Defines request/response models for personalized feed endpoints.
 """
 
 from datetime import date, datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
-
 
 # ============================================================
 # SHARED SCHEMAS (used by multiple features)
@@ -24,9 +22,9 @@ class UserSummary(BaseModel):
 
     user_id: str = Field(..., description="User UUID (Feature 004 - US1)")
     username: str = Field(..., description="Username")
-    full_name: Optional[str] = Field(None, description="Full display name (nullable)")
-    profile_photo_url: Optional[str] = Field(None, description="Profile photo URL (nullable)")
-    is_following: Optional[bool] = Field(
+    full_name: str | None = Field(None, description="Full display name (nullable)")
+    profile_photo_url: str | None = Field(None, description="Profile photo URL (nullable)")
+    is_following: bool | None = Field(
         None, description="Whether current user follows this user (Feature 004 - US1)"
     )
 
@@ -42,7 +40,7 @@ class PhotoSummary(BaseModel):
     """
 
     photo_url: str = Field(..., description="Photo URL")
-    caption: Optional[str] = Field(None, description="Photo caption (nullable)")
+    caption: str | None = Field(None, description="Photo caption (nullable)")
 
     class Config:
         from_attributes = True
@@ -56,8 +54,8 @@ class LocationSummary(BaseModel):
     """
 
     name: str = Field(..., description="Location name")
-    latitude: Optional[float] = Field(None, description="Latitude (nullable)")
-    longitude: Optional[float] = Field(None, description="Longitude (nullable)")
+    latitude: float | None = Field(None, description="Latitude (nullable)")
+    longitude: float | None = Field(None, description="Longitude (nullable)")
 
     class Config:
         from_attributes = True
@@ -103,9 +101,9 @@ class FeedItem(BaseModel):
     photos: list[PhotoSummary] = Field(
         default_factory=list, description="Trip photos (array of PhotoSummary)"
     )
-    distance_km: Optional[float] = Field(None, description="Distance in km (nullable)")
+    distance_km: float | None = Field(None, description="Distance in km (nullable)")
     start_date: date = Field(..., description="Trip start date (YYYY-MM-DD)")
-    end_date: Optional[date] = Field(None, description="Trip end date (nullable)")
+    end_date: date | None = Field(None, description="Trip end date (nullable)")
 
     # Route data
     locations: list[LocationSummary] = Field(

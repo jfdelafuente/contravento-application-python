@@ -5,7 +5,6 @@ Pydantic models for validating profile API requests and responses.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -60,11 +59,11 @@ class ProfileResponse(BaseModel):
     """
 
     username: str = Field(..., description="Unique username")
-    full_name: Optional[str] = Field(None, description="User's full name")
-    bio: Optional[str] = Field(None, description="Profile biography")
-    photo_url: Optional[str] = Field(None, description="URL to profile photo")
-    location: Optional[str] = Field(None, description="User's location")
-    cycling_type: Optional[str] = Field(
+    full_name: str | None = Field(None, description="User's full name")
+    bio: str | None = Field(None, description="Profile biography")
+    photo_url: str | None = Field(None, description="URL to profile photo")
+    location: str | None = Field(None, description="User's location")
+    cycling_type: str | None = Field(
         None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
     profile_visibility: str = Field(..., description="Profile visibility: 'public' or 'private'")
@@ -75,11 +74,11 @@ class ProfileResponse(BaseModel):
     show_location: bool = Field(..., description="Location visibility in public profile")
     followers_count: int = Field(default=0, description="Number of followers")
     following_count: int = Field(default=0, description="Number of users followed")
-    is_following: Optional[bool] = Field(
+    is_following: bool | None = Field(
         None,
         description="Whether current user follows this user (Feature 004 - US1, None if not authenticated)",
     )
-    stats: Optional[ProfileStatsPreview] = Field(None, description="Stats preview")
+    stats: ProfileStatsPreview | None = Field(None, description="Stats preview")
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
 
     class Config:
@@ -122,41 +121,41 @@ class ProfileUpdateRequest(BaseModel):
         show_location: Location visibility setting (optional)
     """
 
-    full_name: Optional[str] = Field(
+    full_name: str | None = Field(
         None, max_length=100, description="User's full name (max 100 characters)"
     )
 
-    bio: Optional[str] = Field(
+    bio: str | None = Field(
         None, max_length=500, description="Profile biography (max 500 characters)"
     )
 
-    location: Optional[str] = Field(
+    location: str | None = Field(
         None, max_length=100, description="User's location (max 100 characters)"
     )
 
-    cycling_type: Optional[str] = Field(
+    cycling_type: str | None = Field(
         None, description="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring"
     )
 
-    profile_visibility: Optional[str] = Field(
+    profile_visibility: str | None = Field(
         None,
         description="Profile visibility: 'public' (visible to all) or 'private' (hidden from public feed)",
         pattern="^(public|private)$",
     )
 
-    trip_visibility: Optional[str] = Field(
+    trip_visibility: str | None = Field(
         None,
         description="Trip visibility: 'public' (all), 'followers' (followers only), or 'private' (owner only)",
         pattern="^(public|followers|private)$",
     )
 
-    show_email: Optional[bool] = Field(None, description="Show email in public profile")
+    show_email: bool | None = Field(None, description="Show email in public profile")
 
-    show_location: Optional[bool] = Field(None, description="Show location in public profile")
+    show_location: bool | None = Field(None, description="Show location in public profile")
 
     @field_validator("bio")
     @classmethod
-    def validate_bio_field(cls, v: Optional[str]) -> Optional[str]:
+    def validate_bio_field(cls, v: str | None) -> str | None:
         """Validate bio format and length."""
         if v is not None:
             return validate_bio(v)
@@ -193,9 +192,9 @@ class PrivacySettings(BaseModel):
         show_location: Whether to show location in public profile
     """
 
-    show_email: Optional[bool] = Field(None, description="Show email in public profile")
+    show_email: bool | None = Field(None, description="Show email in public profile")
 
-    show_location: Optional[bool] = Field(None, description="Show location in public profile")
+    show_location: bool | None = Field(None, description="Show location in public profile")
 
     class Config:
         """Pydantic config."""

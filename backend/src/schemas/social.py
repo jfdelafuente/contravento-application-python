@@ -6,7 +6,6 @@ and social relationships.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,9 +19,9 @@ class UserSummary(BaseModel):
     """
 
     username: str = Field(..., description="Username", min_length=3, max_length=30)
-    full_name: Optional[str] = Field(None, description="Full name")
-    profile_photo_url: Optional[str] = Field(None, description="Profile photo URL")
-    bio: Optional[str] = Field(None, description="User bio", max_length=500)
+    full_name: str | None = Field(None, description="Full name")
+    profile_photo_url: str | None = Field(None, description="Profile photo URL")
+    bio: str | None = Field(None, description="User bio", max_length=500)
     followers_count: int = Field(default=0, description="Number of followers", ge=0)
     following_count: int = Field(default=0, description="Number of users being followed", ge=0)
 
@@ -99,7 +98,7 @@ class FollowStatusResponse(BaseModel):
     """
 
     is_following: bool = Field(..., description="Whether current user follows target user")
-    followed_at: Optional[datetime] = Field(
+    followed_at: datetime | None = Field(
         None, description="When the follow relationship was created (UTC)"
     )
 

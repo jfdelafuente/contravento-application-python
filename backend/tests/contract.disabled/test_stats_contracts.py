@@ -84,7 +84,7 @@ class TestGetUserStatsContract:
 
         # Verify data types
         assert isinstance(stats_data["total_trips"], int)
-        assert isinstance(stats_data["total_kilometers"], (int, float))
+        assert isinstance(stats_data["total_kilometers"], int | float)
         assert isinstance(stats_data["countries_visited"], list)
         assert isinstance(stats_data["total_photos"], int)
         assert isinstance(stats_data["achievements_count"], int)
@@ -241,7 +241,7 @@ class TestGetUserAchievementsContract:
             assert isinstance(achievement_item["description"], str)
             assert isinstance(achievement_item["badge_icon"], str)
             assert isinstance(achievement_item["requirement_type"], str)
-            assert isinstance(achievement_item["requirement_value"], (int, float))
+            assert isinstance(achievement_item["requirement_value"], int | float)
             assert isinstance(achievement_item["awarded_at"], str)
 
             # Verify requirement_type is valid enum
@@ -377,7 +377,7 @@ class TestListAchievementsContract:
         assert isinstance(achievement_def["description"], str)
         assert isinstance(achievement_def["badge_icon"], str)
         assert isinstance(achievement_def["requirement_type"], str)
-        assert isinstance(achievement_def["requirement_value"], (int, float))
+        assert isinstance(achievement_def["requirement_value"], int | float)
 
         # Verify requirement_type is valid enum
         assert achievement_def["requirement_type"] in [

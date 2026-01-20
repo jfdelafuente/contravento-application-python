@@ -14,15 +14,15 @@ Usage:
 
 from datetime import date, datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User, UserProfile, UserRole
-from src.models.trip import Trip, TripStatus, TripDifficulty
 from src.models.tag import Tag
+from src.models.trip import Trip, TripDifficulty, TripStatus
+from src.models.user import User, UserProfile, UserRole
 from src.utils.security import hash_password
 
 
@@ -88,12 +88,12 @@ async def create_trip(
     user_id: UUID,
     title: str = "Test Trip",
     description: str = "Test trip description with at least 50 characters for validation.",
-    start_date: Optional[date] = None,
-    end_date: Optional[date] = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
     distance_km: float = 100.0,
     difficulty: TripDifficulty = TripDifficulty.MODERATE,
     status: TripStatus = TripStatus.DRAFT,
-    tags: Optional[List[str]] = None,
+    tags: list[str] | None = None,
 ) -> Trip:
     """
     Create a test trip.
@@ -254,7 +254,7 @@ def get_sample_photo_path(filename: str = "sample_1.jpg") -> Path:
     return Path(__file__).parent / "fixtures" / "photos" / filename
 
 
-async def load_fixture_users(db: AsyncSession, fixture_data: Dict[str, Any]) -> List[User]:
+async def load_fixture_users(db: AsyncSession, fixture_data: dict[str, Any]) -> list[User]:
     """
     Load users from fixture data.
 
@@ -294,8 +294,8 @@ async def load_fixture_users(db: AsyncSession, fixture_data: Dict[str, Any]) -> 
 
 
 async def load_fixture_trips(
-    db: AsyncSession, fixture_data: Dict[str, Any], default_user_id: UUID
-) -> List[Trip]:
+    db: AsyncSession, fixture_data: dict[str, Any], default_user_id: UUID
+) -> list[Trip]:
     """
     Load trips from fixture data.
 

@@ -5,7 +5,7 @@ Provides consistent response structure for all API endpoints
 according to ContraVento constitution requirements.
 """
 
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -25,7 +25,7 @@ class ErrorDetail(BaseModel):
 
     code: str = Field(..., description="Error code identifier")
     message: str = Field(..., description="Human-readable error message (Spanish)")
-    field: Optional[str] = Field(None, description="Field name for field-specific errors")
+    field: str | None = Field(None, description="Field name for field-specific errors")
 
     model_config = {
         "json_schema_extra": {

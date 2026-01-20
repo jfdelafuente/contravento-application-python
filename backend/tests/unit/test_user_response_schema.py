@@ -4,10 +4,8 @@ Unit tests for UserResponse schema (Feature 013).
 Tests that UserResponse includes privacy and profile fields when serializing User models.
 """
 
-import pytest
-from datetime import datetime, timezone
+from datetime import datetime
 
-from src.models.user import User, UserProfile
 from src.schemas.user import UserResponse
 
 

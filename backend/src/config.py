@@ -5,7 +5,7 @@ Loads and validates environment variables using Pydantic Settings.
 All configuration is immutable and validated at startup.
 """
 
-from typing import Any, Union
+from typing import Any
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     )
 
     # CORS (stored as Union to prevent automatic JSON parsing from env var)
-    cors_origins: Union[str, list[str]] = Field(
+    cors_origins: str | list[str] = Field(
         default="http://localhost:3000,http://localhost:5173",
         description="Allowed CORS origins (comma-separated string or list)",
     )

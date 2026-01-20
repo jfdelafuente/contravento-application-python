@@ -165,7 +165,7 @@ class AuthService:
         user.is_verified = True
 
         # Mark token as used
-        token_hash = hash_password(token)
+        hash_password(token)
         result = await self.db.execute(
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
@@ -439,7 +439,7 @@ class AuthService:
             raise ValueError("Token de refresco inválido")
 
         # Find and mark token as used
-        token_hash = hash_password(refresh_token)
+        hash_password(refresh_token)
         result = await self.db.execute(
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,
@@ -534,7 +534,7 @@ class AuthService:
             raise ValueError("Usuario no encontrado")
 
         # Verify token exists and is not used
-        token_hash = hash_password(token)
+        hash_password(token)
         result = await self.db.execute(
             select(PasswordReset).where(
                 PasswordReset.user_id == user_id,

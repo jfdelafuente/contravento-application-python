@@ -5,7 +5,6 @@ Pydantic models for validating stats and achievements API requests and responses
 """
 
 from datetime import date, datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -49,7 +48,7 @@ class StatsResponse(BaseModel):
     countries_visited: list[CountryInfo] = Field(..., description="Lista de países visitados")
     total_photos: int = Field(..., description="Número total de fotos subidas")
     achievements_count: int = Field(..., description="Número de logros desbloqueados")
-    last_trip_date: Optional[date] = Field(None, description="Fecha del último viaje")
+    last_trip_date: date | None = Field(None, description="Fecha del último viaje")
     updated_at: datetime = Field(..., description="Última actualización de estadísticas")
 
     class Config:

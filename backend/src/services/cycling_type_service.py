@@ -5,7 +5,6 @@ Business logic for managing cycling types.
 """
 
 import logging
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,7 +76,7 @@ class CyclingTypeService:
 
         return [CyclingTypePublicResponse.model_validate(ct) for ct in cycling_types]
 
-    async def get_by_code(self, code: str) -> Optional[CyclingTypeResponse]:
+    async def get_by_code(self, code: str) -> CyclingTypeResponse | None:
         """
         Get cycling type by code.
 

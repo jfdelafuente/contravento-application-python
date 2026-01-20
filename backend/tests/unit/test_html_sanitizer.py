@@ -7,10 +7,8 @@ Tests cover:
 Following TDD: These tests are written BEFORE implementation.
 """
 
-import pytest
 
 from src.utils.html_sanitizer import sanitize_html
-
 
 # ============================================================
 # T076: Test HTML sanitization

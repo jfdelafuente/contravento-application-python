@@ -574,7 +574,7 @@ class TestRateLimiting:
         assert success_response.status_code == 200
 
         # Step 4: 3 more failed attempts
-        for i in range(3):
+        for _i in range(3):
             response = await client.post(
                 "/auth/login",
                 json={

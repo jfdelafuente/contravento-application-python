@@ -7,7 +7,6 @@ UserProfile: Extended profile information (1-to-1 with User)
 
 import enum
 from datetime import UTC, datetime
-from typing import Optional
 from uuid import uuid4
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
@@ -143,7 +142,7 @@ class User(Base):
         doc="Last update timestamp (UTC)",
     )
 
-    last_login_at: Mapped[Optional[datetime]] = mapped_column(
+    last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
         doc="Last successful login timestamp (UTC)",
@@ -156,7 +155,7 @@ class User(Base):
         doc="Failed login attempts counter (resets on success)",
     )
 
-    locked_until: Mapped[Optional[datetime]] = mapped_column(
+    locked_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
         doc="Timestamp until which account is locked due to failed attempts",
@@ -296,31 +295,31 @@ class UserProfile(Base):
     )
 
     # Profile fields
-    full_name: Mapped[Optional[str]] = mapped_column(
+    full_name: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
         doc="User's full name",
     )
 
-    bio: Mapped[Optional[str]] = mapped_column(
+    bio: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
         doc="Profile biography (max 500 characters)",
     )
 
-    location: Mapped[Optional[str]] = mapped_column(
+    location: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
         doc="User's location (e.g., 'Madrid, España')",
     )
 
-    cycling_type: Mapped[Optional[str]] = mapped_column(
+    cycling_type: Mapped[str | None] = mapped_column(
         String(20),
         nullable=True,
         doc="Type of cycling: bikepacking, commuting, gravel, mountain, road, touring",
     )
 
-    profile_photo_url: Mapped[Optional[str]] = mapped_column(
+    profile_photo_url: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
         doc="URL or path to profile photo",

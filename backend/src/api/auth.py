@@ -455,8 +455,6 @@ async def get_current_user_info(
     from sqlalchemy import select
     from sqlalchemy.orm import selectinload
 
-    from src.models.user import UserProfile
-
     result = await db.execute(
         select(User).where(User.id == current_user.id).options(selectinload(User.profile))
     )

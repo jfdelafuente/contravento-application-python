@@ -9,7 +9,7 @@ import logging
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import BinaryIO, Optional
+from typing import BinaryIO
 
 from PIL import Image
 from sqlalchemy import delete, func, select
@@ -95,7 +95,7 @@ class TripService:
         logger.info(f"Created trip {trip.trip_id} for user {user_id}")
         return trip
 
-    async def get_trip(self, trip_id: str, current_user_id: Optional[str] = None) -> Trip:
+    async def get_trip(self, trip_id: str, current_user_id: str | None = None) -> Trip:
         """
         Get trip by ID.
 
@@ -117,7 +117,6 @@ class TripService:
             PermissionError: If access denied due to visibility settings
         """
         # Query trip with relationships (eager load user for visibility check)
-        from src.models.user import UserProfile
 
         result = await self.db.execute(
             select(Trip)
@@ -892,11 +891,11 @@ class TripService:
     async def get_user_trips(
         self,
         user_id: str,
-        tag: Optional[str] = None,
-        status: Optional[TripStatus] = None,
+        tag: str | None = None,
+        status: TripStatus | None = None,
         limit: int = 50,
         offset: int = 0,
-        current_user_id: Optional[str] = None,
+        current_user_id: str | None = None,
     ) -> list[Trip]:
         """
         T087: Get user's trips with optional filtering (Feature 013: respects trip_visibility).

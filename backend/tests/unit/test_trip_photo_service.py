@@ -191,7 +191,7 @@ class TestTripPhotoService:
         optimized_img = Image.open(io.BytesIO(result.optimized_bytes))
 
         # EXIF data should be minimal or removed for privacy/size
-        exif = optimized_img.getexif()
+        optimized_img.getexif()
         # Most EXIF tags should be stripped for privacy
 
     def test_process_photo_applies_quality_settings(

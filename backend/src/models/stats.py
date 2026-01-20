@@ -7,7 +7,6 @@ UserAchievement: User-earned achievements (join table)
 """
 
 from datetime import UTC, date, datetime
-from typing import Optional
 from uuid import uuid4
 
 from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String, Text
@@ -92,7 +91,7 @@ class UserStats(Base):
         doc="Number of achievements earned",
     )
 
-    last_trip_date: Mapped[Optional[date]] = mapped_column(
+    last_trip_date: Mapped[date | None] = mapped_column(
         Date,
         nullable=True,
         doc="Date of most recent trip",

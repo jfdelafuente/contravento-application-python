@@ -7,7 +7,6 @@ Task: T090
 
 import bleach
 
-
 # Allowed HTML tags (safe formatting tags only)
 ALLOWED_TAGS = [
     "p",

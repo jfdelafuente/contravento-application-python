@@ -6,7 +6,7 @@ for access and refresh tokens.
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -60,7 +60,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(data: dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT access token.
 
@@ -88,7 +88,7 @@ def create_access_token(data: dict[str, Any], expires_delta: Optional[timedelta]
     return encoded_jwt
 
 
-def create_refresh_token(data: dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_refresh_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT refresh token.
 
@@ -142,7 +142,7 @@ def decode_token(token: str) -> dict[str, Any]:
         raise JWTError(f"Could not validate token: {str(e)}")
 
 
-def get_token_subject(token: str) -> Optional[str]:
+def get_token_subject(token: str) -> str | None:
     """
     Extract the subject (user ID) from a token.
 

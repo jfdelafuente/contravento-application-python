@@ -12,7 +12,6 @@ Balances spam prevention with false positive avoidance.
 import logging
 import re
 from pathlib import Path
-from typing import Optional
 
 from src.config import settings
 
@@ -57,7 +56,7 @@ class ContentValidator:
             logger.error(f"Error loading blocked words file: {e}")
             # Continue with empty list - don't fail startup
 
-    def validate_content(self, content: str, field_name: str = "contenido") -> Optional[str]:
+    def validate_content(self, content: str, field_name: str = "contenido") -> str | None:
         """
         Validate content for spam and inappropriate material.
 
@@ -105,7 +104,7 @@ class ContentValidator:
         # All checks passed
         return None
 
-    def _check_blocked_words(self, normalized_content: str, field_name: str) -> Optional[str]:
+    def _check_blocked_words(self, normalized_content: str, field_name: str) -> str | None:
         """
         Check if content contains blocked words.
 
@@ -125,7 +124,7 @@ class ContentValidator:
 
         return None
 
-    def _check_excessive_repetition(self, content: str, field_name: str) -> Optional[str]:
+    def _check_excessive_repetition(self, content: str, field_name: str) -> str | None:
         """
         Check for excessive word repetition (same word 10+ times).
 
@@ -156,7 +155,7 @@ class ContentValidator:
 
         return None
 
-    def _check_excessive_urls(self, content: str, field_name: str) -> Optional[str]:
+    def _check_excessive_urls(self, content: str, field_name: str) -> str | None:
         """
         Check for excessive URLs (more than 5 URLs in content).
 

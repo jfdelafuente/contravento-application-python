@@ -22,8 +22,8 @@ from src.models.user import User
 from src.schemas.comment import (
     CommentCreateInput,
     CommentResponse,
-    CommentUpdateInput,
     CommentsListResponse,
+    CommentUpdateInput,
 )
 from src.services.comment_service import CommentService
 

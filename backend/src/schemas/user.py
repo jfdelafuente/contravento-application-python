@@ -5,7 +5,6 @@ Pydantic models for user data in API responses.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -41,10 +40,10 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
 
     # Optional profile fields
-    photo_url: Optional[str] = Field(None, description="Profile photo URL")
-    bio: Optional[str] = Field(None, description="Profile biography")
-    location: Optional[str] = Field(None, description="User location")
-    cycling_type: Optional[str] = Field(None, description="Type of cycling")
+    photo_url: str | None = Field(None, description="Profile photo URL")
+    bio: str | None = Field(None, description="Profile biography")
+    location: str | None = Field(None, description="User location")
+    cycling_type: str | None = Field(None, description="Type of cycling")
 
     class Config:
         """Pydantic config."""
@@ -113,11 +112,11 @@ class UserProfileResponse(BaseModel):
         updated_at: Last profile update timestamp
     """
 
-    full_name: Optional[str] = Field(None, description="User's full name")
-    bio: Optional[str] = Field(None, description="Profile biography")
-    location: Optional[str] = Field(None, description="User's location")
-    cycling_type: Optional[str] = Field(None, description="Type of cycling")
-    profile_photo_url: Optional[str] = Field(None, description="URL to profile photo")
+    full_name: str | None = Field(None, description="User's full name")
+    bio: str | None = Field(None, description="Profile biography")
+    location: str | None = Field(None, description="User's location")
+    cycling_type: str | None = Field(None, description="Type of cycling")
+    profile_photo_url: str | None = Field(None, description="URL to profile photo")
     updated_at: datetime = Field(..., description="Last profile update timestamp (UTC)")
 
     class Config:
@@ -146,7 +145,7 @@ class UserWithProfileResponse(UserResponse):
         profile: User profile information (optional)
     """
 
-    profile: Optional[UserProfileResponse] = Field(None, description="User profile information")
+    profile: UserProfileResponse | None = Field(None, description="User profile information")
 
     class Config:
         """Pydantic config."""

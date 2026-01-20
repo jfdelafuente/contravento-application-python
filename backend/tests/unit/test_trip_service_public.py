@@ -4,11 +4,12 @@ Unit tests for TripService public feed methods (Feature 013).
 Tests privacy filtering, eager loading, and pagination logic.
 """
 
+from datetime import UTC, date, datetime
+
 import pytest
-from datetime import date, datetime, UTC
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.trip import Trip, TripStatus, TripPhoto, TripLocation
+from src.models.trip import Trip, TripLocation, TripPhoto, TripStatus
 from src.models.user import User
 from src.services.trip_service import TripService
 

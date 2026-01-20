@@ -5,14 +5,11 @@ Validates that feed endpoint responses match the OpenAPI specification
 defined in specs/004-social-network/contracts/social-api.yaml
 """
 
-import pytest
-from httpx import AsyncClient
 from pathlib import Path
+
+import pytest
 import yaml
-
-from src.models.trip import Trip
-from src.models.user import User
-
+from httpx import AsyncClient
 
 # Load OpenAPI spec
 SPEC_PATH = (
@@ -27,7 +24,7 @@ SPEC_PATH = (
 @pytest.fixture(scope="module")
 def openapi_spec():
     """Load the OpenAPI specification for social network endpoints."""
-    with open(SPEC_PATH, "r", encoding="utf-8") as f:
+    with open(SPEC_PATH, encoding="utf-8") as f:
         spec = yaml.safe_load(f)
     return spec
 
@@ -162,7 +159,7 @@ async def test_get_feed_item_schema(
         assert isinstance(item["description"], str)
         assert isinstance(item["author"], dict)
         assert isinstance(item["photos"], list)
-        assert item["distance_km"] is None or isinstance(item["distance_km"], (int, float))
+        assert item["distance_km"] is None or isinstance(item["distance_km"], int | float)
         assert isinstance(item["start_date"], str)
         assert item["end_date"] is None or isinstance(item["end_date"], str)
         assert isinstance(item["locations"], list)
@@ -258,8 +255,8 @@ async def test_get_feed_location_structure(
 
         # Type validation
         assert isinstance(location["name"], str)
-        assert location["latitude"] is None or isinstance(location["latitude"], (int, float))
-        assert location["longitude"] is None or isinstance(location["longitude"], (int, float))
+        assert location["latitude"] is None or isinstance(location["latitude"], int | float)
+        assert location["longitude"] is None or isinstance(location["longitude"], int | float)
 
 
 @pytest.mark.contract

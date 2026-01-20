@@ -5,7 +5,6 @@ Pydantic models for validating cycling type API requests and responses.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -29,7 +28,7 @@ class CyclingTypeResponse(BaseModel):
     id: str = Field(..., description="Unique identifier (UUID)")
     code: str = Field(..., description="Unique code (e.g., 'bikepacking')")
     display_name: str = Field(..., description="Display name for UI")
-    description: Optional[str] = Field(None, description="Detailed description")
+    description: str | None = Field(None, description="Detailed description")
     is_active: bool = Field(..., description="Whether this type is active")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
     updated_at: datetime = Field(..., description="Last update timestamp (UTC)")
@@ -65,7 +64,7 @@ class CyclingTypePublicResponse(BaseModel):
 
     code: str = Field(..., description="Unique code (e.g., 'bikepacking')")
     display_name: str = Field(..., description="Display name for UI")
-    description: Optional[str] = Field(None, description="Detailed description")
+    description: str | None = Field(None, description="Detailed description")
 
     class Config:
         """Pydantic config."""
@@ -98,7 +97,7 @@ class CyclingTypeCreateRequest(BaseModel):
         description="Unique code (lowercase, no spaces, e.g., 'bikepacking')",
     )
     display_name: str = Field(..., min_length=2, max_length=100, description="Display name for UI")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None, max_length=500, description="Detailed description (optional)"
     )
     is_active: bool = Field(True, description="Whether this type is active")
@@ -159,15 +158,15 @@ class CyclingTypeUpdateRequest(BaseModel):
         is_active: New active status (optional)
     """
 
-    display_name: Optional[str] = Field(
+    display_name: str | None = Field(
         None, min_length=2, max_length=100, description="Display name for UI"
     )
-    description: Optional[str] = Field(None, max_length=500, description="Detailed description")
-    is_active: Optional[bool] = Field(None, description="Whether this type is active")
+    description: str | None = Field(None, max_length=500, description="Detailed description")
+    is_active: bool | None = Field(None, description="Whether this type is active")
 
     @field_validator("display_name")
     @classmethod
-    def validate_display_name(cls, v: Optional[str]) -> Optional[str]:
+    def validate_display_name(cls, v: str | None) -> str | None:
         """Validate display name if provided."""
         if v is not None:
             v = v.strip()

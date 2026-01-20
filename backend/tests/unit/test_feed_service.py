@@ -4,14 +4,15 @@ Unit tests for FeedService (Feature 004 - T013 to T017).
 Tests the personalized feed business logic following TDD methodology.
 """
 
-import pytest
 import uuid
 from datetime import UTC, datetime, timedelta
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User
-from src.models.trip import Trip, TripStatus
 from src.models.social import Follow
+from src.models.trip import Trip, TripStatus
+from src.models.user import User
 from src.services.feed_service import FeedService
 
 

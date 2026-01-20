@@ -8,6 +8,7 @@ import asyncio
 import os
 from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from dotenv import load_dotenv
@@ -18,6 +19,9 @@ from sqlalchemy.pool import StaticPool
 
 from src.database import Base
 from src.main import app
+
+if TYPE_CHECKING:
+    from src.models.user import User
 
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)
@@ -403,7 +407,7 @@ def load_json_fixture(fixtures_dir):
         filepath = fixtures_dir / filename
         if not filepath.exists():
             return None
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             return json.load(f)
 
     return _load

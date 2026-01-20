@@ -5,15 +5,14 @@ Implements rate limiting decorator to prevent comment spam.
 Task: T089
 """
 
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from functools import wraps
-from typing import Callable
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.comment import Comment
-
 
 # Rate limit constants
 COMMENT_RATE_LIMIT = 10  # Maximum comments per hour

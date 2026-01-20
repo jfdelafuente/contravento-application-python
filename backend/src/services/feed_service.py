@@ -8,18 +8,18 @@ Implements hybrid feed algorithm:
 Success Criteria: SC-001 (<1s p95)
 """
 
-from datetime import UTC, datetime
 from typing import Any
-from sqlalchemy import and_, desc, func, not_, or_, select
+
+from sqlalchemy import and_, desc, func, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.trip import Trip, TripStatus, TripTag
-from src.models.user import User, UserProfile
-from src.models.like import Like
 from src.models.comment import Comment
+from src.models.like import Like
 from src.models.share import Share
 from src.models.social import Follow
+from src.models.trip import Trip, TripStatus, TripTag
+from src.models.user import User
 
 
 class FeedService:

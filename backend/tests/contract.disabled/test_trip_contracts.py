@@ -1416,7 +1416,7 @@ class TestTripUpdateContract:
         from src.utils.security import create_access_token
 
         # Create second user
-        user2 = User(
+        User(
             username="testuser2",
             email="test2@example.com",
             hashed_password="hashed",

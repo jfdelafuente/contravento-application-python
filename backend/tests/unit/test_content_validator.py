@@ -84,10 +84,6 @@ class TestContentValidator:
     ) -> None:
         """Test that word boundaries are respected (no partial matches)."""
         # These should NOT trigger spam detection (partial matches)
-        safe_contents = [
-            "I spammed the button",  # 'spammed' contains 'spam' but is different word
-            "Mañana voy a graficar",  # 'graficar' contains 'gratis' but is different
-        ]
 
         # Note: Current implementation may match these - adjust based on actual behavior
         # If word boundary regex works, these should be safe
@@ -132,7 +128,7 @@ class TestContentValidator:
         """Test that reasonable repetition is allowed."""
         # Same word 5 times (below threshold)
         content = "muy " * 5 + "bonito"
-        error = validator_with_custom_file.validate_content(content)
+        validator_with_custom_file.validate_content(content)
 
         # Should not trigger repetition error
         # (may still trigger if 'muy' is in blocked words, but that's separate)
@@ -143,7 +139,7 @@ class TestContentValidator:
         """Test that short words (<=3 chars) don't trigger repetition check."""
         # Short words like 'de' repeated many times should be OK
         content = "de " * 20 + "la casa"
-        error = validator_with_custom_file.validate_content(content)
+        validator_with_custom_file.validate_content(content)
 
         # Should not trigger repetition error for short words
         # (implementation only checks words > 3 chars)
@@ -171,7 +167,7 @@ class TestContentValidator:
         https://example2.com
         https://example3.com
         """
-        error = validator_with_custom_file.validate_content(content)
+        validator_with_custom_file.validate_content(content)
 
         # Should not trigger URL error (unless other rules violated)
 
@@ -238,7 +234,7 @@ class TestContentValidator:
         ]
 
         for spam in spam_examples:
-            error = validator_with_custom_file.validate_content(spam)
+            validator_with_custom_file.validate_content(spam)
             # At least one spam pattern should be detected
             # (blocked word, excessive repetition, or excessive URLs)
 
@@ -269,7 +265,7 @@ class TestContentValidator:
         # Test with plural 'casinos' - word boundary regex won't match 'casino'
         # This demonstrates good behavior: avoiding false positives
         content2 = "Ruta pasando por la ciudad de Monte Carlo con sus famosos casinos"
-        error2 = validator_with_custom_file.validate_content(content2)
+        validator_with_custom_file.validate_content(content2)
         # Plural form 'casinos' doesn't match 'casino' due to word boundaries
         # This could be seen as either good (avoids false positives) or
         # bad (misses some spam). Trade-off decision.

@@ -6,7 +6,6 @@ Converts location names to coordinates (latitude, longitude) for trip locations.
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 try:
     import googlemaps
@@ -32,9 +31,9 @@ class LocationService:
 
     def __init__(self) -> None:
         """Initialize location service."""
-        self._gmaps_client: Optional[googlemaps.Client] = None  # type: ignore
+        self._gmaps_client: googlemaps.Client | None = None  # type: ignore
 
-    def geocode_location(self, location_name: str) -> Optional[GeocodingResult]:
+    def geocode_location(self, location_name: str) -> GeocodingResult | None:
         """
         Geocode location name to coordinates.
 

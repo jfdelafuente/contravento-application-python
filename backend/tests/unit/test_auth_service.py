@@ -153,7 +153,7 @@ class TestAuthServiceVerifyEmail:
     async def test_verify_email_with_valid_token(self, db_session: AsyncSession):
         """Verify that valid token successfully verifies email."""
         # Arrange
-        auth_service = AuthService(db_session)
+        AuthService(db_session)
 
         # Create user and verification token
         # TODO: Setup test data
@@ -168,7 +168,7 @@ class TestAuthServiceVerifyEmail:
     async def test_verify_email_with_expired_token(self, db_session: AsyncSession):
         """Verify that expired token raises ValueError."""
         # Arrange
-        auth_service = AuthService(db_session)
+        AuthService(db_session)
 
         # TODO: Create expired token
 

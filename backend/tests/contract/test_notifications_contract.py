@@ -5,11 +5,11 @@ Validates that notification endpoints responses match the OpenAPI specification
 defined in specs/004-social-network/contracts/social-api.yaml
 """
 
-import pytest
-from httpx import AsyncClient
 from pathlib import Path
-import yaml
 
+import pytest
+import yaml
+from httpx import AsyncClient
 
 # Load OpenAPI spec
 SPEC_PATH = (
@@ -24,7 +24,7 @@ SPEC_PATH = (
 @pytest.fixture(scope="module")
 def openapi_spec():
     """Load the OpenAPI specification for social network endpoints."""
-    with open(SPEC_PATH, "r", encoding="utf-8") as f:
+    with open(SPEC_PATH, encoding="utf-8") as f:
         spec = yaml.safe_load(f)
     return spec
 

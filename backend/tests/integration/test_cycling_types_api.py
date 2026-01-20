@@ -135,7 +135,7 @@ class TestAdminCyclingTypesWorkflow:
         create_result = create_response.json()
         assert create_result["success"] is True
         assert create_result["data"]["code"] == "cyclocross"
-        created_id = create_result["data"]["id"]
+        create_result["data"]["id"]
 
         # Step 3: List all types
         list_response = await client.get("/admin/cycling-types", headers=auth_headers)

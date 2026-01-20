@@ -97,6 +97,10 @@ ignore = [
     "E501",  # line too long (handled by black)
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "B904",  # raise ... from err (exception chaining) - non-critical
+    "E402",  # module level import not at top (some intentional cases)
+    "E722",  # bare except (allowed in specific test cases)
+    "B017",  # pytest.raises(Exception) - allowed in tests
 ]
 exclude = [
     ".bzr",
@@ -123,6 +127,9 @@ exclude = [
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]  # unused imports
+"src/models/*.py" = ["F821"]  # undefined names (SQLAlchemy forward references)
+"tests/*.py" = ["F841"]  # unused variables in tests (fixtures, etc.)
+"tests/**/*.py" = ["F811"]  # redefinition of unused names in tests
 
 [tool.mypy]
 python_version = "3.11"

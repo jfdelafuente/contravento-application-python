@@ -8,8 +8,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.trip import Trip, TripStatus
-from src.models.user import User
+from src.models.trip import Trip
 
 
 @pytest.mark.asyncio

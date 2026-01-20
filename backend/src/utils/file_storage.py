@@ -8,7 +8,7 @@ import logging
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import BinaryIO, Optional
+from typing import BinaryIO
 
 import aiofiles
 from fastapi import UploadFile
@@ -199,7 +199,7 @@ def resize_photo(file_path: Path, target_size: int = 400) -> Path:
         raise
 
 
-async def validate_photo_async(file: UploadFile) -> tuple[bool, Optional[str]]:
+async def validate_photo_async(file: UploadFile) -> tuple[bool, str | None]:
     """
     Validate uploaded photo file (async version for FastAPI UploadFile).
 

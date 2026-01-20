@@ -4,15 +4,16 @@ Integration tests for Feed API endpoints (Feature 004 - T018 to T022).
 Tests the complete request/response cycle for GET /feed endpoint.
 """
 
-import pytest
 import uuid
-from httpx import AsyncClient
 from datetime import UTC, datetime
+
+import pytest
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User
-from src.models.trip import Trip, TripStatus
 from src.models.social import Follow
+from src.models.trip import Trip, TripStatus
+from src.models.user import User
 
 
 @pytest.mark.integration

@@ -33,7 +33,7 @@ class TestProfileUpdateWorkflow:
         """
         # Step 1: Register user
         username = sample_user_data["username"]
-        email = sample_user_data["email"]
+        sample_user_data["email"]
         password = sample_user_data["password"]
 
         register_response = await client.post("/auth/register", json=sample_user_data)
