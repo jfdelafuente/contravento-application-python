@@ -197,16 +197,16 @@ export const ProfilePage: React.FC = () => {
                   {/* Profile Visibility */}
                   <div className="info-item">
                     <span className="info-label">Visibilidad del perfil:</span>
-                    <span className="info-value privacy-badge" data-visibility={user.profile_visibility}>
-                      {getProfileVisibilityLabel(user.profile_visibility)}
+                    <span className="info-value privacy-badge" data-visibility={user.profile_visibility || 'public'}>
+                      {getProfileVisibilityLabel(user.profile_visibility || 'public')}
                     </span>
                   </div>
 
                   {/* Trip Visibility */}
                   <div className="info-item">
                     <span className="info-label">Visibilidad de viajes:</span>
-                    <span className="info-value privacy-badge" data-visibility={user.trip_visibility}>
-                      {getTripVisibilityLabel(user.trip_visibility)}
+                    <span className="info-value privacy-badge" data-visibility={user.trip_visibility || 'public'}>
+                      {getTripVisibilityLabel(user.trip_visibility || 'public')}
                     </span>
                   </div>
                 </div>

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getPublicTrips } from '../../services/tripsService';
 import { getPhotoUrl } from '../../utils/tripHelpers';
-import { TripListItem } from '../../types/trip';
+import { PublicTripSummary } from '../../types/trip';
 import './DiscoverTripsSection.css';
 
 /**
@@ -14,7 +14,7 @@ import './DiscoverTripsSection.css';
  * Shows trip cards with photo, title, and username.
  */
 export const DiscoverTripsSection: React.FC = () => {
-  const [trips, setTrips] = useState<TripListItem[]>([]);
+  const [trips, setTrips] = useState<PublicTripSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

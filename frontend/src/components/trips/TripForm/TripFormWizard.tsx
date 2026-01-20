@@ -178,7 +178,6 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const selectedPhotos = (data as any).selectedPhotos || [];
       await onSubmit(data, false); // isDraft = false
 
       toast.success(
