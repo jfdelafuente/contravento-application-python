@@ -1,8 +1,8 @@
-# Guía de CI/CD - ContraVento
+# Guía de CI - ContraVento
 
 ## Índice
 
-1. [¿Qué es CI/CD?](#qué-es-cicd)
+1. [¿Qué es CI?](#qué-es-ci)
 2. [Arquitectura del Pipeline](#arquitectura-del-pipeline)
 3. [Workflows Implementados](#workflows-implementados)
 4. [Configuración de GitHub Actions](#configuración-de-github-actions)
@@ -13,33 +13,31 @@
 
 ---
 
-## ¿Qué es CI/CD?
+## ¿Qué es CI?
 
-### CI/CD en Términos Simples
+### CI en Términos Simples
 
-**CI/CD** son las siglas de **Continuous Integration / Continuous Deployment** (Integración Continua / Despliegue Continuo).
+**CI** son las siglas de **Continuous Integration** (Integración Continua).
 
 #### Analogía del Mundo Real
 
 Imagina que estás construyendo un edificio:
 
-**Sin CI/CD** (Construcción Manual):
+**Sin CI** (Integración Manual):
 - 🏗️ Cada obrero trabaja en su propia área sin coordinación
 - 🔨 Al final del mes, intentan juntar todas las piezas
 - 💥 Muchas piezas no encajan, hay conflictos
 - ⏰ Semanas de trabajo para arreglar problemas
 - 😰 Estrés y retrasos constantes
 
-**Con CI/CD** (Construcción Automatizada):
+**Con CI** (Integración Automatizada):
 - 👷 Los obreros integran su trabajo cada día
 - 🔍 Un inspector automático verifica todo inmediatamente
 - ✅ Los problemas se detectan y arreglan al instante
 - 🚀 El edificio se construye de forma incremental y segura
 - 😌 Confianza y velocidad constante
 
-### Componentes de CI/CD
-
-#### CI - Continuous Integration (Integración Continua)
+### Integración Continua (CI)
 
 **¿Qué hace?**
 Cada vez que un desarrollador hace un commit a GitHub:
@@ -68,41 +66,11 @@ git push origin feature/user-profile
 
 **Beneficio**: Detecta problemas **inmediatamente**, no semanas después.
 
-#### CD - Continuous Deployment (Despliegue Continuo)
+### Comparación: Sin CI vs Con CI
 
-**¿Qué hace?**
-Después de que CI pasa, automáticamente:
-
-1. **Construye la aplicación**: Crea versiones optimizadas
-2. **Ejecuta tests finales**: Smoke tests en staging
-3. **Despliega a staging**: Actualiza ambiente de pruebas
-4. **Despliega a producción**: (opcional) Actualiza ambiente real
-
-**Ejemplo en ContraVento**:
-```bash
-# Merge a rama 'develop'
-git merge feature/user-profile
-
-# GitHub Actions automáticamente:
-✅ Construye imágenes Docker
-✅ Ejecuta smoke tests
-✅ Despliega a staging.contravento.com
-✅ Ejecuta tests E2E en staging
-✅ Notifica al equipo
-
-# Si staging es estable por 24h:
-✅ Deploy manual a producción (con aprobación)
-```
-
-**Beneficio**: Despliegues **rápidos**, **seguros** y **confiables**.
-
-### Comparación: Sin CI/CD vs Con CI/CD
-
-| Aspecto | Sin CI/CD | Con CI/CD |
+| Aspecto | Sin CI | Con CI |
 |---------|-----------|-----------|
 | **Detección de bugs** | Días/semanas después | Minutos después |
-| **Frecuencia de deploy** | Mensual | Diaria/horaria |
-| **Riesgo de deploy** | Alto (cambios acumulados) | Bajo (cambios pequeños) |
 | **Tiempo de arreglo** | Horas/días | Minutos |
 | **Confianza en el código** | Baja (tests manuales) | Alta (tests automáticos) |
 | **Estrés del equipo** | Alto | Bajo |
@@ -269,7 +237,8 @@ Archivos generados durante el workflow que se guardan:
 ContraVento tiene **3 workflows principales** configurados en `.github/workflows/`:
 
 **Archivos actuales**:
-- `ci.yml` - Pipeline principal de CI/CD (Backend Tests + E2E Tests + Security Scan)
+
+- `ci.yml` - Pipeline principal de CI (Backend Tests + E2E Tests + Security Scan)
 - `backend-tests.yml` - Tests backend aislados (Unit, Integration, Smoke, Coverage)
 - `frontend-tests.yml` - Tests frontend aislados (Lint, Unit, E2E)
 
@@ -781,7 +750,7 @@ Protection rules:
     └── README.md                  # Documentación de workflows
 ```
 
-**Nota**: No hay workflows de deployment en este directorio. El deployment se maneja por separado.
+**Nota**: Los workflows de deployment (CD) se documentan en el [CD_GUIDE.md](CD_GUIDE.md).
 
 ### Anatomía de un Workflow
 
@@ -2032,6 +2001,7 @@ concurrency:
 ### ContraVento Docs
 
 - **QA Testing Manual**: [docs/QA_TESTING_MANUAL.md](./QA_TESTING_MANUAL.md)
+- **CD Guide**: [docs/CD_GUIDE.md](./CD_GUIDE.md) - Guía de Continuous Deployment
 - **Deployment Guide**: [backend/docs/DEPLOYMENT.md](../backend/docs/DEPLOYMENT.md)
 - **Performance Testing**: [backend/tests/performance/PERFORMANCE_TESTING.md](../backend/tests/performance/PERFORMANCE_TESTING.md)
 
@@ -2039,14 +2009,14 @@ concurrency:
 
 ## Resumen
 
-### ¿Qué es CI/CD?
+### ¿Qué es CI?
 
-**CI/CD** = Integración Continua + Despliegue Continuo
+**CI** = Continuous Integration (Integración Continua)
 
 **En términos simples**:
 - 🤖 Robot que **revisa tu código automáticamente** cada vez que haces commit
 - ✅ **Ejecuta todos los tests** para asegurar que nada se rompa
-- 🚀 **Despliega automáticamente** a staging/production si todo pasa
+- 🔍 **Verifica calidad** con linting, type checking y análisis de seguridad
 
 ### Workflows de ContraVento
 
@@ -2060,9 +2030,9 @@ concurrency:
 
 ✅ **Detección temprana de bugs**: Minutos, no días
 ✅ **Confianza en el código**: Tests automáticos siempre
-✅ **Deploys seguros**: Validación antes de producción
-✅ **Velocidad**: Deploy diario vs mensual
+✅ **Calidad consistente**: Validación automática antes de merge
 ✅ **Menos estrés**: Automatización reduce errores humanos
+✅ **Feedback rápido**: Desarrolladores saben inmediatamente si algo se rompió
 
 ### Flujo de Trabajo Típico
 
@@ -2100,4 +2070,4 @@ Developer → Commit → Push → GitHub Actions
 - ✅ Actualizada información sobre jobs de Security Scan con CodeQL
 - ✅ Corregidos tiempos de ejecución estimados basados en runs reales
 
-**Contacto**: Para preguntas sobre CI/CD, contacta al equipo de DevOps o revisa la documentación en GitHub Actions
+**Contacto**: Para preguntas sobre CI, revisa la documentación en GitHub Actions o consulta este documento
