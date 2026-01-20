@@ -117,16 +117,16 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P6 | Redirección post-registro (código) | `7639042` | ✅ Resuelto |
 | P7 | Redirección post-login | `ac189a3` | ✅ Resuelto |
 | P8 | Test registro espera /verify-email | `9a86db2` | ✅ Resuelto |
+| P11 | Login duplicate locator (strict mode) | `2dfb0da` | ✅ Resuelto |
 | P12 | POST /trips retorna null data | `1580d1a` | ✅ Resuelto |
 | P13 | CSS selector regex syntax error | `49aaa68` | ✅ Resuelto |
 
 ### 🔴 PENDIENTES
 
-| ID | Problema | Prioridad | Dificultad | Archivo |
-|----|----------|-----------|------------|---------|
-| P9 | Duplicate heading mobile | 🟡 Media | Baja | `landing.spec.ts:128` |
-| P11 | Login duplicate locator | 🔴 Alta | Baja | `auth.spec.ts:128` |
-| P14 | Timeout general del suite | 🟢 Baja | Baja | `playwright.config.ts` |
+| ID  | Problema                    | Prioridad | Dificultad | Archivo                 |
+|-----|-----------------------------|-----------|------------|-------------------------|
+| P9  | Duplicate heading mobile    | 🟡 Media  | Baja       | `landing.spec.ts:128`   |
+| P14 | Timeout general del suite   | 🟢 Baja   | Baja       | `playwright.config.ts`  |
 
 ---
 
@@ -390,12 +390,41 @@ Total: ~140/213 tests ejecutados (66%)
 - **P13 - CSS Selector Regex Syntax Error** (E2E test)
   - Reemplazadas 18 ocurrencias de selectores CSS inválidos
   - Ahora usa APIs semánticas de Playwright (getByRole, getByTestId, filter)
+- **P11 - Login Duplicate Locator** (E2E test)
+  - Reemplazadas 2 ocurrencias de selector genérico `text=${username}`
+  - Ahora usa `.username` class selector específico
+  - Evita strict mode violation (2 elementos con el mismo texto)
 
 **Impacto esperado**:
 
-- +18 tests de Location Editing desbloqueados
+- +18 tests de Location Editing desbloqueados (P13)
+- +2 tests de Auth desbloqueados (P11 - login y session persistence)
+
+---
+
+### Ejecución #6 - Fix Login Duplicate Locator (P11)
+
+**Fecha**: 2026-01-20 (15:15 UTC aprox)
+
+**Commit**:
+
+- `2dfb0da` - Fix generic text selector in auth.spec.ts
+
+**Problema resuelto**:
+
+- **P11 - Login Duplicate Locator** (E2E test)
+  - Selector genérico `text=${username}` coincidía con 2 elementos:
+    1. `<span class="username">@username</span>`
+    2. `<strong>username@example.com</strong>`
+  - Causaba strict mode violation en Playwright
+  - Solución: usar `.username` class selector específico
+  - Afectaba 2 tests: login y session persistence
+
+**Impacto esperado**:
+
+- +2 tests de Auth desbloqueados
 
 ---
 
 **Última actualización**: 2026-01-20
-**Próxima ejecución programada**: Después de fix P13 - EJECUTAR AHORA
+**Próxima ejecución programada**: Después de fix P11 - EJECUTAR AHORA
