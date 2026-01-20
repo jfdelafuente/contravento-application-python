@@ -132,6 +132,7 @@
   .hero-section {
     min-height: 500px;
     max-height: 700px;
+    margin-bottom: var(--space-1);
   }
 
   .hero-title {
