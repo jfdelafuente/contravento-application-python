@@ -14,16 +14,20 @@ import './RegisterForm.css';
 // Zod validation schema
 const registerSchema = z.object({
   username: z.string()
+    .min(1, 'El nombre de usuario es requerido')
     .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
     .max(30, 'El nombre de usuario no puede exceder 30 caracteres')
     .regex(/^[a-zA-Z0-9_]+$/, 'Solo letras, números y guiones bajos'),
   email: z.string()
+    .min(1, 'El email es requerido')
     .email('Formato de email inválido')
     .max(255, 'El email no puede exceder 255 caracteres'),
   password: z.string()
+    .min(1, 'La contraseña es requerida')
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(128, 'La contraseña no puede exceder 128 caracteres'),
-  confirmPassword: z.string(),
+  confirmPassword: z.string()
+    .min(1, 'Debes confirmar la contraseña'),
   turnstileToken: z.string().min(1, 'Verificación CAPTCHA requerida'),
   acceptTerms: z.boolean().refine((val) => val === true, {
     message: 'Debes aceptar los términos y condiciones',
@@ -171,14 +175,21 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onError }
                           error.message ||
                           'Error al registrar usuario';
 
-      // Handle field-specific errors
-      if (error.response?.data?.error?.field) {
-        setError(error.response.data.error.field as keyof RegisterFormValues, {
+      // Handle field-specific errors (username, email, password)
+      const errorField = error.response?.data?.error?.field;
+      if (errorField && errorField in data) {
+        // Show error on specific field
+        setError(errorField as keyof RegisterFormValues, {
           type: 'manual',
           message: error.response.data.error.message,
         });
+
+        // Don't show general error banner for field-specific errors
+        // (user will see the error message under the field)
+        return;
       }
 
+      // Show general error banner for non-field-specific errors
       onError(errorMessage);
     } finally {
       setIsSubmitting(false);
