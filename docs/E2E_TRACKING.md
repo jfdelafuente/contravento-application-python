@@ -124,9 +124,16 @@ Tiempo: 10.0 minutos (límite alcanzado)
 
 ### 🔴 PENDIENTES
 
-| ID  | Problema                    | Prioridad | Dificultad | Archivo                 |
-|-----|-----------------------------|-----------|------------|-------------------------|
-| P14 | Timeout general del suite   | 🟢 Baja   | Baja       | `playwright.config.ts`  |
+| ID  | Problema                                      | Prioridad | Dificultad | Archivo                    |
+|-----|-----------------------------------------------|-----------|------------|----------------------------|
+| P14 | Timeout general del suite                     | 🟢 Baja   | Baja       | `playwright.config.ts`     |
+| P15 | Mensaje "registro exitoso" no encontrado      | 🔴 Alta   | Media      | `auth.spec.ts:44`          |
+| P16 | Mensaje "nombre de usuario ya existe" no encontrado | 🔴 Alta | Media | `auth.spec.ts:95` |
+| P17 | Mensaje "credenciales incorrectas" no encontrado | 🔴 Alta | Media | `auth.spec.ts:153` |
+| P18 | User menu button no encontrado (logout)       | 🟡 Media  | Baja       | `auth.spec.ts:209`         |
+| P19 | Protected routes no redirigen a /login        | 🔴 Alta   | Media      | `auth.spec.ts:285`         |
+| P20 | Test de rutas públicas mal escrito            | 🟡 Media  | Baja       | `auth.spec.ts:301`         |
+| P21 | Landing page no redirige usuarios autenticados | 🟡 Media | Media      | `landing.spec.ts:88`       |
 
 ---
 
@@ -449,5 +456,232 @@ Total: ~140/213 tests ejecutados (66%)
 
 ---
 
+## 🆕 Nuevos Problemas Identificados (Post Push P9, P11, P13)
+
+### P15 - Mensaje "registro exitoso" no encontrado
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:44`
+**Test afectado**: `should complete full registration workflow`
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('text=/registro exitoso/i')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+```
+
+**Análisis**:
+- El test busca el texto "registro exitoso" con regex case-insensitive
+- El mensaje NO aparece en el DOM durante los 10 segundos de timeout
+- RegisterPage tiene el mensaje: `'Registro exitoso! Tu cuenta ha sido verificada automáticamente...'`
+- Posibles causas:
+  1. El mensaje está en `.success-banner` pero el selector no lo encuentra
+  2. Timing issue - el mensaje aparece y desaparece muy rápido (redirect después de 3s)
+  3. El banner no se renderiza correctamente
+
+**Solución propuesta**:
+- Verificar que RegisterPage renderiza el banner con clase correcta
+- Ajustar selector del test para usar clase específica: `.success-banner`
+- Considerar aumentar timeout o esperar antes del redirect
+
+---
+
+### P16 - Mensaje "nombre de usuario ya existe" no encontrado
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:95`
+**Test afectado**: `should prevent duplicate username registration`
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('text=/nombre de usuario.*ya existe/i')
+Expected: visible
+```
+
+**Análisis**:
+- El test espera mensaje de error cuando se intenta registrar username duplicado
+- Backend retorna error pero frontend no lo muestra o usa texto diferente
+- Necesita verificar:
+  1. Qué mensaje exacto retorna el backend
+  2. Cómo RegisterForm maneja y muestra errores del backend
+  3. Si el mensaje se muestra en `.error-banner`
+
+**Solución propuesta**:
+- Verificar mensaje exacto del backend en endpoint `/auth/register`
+- Asegurar que RegisterForm muestra error en banner visible
+- Ajustar test para buscar mensaje exacto del backend
+
+---
+
+### P17 - Mensaje "credenciales incorrectas" no encontrado
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:153`
+**Test afectado**: `should show error for invalid credentials`
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('text=/credenciales.*incorrectas/i')
+Expected: visible
+```
+
+**Análisis**:
+- Similar a P16 - mensaje de error de login no encontrado
+- Backend retorna error de credenciales inválidas
+- LoginPage tiene `errorMessage` state pero el banner no aparece
+- Verificar LoginForm y cómo maneja errores
+
+**Solución propuesta**:
+- Verificar que LoginForm llama `onError()` callback correctamente
+- Verificar que LoginPage renderiza `.error-banner` con el mensaje
+- Ajustar test para usar selector de clase específico
+
+---
+
+### P18 - User menu button no encontrado (logout)
+
+**Prioridad**: 🟡 Media
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:209`
+**Test afectado**: `should logout and clear session`
+
+**Error**:
+```
+TimeoutError: page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('button[aria-label="User menu"]')
+```
+
+**Análisis**:
+- El test busca botón con `aria-label="User menu"`
+- Ese botón no existe en el DOM (diferente aria-label o no tiene)
+- Probablemente el navbar/header usa un selector diferente
+
+**Solución propuesta**:
+- Inspeccionar componente Navbar/Header para encontrar aria-label correcto
+- Opciones: `"Menú de usuario"`, `"User options"`, o usar data-testid
+- Actualizar test con el selector correcto
+
+---
+
+### P19 - Protected routes no redirigen a /login
+
+**Prioridad**: 🔴 Alta (Seguridad)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:285`
+**Test afectado**: `should redirect unauthenticated users to login`
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected pattern: /\/login/
+Received string:  "http://localhost:5173/"
+```
+
+**Análisis**:
+- Usuario NO autenticado intenta acceder a rutas protegidas (`/trips/new`, `/profile`, `/settings`)
+- Esperado: redirect a `/login`
+- Recibido: se queda en `/` (landing page)
+- **CRÍTICO**: Las rutas protegidas NO están funcionando correctamente
+
+**Causas posibles**:
+1. ProtectedRoute component no redirige correctamente
+2. useAuth() no detecta que usuario no está autenticado
+3. Router config no usa ProtectedRoute wrapper
+
+**Solución propuesta**:
+- Verificar implementación de ProtectedRoute component
+- Asegurar que verifica autenticación y redirige a `/login` con `state.from`
+- Verificar que Router usa ProtectedRoute en rutas sensibles
+
+---
+
+### P20 - Test de rutas públicas mal escrito
+
+**Prioridad**: 🟡 Media
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:301`
+**Test afectado**: `should allow access to public routes`
+
+**Error**:
+```
+Error: expect(page).not.toHaveURL(expected) failed
+Expected pattern: not /\/login/
+Received string: "http://localhost:5173/login"
+```
+
+**Análisis**:
+- El test visita `/login` y espera que NO esté en `/login`
+- Esto es ilógico - `/login` es una ruta pública y DEBERÍA estar en `/login`
+- El test está MAL ESCRITO
+
+**Código del test**:
+```typescript
+const publicRoutes = ['/', '/login', '/register', '/trips/public'];
+for (const route of publicRoutes) {
+  await page.goto(`${FRONTEND_URL}${route}`);
+  // Should NOT redirect to login
+  await expect(page).not.toHaveURL(/\/login/);
+}
+```
+
+**Problema**: Cuando visita `/login`, el test espera `not.toHaveURL(/\/login/)` pero obviamente SÍ está en `/login`
+
+**Solución propuesta**:
+- Cambiar lógica del test para verificar que rutas públicas NO redirigen a OTRA parte
+- Opción 1: Verificar que URL coincide con la ruta visitada
+- Opción 2: Verificar que NO redirige a una página de error/404
+
+**Fix sugerido**:
+```typescript
+for (const route of publicRoutes) {
+  await page.goto(`${FRONTEND_URL}${route}`);
+  // Should stay on the same route (not redirect away)
+  await expect(page).toHaveURL(new RegExp(route));
+}
+```
+
+---
+
+### P21 - Landing page no redirige usuarios autenticados
+
+**Prioridad**: 🟡 Media (UX)
+**Archivo**: `frontend/tests/e2e/landing.spec.ts:88`
+**Test afectado**: `should redirect authenticated users to /trips/public`
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected: "http://localhost:5173/trips/public"
+Received: "http://localhost:5173/"
+```
+
+**Análisis**:
+- Usuario autenticado visita `/` (landing page)
+- Esperado: redirect automático a `/trips/public`
+- Recibido: se queda en `/`
+- Esto es UX - usuarios autenticados no deberían ver landing page
+
+**Solución propuesta**:
+- Agregar lógica en LandingPage para detectar usuario autenticado
+- Usar useAuth() hook y useEffect para redirigir
+- Ejemplo:
+```typescript
+const { user } = useAuth();
+useEffect(() => {
+  if (user) {
+    navigate('/trips/public');
+  }
+}, [user, navigate]);
+```
+
+---
+
 **Última actualización**: 2026-01-20
 **Próxima ejecución programada**: Después de fix P9 - EJECUTAR AHORA
+
+**Resumen de problemas nuevos**: 7 problemas adicionales identificados (P15-P21)
+- 🔴 Alta prioridad: 4 (P15, P16, P17, P19)
+- 🟡 Media prioridad: 3 (P18, P20, P21)
