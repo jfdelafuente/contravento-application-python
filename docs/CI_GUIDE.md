@@ -2070,4 +2070,254 @@ Developer → Commit → Push → GitHub Actions
 - ✅ Actualizada información sobre jobs de Security Scan con CodeQL
 - ✅ Corregidos tiempos de ejecución estimados basados en runs reales
 
+---
+
+## Estado Actual de Tests E2E
+
+### Última Ejecución: 2026-01-20
+
+**Resultados**:
+- ✅ **10 tests pasados** (11.1%)
+- ❌ **80 tests fallados** (88.9%)
+- ⏭️ **1 test skipped** (1.1%)
+- ⏱️ **Timeout**: Suite completo excedió 600 segundos
+
+**Estado**: 🔴 **CRÍTICO** - Requiere atención inmediata
+
+### Categorías de Errores Activos
+
+#### 1. 🔴 CRÍTICO: Estructura de Respuesta del Backend (Bloquea ~70% de tests)
+
+**Error principal**:
+```typescript
+TypeError: Cannot destructure property 'access_token' of '(intermediate value).data' as it is null.
+```
+
+**Problema**: El backend NO está devolviendo la estructura esperada para endpoints de autenticación.
+
+**Esperado**:
+```json
+// POST /auth/login
+{
+  "success": true,
+  "data": {
+    "access_token": "...",
+    "refresh_token": "...",
+    "user": { ... }
+  }
+}
+
+// POST /auth/register
+{
+  "success": true,
+  "data": {
+    "user_id": "...",
+    "email": "...",
+    "message": "Registro exitoso..."
+  }
+}
+```
+
+**Actual**: `{ data: null }` o estructura incorrecta
+
+**Tests bloqueados**: ~63 tests (70%)
+- User Registration Flow
+- Login Flow
+- Logout Flow
+- Session Persistence
+- Location Editing (requiere auth)
+- Public Feed (requiere setup de usuarios)
+- Trip Creation (requiere auth)
+
+**Acción requerida**:
+1. Verificar [backend/src/api/auth.py](../backend/src/api/auth.py)
+2. Asegurar que todos los endpoints retornan estructura estandarizada
+3. Agregar logging temporal en [authService.ts](../frontend/src/services/authService.ts)
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 1042-1115
+
+---
+
+#### 2. 🟡 MEDIO: Redirección Post-Registro No Funciona
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected pattern: /\/verify-email/
+Received string:  "http://localhost:5173/register"
+```
+
+**Problema**: Después de registro exitoso, el frontend NO redirige a `/verify-email`.
+
+**Causa probable**: El `onSuccess()` callback en RegisterPage no se ejecuta porque `authService.register()` falla.
+
+**Tests afectados**: 2 tests
+- should complete full registration workflow
+- should prevent duplicate username registration
+
+**Acción requerida**:
+1. Verificar que `authService.register()` retorna correctamente
+2. Verificar que `navigate('/verify-email')` en RegisterPage se ejecuta
+3. Agregar console.log temporal para debugging
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 180-232
+
+---
+
+#### 3. 🟡 MEDIO: Redirección Post-Login No Funciona
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected pattern: /\/(home|dashboard|trips)/
+Received string:  "http://localhost:5173/login"
+```
+
+**Problema**: Después de login exitoso, NO redirige a página protegida.
+
+**Tests afectados**: 3 tests
+- should login with valid credentials
+- should login with email instead of username
+- should show error for invalid credentials
+
+**Acción requerida**:
+1. Verificar que `login()` en AuthContext se ejecuta correctamente
+2. Verificar que `onSuccess()` callback se ejecuta
+3. Verificar lógica de redirección en LoginPage
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 331-383
+
+---
+
+#### 4. 🟢 BAJO: Duplicación de Heading en Landing Page
+
+**Error**:
+```
+Error: strict mode violation: getByRole('heading', { name: /el camino es el destino/i })
+resolved to 2 elements
+```
+
+**Problema**: Hay 2 elementos `<h1>` con el mismo texto (versión desktop + mobile).
+
+**Tests afectados**: 3 tests
+- should stack sections vertically on mobile
+- should complete full visitor journey
+
+**Acción requerida**:
+1. Agregar clases `desktop-only` y `mobile-only` en LandingPage
+2. Agregar reglas CSS para ocultar según viewport
+3. Usar `getByRole().first()` en tests como workaround temporal
+
+**Archivo de referencia**: [docs/errores_e2e.txt](./errores_e2e.txt) líneas 962-1020
+
+---
+
+#### 5. ⏱️ MEDIO: Timeout del Suite Completo
+
+**Problema**: El suite completo excede 600 segundos (10 minutos).
+
+**Causa**:
+- Tests individuales esperan 10s antes de fallar
+- Retries automáticos (x3) multiplican el tiempo
+- ~80 tests fallando x 10s x 3 retries = ~40 minutos teóricos
+
+**Acción requerida**:
+1. Reducir timeout individual de 10s → 5s para fallar más rápido
+2. Deshabilitar retries temporalmente durante debugging
+3. Ejecutar subsets de tests en paralelo
+
+---
+
+### Tests que SÍ Pasan (Funcionalidad Básica)
+
+✅ Landing Page sin autenticación (10 tests):
+- Validación de formularios
+- CTAs y redirecciones básicas
+- Responsive design (parcial)
+- Accesibilidad de botones
+
+**Nota**: Estos tests pasan porque NO requieren autenticación ni interacción con el backend.
+
+---
+
+### Checklist Pre-Ejecución E2E
+
+Antes de ejecutar tests E2E, verificar:
+
+- [ ] Backend corriendo en `http://localhost:8000`
+- [ ] Frontend corriendo en `http://localhost:5173`
+- [ ] `/auth/login` retorna `{ data: { access_token } }`
+- [ ] `/auth/register` retorna `{ data: { user_id } }`
+- [ ] Variables de entorno `VITE_API_URL` configuradas
+- [ ] Base de datos limpia (sin usuarios de tests previos)
+- [ ] Usuario de prueba puede registrarse manualmente
+- [ ] Usuario de prueba puede hacer login manualmente
+
+---
+
+### Comandos de Debug
+
+**Ejecutar test específico con UI visible**:
+```bash
+cd frontend
+npx playwright test tests/e2e/auth.spec.ts:29 --headed --debug
+```
+
+**Ejecutar solo tests de autenticación**:
+```bash
+npx playwright test tests/e2e/auth.spec.ts --headed
+```
+
+**Ver reporte de última ejecución**:
+```bash
+npx playwright show-report
+```
+
+**Ver trace de test fallido**:
+```bash
+npx playwright show-trace test-results/.../trace.zip
+```
+
+---
+
+### Prioridades de Corrección
+
+1. **🔴 CRÍTICO**: Arreglar estructura de respuesta del backend de autenticación
+   - **Impacto**: Desbloquea ~70% de tests fallidos
+   - **Esfuerzo**: 2-4 horas
+   - **Archivo**: [backend/src/api/auth.py](../backend/src/api/auth.py)
+
+2. **🟡 MEDIO**: Verificar y corregir flujo de redirección post-registro/login
+   - **Impacto**: Desbloquea ~10% de tests
+   - **Esfuerzo**: 1-2 horas
+   - **Archivos**: RegisterPage.tsx, LoginPage.tsx, authService.ts
+
+3. **🟢 BAJO**: Arreglar duplicación de heading en Landing
+   - **Impacto**: Desbloquea ~3% de tests
+   - **Esfuerzo**: 30 minutos
+   - **Archivo**: LandingPage.tsx
+
+4. **⏱️ MEDIO**: Optimizar timeouts del suite
+   - **Impacto**: Reduce tiempo de ejecución en ~50%
+   - **Esfuerzo**: 1 hora
+   - **Archivo**: playwright.config.ts
+
+---
+
+### Métricas Históricas
+
+| Fecha | Tests Pasados | Tests Fallados | Tasa de Éxito | Bloqueadores |
+|-------|---------------|----------------|---------------|--------------|
+| 2026-01-20 | 10 | 80 | 11.1% | Auth backend response |
+| (Anterior) | - | - | - | - |
+
+---
+
+### Archivo de Log Completo
+
+El log completo de errores de la última ejecución está disponible en:
+- **Ubicación**: [docs/errores_e2e.txt](./errores_e2e.txt)
+- **Tamaño**: ~33,000 líneas
+- **Fecha**: 2026-01-20
+
 **Contacto**: Para preguntas sobre CI, revisa la documentación en GitHub Actions o consulta este documento
