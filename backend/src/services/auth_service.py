@@ -81,6 +81,7 @@ class AuthService:
 
         # In test environment, auto-verify users to simplify E2E testing
         from src.config import settings
+
         auto_verify = settings.app_env == "testing"
 
         # Create user

@@ -87,6 +87,7 @@ async def register(
 
         # Message depends on whether user was auto-verified (test environment)
         from src.config import settings
+
         if settings.app_env == "testing":
             message = "Usuario registrado y verificado automáticamente (entorno de testing)."
         else:
