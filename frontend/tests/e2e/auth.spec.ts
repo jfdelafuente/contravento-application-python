@@ -206,7 +206,6 @@ test.describe('Logout Flow (T047)', () => {
 
   test('should logout and clear session', async () => {
     // Click logout button (in user menu)
-    await authenticatedPage.click('button[aria-label="User menu"]');
     await authenticatedPage.click('text=/cerrar sesión|logout/i');
 
     // Should redirect to login page
@@ -274,12 +273,12 @@ test.describe('Protected Routes (T048)', () => {
     const protectedRoutes = [
       '/trips/new',
       '/profile',
-      '/settings',
-      '/trips/edit/123',
+      '/profile/edit',
+      '/trips/some-trip-id/edit',
     ];
 
     for (const route of protectedRoutes) {
-      await page.goto(`${FRONTEND_URL}${route}`);
+      await page.goto(`${FRONTEND_URL}${route}`, { waitUntil: 'networkidle' });
 
       // Should redirect to login
       await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
@@ -288,17 +287,17 @@ test.describe('Protected Routes (T048)', () => {
 
   test('should allow access to public routes', async ({ page }) => {
     const publicRoutes = [
-      '/',
-      '/login',
-      '/register',
-      '/trips/public',
+      { path: '/', expectedUrl: '/' },
+      { path: '/login', expectedUrl: '/login' },
+      { path: '/register', expectedUrl: '/register' },
+      { path: '/trips/public', expectedUrl: '/trips/public' },
     ];
 
     for (const route of publicRoutes) {
-      await page.goto(`${FRONTEND_URL}${route}`);
+      await page.goto(`${FRONTEND_URL}${route.path}`, { waitUntil: 'networkidle' });
 
-      // Should NOT redirect to login
-      await expect(page).not.toHaveURL(/\/login/);
+      // Should stay on the same route (not redirect)
+      await expect(page).toHaveURL(new RegExp(route.expectedUrl.replace('/', '\\/')));
     }
   });
 });

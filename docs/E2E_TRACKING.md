@@ -124,16 +124,16 @@ Tiempo: 10.0 minutos (límite alcanzado)
 | P15 | Mensaje "registro exitoso" no encontrado | (pendiente) | ✅ Resuelto |
 | P16 | Mensaje "nombre de usuario ya existe" no encontrado | (pendiente) | ✅ Resuelto |
 | P17 | Mensaje "credenciales incorrectas" no encontrado | (pendiente) | ✅ Resuelto |
+| P18 | User menu button no encontrado (logout) | (pendiente) | ✅ Resuelto |
+| P19 | Protected routes no redirigen a /login | (pendiente) | ✅ Resuelto |
+| P20 | Test de rutas públicas mal escrito | (pendiente) | ✅ Resuelto |
+| P21 | Landing page no redirige usuarios autenticados | (pendiente) | ✅ Resuelto |
 
 ### 🔴 PENDIENTES
 
 | ID  | Problema                                      | Prioridad | Dificultad | Archivo                    |
 |-----|-----------------------------------------------|-----------|------------|----------------------------|
 | P14 | Timeout general del suite                     | 🟢 Baja   | Baja       | `playwright.config.ts`     |
-| P18 | User menu button no encontrado (logout)       | 🟡 Media  | Baja       | `auth.spec.ts:209`         |
-| P19 | Protected routes no redirigen a /login        | 🔴 Alta   | Media      | `auth.spec.ts:285`         |
-| P20 | Test de rutas públicas mal escrito            | 🟡 Media  | Baja       | `auth.spec.ts:301`         |
-| P21 | Landing page no redirige usuarios autenticados | 🟡 Media | Media      | `landing.spec.ts:88`       |
 
 ---
 
