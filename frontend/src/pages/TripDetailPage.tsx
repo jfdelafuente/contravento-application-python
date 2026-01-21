@@ -20,6 +20,7 @@ import { GPXUploader } from '../components/trips/GPXUploader';
 import { GPXStats } from '../components/trips/GPXStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
+import { useGPXTrack } from '../hooks/useGPXTrack';
 import type { LocationSelection } from '../types/geocoding';
 import type { LocationInput } from '../types/trip';
 import {
@@ -56,6 +57,9 @@ export const TripDetailPage: React.FC = () => {
   const [isMapEditMode, setIsMapEditMode] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
   const { geocode } = useReverseGeocode();
+
+  // GPX track hook (Feature 003: GPS Routes - User Story 2)
+  const { track: gpxTrack } = useGPXTrack(trip?.gpx_file?.gpx_file_id);
 
   // Likes list modal state (Feature 004 - US2)
   const [showLikesModal, setShowLikesModal] = useState(false);
@@ -701,6 +705,9 @@ export const TripDetailPage: React.FC = () => {
                 isEditMode={isMapEditMode}
                 onMapClick={handleMapClick}
                 onMarkerDrag={handleMarkerDrag}
+                gpxTrackPoints={gpxTrack?.trackpoints}
+                gpxStartPoint={gpxTrack?.start_point}
+                gpxEndPoint={gpxTrack?.end_point}
               />
             </Suspense>
           </section>

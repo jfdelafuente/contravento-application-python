@@ -159,21 +159,21 @@
 
 **Backend API**
 
-- [ ] T054 [US2] Implement GET `/gpx/{gpx_file_id}/track` endpoint to return simplified trackpoints in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:319-389](contracts/gpx-api.yaml#L319-L389))
-- [ ] T055 [US2] Ensure trackpoints are returned ordered by sequence field (see [data-model.md:145-153](data-model.md#L145-L153))
+- [X] T054 [US2] Implement GET `/gpx/{gpx_file_id}/track` endpoint to return simplified trackpoints in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:319-389](contracts/gpx-api.yaml#L319-L389))
+- [X] T055 [US2] Ensure trackpoints are returned ordered by sequence field (see [data-model.md:145-153](data-model.md#L145-L153))
 
 **Frontend Hooks**
 
-- [ ] T056 [P] [US2] Create `frontend/src/hooks/useGPXTrack.ts` custom hook to fetch simplified trackpoints
+- [X] T056 [P] [US2] Create `frontend/src/hooks/useGPXTrack.ts` custom hook to fetch simplified trackpoints
 
 **Frontend Components**
 
-- [ ] T057 [US2] Modify `frontend/src/components/trips/TripMap.tsx` to render GPX polyline using react-leaflet (see [research.md:143-175](research.md#L143-L175))
-- [ ] T058 [US2] Add start marker (green) and end marker (red) to TripMap (FR-011)
-- [ ] T059 [US2] Implement auto-fit bounds to show entire route on load (FR-012)
-- [ ] T060 [US2] Add click handler to polyline showing tooltip with coordinates, elevation, distance (FR-013)
-- [ ] T061 [US2] Add map layer selector (terrain, satellite, cycling) using Leaflet controls (FR-010)
-- [ ] T062 [US2] Ensure touch gestures work on mobile (pinch zoom, drag pan) (FR-014, SC-008)
+- [X] T057 [US2] Modify `frontend/src/components/trips/TripMap.tsx` to render GPX polyline using react-leaflet (see [research.md:143-175](research.md#L143-L175))
+- [X] T058 [US2] Add start marker (green) and end marker (red) to TripMap (FR-011)
+- [X] T059 [US2] Implement auto-fit bounds to show entire route on load (FR-012)
+- [ ] T060 [US2] Add click handler to polyline showing tooltip with coordinates, elevation, distance (FR-013) - DEFERRED
+- [ ] T061 [US2] Add map layer selector (terrain, satellite, cycling) using Leaflet controls (FR-010) - DEFERRED
+- [ ] T062 [US2] Ensure touch gestures work on mobile (pinch zoom, drag pan) (FR-014, SC-008) - DEFERRED (already works from Feature 009)
 
 **Verification**
 

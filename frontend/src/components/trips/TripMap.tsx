@@ -9,10 +9,11 @@
  */
 
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { LatLngExpression, Icon, LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
+import { TrackPoint, Coordinate } from '../../types/gpx';
 import { createNumberedMarkerIcon } from '../../utils/mapHelpers';
 import { MapClickHandler } from './MapClickHandler';
 import './TripMap.css';
@@ -32,7 +33,35 @@ interface TripMapProps {
 
   /** Callback when user drags a marker in edit mode (Feature 010 - User Story 2) */
   onMarkerDrag?: (locationId: string, newLat: number, newLng: number) => void;
+
+  /** GPX trackpoints for route visualization (Feature 003 - User Story 2) */
+  gpxTrackPoints?: TrackPoint[];
+
+  /** GPX route start point (Feature 003 - User Story 2) */
+  gpxStartPoint?: Coordinate;
+
+  /** GPX route end point (Feature 003 - User Story 2) */
+  gpxEndPoint?: Coordinate;
 }
+
+// Custom icons for GPX route start/end markers
+const START_MARKER_ICON = new Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+const END_MARKER_ICON = new Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 /**
  * TileError Component
@@ -51,12 +80,35 @@ const TileErrorListener: React.FC<TileErrorListenerProps> = ({ onError }) => {
   return null;
 };
 
+/**
+ * AutoFitBounds Component
+ * Automatically adjusts map bounds to fit GPX route
+ */
+interface AutoFitBoundsProps {
+  bounds: LatLngBounds | null;
+}
+
+const AutoFitBounds: React.FC<AutoFitBoundsProps> = ({ bounds }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [bounds, map]);
+
+  return null;
+};
+
 export const TripMap: React.FC<TripMapProps> = ({
   locations,
   tripTitle,
   isEditMode = false,
   onMapClick,
   onMarkerDrag,
+  gpxTrackPoints,
+  gpxStartPoint,
+  gpxEndPoint,
 }) => {
   // Error state for map tile loading failures
   const [hasMapError, setHasMapError] = useState(false);
@@ -161,6 +213,27 @@ export const TripMap: React.FC<TripMapProps> = ({
     [validLocations]
   );
 
+  // Create polyline for GPX route (Feature 003 - User Story 2)
+  const gpxRoutePath: LatLngExpression[] = useMemo(() => {
+    if (!gpxTrackPoints || gpxTrackPoints.length === 0) return [];
+    return gpxTrackPoints.map((point) => [point.latitude, point.longitude]);
+  }, [gpxTrackPoints]);
+
+  // Calculate bounds for GPX route (for auto-fit)
+  const gpxBounds = useMemo(() => {
+    if (gpxRoutePath.length === 0) return null;
+
+    const lats = gpxRoutePath.map(([lat]) => lat as number);
+    const lngs = gpxRoutePath.map(([_, lng]) => lng as number);
+
+    const bounds = new LatLngBounds(
+      [Math.min(...lats), Math.min(...lngs)],
+      [Math.max(...lats), Math.max(...lngs)]
+    );
+
+    return bounds;
+  }, [gpxRoutePath]);
+
   // No locations at all and NOT in edit mode - show empty state
   if (locations.length === 0 && !isEditMode) {
     return (
@@ -235,6 +308,9 @@ export const TripMap: React.FC<TripMapProps> = ({
           {/* Tile Error Listener */}
           <TileErrorListener onError={handleTileError} />
 
+          {/* Auto-fit bounds for GPX route */}
+          {gpxBounds && <AutoFitBounds bounds={gpxBounds} />}
+
           {/* Map Click Handler (Feature 010: Reverse Geocoding) */}
           {isEditMode && onMapClick && (
             <MapClickHandler enabled={isEditMode} onMapClick={onMapClick} />
@@ -245,6 +321,52 @@ export const TripMap: React.FC<TripMapProps> = ({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+
+        {/* GPX Route Polyline (Feature 003 - User Story 2) */}
+        {gpxRoutePath.length > 1 && (
+          <Polyline
+            positions={gpxRoutePath}
+            pathOptions={{
+              color: '#dc2626',
+              weight: 3,
+              opacity: 0.8,
+            }}
+          />
+        )}
+
+        {/* GPX Start Marker (green) */}
+        {gpxStartPoint && (
+          <Marker
+            position={[gpxStartPoint.latitude, gpxStartPoint.longitude]}
+            icon={START_MARKER_ICON}
+          >
+            <Popup>
+              <div className="trip-map__popup">
+                <strong className="trip-map__popup-title">Inicio de ruta</strong>
+                <p className="trip-map__popup-subtitle">
+                  {gpxStartPoint.latitude.toFixed(5)}, {gpxStartPoint.longitude.toFixed(5)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* GPX End Marker (red) */}
+        {gpxEndPoint && (
+          <Marker
+            position={[gpxEndPoint.latitude, gpxEndPoint.longitude]}
+            icon={END_MARKER_ICON}
+          >
+            <Popup>
+              <div className="trip-map__popup">
+                <strong className="trip-map__popup-title">Fin de ruta</strong>
+                <p className="trip-map__popup-subtitle">
+                  {gpxEndPoint.latitude.toFixed(5)}, {gpxEndPoint.longitude.toFixed(5)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {/* Route Polyline (if multiple locations) */}
         {routePath.length > 1 && (
