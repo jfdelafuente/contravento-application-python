@@ -48,6 +48,12 @@ export const GPXUploader: React.FC<GPXUploaderProps> = ({
    */
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      // Safety check: ensure acceptedFiles array exists
+      if (!acceptedFiles || acceptedFiles.length === 0) {
+        console.warn('GPXUploader: No files provided to onDrop callback');
+        return;
+      }
+
       // Only accept first file (trips can have max 1 GPX)
       const file = acceptedFiles[0];
       if (!file) return;

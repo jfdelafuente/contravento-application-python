@@ -128,6 +128,7 @@ class TripService:
                 selectinload(Trip.user).selectinload(
                     User.profile
                 ),  # Need user + profile for author info (Feature 004)
+                selectinload(Trip.gpx_file),  # Feature 003 - GPS Routes Interactive
             )
         )
         trip = result.scalar_one_or_none()

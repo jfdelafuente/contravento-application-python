@@ -24,6 +24,12 @@ import './GPXStats.css';
  * Design pattern: Similar to StatsCard from dashboard
  */
 export const GPXStats: React.FC<GPXStatsProps> = ({ metadata }) => {
+  // Safety check: metadata should always be provided by parent
+  if (!metadata) {
+    console.error('GPXStats: metadata is required');
+    return null;
+  }
+
   const {
     distance_km,
     elevation_gain,

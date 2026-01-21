@@ -406,6 +406,9 @@ class TripResponse(BaseModel):
         default=None,
         description="Whether current user has liked this trip (Feature 004 - US2, null if not authenticated)",
     )
+    gpx_file: "GPXFileMetadata | None" = Field(
+        default=None, description="GPX file metadata (Feature 003 - GPS Routes Interactive)"
+    )
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -450,6 +453,8 @@ class TripResponse(BaseModel):
                 # Feature 004 - US2: Like count and is_liked (dynamic attributes)
                 "like_count": getattr(obj, "like_count", 0),
                 "is_liked": getattr(obj, "is_liked", None),
+                # Feature 003 - GPS Routes Interactive: GPX file metadata
+                "gpx_file": getattr(obj, "gpx_file", None),
             }
             return super().model_validate(data, **kwargs)
         return super().model_validate(obj, **kwargs)
@@ -793,3 +798,11 @@ class PublicTripListResponse(BaseModel):
                 },
             }
         }
+
+
+# Feature 003 - GPS Routes Interactive
+# Import GPXFileMetadata after TripResponse is defined to avoid circular imports
+# Then rebuild TripResponse to resolve the forward reference
+from src.schemas.gpx import GPXFileMetadata  # noqa: E402
+
+TripResponse.model_rebuild()

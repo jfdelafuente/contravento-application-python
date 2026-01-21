@@ -76,8 +76,8 @@ export async function createComment(
   tripId: string,
   data: CreateCommentInput
 ): Promise<Comment> {
-  const response = await api.post<Comment>(`/trips/${tripId}/comments`, data);
-  return response.data;
+  const response = await api.post(`/trips/${tripId}/comments`, data);
+  return response.data.data;
 }
 
 /**
@@ -95,10 +95,10 @@ export async function getTripComments(
   limit: number = 50,
   offset: number = 0
 ): Promise<CommentsListResponse> {
-  const response = await api.get<CommentsListResponse>(`/trips/${tripId}/comments`, {
+  const response = await api.get(`/trips/${tripId}/comments`, {
     params: { limit, offset },
   });
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -117,8 +117,8 @@ export async function updateComment(
   commentId: string,
   data: UpdateCommentInput
 ): Promise<Comment> {
-  const response = await api.put<Comment>(`/comments/${commentId}`, data);
-  return response.data;
+  const response = await api.put(`/comments/${commentId}`, data);
+  return response.data.data;
 }
 
 /**

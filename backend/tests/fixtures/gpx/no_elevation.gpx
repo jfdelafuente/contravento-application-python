@@ -1,25 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="ContraVento Test Suite" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="ContraVento Test Suite"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
-    <name>No Elevation Route</name>
-    <desc>GPX file without elevation data for testing FR-021</desc>
+    <name>Ruta Sin Elevación</name>
+    <desc>Ruta sin datos de elevación para testing</desc>
+    <time>2024-06-15T10:00:00Z</time>
   </metadata>
   <trk>
-    <name>Flat Route - No Elevation</name>
+    <name>Sin Elevación</name>
+    <type>cycling</type>
     <trkseg>
-      <trkpt lat="40.4168" lon="-3.7038">
+      <trkpt lat="40.4165" lon="-3.7026">
         <time>2024-06-15T10:00:00Z</time>
       </trkpt>
-      <trkpt lat="40.4200" lon="-3.7000">
+      <trkpt lat="40.4175" lon="-3.7036">
         <time>2024-06-15T10:05:00Z</time>
       </trkpt>
-      <trkpt lat="40.4232" lon="-3.6962">
+      <trkpt lat="40.4185" lon="-3.7046">
         <time>2024-06-15T10:10:00Z</time>
       </trkpt>
-      <trkpt lat="40.4264" lon="-3.6924">
+      <trkpt lat="40.4195" lon="-3.7056">
         <time>2024-06-15T10:15:00Z</time>
       </trkpt>
-      <trkpt lat="40.4296" lon="-3.6886">
+      <trkpt lat="40.4205" lon="-3.7066">
         <time>2024-06-15T10:20:00Z</time>
       </trkpt>
     </trkseg>

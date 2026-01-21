@@ -5,7 +5,7 @@
  * Feature 003 - GPS Routes Interactive (T036)
  */
 
-import api from './api';
+import { api } from './api';
 
 /**
  * GPX Upload Response (matches backend schema)

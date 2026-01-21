@@ -16,24 +16,26 @@
   margin: 0 0 1.5rem 0;
 }
 
-/* Grid Layout */
+/* Grid Layout - Single row with 5 columns */
 .gpx-stats__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-/* Stat Card */
+/* Stat Card - More compact */
 .gpx-stat-card {
   background: #ffffff;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
+  border-radius: 0.5rem;
+  padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
   display: flex;
-  gap: 1rem;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  text-align: center;
 }
 
 .gpx-stat-card:hover {
@@ -41,43 +43,46 @@
   transform: translateY(-2px);
 }
 
-/* Icon Wrapper */
+/* Icon Wrapper - Smaller and centered */
 .gpx-stat-card__icon-wrapper {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: rgba(66, 153, 225, 0.1);
   color: #4299e1;
+  margin-bottom: 0.25rem;
 }
 
 .gpx-stat-card__icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
-/* Content */
+/* Content - Centered */
 .gpx-stat-card__content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  align-items: center;
+  width: 100%;
 }
 
 .gpx-stat-card__label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #718096;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  white-space: nowrap;
 }
 
 .gpx-stat-card__value {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #2d3748;
   margin: 0;
@@ -85,7 +90,7 @@
 }
 
 .gpx-stat-card__unit {
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 400;
   color: #718096;
 }
@@ -147,43 +152,72 @@
   line-height: 1.5;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* Mobile Responsive - Stack cards vertically */
+@media (max-width: 640px) {
   .gpx-stats__grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .gpx-stat-card {
-    padding: 1.25rem;
+    padding: 0.875rem;
+    flex-direction: row;
+    text-align: left;
   }
 
   .gpx-stat-card__icon-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0;
+    margin-right: 0.75rem;
   }
 
   .gpx-stat-card__icon {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .gpx-stat-card__content {
+    align-items: flex-start;
+  }
+
+  .gpx-stat-card__label {
+    font-size: 0.7rem;
   }
 
   .gpx-stat-card__value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .gpx-stat-card__unit {
-    font-size: 1rem;
+    font-size: 0.75rem;
   }
 
   .gpx-stats__title {
     font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 }
 
-/* Tablet Responsive */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Small tablet - 2 columns */
+@media (min-width: 641px) and (max-width: 768px) {
   .gpx-stats__grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .gpx-stat-card {
+    padding: 0.875rem;
+  }
+
+  .gpx-stat-card__value {
+    font-size: 1.375rem;
+  }
+}
+
+/* Tablet - 3 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .gpx-stats__grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
