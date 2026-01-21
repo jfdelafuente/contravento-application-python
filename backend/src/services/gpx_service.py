@@ -271,7 +271,7 @@ class GPXService:
             filename: Original filename
 
         Returns:
-            Relative file path (e.g., "storage/gpx_files/2024/06/trip_id/original.gpx")
+            Absolute file path (e.g., "/path/to/storage/gpx_files/2024/06/trip_id/original.gpx")
 
         File structure: storage/gpx_files/{year}/{month}/{trip_id}/original.gpx
         """
@@ -280,13 +280,13 @@ class GPXService:
         year = now.strftime("%Y")
         month = now.strftime("%m")
 
-        # Create directory structure
-        storage_root = Path("storage") / "gpx_files" / year / month / trip_id
+        # Create directory structure (absolute path)
+        storage_root = Path.cwd() / "storage" / "gpx_files" / year / month / trip_id
         storage_root.mkdir(parents=True, exist_ok=True)
 
         # Save file with standardized name
         file_path = storage_root / "original.gpx"
         file_path.write_bytes(file_content)
 
-        # Return relative path for database storage
-        return str(file_path.relative_to(Path.cwd()))
+        # Return absolute path for database storage
+        return str(file_path)

@@ -6,17 +6,26 @@ Functional Requirements: FR-001, FR-002, FR-003, FR-007, FR-008, FR-009, FR-010,
 """
 
 import logging
+from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, get_optional_current_user
 from src.config import settings
-from src.models.trip import TripStatus
+from src.models.gpx import GPXFile, TrackPoint
+from src.models.trip import Trip, TripStatus
 from src.models.user import User
+from src.schemas.gpx import (
+    GPXMetadataSuccessResponse,
+    GPXStatusSuccessResponse,
+    GPXUploadSuccessResponse,
+    TrackDataSuccessResponse,
+)
 from src.schemas.trip import (
     PaginationInfo,
     PublicLocationSummary,
@@ -28,6 +37,7 @@ from src.schemas.trip import (
     TripResponse,
     TripUpdateRequest,
 )
+from src.services.gpx_service import GPXService
 from src.services.trip_service import TripService
 
 logger = logging.getLogger(__name__)
@@ -1056,6 +1066,730 @@ async def get_all_tags(
         logger.error(f"Error getting tags: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+# ============================================================================
+# Feature 003 - GPS Routes Interactive (GPX Endpoints)
+# ============================================================================
+
+
+@router.post(
+    "/{trip_id}/gpx",
+    response_model=GPXUploadSuccessResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload GPX file to trip",
+    description="Upload a GPX file to a trip. Files <1MB processed sync, >1MB async.",
+)
+async def upload_gpx_file(
+    trip_id: str,
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> GPXUploadSuccessResponse:
+    """
+    T029: Upload GPX file to trip (FR-001, FR-002, SC-002, SC-003).
+
+    Processing modes:
+    - Files <1MB: Synchronous (201 Created with full data)
+    - Files >1MB: Asynchronous (202 Accepted, poll /gpx/{gpx_id}/status)
+
+    Requirements:
+    - User must be trip owner
+    - File must be .gpx format
+    - File size ≤10MB (FR-001)
+    - Trip can have at most 1 GPX file
+
+    Performance:
+    - SC-002: <3s for files <1MB
+    - SC-003: <15s for files 5-10MB
+
+    Args:
+        trip_id: Trip identifier
+        file: GPX file upload
+        background_tasks: FastAPI background tasks
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        GPXUploadSuccessResponse with upload status and data
+
+    Raises:
+        400: Validation error (file too large, invalid format, trip already has GPX)
+        401: Unauthorized
+        403: Forbidden (not trip owner)
+        404: Trip not found
+    """
+    try:
+        # Validate file extension (T034)
+        if not file.filename or not file.filename.lower().endswith(".gpx"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "INVALID_FILE_TYPE",
+                        "message": "Solo se permiten archivos .gpx",
+                    },
+                },
+            )
+
+        # Read file content
+        file_content = await file.read()
+        file_size = len(file_content)
+
+        # Validate file size (max 10MB) - T034, FR-001
+        MAX_SIZE_MB = 10
+        max_size_bytes = MAX_SIZE_MB * 1024 * 1024
+        if file_size > max_size_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "FILE_TOO_LARGE",
+                        "message": f"El archivo GPX no puede exceder {MAX_SIZE_MB}MB. Tamaño actual: {file_size / (1024 * 1024):.1f}MB",
+                    },
+                },
+            )
+
+        # Verify trip exists
+        trip_result = await db.execute(select(Trip).where(Trip.trip_id == trip_id))
+        trip = trip_result.scalar_one_or_none()
+
+        if not trip:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Viaje no encontrado",
+                    },
+                },
+            )
+
+        # Check ownership
+        if trip.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Solo el propietario del viaje puede subir archivos GPX",
+                    },
+                },
+            )
+
+        # Check if trip already has GPX file - T034
+        existing_gpx = await db.execute(select(GPXFile).where(GPXFile.trip_id == trip_id))
+        if existing_gpx.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "TRIP_ALREADY_HAS_GPX",
+                        "message": "Este viaje ya tiene un archivo GPX. Elimínalo primero si deseas subir uno nuevo.",
+                    },
+                },
+            )
+
+        # Initialize GPX service
+        gpx_service = GPXService(db)
+
+        # Determine processing mode based on file size
+        ASYNC_THRESHOLD_MB = 1
+        async_threshold_bytes = ASYNC_THRESHOLD_MB * 1024 * 1024
+
+        if file_size <= async_threshold_bytes:
+            # Synchronous processing (<1MB files) - SC-002
+            try:
+                # Parse GPX file (T023)
+                parsed_data = await gpx_service.parse_gpx_file(file_content)
+
+                # Save original file to storage (T026)
+                file_url = await gpx_service.save_gpx_to_storage(
+                    trip_id=trip_id, file_content=file_content, filename=file.filename
+                )
+
+                # Create GPX file record
+                from datetime import UTC, datetime
+
+                gpx_file = GPXFile(
+                    trip_id=trip_id,
+                    file_url=file_url,
+                    file_size=file_size,
+                    file_name=file.filename,
+                    distance_km=parsed_data["distance_km"],
+                    elevation_gain=parsed_data["elevation_gain"],
+                    elevation_loss=parsed_data["elevation_loss"],
+                    max_elevation=parsed_data["max_elevation"],
+                    min_elevation=parsed_data["min_elevation"],
+                    start_lat=parsed_data["start_lat"],
+                    start_lon=parsed_data["start_lon"],
+                    end_lat=parsed_data["end_lat"],
+                    end_lon=parsed_data["end_lon"],
+                    total_points=parsed_data["total_points"],
+                    simplified_points=parsed_data["simplified_points_count"],
+                    has_elevation=parsed_data["has_elevation"],
+                    has_timestamps=parsed_data["has_timestamps"],
+                    processing_status="completed",
+                    processed_at=datetime.now(UTC),
+                )
+
+                db.add(gpx_file)
+                await db.commit()
+                await db.refresh(gpx_file)
+
+                # Save trackpoints
+                from src.schemas.gpx import TrackPointResponse
+
+                trackpoints = []
+                for point_data in parsed_data["trackpoints"]:
+                    track_point = TrackPoint(
+                        gpx_file_id=gpx_file.gpx_file_id,
+                        latitude=point_data["latitude"],
+                        longitude=point_data["longitude"],
+                        elevation=point_data["elevation"],
+                        distance_km=point_data["distance_km"],
+                        sequence=point_data["sequence"],
+                        gradient=point_data["gradient"],
+                    )
+                    trackpoints.append(track_point)
+
+                db.add_all(trackpoints)
+                await db.commit()
+
+                # Return full response (201 Created)
+                from src.schemas.gpx import GPXUploadResponse
+
+                response_data = GPXUploadResponse(
+                    gpx_file_id=gpx_file.gpx_file_id,
+                    trip_id=gpx_file.trip_id,
+                    processing_status=gpx_file.processing_status,
+                    distance_km=gpx_file.distance_km,
+                    elevation_gain=gpx_file.elevation_gain,
+                    elevation_loss=gpx_file.elevation_loss,
+                    max_elevation=gpx_file.max_elevation,
+                    min_elevation=gpx_file.min_elevation,
+                    has_elevation=gpx_file.has_elevation,
+                    has_timestamps=gpx_file.has_timestamps,
+                    total_points=gpx_file.total_points,
+                    simplified_points=gpx_file.simplified_points,
+                    uploaded_at=gpx_file.uploaded_at,
+                    processed_at=gpx_file.processed_at,
+                )
+
+                return GPXUploadSuccessResponse(success=True, data=response_data)
+
+            except ValueError as e:
+                # GPX parsing error (T035 - Spanish error messages)
+                logger.warning(f"GPX parsing error for trip {trip_id}: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "success": False,
+                        "data": None,
+                        "error": {
+                            "code": "INVALID_GPX_FORMAT",
+                            "message": str(e),
+                        },
+                    },
+                )
+
+        else:
+            # Asynchronous processing (>1MB files) - SC-003
+            # TODO: Implement async processing with BackgroundTasks
+            # For now, return 501 Not Implemented
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_IMPLEMENTED",
+                        "message": "Procesamiento asíncrono de archivos grandes aún no implementado",
+                    },
+                },
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading GPX file to trip {trip_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+@router.get(
+    "/{trip_id}/gpx",
+    response_model=GPXMetadataSuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get GPX file metadata for trip",
+    description="Retrieve metadata about the GPX file associated with a trip.",
+)
+async def get_gpx_metadata(
+    trip_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> GPXMetadataSuccessResponse:
+    """
+    T031: Get GPX file metadata for trip.
+
+    Public endpoint - No authentication required.
+
+    Args:
+        trip_id: Trip identifier
+        db: Database session
+
+    Returns:
+        GPXMetadataSuccessResponse with GPX file metadata
+
+    Raises:
+        404: Trip not found or trip has no GPX file
+    """
+    try:
+        # Get GPX file for trip
+        result = await db.execute(select(GPXFile).where(GPXFile.trip_id == trip_id))
+        gpx_file = result.scalar_one_or_none()
+
+        if not gpx_file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "No se encontró archivo GPX para este viaje",
+                    },
+                },
+            )
+
+        # Convert to response schema
+        from src.schemas.gpx import GPXFileMetadata
+
+        metadata = GPXFileMetadata.model_validate(gpx_file)
+
+        return GPXMetadataSuccessResponse(success=True, data=metadata)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving GPX metadata for trip {trip_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+@router.delete(
+    "/{trip_id}/gpx",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete GPX file from trip",
+    description="Remove GPX file and all associated trackpoints from a trip.",
+)
+async def delete_gpx_file(
+    trip_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    T033: Delete GPX file from trip (FR-036).
+
+    Cascade deletes:
+    - Trackpoints
+    - Original GPX file from storage
+
+    Args:
+        trip_id: Trip identifier
+        current_user: Authenticated user (must be trip owner)
+        db: Database session
+
+    Returns:
+        204 No Content on success
+
+    Raises:
+        401: Unauthorized
+        403: Forbidden (not trip owner)
+        404: Trip not found or trip has no GPX file
+    """
+    try:
+        # Verify trip exists
+        trip_result = await db.execute(select(Trip).where(Trip.trip_id == trip_id))
+        trip = trip_result.scalar_one_or_none()
+
+        if not trip:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Viaje no encontrado",
+                    },
+                },
+            )
+
+        # Check ownership
+        if trip.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Solo el propietario del viaje puede eliminar archivos GPX",
+                    },
+                },
+            )
+
+        # Get GPX file
+        gpx_result = await db.execute(select(GPXFile).where(GPXFile.trip_id == trip_id))
+        gpx_file = gpx_result.scalar_one_or_none()
+
+        if not gpx_file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "No se encontró archivo GPX para este viaje",
+                    },
+                },
+            )
+
+        # Delete physical file from storage
+        try:
+            file_path = Path(gpx_file.file_url)
+            if file_path.exists():
+                file_path.unlink()
+                logger.info(f"Deleted GPX file from storage: {gpx_file.file_url}")
+        except Exception as e:
+            logger.warning(f"Failed to delete GPX file from storage: {e}")
+
+        # Delete from database (cascade will delete trackpoints)
+        await db.delete(gpx_file)
+        await db.commit()
+
+        logger.info(f"Deleted GPX file {gpx_file.gpx_file_id} from trip {trip_id}")
+
+        # Return 204 No Content
+        return None
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting GPX file from trip {trip_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+# GPX status and track endpoints (separate router for cleaner paths)
+gpx_router = APIRouter(prefix="/gpx", tags=["gpx"])
+
+
+@gpx_router.get(
+    "/{gpx_file_id}/status",
+    response_model=GPXStatusSuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get GPX processing status",
+    description="Poll processing status of uploaded GPX file (for async uploads).",
+)
+async def get_gpx_status(
+    gpx_file_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> GPXStatusSuccessResponse:
+    """
+    T030: Get GPX processing status.
+
+    Used for polling async uploads (files >1MB).
+
+    Args:
+        gpx_file_id: GPX file identifier
+        db: Database session
+
+    Returns:
+        GPXStatusSuccessResponse with processing status
+
+    Raises:
+        404: GPX file not found
+    """
+    try:
+        # Get GPX file
+        result = await db.execute(select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id))
+        gpx_file = result.scalar_one_or_none()
+
+        if not gpx_file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Archivo GPX no encontrado",
+                    },
+                },
+            )
+
+        # Convert to response schema
+        from src.schemas.gpx import GPXStatusResponse
+
+        status_data = GPXStatusResponse(
+            gpx_file_id=gpx_file.gpx_file_id,
+            processing_status=gpx_file.processing_status,
+            distance_km=gpx_file.distance_km if gpx_file.processing_status == "completed" else None,
+            elevation_gain=gpx_file.elevation_gain
+            if gpx_file.processing_status == "completed"
+            else None,
+            simplified_points=gpx_file.simplified_points
+            if gpx_file.processing_status == "completed"
+            else None,
+            uploaded_at=gpx_file.uploaded_at,
+            processed_at=gpx_file.processed_at,
+            error_message=gpx_file.error_message,
+        )
+
+        return GPXStatusSuccessResponse(success=True, data=status_data)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving GPX status {gpx_file_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+@gpx_router.get(
+    "/{gpx_file_id}/track",
+    response_model=TrackDataSuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get simplified trackpoints for map rendering",
+    description="Retrieve simplified GPS trackpoints for route visualization.",
+)
+async def get_track_data(
+    gpx_file_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> TrackDataSuccessResponse:
+    """
+    Get trackpoints for map rendering (FR-009, SC-007).
+
+    Returns simplified trackpoints (Douglas-Peucker algorithm).
+
+    Public endpoint - No authentication required.
+
+    Args:
+        gpx_file_id: GPX file identifier
+        db: Database session
+
+    Returns:
+        TrackDataSuccessResponse with simplified trackpoints
+
+    Raises:
+        404: GPX file not found or not yet processed
+    """
+    try:
+        # Get GPX file
+        result = await db.execute(select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id))
+        gpx_file = result.scalar_one_or_none()
+
+        if not gpx_file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Archivo GPX no encontrado",
+                    },
+                },
+            )
+
+        # Check processing status
+        if gpx_file.processing_status != "completed":
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_PROCESSED",
+                        "message": f"Archivo GPX aún no procesado. Estado: {gpx_file.processing_status}",
+                    },
+                },
+            )
+
+        # Get trackpoints
+        trackpoints_result = await db.execute(
+            select(TrackPoint)
+            .where(TrackPoint.gpx_file_id == gpx_file_id)
+            .order_by(TrackPoint.sequence)
+        )
+        trackpoints = trackpoints_result.scalars().all()
+
+        # Convert to response schema
+        from src.schemas.gpx import CoordinateResponse, TrackDataResponse, TrackPointResponse
+
+        track_data = TrackDataResponse(
+            gpx_file_id=gpx_file.gpx_file_id,
+            trip_id=gpx_file.trip_id,
+            distance_km=gpx_file.distance_km,
+            elevation_gain=gpx_file.elevation_gain,
+            simplified_points_count=len(trackpoints),
+            has_elevation=gpx_file.has_elevation,
+            start_point=CoordinateResponse(
+                latitude=gpx_file.start_lat, longitude=gpx_file.start_lon
+            ),
+            end_point=CoordinateResponse(latitude=gpx_file.end_lat, longitude=gpx_file.end_lon),
+            trackpoints=[TrackPointResponse.model_validate(tp) for tp in trackpoints],
+        )
+
+        return TrackDataSuccessResponse(success=True, data=track_data)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving track data {gpx_file_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
+
+
+@gpx_router.get(
+    "/{gpx_file_id}/download",
+    status_code=status.HTTP_200_OK,
+    summary="Download original GPX file",
+    description="Download the original unmodified GPX file.",
+)
+async def download_gpx_file(
+    gpx_file_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    T032: Download original GPX file (FR-039, SC-028).
+
+    Public endpoint - Anyone can download GPX files.
+
+    Args:
+        gpx_file_id: GPX file identifier
+        db: Database session
+
+    Returns:
+        FileResponse with GPX file
+
+    Raises:
+        404: GPX file not found
+    """
+    try:
+        # Get GPX file
+        result = await db.execute(select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id))
+        gpx_file = result.scalar_one_or_none()
+
+        if not gpx_file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Archivo GPX no encontrado",
+                    },
+                },
+            )
+
+        # Check if file exists
+        file_path = Path(gpx_file.file_url)
+        if not file_path.exists():
+            logger.error(f"GPX file not found in storage: {gpx_file.file_url}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "code": "FILE_NOT_FOUND",
+                        "message": "Archivo GPX no encontrado en almacenamiento",
+                    },
+                },
+            )
+
+        # Return file
+        return FileResponse(
+            path=str(file_path),
+            media_type="application/gpx+xml",
+            filename=gpx_file.file_name,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading GPX file {gpx_file_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "success": False,
                 "data": None,
