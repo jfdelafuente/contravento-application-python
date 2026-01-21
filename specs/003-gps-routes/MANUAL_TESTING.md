@@ -159,7 +159,7 @@ Verificar comportamiento con archivos grandes (actualmente retorna 501 - no impl
 
 3. **Verificar respuesta**:
    - ❌ **Esperado**: Error 501 "Not Implemented"
-   - ⚠️ Mensaje de error en español
+   - ⚠️ Mensaje de error en español: "Procesamiento asíncrono de archivos grandes aún no implementado"
    - ⚠️ No debe crashear la aplicación
 
 ### Criterios de Éxito ✅
@@ -168,9 +168,50 @@ Verificar comportamiento con archivos grandes (actualmente retorna 501 - no impl
 - [ ] Mensaje de error claro en español
 - [ ] Botón de "Reintentar" disponible
 
-### Nota
+### Nota - Procesamiento Asíncrono
 
-⚠️ **Este test fallará actualmente** porque el procesamiento asíncrono no está implementado. Esto es **esperado y documentado**.
+⚠️ **ESTADO ACTUAL (Phase 3)**: El procesamiento asíncrono de archivos >1MB **NO está implementado**.
+
+**Razón**: Se decidió implementar primero las funcionalidades core (upload sync, visualización, estadísticas) y dejar el procesamiento asíncrono para una fase posterior.
+
+**Código actual** (`backend/src/api/trips.py:1317-1330`):
+```python
+else:
+    # Asynchronous processing (>1MB files) - SC-003
+    # TODO: Implement async processing with BackgroundTasks
+    # For now, return 501 Not Implemented
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail={
+            "success": False,
+            "data": None,
+            "error": {
+                "code": "NOT_IMPLEMENTED",
+                "message": "Procesamiento asíncrono de archivos grandes aún no implementado",
+            },
+        },
+    )
+```
+
+**Cuándo se implementará**:
+- **Fase futura** (no incluida en MVP actual)
+- Requiere implementar FastAPI BackgroundTasks o migrar a Celery
+- Está documentado en `plan.md` como parte de la arquitectura técnica
+- Tests preparados pero marcados como pendientes (T019, T030, T037, T044, T047)
+
+**Workaround actual**:
+- Usar archivos GPX <1MB para testing (ej: `short_route.gpx` - 2.8 KB)
+- El límite es 1,000,000 bytes (1MB exacto)
+- Archivos ≥1MB devuelven 501 Not Implemented
+
+**Impacto en funcionalidad**:
+- ✅ Upload sync (<1MB): **Funciona** (T046)
+- ❌ Upload async (>1MB): **No implementado** (T047)
+- ✅ Visualización en mapa: **Funciona** (Phase 4 - T065)
+- ✅ Estadísticas: **Funciona** (Phase 3)
+- ✅ Download/Delete: **Funciona** (T048, T049)
+
+**Este comportamiento es ESPERADO y está DOCUMENTADO** en las tareas como pendiente de implementación futura.
 
 ---
 
