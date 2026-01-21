@@ -413,22 +413,29 @@ class TripResponse(BaseModel):
     @classmethod
     def model_validate(cls, obj, **kwargs):
         """Custom validation to handle trip_tags -> tags conversion and dynamic attributes."""
+        import logging
+        logger = logging.getLogger(__name__)
+
         if hasattr(obj, "trip_tags"):
             # Extract tags from trip_tags relationship
             tags = [trip_tag.tag for trip_tag in obj.trip_tags]
 
             # Build author UserSummary from trip.user (Feature 004)
             # User model has basic fields (username), UserProfile has extended fields (full_name, profile_photo_url)
-            author_data = {
-                "user_id": obj.user.id,
-                "username": obj.user.username,
-                "full_name": obj.user.profile.full_name if obj.user.profile else None,
-                "profile_photo_url": obj.user.profile.profile_photo_url
-                if obj.user.profile
-                else None,
-                "is_following": getattr(obj.user, "is_following", None),
-            }
-            author = UserSummary.model_validate(author_data)
+            try:
+                author_data = {
+                    "user_id": obj.user.id,
+                    "username": obj.user.username,
+                    "full_name": obj.user.profile.full_name if obj.user.profile else None,
+                    "profile_photo_url": obj.user.profile.profile_photo_url
+                    if obj.user.profile
+                    else None,
+                    "is_following": getattr(obj.user, "is_following", None),
+                }
+                author = UserSummary.model_validate(author_data)
+            except Exception as e:
+                logger.error(f"Failed to build author data: {e}, hasattr user: {hasattr(obj, 'user')}, user value: {getattr(obj, 'user', 'NOT_FOUND')}")
+                author = None
 
             # Create a dict with all attributes
             data = {
