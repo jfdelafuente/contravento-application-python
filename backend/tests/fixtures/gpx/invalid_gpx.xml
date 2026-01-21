@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite">
+  <!-- This is intentionally malformed GPX for testing error handling -->
+  <metadata>
+    <name>Invalid GPX File</name>
+  </metadata>
+  <trk>
+    <!-- Missing closing tag for trk to make it invalid -->
+    <name>Malformed Track</name>
+    <trkseg>
+      <trkpt lat="invalid" lon="invalid">
+        <ele>not-a-number</ele>
+      </trkpt>
+    <!-- Missing closing trkseg tag -->
+  <!-- Missing closing trk tag -->
+</gpx>

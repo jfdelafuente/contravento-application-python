@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Short Test Route</name>
+    <desc>A short cycling route for testing GPX parsing (50KB target)</desc>
+  </metadata>
+  <trk>
+    <name>Test Route - Zaragoza to Caspe</name>
+    <trkseg>
+      <trkpt lat="41.6488" lon="-0.8891">
+        <ele>245</ele>
+        <time>2024-06-01T08:00:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6512" lon="-0.8920">
+        <ele>265</ele>
+        <time>2024-06-01T08:05:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6545" lon="-0.8950">
+        <ele>285</ele>
+        <time>2024-06-01T08:10:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6578" lon="-0.8980">
+        <ele>305</ele>
+        <time>2024-06-01T08:15:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6612" lon="-0.9010">
+        <ele>325</ele>
+        <time>2024-06-01T08:20:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6645" lon="-0.9040">
+        <ele>345</ele>
+        <time>2024-06-01T08:25:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6678" lon="-0.9070">
+        <ele>365</ele>
+        <time>2024-06-01T08:30:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6712" lon="-0.9100">
+        <ele>385</ele>
+        <time>2024-06-01T08:35:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6745" lon="-0.9130">
+        <ele>405</ele>
+        <time>2024-06-01T08:40:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6778" lon="-0.9160">
+        <ele>425</ele>
+        <time>2024-06-01T08:45:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6812" lon="-0.9190">
+        <ele>445</ele>
+        <time>2024-06-01T08:50:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6845" lon="-0.9220">
+        <ele>465</ele>
+        <time>2024-06-01T08:55:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6878" lon="-0.9250">
+        <ele>485</ele>
+        <time>2024-06-01T09:00:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6912" lon="-0.9280">
+        <ele>505</ele>
+        <time>2024-06-01T09:05:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6945" lon="-0.9310">
+        <ele>525</ele>
+        <time>2024-06-01T09:10:00Z</time>
+      </trkpt>
+      <trkpt lat="41.6978" lon="-0.9340">
+        <ele>545</ele>
+        <time>2024-06-01T09:15:00Z</time>
+      </trkpt>
+      <trkpt lat="41.7012" lon="-0.9370">
+        <ele>565</ele>
+        <time>2024-06-01T09:20:00Z</time>
+      </trkpt>
+      <trkpt lat="41.7045" lon="-0.9400">
+        <ele>585</ele>
+        <time>2024-06-01T09:25:00Z</time>
+      </trkpt>
+      <trkpt lat="41.7078" lon="-0.9430">
+        <ele>605</ele>
+        <time>2024-06-01T09:30:00Z</time>
+      </trkpt>
+      <trkpt lat="41.7112" lon="-0.9460">
+        <ele>625</ele>
+        <time>2024-06-01T09:35:00Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

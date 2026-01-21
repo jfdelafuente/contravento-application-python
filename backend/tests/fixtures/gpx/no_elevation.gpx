@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>No Elevation Route</name>
+    <desc>GPX file without elevation data for testing FR-021</desc>
+  </metadata>
+  <trk>
+    <name>Flat Route - No Elevation</name>
+    <trkseg>
+      <trkpt lat="40.4168" lon="-3.7038">
+        <time>2024-06-15T10:00:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4200" lon="-3.7000">
+        <time>2024-06-15T10:05:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4232" lon="-3.6962">
+        <time>2024-06-15T10:10:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4264" lon="-3.6924">
+        <time>2024-06-15T10:15:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4296" lon="-3.6886">
+        <time>2024-06-15T10:20:00Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
