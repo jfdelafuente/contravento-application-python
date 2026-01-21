@@ -123,7 +123,8 @@ class GPXService:
                 downhill = None
 
             # Simplify trackpoints (Douglas-Peucker algorithm) - T024
-            simplified_points = self._simplify_track(points, epsilon=0.0001)
+            # epsilon=0.00001° ≈ 1 meter precision (less aggressive than 0.0001)
+            simplified_points = self._simplify_track(points, epsilon=0.00001)
 
             return {
                 "distance_km": round(distance_km, 2),
