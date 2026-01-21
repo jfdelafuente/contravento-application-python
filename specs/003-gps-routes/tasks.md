@@ -96,7 +96,7 @@
 
 **Backend Schemas**
 
-- [ ] T028 [P] [US1] Create Pydantic schemas in `backend/src/schemas/gpx.py`: GPXUploadResponse, GPXStatusResponse, GPXFileMetadata, TrackDataResponse, TrackPoint (see [contracts/gpx-api.yaml:442-733](contracts/gpx-api.yaml#L442-L733))
+- [X] T028 [P] [US1] Create Pydantic schemas in `backend/src/schemas/gpx.py`: GPXUploadResponse, GPXStatusResponse, GPXFileMetadata, TrackDataResponse, TrackPoint (see [contracts/gpx-api.yaml:442-733](contracts/gpx-api.yaml#L442-L733))
 
 **Backend API**
 
