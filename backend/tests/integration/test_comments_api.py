@@ -21,7 +21,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.trip import Trip
-from src.models.user import User
+from src.models.user import User, UserProfile
 from src.utils.security import create_access_token
 
 
@@ -51,6 +51,10 @@ async def trip_owner(db_session: AsyncSession) -> User:
         is_active=True,
     )
     db_session.add(user)
+    await db_session.flush()  # Get user.id
+
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
     await db_session.commit()
     await db_session.refresh(user)
     return user
@@ -68,6 +72,10 @@ async def commenter_user(db_session: AsyncSession) -> User:
         is_active=True,
     )
     db_session.add(user)
+    await db_session.flush()  # Get user.id
+
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
     await db_session.commit()
     await db_session.refresh(user)
     return user

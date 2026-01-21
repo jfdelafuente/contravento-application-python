@@ -26,7 +26,7 @@ class TestFollowWorkflow:
     async def test_complete_follow_unfollow_workflow(
         self,
         db_session: AsyncSession,
-        async_client: AsyncClient,
+        client: AsyncClient,
     ):
         """
         Test complete workflow:
@@ -53,46 +53,47 @@ class TestFollowWorkflow:
         )
         db_session.add(user_a)
         db_session.add(user_b)
+        await db_session.flush()  # Get user IDs
 
         profile_a = UserProfile(user_id=user_a.id)
         profile_b = UserProfile(user_id=user_b.id)
         db_session.add(profile_a)
         db_session.add(profile_b)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         token_a = create_access_token({"sub": user_a.id, "type": "access"})
 
         # 2. User A follows User B
-        follow_response = await async_client.post(
+        follow_response = await client.post(
             f"/users/{user_b.username}/follow", headers={"Authorization": f"Bearer {token_a}"}
         )
         assert follow_response.status_code == 200
 
         # 3. Verify User B in A's following list
-        following_response = await async_client.get(f"/users/{user_a.username}/following")
+        following_response = await client.get(f"/users/{user_a.username}/following")
         assert following_response.status_code == 200
         following_data = following_response.json()["data"]
         assert following_data["total_count"] == 1
         assert following_data["following"][0]["username"] == user_b.username
 
         # 4. Verify User A in B's followers list
-        followers_response = await async_client.get(f"/users/{user_b.username}/followers")
+        followers_response = await client.get(f"/users/{user_b.username}/followers")
         assert followers_response.status_code == 200
         followers_data = followers_response.json()["data"]
         assert followers_data["total_count"] == 1
         assert followers_data["followers"][0]["username"] == user_a.username
 
         # 5. User A unfollows User B
-        unfollow_response = await async_client.delete(
+        unfollow_response = await client.delete(
             f"/users/{user_b.username}/follow", headers={"Authorization": f"Bearer {token_a}"}
         )
         assert unfollow_response.status_code == 200
 
         # 6. Verify lists are now empty
-        following_response2 = await async_client.get(f"/users/{user_a.username}/following")
+        following_response2 = await client.get(f"/users/{user_a.username}/following")
         assert following_response2.json()["data"]["total_count"] == 0
 
-        followers_response2 = await async_client.get(f"/users/{user_b.username}/followers")
+        followers_response2 = await client.get(f"/users/{user_b.username}/followers")
         assert followers_response2.json()["data"]["total_count"] == 0
 
 
@@ -107,7 +108,7 @@ class TestFollowerCounterUpdates:
     async def test_counters_update_on_follow_unfollow(
         self,
         db_session: AsyncSession,
-        async_client: AsyncClient,
+        client: AsyncClient,
     ):
         """Test that followers_count and following_count update correctly."""
         # Create users
@@ -127,12 +128,13 @@ class TestFollowerCounterUpdates:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Get user IDs
 
         profile1 = UserProfile(user_id=user1.id)
         profile2 = UserProfile(user_id=user2.id)
         db_session.add(profile1)
         db_session.add(profile2)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         # Initial counters should be 0
         assert profile1.following_count == 0
@@ -140,7 +142,7 @@ class TestFollowerCounterUpdates:
 
         # User1 follows User2
         token = create_access_token({"sub": user1.id, "type": "access"})
-        await async_client.post(
+        await client.post(
             f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
@@ -151,7 +153,7 @@ class TestFollowerCounterUpdates:
         assert profile2.followers_count == 1  # User2 has 1 follower
 
         # User1 unfollows User2
-        await async_client.delete(
+        await client.delete(
             f"/users/{user2.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
@@ -173,7 +175,7 @@ class TestFollowersPagination:
     async def test_followers_pagination_with_50_plus_users(
         self,
         db_session: AsyncSession,
-        async_client: AsyncClient,
+        client: AsyncClient,
     ):
         """Test followers list pagination with more than 50 followers."""
         # Create target user
@@ -185,9 +187,10 @@ class TestFollowersPagination:
             is_verified=True,
         )
         db_session.add(target)
+        await db_session.flush()  # Get user ID
+
         target_profile = UserProfile(user_id=target.id)
         db_session.add(target_profile)
-        await db_session.flush()
 
         # Create 60 followers
         for i in range(60):
@@ -207,10 +210,10 @@ class TestFollowersPagination:
             follow = Follow(follower_id=follower.id, following_id=target.id)
             db_session.add(follow)
 
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         # Get first page (default limit is 50)
-        response1 = await async_client.get(f"/users/{target.username}/followers")
+        response1 = await client.get(f"/users/{target.username}/followers")
         assert response1.status_code == 200
         data1 = response1.json()["data"]
 
@@ -220,7 +223,7 @@ class TestFollowersPagination:
         assert data1["page"] == 1
 
         # Get second page
-        response2 = await async_client.get(f"/users/{target.username}/followers?page=2")
+        response2 = await client.get(f"/users/{target.username}/followers?page=2")
         assert response2.status_code == 200
         data2 = response2.json()["data"]
 
@@ -241,7 +244,7 @@ class TestSelfFollowPrevention:
     async def test_cannot_follow_self(
         self,
         db_session: AsyncSession,
-        async_client: AsyncClient,
+        client: AsyncClient,
     ):
         """Test that self-follow is prevented."""
         user = User(
@@ -252,15 +255,16 @@ class TestSelfFollowPrevention:
             is_verified=True,
         )
         db_session.add(user)
+        await db_session.flush()  # Get user ID
 
         profile = UserProfile(user_id=user.id)
         db_session.add(profile)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         token = create_access_token({"sub": user.id, "type": "access"})
 
         # Try to follow self
-        response = await async_client.post(
+        response = await client.post(
             f"/users/{user.username}/follow", headers={"Authorization": f"Bearer {token}"}
         )
 
@@ -286,7 +290,7 @@ class TestUnauthenticatedFollowRedirect:
     async def test_unauthenticated_follow_returns_401(
         self,
         db_session: AsyncSession,
-        async_client: AsyncClient,
+        client: AsyncClient,
     ):
         """Test that unauthenticated follow attempts return 401."""
         user = User(
@@ -297,13 +301,14 @@ class TestUnauthenticatedFollowRedirect:
             is_verified=True,
         )
         db_session.add(user)
+        await db_session.flush()  # Get user ID
 
         profile = UserProfile(user_id=user.id)
         db_session.add(profile)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         # Try to follow without auth
-        response = await async_client.post(f"/users/{user.username}/follow")
+        response = await client.post(f"/users/{user.username}/follow")
 
         # Should return 401
         assert response.status_code == 401
