@@ -23,8 +23,8 @@ from src.main import app
 if TYPE_CHECKING:
     from src.models.user import User
 
-# Configure pytest-asyncio
-pytest_plugins = ("pytest_asyncio",)
+# Configure pytest-asyncio and load Feature 013 fixtures
+pytest_plugins = ("pytest_asyncio", "tests.fixtures.feature_013_fixtures")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -411,10 +411,6 @@ def load_json_fixture(fixtures_dir):
             return json.load(f)
 
     return _load
-
-
-# Import fixtures for Feature 013 (Public Trips Feed)
-pytest_plugins = ["tests.fixtures.feature_013_fixtures"]
 
 
 # Pytest configuration

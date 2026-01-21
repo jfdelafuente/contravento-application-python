@@ -34,7 +34,7 @@ class TestStatsCalculationOnTripPublish:
     async def test_complete_stats_update_on_trip_publish(
         self,
         db_session: AsyncSession,
-        async_client: AsyncClient,
+        client: AsyncClient,
     ):
         """
         Test complete workflow:

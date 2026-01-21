@@ -12,7 +12,7 @@ Tests cover:
 Following TDD: These tests are written BEFORE implementation.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import uuid4
 
 import pytest
@@ -20,7 +20,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.trip import Trip
-from src.models.user import User
+from src.models.user import User, UserProfile
 
 
 @pytest.fixture
@@ -35,6 +35,10 @@ async def trip_owner(db_session: AsyncSession) -> User:
         is_active=True,
     )
     db_session.add(user)
+    await db_session.flush()  # Get user.id
+
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
     await db_session.commit()
     await db_session.refresh(user)
     return user
@@ -52,6 +56,10 @@ async def liker_user(db_session: AsyncSession) -> User:
         is_active=True,
     )
     db_session.add(user)
+    await db_session.flush()  # Get user.id
+
+    profile = UserProfile(user_id=user.id)
+    db_session.add(profile)
     await db_session.commit()
     await db_session.refresh(user)
     return user
@@ -65,8 +73,8 @@ async def published_trip(db_session: AsyncSession, trip_owner: User) -> Trip:
         user_id=trip_owner.id,
         title="API Test Trip",
         description="Testing likes API",
-        start_date="2024-06-01",
-        end_date="2024-06-05",
+        start_date=date(2024, 6, 1),
+        end_date=date(2024, 6, 5),
         distance_km=200.0,
         status="published",
         published_at=datetime.now(UTC),
@@ -183,7 +191,7 @@ class TestPostLike:
             user_id=trip_owner.id,
             title="My Own Trip",
             description="Testing self-like",
-            start_date="2024-06-01",
+            start_date=date(2024, 6, 1),
             distance_km=100.0,
             status="published",
             published_at=datetime.now(UTC),

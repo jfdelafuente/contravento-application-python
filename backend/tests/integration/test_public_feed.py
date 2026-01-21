@@ -9,6 +9,8 @@ Test coverage:
 - FR-022: Access control (owner-only actions)
 """
 
+from datetime import date
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
@@ -227,7 +229,7 @@ class TestAuthenticatedFeedAccess:
             user_id=other_user.id,
             title="Other User's Draft",
             description="Draft by another user",
-            start_date="2024-06-01",
+            start_date=date(2024, 6, 1),
             status=TripStatus.DRAFT,
         )
         db_session.add(draft_trip)
@@ -341,7 +343,7 @@ class TestAccessControl:
             user_id=other_user.id,
             title="Other User's Trip",
             description="Trip created by another user for access control testing.",
-            start_date="2024-06-01",
+            start_date=date(2024, 6, 1),
             status=TripStatus.PUBLISHED,
         )
         db_session.add(other_trip)
@@ -393,7 +395,7 @@ class TestAccessControl:
             user_id=other_user.id,
             title="Other User's Trip to Delete",
             description="Trip that should not be deletable by non-owner.",
-            start_date="2024-06-01",
+            start_date=date(2024, 6, 1),
             status=TripStatus.PUBLISHED,
         )
         db_session.add(other_trip)
