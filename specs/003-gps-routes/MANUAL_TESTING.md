@@ -293,6 +293,349 @@ Verificar que al eliminar un viaje con GPX, se eliminan también los trackpoints
 
 ---
 
+## T065: Visualización en Mapa Interactivo (Phase 4)
+
+### Objetivo
+Verificar que el mapa muestra la ruta GPS con marcadores de inicio (verde) y fin (rojo), y que se ajusta automáticamente para mostrar la ruta completa (FR-011, FR-012)
+
+### Prerequisitos
+
+- ✅ Viaje publicado con archivo GPX cargado (completar T046 primero)
+- ✅ Backend ejecutándose en http://localhost:8000
+- ✅ Frontend ejecutándose en http://localhost:5173
+
+### Pasos Detallados
+
+#### 1. Navegar al viaje con GPX
+
+1. **Login** con usuario que creó el viaje:
+   - Usuario: `testgpx` / Password: `TestGPX123!`
+
+2. **Ir a "Mis Viajes"**:
+   - Click en el menú de navegación → "Mis Viajes"
+   - O navegar directamente a: `http://localhost:5173/trips`
+
+3. **Abrir viaje de prueba**:
+   - Click en el viaje "Test Ruta GPS" (que tiene GPX del T046)
+   - URL será similar a: `http://localhost:5173/trips/{trip-id}`
+
+#### 2. Verificar Sección "Ruta GPS"
+
+1. **Scroll hacia abajo** hasta la sección "Ruta GPS"
+   - Debe aparecer **después** de las estadísticas (T046)
+   - Debe aparecer **antes** de la sección de mapa de ubicaciones (Feature 009)
+
+2. **Verificar componentes visibles**:
+   - ✅ Título: "Ruta GPS"
+   - ✅ Cards de estadísticas (Distancia, Desnivel, etc.)
+   - ✅ **NUEVO**: Mapa interactivo con la ruta
+
+#### 3. Inspeccionar el Mapa
+
+**Abrir DevTools** (F12) para verificar logs:
+```
+Console → Filtrar por "GPX" o "track"
+```
+
+**Elementos a verificar en el mapa**:
+
+1. **Polyline de la ruta** (línea roja):
+   - ✅ Color: Rojo (#dc2626)
+   - ✅ Grosor: 3px
+   - ✅ Opacidad: 0.8
+   - ✅ La línea conecta todos los trackpoints
+   - ✅ La línea sigue la forma de la ruta original
+
+2. **Marcador de INICIO** (verde):
+   - ✅ Color: Verde
+   - ✅ Ubicación: Primer punto de la ruta
+   - ✅ Icono: Marcador estándar de Leaflet
+   - ✅ Popup al hacer click: "Inicio de ruta" + coordenadas (lat, lng con 5 decimales)
+
+3. **Marcador de FIN** (rojo):
+   - ✅ Color: Rojo
+   - ✅ Ubicación: Último punto de la ruta
+   - ✅ Icono: Marcador estándar de Leaflet
+   - ✅ Popup al hacer click: "Fin de ruta" + coordenadas (lat, lng con 5 decimales)
+
+4. **Auto-fit bounds** (ajuste automático):
+   - ✅ Al cargar la página, el mapa se ajusta automáticamente
+   - ✅ La ruta completa es visible sin necesidad de hacer zoom
+   - ✅ Padding de 50px alrededor de la ruta
+   - ✅ No se requiere scroll o zoom manual para ver toda la ruta
+
+#### 4. Interacciones con el Mapa
+
+1. **Zoom In**:
+   - Click en botón "+" del mapa (esquina superior izquierda)
+   - O usar scroll del mouse hacia arriba
+   - ✅ El mapa hace zoom correctamente
+   - ✅ La polyline sigue visible
+   - ✅ Los marcadores mantienen su posición
+
+2. **Zoom Out**:
+   - Click en botón "-" del mapa
+   - O usar scroll del mouse hacia abajo
+   - ✅ El mapa hace zoom out correctamente
+   - ✅ La ruta sigue visible a menor escala
+
+3. **Pan (arrastrar)**:
+   - Click y arrastrar el mapa en cualquier dirección
+   - ✅ El mapa se mueve suavemente
+   - ✅ La ruta se mantiene en su posición geográfica correcta
+
+4. **Click en marcador de inicio**:
+   - ✅ Popup se abre mostrando:
+     ```
+     Inicio de ruta
+     40.41650, -3.70260
+     ```
+   - ✅ Coordenadas con 5 decimales de precisión
+
+5. **Click en marcador de fin**:
+   - ✅ Popup se abre mostrando:
+     ```
+     Fin de ruta
+     40.42550, -3.71160
+     ```
+   - ✅ Coordenadas con 5 decimales de precisión
+
+6. **Hover sobre la polyline** (opcional - no implementado):
+   - ⚠️ No hay tooltip implementado aún (T060 - DEFERRED)
+
+#### 5. Verificar Datos en DevTools
+
+**Network Tab** (F12 → Network):
+
+1. **Buscar request**: `GET /gpx/{gpx_file_id}/track`
+2. **Verificar respuesta**:
+   ```json
+   {
+     "success": true,
+     "data": {
+       "trackpoints": [
+         {
+           "latitude": 40.4165,
+           "longitude": -3.7026,
+           "elevation": 650.0,
+           "distance_km": 0.0,
+           "sequence": 0
+         },
+         // ... más puntos
+       ],
+       "start_point": {
+         "latitude": 40.4165,
+         "longitude": -3.7026
+       },
+       "end_point": {
+         "latitude": 40.4255,
+         "longitude": -3.7116
+       }
+     },
+     "error": null
+   }
+   ```
+
+3. **Verificar en Console**:
+   - No debe haber errores en rojo
+   - Puede haber logs informativos sobre el hook `useGPXTrack`
+
+#### 6. Verificar Responsive (Móvil)
+
+**Cambiar a vista móvil**:
+1. F12 → Toggle device toolbar (Ctrl+Shift+M)
+2. Seleccionar: iPhone 12 Pro / Pixel 5 / etc.
+
+**Verificaciones**:
+- ✅ El mapa es responsive (ocupa todo el ancho)
+- ✅ Marcadores y polyline visibles
+- ✅ Touch gestures funcionan:
+  - Pinch zoom (no se puede probar en DevTools)
+  - Drag para pan
+- ✅ Auto-fit bounds funciona igual que en desktop
+
+#### 7. Comparar con Mapa de Ubicaciones (Feature 009)
+
+**Si el viaje tiene ubicaciones** (además del GPX):
+
+1. **Scroll hasta el mapa de ubicaciones** (más abajo en la página)
+2. **Comparar visualmente**:
+   - ✅ **GPX route**: Polyline **roja sólida** con marcadores verde/rojo
+   - ✅ **Location route**: Polyline **azul discontinua** con marcadores azules numerados
+   - ✅ Ambos mapas son independientes
+   - ✅ No hay conflicto visual entre ambas rutas
+
+**Nota**: Si el viaje NO tiene ubicaciones, solo se verá el mapa GPX.
+
+### Criterios de Éxito ✅
+
+#### Visualización
+- [ ] Polyline roja renderizada correctamente
+- [ ] Marcador verde en punto de inicio
+- [ ] Marcador rojo en punto de fin
+- [ ] Auto-fit bounds funciona al cargar
+- [ ] Padding de 50px alrededor de la ruta
+
+#### Interactividad
+- [ ] Zoom in/out funcionan correctamente
+- [ ] Pan (arrastrar mapa) funciona
+- [ ] Click en marcador inicio muestra popup con coordenadas
+- [ ] Click en marcador fin muestra popup con coordenadas
+
+#### Datos
+- [ ] Request a `/gpx/{gpx_file_id}/track` exitoso (200 OK)
+- [ ] Trackpoints ordenados por `sequence` (0, 1, 2, ...)
+- [ ] Coordenadas con precisión de 5 decimales
+- [ ] No hay errores en console del navegador
+
+#### Performance
+- [ ] Mapa carga en <3 segundos (SC-007)
+- [ ] Render de polyline es suave (no lag)
+- [ ] Zoom/pan responden <200ms (SC-011)
+
+#### Responsive
+- [ ] Mapa responsive en vista móvil
+- [ ] Marcadores y polyline visibles en móvil
+- [ ] Touch gestures funcionan (drag para pan)
+
+### Troubleshooting
+
+#### ❌ **Problema**: No se ve el mapa, solo las estadísticas
+
+**Diagnóstico**:
+1. Verificar en Console (F12):
+   ```
+   Error: Cannot read properties of undefined (reading 'trackpoints')
+   ```
+
+**Solución**:
+- El hook `useGPXTrack` no está obteniendo datos
+- Verificar que el request a `/gpx/{gpx_file_id}/track` retorna 200 OK
+- Verificar que `trip.gpx_file.gpx_file_id` existe en el trip
+
+---
+
+#### ❌ **Problema**: Mapa se ve pero sin polyline ni marcadores
+
+**Diagnóstico**:
+1. Verificar en Console:
+   ```
+   gpxTrackPoints: []
+   ```
+
+**Solución**:
+- El backend no está devolviendo trackpoints
+- Verificar que el GPX fue procesado correctamente (T046)
+- Revisar logs del backend para errores de procesamiento
+
+---
+
+#### ❌ **Problema**: Marcadores incorrectos (ambos verdes o rojos)
+
+**Diagnóstico**:
+- Verificar en elementos del DOM (Inspect):
+  ```html
+  <img src=".../marker-icon-2x-green.png">
+  <img src=".../marker-icon-2x-red.png">
+  ```
+
+**Solución**:
+- Si ambos tienen la misma imagen, hay problema con `START_MARKER_ICON` / `END_MARKER_ICON`
+- Verificar que leaflet-color-markers CDN está cargando correctamente
+
+---
+
+#### ❌ **Problema**: Auto-fit no funciona, ruta fuera del viewport
+
+**Diagnóstico**:
+1. Verificar en Console:
+   ```javascript
+   console.log(gpxBounds)
+   // Debe mostrar: LatLngBounds {...}
+   ```
+
+**Solución**:
+- Verificar que `AutoFitBounds` component se está renderizando
+- Verificar que `gpxBounds.isValid()` es true
+- Puede requerir refresh de la página
+
+---
+
+#### ❌ **Problema**: Polyline no sigue la ruta correctamente
+
+**Diagnóstico**:
+- Puntos fuera de orden
+- Coordenadas incorrectas
+
+**Solución**:
+1. Verificar en Network → Response:
+   ```json
+   "trackpoints": [
+     {"sequence": 0, ...},
+     {"sequence": 1, ...},
+     {"sequence": 2, ...}
+   ]
+   ```
+2. Verificar que `sequence` está ordenado ascendentemente
+3. Si no, hay problema en el backend (ver `gpx_service.py`)
+
+### Captura de Pantalla Recomendada
+
+📸 Capturar las siguientes vistas:
+
+1. **Vista completa del mapa**:
+   - Mapa con ruta completa visible
+   - Marcadores verde (inicio) y rojo (fin) visibles
+   - Estadísticas arriba del mapa
+
+2. **Popup de marcador inicio**:
+   - Click en marcador verde
+   - Capturar popup con "Inicio de ruta" y coordenadas
+
+3. **Popup de marcador fin**:
+   - Click en marcador rojo
+   - Capturar popup con "Fin de ruta" y coordenadas
+
+4. **Vista mobile** (opcional):
+   - Cambiar a DevTools móvil
+   - Capturar mapa responsive
+
+### Archivo GPX de Prueba Recomendado
+
+**Para esta prueba usar**: `backend/tests/fixtures/gpx/short_route.gpx`
+
+**Características**:
+- 10 trackpoints (simplificado a ~8-9 después de Douglas-Peucker)
+- Ruta lineal simple (Madrid, España)
+- ~5 km de distancia
+- Elevación: 650m → 695m (desnivel positivo de 45m)
+- Ideal para verificar visualización básica
+
+**Si quieres probar con ruta más compleja**: `backend/tests/fixtures/gpx/camino_del_cid.gpx`
+- 2000+ trackpoints (simplificado a ~200)
+- Ruta realista con curvas
+- Mejor para probar performance
+
+### Próximos Tests (Deferred para futuras fases)
+
+- ⚠️ **T060**: Click en polyline muestra tooltip (FR-013) - DEFERRED
+- ⚠️ **T061**: Selector de capa de mapa (terrain/satellite) - DEFERRED
+- ⚠️ **T062**: Touch gestures en móvil (pinch zoom) - Ya funciona desde Feature 009
+
+### Notas Adicionales
+
+**Diferencia con Mapa de Ubicaciones (Feature 009)**:
+- **GPX Map**: Muestra ruta GPS trackpoints (Feature 003)
+- **Location Map**: Muestra ubicaciones manuales (Feature 009)
+- Ambos usan el mismo componente `TripMap.tsx` pero con diferentes props
+
+**Colores distintivos**:
+- GPX polyline: **Rojo** (#dc2626)
+- Location polyline: **Azul discontinuo** (#3b82f6, dashed)
+- Esto permite distinguir fácilmente entre ambos tipos de rutas
+
+---
+
 ## Verificación de Errores
 
 ### Test 1: Archivo demasiado grande (>10MB)
