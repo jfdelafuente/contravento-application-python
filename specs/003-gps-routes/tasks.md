@@ -73,16 +73,16 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T013 [P] [US1] Unit test: Parse valid GPX file in `backend/tests/unit/test_gpx_service.py::test_parse_valid_gpx` (see [quickstart.md:429-437](quickstart.md#L429-L437))
-- [ ] T014 [P] [US1] Unit test: Douglas-Peucker simplification reduces points 80-90% in `backend/tests/unit/test_gpx_service.py::test_simplification_reduces_points` (SC-026)
-- [ ] T015 [P] [US1] Unit test: Elevation calculation accuracy >90% in `backend/tests/unit/test_gpx_service.py::test_elevation_calculation_accuracy` (SC-005, see [data-model.md:175-182](data-model.md#L175-L182))
-- [ ] T016 [P] [US1] Unit test: Handle GPX without elevation data in `backend/tests/unit/test_gpx_service.py::test_gpx_without_elevation` (FR-021)
-- [ ] T017 [P] [US1] Unit test: Reject malformed GPX with clear Spanish error in `backend/tests/unit/test_gpx_service.py::test_invalid_gpx_error` (FR-007)
-- [ ] T018 [P] [US1] Integration test: Upload small file (<1MB) with sync processing in `backend/tests/integration/test_gpx_api.py::test_upload_small_file_sync` (SC-002, see [contracts/gpx-api.yaml:86-111](contracts/gpx-api.yaml#L86-L111))
-- [ ] T019 [P] [US1] Integration test: Upload large file (>1MB) with async processing in `backend/tests/integration/test_gpx_api.py::test_upload_large_file_async` (SC-003, see [contracts/gpx-api.yaml:112-128](contracts/gpx-api.yaml#L112-L128))
-- [ ] T020 [P] [US1] Integration test: Download original GPX file in `backend/tests/integration/test_gpx_api.py::test_download_original_gpx` (FR-039, see [contracts/gpx-api.yaml:390-431](contracts/gpx-api.yaml#L390-L431))
-- [ ] T021 [P] [US1] Integration test: Delete GPX file cascades deletion in `backend/tests/integration/test_gpx_api.py::test_delete_gpx_cascade` (FR-036, see [data-model.md:561-570](data-model.md#L561-L570))
-- [ ] T022 [P] [US1] Integration test: Validate file size ≤10MB in `backend/tests/integration/test_gpx_api.py::test_validate_file_size` (FR-001, see [contracts/gpx-api.yaml:136-142](contracts/gpx-api.yaml#L136-L142))
+- [X] T013 [P] [US1] Unit test: Parse valid GPX file in `backend/tests/unit/test_gpx_service.py::test_parse_valid_gpx` (see [quickstart.md:429-437](quickstart.md#L429-L437))
+- [X] T014 [P] [US1] Unit test: Douglas-Peucker simplification reduces points 80-90% in `backend/tests/unit/test_gpx_service.py::test_simplification_reduces_points` (SC-026)
+- [X] T015 [P] [US1] Unit test: Elevation calculation accuracy >90% in `backend/tests/unit/test_gpx_service.py::test_elevation_calculation_accuracy` (SC-005, see [data-model.md:175-182](data-model.md#L175-L182))
+- [X] T016 [P] [US1] Unit test: Handle GPX without elevation data in `backend/tests/unit/test_gpx_service.py::test_gpx_without_elevation` (FR-021)
+- [X] T017 [P] [US1] Unit test: Reject malformed GPX with clear Spanish error in `backend/tests/unit/test_gpx_service.py::test_invalid_gpx_error` (FR-007)
+- [X] T018 [P] [US1] Integration test: Upload small file (<1MB) with sync processing in `backend/tests/integration/test_gpx_api.py::test_upload_small_file_sync` (SC-002, see [contracts/gpx-api.yaml:86-111](contracts/gpx-api.yaml#L86-L111))
+- [X] T019 [P] [US1] Integration test: Upload large file (>1MB) with async processing in `backend/tests/integration/test_gpx_api.py::test_upload_large_file_async` (SC-003, see [contracts/gpx-api.yaml:112-128](contracts/gpx-api.yaml#L112-L128))
+- [X] T020 [P] [US1] Integration test: Download original GPX file in `backend/tests/integration/test_gpx_api.py::test_download_original_gpx` (FR-039, see [contracts/gpx-api.yaml:390-431](contracts/gpx-api.yaml#L390-L431))
+- [X] T021 [P] [US1] Integration test: Delete GPX file cascades deletion in `backend/tests/integration/test_gpx_api.py::test_delete_gpx_cascade` (FR-036, see [data-model.md:561-570](data-model.md#L561-L570))
+- [X] T022 [P] [US1] Integration test: Validate file size ≤10MB in `backend/tests/integration/test_gpx_api.py::test_validate_file_size` (FR-001, see [contracts/gpx-api.yaml:136-142](contracts/gpx-api.yaml#L136-L142))
 
 ### Implementation for User Story 1
 

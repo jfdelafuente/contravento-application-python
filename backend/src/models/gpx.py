@@ -5,6 +5,7 @@ Defines GPXFile and TrackPoint models for storing and managing GPS route data.
 Supports both PostgreSQL (production) and SQLite (development/testing).
 """
 
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
@@ -12,7 +13,11 @@ from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, relationship
 
 from src.database import Base
-from src.utils.id_generator import generate_uuid
+
+
+def generate_uuid() -> str:
+    """Generate UUID string for primary keys."""
+    return str(uuid.uuid4())
 
 
 class GPXFile(Base):
