@@ -100,29 +100,29 @@
 
 **Backend API**
 
-- [ ] T029 [US1] Implement POST `/trips/{trip_id}/gpx` endpoint in `backend/src/api/trips.py` with sync/async processing logic (see [quickstart.md:316-369](quickstart.md#L316-L369), [contracts/gpx-api.yaml:37-178](contracts/gpx-api.yaml#L37-L178))
-- [ ] T030 [US1] Implement GET `/gpx/{gpx_file_id}/status` endpoint for polling in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:255-318](contracts/gpx-api.yaml#L255-L318))
-- [ ] T031 [US1] Implement GET `/trips/{trip_id}/gpx` endpoint for metadata in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:179-214](contracts/gpx-api.yaml#L179-L214))
-- [ ] T032 [US1] Implement GET `/gpx/{gpx_file_id}/download` endpoint for original file in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:390-431](contracts/gpx-api.yaml#L390-L431))
-- [ ] T033 [US1] Implement DELETE `/trips/{trip_id}/gpx` endpoint with cascade deletion in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:216-254](contracts/gpx-api.yaml#L216-L254))
-- [ ] T034 [US1] Add file validation: max 10MB, .gpx extension, valid XML structure (FR-001, FR-002, FR-003)
-- [ ] T035 [US1] Add Spanish error messages for all GPX validation failures (see [contracts/gpx-api.yaml:130-156](contracts/gpx-api.yaml#L130-L156))
+- [X] T029 [P] [US1] Implement POST `/trips/{trip_id}/gpx` endpoint in `backend/src/api/trips.py` with sync/async processing logic (see [quickstart.md:316-369](quickstart.md#L316-L369), [contracts/gpx-api.yaml:37-178](contracts/gpx-api.yaml#L37-L178))
+- [X] T030 [P] [US1] Implement GET `/gpx/{gpx_file_id}/status` endpoint for polling in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:255-318](contracts/gpx-api.yaml#L255-L318))
+- [X] T031 [P] [US1] Implement GET `/trips/{trip_id}/gpx` endpoint for metadata in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:179-214](contracts/gpx-api.yaml#L179-L214))
+- [X] T032 [P] [US1] Implement GET `/gpx/{gpx_file_id}/download` endpoint for original file in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:390-431](contracts/gpx-api.yaml#L390-L431))
+- [X] T033 [P] [US1] Implement DELETE `/trips/{trip_id}/gpx` endpoint with cascade deletion in `backend/src/api/trips.py` (see [contracts/gpx-api.yaml:216-254](contracts/gpx-api.yaml#L216-L254))
+- [X] T034 [P] [US1] Add file validation: max 10MB, .gpx extension, valid XML structure (FR-001, FR-002, FR-003)
+- [X] T035 [P] [US1] Add Spanish error messages for all GPX validation failures (see [contracts/gpx-api.yaml:130-156](contracts/gpx-api.yaml#L130-L156))
 
 **Frontend Services**
 
-- [ ] T036 [P] [US1] Create `frontend/src/services/gpxService.ts` with API client methods: uploadGPX, pollGPXStatus, getGPXTrack, downloadGPX, deleteGPX
+- [X] T036 [P] [US1] Create `frontend/src/services/gpxService.ts` with API client methods: uploadGPX, pollGPXStatus, getGPXTrack, downloadGPX, deleteGPX
 
 **Frontend Components**
 
-- [ ] T037 [P] [US1] Create `frontend/src/hooks/useGPXUpload.ts` custom hook with polling logic for async uploads (see [quickstart.md:373-421](quickstart.md#L373-L421))
-- [ ] T038 [US1] Create `frontend/src/components/trips/GPXUploader.tsx` with drag-drop file upload component (see [quickstart.md:373-421](quickstart.md#L373-L421))
-- [ ] T039 [US1] Create `frontend/src/components/trips/GPXStats.tsx` to display distance, elevation gain/loss, max/min altitude
-- [ ] T040 [US1] Integrate GPXUploader and GPXStats into `frontend/src/pages/TripDetailPage.tsx` (owner-only section)
+- [X] T037 [P] [US1] Create `frontend/src/hooks/useGPXUpload.ts` custom hook with polling logic for async uploads (see [quickstart.md:373-421](quickstart.md#L373-L421))
+- [X] T038 [US1] Create `frontend/src/components/trips/GPXUploader.tsx` with drag-drop file upload component (see [quickstart.md:373-421](quickstart.md#L373-L421))
+- [X] T039 [US1] Create `frontend/src/components/trips/GPXStats.tsx` to display distance, elevation gain/loss, max/min altitude
+- [X] T040 [US1] Integrate GPXUploader and GPXStats into `frontend/src/pages/TripDetailPage.tsx` (owner-only section)
 
 **Frontend Tests**
 
-- [ ] T041 [P] [US1] Unit test: GPXUploader file validation (>10MB shows error, .kml rejected) in `frontend/tests/unit/GPXUploader.test.tsx` (see [quickstart.md:426-437](quickstart.md#L426-L437))
-- [ ] T042 [P] [US1] Unit test: GPXUploader loading state during upload in `frontend/tests/unit/GPXUploader.test.tsx`
+- [X] T041 [P] [US1] Unit test: GPXUploader file validation (>10MB shows error, .kml rejected) in `frontend/tests/unit/GPXUploader.test.tsx` (see [quickstart.md:426-437](quickstart.md#L426-L437))
+- [X] T042 [P] [US1] Unit test: GPXUploader loading state during upload in `frontend/tests/unit/GPXUploader.test.tsx`
 
 **Verification**
 

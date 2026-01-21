@@ -16,6 +16,8 @@ import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
 import { CommentList } from '../components/comments/CommentList';
+import { GPXUploader } from '../components/trips/GPXUploader';
+import { GPXStats } from '../components/trips/GPXStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import type { LocationSelection } from '../types/geocoding';
@@ -58,9 +60,8 @@ export const TripDetailPage: React.FC = () => {
   // Likes list modal state (Feature 004 - US2)
   const [showLikesModal, setShowLikesModal] = useState(false);
 
-  // Fetch trip details
-  useEffect(() => {
-    const fetchTrip = async () => {
+  // Fetch trip details (extracted for reuse)
+  const fetchTrip = async () => {
       if (!tripId) {
         setError('ID de viaje no válido');
         setIsLoading(false);
@@ -102,8 +103,10 @@ export const TripDetailPage: React.FC = () => {
       } finally {
         setIsLoading(false);
       }
-    };
+  };
 
+  // Fetch trip on mount and when tripId changes
+  useEffect(() => {
     fetchTrip();
   }, [tripId]);
 
@@ -656,6 +659,31 @@ export const TripDetailPage: React.FC = () => {
           <section className="trip-detail-page__section">
             <h2 className="trip-detail-page__section-title">Galería de Fotos</h2>
             <TripGallery photos={trip.photos} tripTitle={trip.title} />
+          </section>
+        )}
+
+        {/* GPX Section (Feature 003 - GPS Routes Interactive) */}
+        {trip.gpx_file && (
+          <section className="trip-detail-page__section">
+            <h2 className="trip-detail-page__section-title">Ruta GPS</h2>
+            <GPXStats metadata={trip.gpx_file} />
+          </section>
+        )}
+
+        {/* GPX Uploader (owner-only, if no GPX exists) */}
+        {isOwner && !trip.gpx_file && (
+          <section className="trip-detail-page__section">
+            <h2 className="trip-detail-page__section-title">Subir Archivo GPX</h2>
+            <GPXUploader
+              tripId={trip.trip_id}
+              onUploadComplete={() => {
+                toast.success('Archivo GPX procesado correctamente', {
+                  duration: 3000,
+                  position: 'top-center',
+                });
+                fetchTrip(); // Refetch trip to show GPX data
+              }}
+            />
           </section>
         )}
 
