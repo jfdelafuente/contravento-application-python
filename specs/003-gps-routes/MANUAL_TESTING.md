@@ -396,6 +396,113 @@ Verificar que se puede descargar el archivo GPX original subido (FR-039)
 - Tamaño: ~2.8 KB (idéntico al original)
 - Contenido XML válido y completo
 
+### Verificación Alternativa por API (Sin Frontend)
+
+Si prefieres probar el endpoint backend directamente sin usar el botón del frontend:
+
+#### Opción A: PowerShell (Windows)
+
+```powershell
+# Paso 1: Obtener el GPX file ID del viaje
+$tripId = "TU_TRIP_ID_AQUI"
+$response = Invoke-RestMethod -Uri "http://localhost:8000/trips/$tripId/gpx" -Method Get
+
+# Mostrar información del GPX
+$response.data | Format-List
+
+# Guardar el GPX file ID
+$gpxFileId = $response.data.gpx_file_id
+Write-Host "GPX File ID: $gpxFileId"
+
+# Paso 2: Descargar el archivo GPX original
+Invoke-WebRequest -Uri "http://localhost:8000/gpx/$gpxFileId/download" -OutFile "$env:USERPROFILE\Downloads\original.gpx"
+
+# Paso 3: Verificar archivo descargado
+Get-ChildItem "$env:USERPROFILE\Downloads\original.gpx" | Format-List Name, Length
+
+# Paso 4: Ver primeras líneas del archivo
+Get-Content "$env:USERPROFILE\Downloads\original.gpx" -Head 5
+
+# Paso 5: Comparar con archivo original
+Compare-Object (Get-Content "backend\tests\fixtures\gpx\short_route.gpx") (Get-Content "$env:USERPROFILE\Downloads\original.gpx")
+# Si no hay output, los archivos son idénticos ✅
+```
+
+#### Opción B: Bash (Linux/Mac)
+
+```bash
+# Paso 1: Obtener el GPX file ID del viaje
+TRIP_ID="TU_TRIP_ID_AQUI"
+curl http://localhost:8000/trips/$TRIP_ID/gpx | jq .
+
+# Guardar el GPX file ID
+GPX_FILE_ID=$(curl -s http://localhost:8000/trips/$TRIP_ID/gpx | jq -r '.data.gpx_file_id')
+echo "GPX File ID: $GPX_FILE_ID"
+
+# Paso 2: Descargar el archivo GPX original
+curl -o ~/Downloads/original.gpx "http://localhost:8000/gpx/$GPX_FILE_ID/download"
+
+# Paso 3: Verificar archivo descargado
+ls -lh ~/Downloads/original.gpx
+
+# Paso 4: Ver primeras líneas del archivo
+head -n 5 ~/Downloads/original.gpx
+
+# Paso 5: Comparar con archivo original
+diff backend/tests/fixtures/gpx/short_route.gpx ~/Downloads/original.gpx
+# Si no hay output, los archivos son idénticos ✅
+```
+
+#### Opción C: Thunder Client (VSCode) / Postman
+
+1. **GET Trip GPX Metadata**:
+   ```
+   GET http://localhost:8000/trips/{trip_id}/gpx
+   ```
+   - Response → Copiar `data.gpx_file_id`
+
+2. **GET Download GPX**:
+   ```
+   GET http://localhost:8000/gpx/{gpx_file_id}/download
+   ```
+   - Headers esperados:
+     - `Content-Type: application/gpx+xml` o `application/octet-stream`
+     - `Content-Disposition: attachment; filename=original.gpx`
+   - Send → Save response as `original.gpx`
+
+3. **Verificar en terminal**:
+   ```bash
+   # Comparar archivos
+   diff backend/tests/fixtures/gpx/short_route.gpx original.gpx
+   ```
+
+#### Criterios de Éxito (API) ✅
+
+- **Status Code**: 200 OK
+- **Content-Type**: `application/gpx+xml` o `application/octet-stream`
+- **Content-Disposition**: `attachment; filename=original.gpx`
+- **Tamaño**: Idéntico al archivo original (~2.8 KB para short_route.gpx)
+- **Contenido**: XML válido, idéntico al archivo subido (diff sin diferencias)
+
+#### Troubleshooting API
+
+**Error 404 Not Found**:
+```json
+{
+  "detail": {
+    "code": "NOT_FOUND",
+    "message": "Archivo GPX no encontrado"
+  }
+}
+```
+- **Solución**: Verificar que el `gpx_file_id` es correcto
+
+**Error 500 Internal Server Error**:
+- **Solución**: Verificar logs del backend, puede ser un problema con el archivo físico en `storage/gpx_files/`
+
+**Archivo descargado vacío (0 bytes)**:
+- **Solución**: Verificar que el archivo original existe en `storage/gpx_files/{year}/{month}/{trip_id}/original.gpx`
+
 ---
 
 ## T049: Eliminación con Cascade
