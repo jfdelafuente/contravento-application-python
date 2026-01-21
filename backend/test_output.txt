@@ -1,0 +1,404 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.3, pytest-7.4.4, pluggy-1.6.0 -- C:\Users\jfdelafuente\AppData\Local\pypoetry\Cache\virtualenvs\contravento-backend-GkqcpeTn-py3.12\Scripts\python.exe
+cachedir: .pytest_cache
+benchmark: 4.0.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\My Program Files\workspace-claude\contravento-application-python\backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, Faker-20.1.0, asyncio-0.21.2, benchmark-4.0.0, cov-4.1.0
+asyncio: mode=Mode.AUTO
+collecting ... collected 1 item
+
+tests/unit/test_social_service.py::TestSocialServiceGetFollowers::test_get_followers_returns_paginated_list FAILED [100%]
+
+================================== FAILURES ===================================
+___ TestSocialServiceGetFollowers.test_get_followers_returns_paginated_list ___
+
+self = <tests.unit.test_social_service.TestSocialServiceGetFollowers object at 0x000002CDCE0A3DA0>
+db_session = <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x000002CDCE05CBF0>
+
+    async def test_get_followers_returns_paginated_list(
+        self,
+        db_session: AsyncSession,
+    ):
+        """Test get_followers() returns paginated list."""
+        # Setup: target user with 2 followers
+        target = User(
+            username="target",
+            email="target@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        follower1 = User(
+            username="f1",
+            email="f1@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        follower2 = User(
+            username="f2",
+            email="f2@test.com",
+            hashed_password=hash_password("pass"),
+            is_active=True,
+        )
+        db_session.add(target)
+        db_session.add(follower1)
+        db_session.add(follower2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
+    
+        p_target = UserProfile(user_id=target.id)
+        p1 = UserProfile(user_id=follower1.id, full_name="Follower 1")
+        p2 = UserProfile(user_id=follower2.id, full_name="Follower 2")
+        db_session.add(p_target)
+        db_session.add(p1)
+        db_session.add(p2)
+    
+        follow1 = Follow(follower_id=follower1.id, following_id=target.id)
+        follow2 = Follow(follower_id=follower2.id, following_id=target.id)
+        db_session.add(follow1)
+        db_session.add(follow2)
+        await db_session.commit()
+    
+        # Test
+        social_service = SocialService(db_session)
+>       result = await social_service.get_followers("target", page=1, limit=50)
+
+tests\unit\test_social_service.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.services.social_service.SocialService object at 0x000002CDCE3CD1F0>
+username = 'target', page = 1, limit = 50
+
+    async def get_followers(
+        self, username: str, page: int = 1, limit: int = 50
+    ) -> FollowersListResponse:
+        """
+        T208: Get paginated list of followers.
+    
+        Args:
+            username: Username to get followers for
+            page: Page number (1-indexed)
+            limit: Results per page (max 50)
+    
+        Returns:
+            FollowersListResponse with paginated followers
+    
+        Raises:
+            ValueError: If user not found
+        """
+        # Validate pagination
+        if page < 1:
+            page = 1
+        if limit < 1 or limit > 50:
+            limit = 50
+    
+        # Get user
+        result = await self.db.execute(select(User).where(User.username == username))
+        user = result.scalar_one_or_none()
+        if not user:
+            raise ValueError(f"El usuario '{username}' no existe")
+    
+        # Get total count
+        result = await self.db.execute(
+            select(func.count(Follow.id)).where(Follow.following_id == user.id)
+        )
+        total_count = result.scalar() or 0
+    
+        # Get paginated followers
+        offset = (page - 1) * limit
+        result = await self.db.execute(
+            select(User, UserProfile)
+            .join(Follow, Follow.follower_id == User.id)
+            .outerjoin(UserProfile, UserProfile.user_id == User.id)
+            .where(Follow.following_id == user.id)
+            .order_by(Follow.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        rows = result.all()
+    
+        # Build UserSummary list
+        followers = []
+        for user_row, profile_row in rows:
+            followers.append(
+>               UserSummary(
+                    username=user_row.username,
+                    full_name=profile_row.full_name if profile_row else None,
+                    profile_photo_url=profile_row.profile_photo_url if profile_row else None,
+                    bio=profile_row.bio if profile_row else None,
+                    followers_count=profile_row.followers_count if profile_row else 0,
+                    following_count=profile_row.following_count if profile_row else 0,
+                )
+            )
+E           pydantic_core._pydantic_core.ValidationError: 1 validation error for UserSummary
+E           username
+E             String should have at least 3 characters [type=string_too_short, input_value='f1', input_type=str]
+E               For further information visit https://errors.pydantic.dev/2.12/v/string_too_short
+
+src\services\social_service.py:234: ValidationError
+============================== warnings summary ===============================
+src\schemas\auth.py:14
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RegisterRequest(BaseModel):
+
+src\schemas\auth.py:67
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:67: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RegisterResponse(BaseModel):
+
+src\schemas\auth.py:102
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:102: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoginRequest(BaseModel):
+
+src\schemas\auth.py:125
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:125: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TokenResponse(BaseModel):
+
+src\schemas\auth.py:156
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:156: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoginResponse(BaseModel):
+
+src\schemas\auth.py:182
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:182: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PasswordResetRequest(BaseModel):
+
+src\schemas\auth.py:202
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\auth.py:202: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PasswordResetConfirm(BaseModel):
+
+src\schemas\user.py:12
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\user.py:12: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+src\schemas\user.py:100
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\user.py:100: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserProfileResponse(BaseModel):
+
+src\schemas\user.py:138
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\user.py:138: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserWithProfileResponse(UserResponse):
+
+src\schemas\feed.py:16
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\feed.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserSummary(BaseModel):
+
+src\schemas\feed.py:35
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\feed.py:35: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PhotoSummary(BaseModel):
+
+src\schemas\feed.py:49
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\feed.py:49: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LocationSummary(BaseModel):
+
+src\schemas\feed.py:64
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\feed.py:64: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TagSummary(BaseModel):
+
+src\schemas\feed.py:83
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\feed.py:83: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FeedItem(BaseModel):
+
+src\schemas\feed.py:133
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\feed.py:133: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FeedResponse(BaseModel):
+
+src\schemas\trip.py:23
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:23: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LocationInput(BaseModel):
+
+src\schemas\trip.py:86
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:86: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripCreateRequest(BaseModel):
+
+src\schemas\trip.py:187
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:187: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripUpdateRequest(BaseModel):
+
+src\schemas\trip.py:259
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:259: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TagResponse(BaseModel):
+
+src\schemas\trip.py:289
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:289: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripLocationResponse(BaseModel):
+
+src\schemas\trip.py:322
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:322: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripPhotoResponse(BaseModel):
+
+src\schemas\trip.py:361
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:361: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripResponse(BaseModel):
+
+src\schemas\trip.py:482
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:482: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripListItemResponse(BaseModel):
+
+src\schemas\trip.py:532
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:532: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TripListResponse(BaseModel):
+
+src\schemas\trip.py:579
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:579: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PublicUserSummary(BaseModel):
+
+src\schemas\trip.py:613
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:613: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PublicPhotoSummary(BaseModel):
+
+src\schemas\trip.py:639
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:639: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PublicLocationSummary(BaseModel):
+
+src\schemas\trip.py:658
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:658: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PublicTripSummary(BaseModel):
+
+src\schemas\trip.py:719
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:719: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PaginationInfo(BaseModel):
+
+src\schemas\trip.py:750
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\trip.py:750: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PublicTripListResponse(BaseModel):
+
+..\..\..\..\Users\jfdelafuente\AppData\Local\pypoetry\Cache\virtualenvs\contravento-backend-GkqcpeTn-py3.12\Lib\site-packages\pydantic\_internal\_generate_schema.py:319
+..\..\..\..\Users\jfdelafuente\AppData\Local\pypoetry\Cache\virtualenvs\contravento-backend-GkqcpeTn-py3.12\Lib\site-packages\pydantic\_internal\_generate_schema.py:319
+  C:\Users\jfdelafuente\AppData\Local\pypoetry\Cache\virtualenvs\contravento-backend-GkqcpeTn-py3.12\Lib\site-packages\pydantic\_internal\_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    warnings.warn(
+
+src\schemas\cycling_type.py:12
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\cycling_type.py:12: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CyclingTypeResponse(BaseModel):
+
+src\schemas\cycling_type.py:53
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\cycling_type.py:53: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CyclingTypePublicResponse(BaseModel):
+
+src\schemas\cycling_type.py:82
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\cycling_type.py:82: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CyclingTypeCreateRequest(BaseModel):
+
+src\schemas\cycling_type.py:149
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\cycling_type.py:149: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CyclingTypeUpdateRequest(BaseModel):
+
+src\schemas\profile.py:14
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\profile.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProfileStatsPreview(BaseModel):
+
+src\schemas\profile.py:38
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\profile.py:38: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProfileResponse(BaseModel):
+
+src\schemas\profile.py:107
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\profile.py:107: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProfileUpdateRequest(BaseModel):
+
+src\schemas\profile.py:184
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\profile.py:184: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PrivacySettings(BaseModel):
+
+src\schemas\profile.py:205
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\profile.py:205: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PhotoUploadResponse(BaseModel):
+
+src\schemas\profile.py:233
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\profile.py:233: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PasswordChangeRequest(BaseModel):
+
+src\schemas\social.py:13
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\social.py:13: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserSummary(BaseModel):
+
+src\schemas\social.py:32
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\social.py:32: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FollowResponse(BaseModel):
+
+src\schemas\social.py:56
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\social.py:56: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FollowersListResponse(BaseModel):
+
+src\schemas\social.py:74
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\social.py:74: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FollowingListResponse(BaseModel):
+
+src\schemas\social.py:92
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\social.py:92: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FollowStatusResponse(BaseModel):
+
+src\schemas\stats.py:12
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\stats.py:12: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CountryInfo(BaseModel):
+
+src\schemas\stats.py:30
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\stats.py:30: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StatsResponse(BaseModel):
+
+src\schemas\stats.py:75
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\stats.py:75: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AchievementResponse(BaseModel):
+
+src\schemas\stats.py:118
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\stats.py:118: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AchievementDefinition(BaseModel):
+
+src\schemas\stats.py:159
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\stats.py:159: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserAchievementResponse(BaseModel):
+
+src\schemas\stats.py:194
+  C:\My Program Files\workspace-claude\contravento-application-python\backend\src\schemas\stats.py:194: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AchievementDefinitionList(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform win32, python 3.12.3-final-0 -----------
+Name                                   Stmts   Miss Branch BrPart   Cover   Missing
+-----------------------------------------------------------------------------------
+src\api\auth.py                           96     70     16      0  23.21%   55-58, 84-116, 146-160, 192-211, 245-275, 307-314, 348-355, 463-471
+src\api\cycling_types.py                  83     59      6      0  26.97%   57-60, 82-90, 122-130, 161-180, 211-232, 266-299, 332-350
+src\api\deps.py                           50     39     12      0  17.74%   35-43, 73-130, 162-168, 198-213
+src\api\feed.py                           11      2      0      0  81.82%   52-59
+src\api\profile.py                        72     52      8      0  25.00%   50-53, 67-68, 102-135, 174-207, 326-348, 386-410
+src\api\social.py                         70     51     10      0  23.75%   48-79, 118-146, 185-201, 240-256, 294-309
+src\api\stats.py                          45     29      2      0  34.04%   42-45, 76-97, 128-149, 176-187
+src\api\trips.py                         202    165     20      0  16.67%   106-210, 248-276, 321-364, 410-463, 636-678, 723-774, 800-843, 865-889, 938-1005, 1034-1057
+src\config.py                             85      7      4      2  89.89%   151, 153, 177, 187, 197, 202-204
+src\database.py                           37     15      6      3  58.14%   33, 47, 82->exit, 85, 104-112, 122-123, 132-133
+src\models\auth.py                        22      3      0      0  86.36%   111, 116, 121
+src\models\trip.py                        92      5      0      0  94.57%   31, 187, 192, 197, 202
+src\schemas\auth.py                       28      1      0      0  96.43%   47
+src\schemas\comment.py                    27      8      0      0  70.37%   35-42, 64-71
+src\schemas\cycling_type.py               43     11      2      0  71.11%   109-125, 131-134, 171-175
+src\schemas\profile.py                    49      3      2      0  90.20%   160-162
+src\schemas\trip.py                      160     40     14      0  68.97%   13-14, 53-55, 61-63, 69-71, 134-139, 145-147, 153-158, 163-165, 221-226, 232-239, 413-455
+src\schemas\user.py                       29      4      2      0  80.65%   81-85
+src\services\auth_service.py             122    103     12      0  14.18%   55, 73-131, 152-196, 214-260, 276-334, 357-421, 443-469
+src\services\comment_service.py           66     47      6      0  26.39%   37-71, 82-109, 120-136, 147-171
+src\services\cycling_type_service.py      69     54     12      0  18.52%   37, 49-57, 68-77, 89-96, 112-130, 147-169, 183-199, 210-214
+src\services\feed_service.py              87     68     14      0  18.81%   60-118, 146-209, 235-311, 333-377
+src\services\like_service.py              56     36      0      0  35.71%   64-97, 129-139, 177-212, 235-237, 255-257
+src\services\profile_service.py          159    137     46      0  10.73%   50, 69-127, 164-229, 248-321, 343-364, 383-406, 460-477
+src\services\social_service.py           106     75     16      3  27.87%   65-109, 138-172, 201, 203, 244-246, 272-318, 343-367, 382-390
+src\services\stats_service.py            139    117     42      0  12.15%   68, 86-116, 142-171, 185-200, 226-262, 288-314, 334-353, 369-406, 433-453, 467-494, 508-516
+src\services\trip_service.py             364    331    106      0   7.02%   42, 61-96, 121-223, 248-310, 324-349, 361-383, 396-412, 445-540, 564-627, 650-686, 708-794, 814-865, 878-891, 933-1002, 1017-1024, 1052-1085, 1101-1115
+src\utils\content_validator.py            66     66     26      0   0.00%   12-186
+src\utils\email.py                        31     23      2      0  24.24%   45-82, 106-170
+src\utils\file_storage.py                115     95     16      0  15.27%   46-58, 75, 93-96, 122-143, 164-199, 223-249, 279-311, 328-341
+src\utils\html_sanitizer.py                9      4      2      0  45.45%   66-78
+src\utils\location_service.py             45     45     12      0   0.00%   7-107
+src\utils\rate_limiter.py                 25     15      0      0  40.00%   46-63, 86-105
+src\utils\security.py                     34     25      4      0  23.68%   78-88, 106-116, 138-142, 160-165
+src\utils\trip_photo_service.py          111    111     18      0   0.00%   8-307
+src\utils\validators.py                   40     31     10      0  18.00%   43-55, 81-87, 158-166, 194-205, 228-250
+-----------------------------------------------------------------------------------
+TOTAL                                   3165   1947    448      8  33.93%
+
+15 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+
+FAIL Required test coverage of 90% not reached. Total coverage: 33.93%
+=========================== short test summary info ===========================
+FAILED tests/unit/test_social_service.py::TestSocialServiceGetFollowers::test_get_followers_returns_paginated_list
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+======================= 1 failed, 54 warnings in 7.23s ========================

@@ -49,6 +49,13 @@ def load_test_env():
         os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
         os.environ.setdefault("BCRYPT_ROUNDS", "4")
 
+    # IMPORTANT: Reload settings after loading test environment
+    # The settings object is instantiated at module import time, so we need to reload it
+    # We must reload the entire module to ensure all imports get the new settings
+    import importlib
+    import src.config
+    importlib.reload(src.config)
+
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:

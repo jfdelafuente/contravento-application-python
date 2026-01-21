@@ -385,7 +385,7 @@ class TripResponse(BaseModel):
 
     trip_id: str = Field(..., description="Unique trip identifier")
     user_id: str = Field(..., description="Trip author's user ID")
-    author: UserSummary = Field(..., description="Trip author's profile summary (Feature 004)")
+    author: UserSummary | None = Field(None, description="Trip author's profile summary (Feature 004)")
     title: str = Field(..., description="Trip title")
     description: str = Field(..., description="Trip description (HTML)")
     status: str = Field(..., description="Trip status (draft/published)")

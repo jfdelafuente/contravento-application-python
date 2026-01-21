@@ -75,6 +75,7 @@ class RegisterResponse(BaseModel):
         username: Username
         email: Email address
         is_verified: Email verification status (always False on registration)
+        is_active: Account active status (always True on registration)
         created_at: Account creation timestamp
     """
 
@@ -82,7 +83,13 @@ class RegisterResponse(BaseModel):
     username: str = Field(..., description="Username")
     email: str = Field(..., description="Email address")
     is_verified: bool = Field(..., description="Email verification status")
+    is_active: bool = Field(default=True, description="Account active status")
     created_at: datetime = Field(..., description="Account creation timestamp (UTC)")
+
+    @property
+    def id(self) -> str:
+        """Alias for user_id for backward compatibility."""
+        return self.user_id
 
     class Config:
         """Pydantic config."""
@@ -94,6 +101,7 @@ class RegisterResponse(BaseModel):
                 "username": "maria_garcia",
                 "email": "maria@example.com",
                 "is_verified": False,
+                "is_active": True,
                 "created_at": "2025-12-23T10:30:00Z",
             }
         }

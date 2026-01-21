@@ -167,13 +167,15 @@ class TestLikeTrip:
         self, db_session: AsyncSession, liker_user: User, trip_owner: User
     ):
         """Test liking a draft trip raises ValueError."""
+        from datetime import date
+
         # Arrange: Create draft trip
         draft_trip = Trip(
             trip_id=str(uuid4()),
             user_id=trip_owner.id,
             title="Draft Trip",
             description="This is a draft",
-            start_date="2024-06-01",
+            start_date=date(2024, 6, 1),  # Use date object, not string
             distance_km=100.0,
             status="draft",
         )

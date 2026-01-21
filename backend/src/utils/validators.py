@@ -9,8 +9,12 @@ import re
 # Username validation pattern: 3-30 alphanumeric characters and underscores
 USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
 
-# Email validation pattern (basic)
-EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+# Email validation pattern (RFC 5322 compliant - simplified)
+# Does not allow: double dots (..), dots at start/end of local/domain parts
+EMAIL_PATTERN = re.compile(
+    r"^[a-zA-Z0-9][a-zA-Z0-9._%+-]*[a-zA-Z0-9]@[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]\.[a-zA-Z]{2,}$"
+    r"|^[a-zA-Z0-9]@[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]\.[a-zA-Z]{2,}$"  # Single char before @
+)
 
 # Password minimum requirements
 PASSWORD_MIN_LENGTH = 8
@@ -24,35 +28,33 @@ def validate_username(value: str) -> str:
     - 3-30 characters
     - Only alphanumeric and underscores
     - No spaces or special characters
+    - Case is preserved (not normalized)
 
     Args:
         value: Username to validate
 
     Returns:
-        Validated username (lowercase)
+        Validated username (case preserved)
 
     Raises:
         ValueError: If username doesn't meet requirements
 
     Example:
-        >>> validate_username("maria_garcia")
-        'maria_garcia'
+        >>> validate_username("Maria_Garcia")
+        'Maria_Garcia'
         >>> validate_username("ab")
         ValueError: El nombre de usuario debe tener entre 3 y 30 caracteres
     """
-    if not value:
-        raise ValueError("El nombre de usuario es requerido")
-
-    if len(value) < 3:
+    if not value or len(value) < 3:
         raise ValueError("El nombre de usuario debe tener entre 3 y 30 caracteres")
 
     if len(value) > 30:
         raise ValueError("El nombre de usuario debe tener entre 3 y 30 caracteres")
 
     if not USERNAME_PATTERN.match(value):
-        raise ValueError("El nombre de usuario solo puede contener letras, números y guiones bajos")
+        raise ValueError("El nombre de usuario solo puede contener caracteres alfanuméricos y guiones bajos")
 
-    return value.lower()
+    return value  # Preserve case
 
 
 def validate_email(value: str) -> str:
@@ -62,6 +64,8 @@ def validate_email(value: str) -> str:
     Rules (FR-002):
     - Valid email format
     - Case-insensitive
+    - Maximum 255 characters
+    - No consecutive dots (..)
 
     Args:
         value: Email to validate
@@ -76,13 +80,20 @@ def validate_email(value: str) -> str:
         >>> validate_email("maria@example.com")
         'maria@example.com'
         >>> validate_email("invalid-email")
-        ValueError: El formato del email no es válido
+        ValueError: Formato de email válido requerido
     """
     if not value:
         raise ValueError("El email es requerido")
 
+    if len(value) > 255:
+        raise ValueError("El email no puede superar 255 caracteres")
+
+    # Check for consecutive dots (not allowed)
+    if ".." in value:
+        raise ValueError("Formato de email válido requerido")
+
     if not EMAIL_PATTERN.match(value):
-        raise ValueError("El formato del email no es válido")
+        raise ValueError("Formato de email válido requerido")
 
     return value.lower()
 
@@ -97,6 +108,7 @@ def validate_password(value: str) -> str:
     - At least one uppercase letter
     - At least one lowercase letter
     - At least one number
+    - At least one special character
 
     Args:
         value: Password to validate
@@ -108,8 +120,8 @@ def validate_password(value: str) -> str:
         ValueError: If password doesn't meet requirements
 
     Example:
-        >>> validate_password("SecurePass123")
-        'SecurePass123'
+        >>> validate_password("SecurePass123!")
+        'SecurePass123!'
         >>> validate_password("weak")
         ValueError: La contraseña debe tener al menos 8 caracteres
     """
@@ -132,6 +144,10 @@ def validate_password(value: str) -> str:
     if not re.search(r"[0-9]", value):
         raise ValueError("La contraseña debe contener al menos un número")
 
+    # Check for special character
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>_\-+=\[\]\\\/;'`~]", value):
+        raise ValueError("La contraseña debe contener al menos un carácter especial")
+
     return value
 
 
@@ -141,12 +157,13 @@ def validate_bio(value: str) -> str:
 
     Rules (FR-014):
     - Maximum 500 characters
+    - Empty string and None are valid
 
     Args:
         value: Bio text to validate
 
     Returns:
-        Validated bio (stripped)
+        Validated bio (stripped), or original if None/empty
 
     Raises:
         ValueError: If bio exceeds limit
@@ -154,7 +171,14 @@ def validate_bio(value: str) -> str:
     Example:
         >>> validate_bio("Amante del ciclismo de montaña")
         'Amante del ciclismo de montaña'
+        >>> validate_bio(None)
+        None
+        >>> validate_bio("")
+        ''
     """
+    if value is None:
+        return None
+
     if not value:
         return ""
 
@@ -172,6 +196,8 @@ def validate_cycling_type(value: str) -> str:
 
     Rules (FR-015):
     - Must be one of: road, mountain, gravel, touring, commuting, bikepacking
+    - None is valid (optional field)
+    - Empty string is invalid
 
     NOTE: This is a legacy validator that uses hardcoded values.
     For dynamic validation against database, use validate_cycling_type_async() instead.
@@ -180,7 +206,7 @@ def validate_cycling_type(value: str) -> str:
         value: Cycling type to validate
 
     Returns:
-        Validated cycling type (lowercase)
+        Validated cycling type (lowercase), or None if value is None
 
     Raises:
         ValueError: If cycling type is invalid
@@ -188,11 +214,19 @@ def validate_cycling_type(value: str) -> str:
     Example:
         >>> validate_cycling_type("mountain")
         'mountain'
-        >>> validate_cycling_type("bikepacking")
-        'bikepacking'
+        >>> validate_cycling_type(None)
+        None
+        >>> validate_cycling_type("")
+        ValueError: El tipo de ciclismo debe ser uno de: ...
     """
-    if not value:
+    # None is valid (optional field)
+    if value is None:
         return None
+
+    # Empty string is invalid
+    if not value:
+        allowed_types = {"road", "mountain", "gravel", "touring", "commuting", "bikepacking"}
+        raise ValueError(f"El tipo de ciclismo debe ser uno de: {', '.join(sorted(allowed_types))}")
 
     # Legacy hardcoded values for backward compatibility
     # TODO: Migrate to dynamic validation via validate_cycling_type_async()

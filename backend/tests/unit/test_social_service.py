@@ -41,6 +41,7 @@ class TestSocialServiceFollowUser:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
         profile1 = UserProfile(user_id=user1.id)
         profile2 = UserProfile(user_id=user2.id)
         db_session.add(profile1)
@@ -85,6 +86,7 @@ class TestSocialServiceUnfollowUser:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
         profile1 = UserProfile(user_id=user1.id)
         profile2 = UserProfile(user_id=user2.id)
         db_session.add(profile1)
@@ -138,6 +140,7 @@ class TestSocialServiceGetFollowers:
         db_session.add(target)
         db_session.add(follower1)
         db_session.add(follower2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
 
         p_target = UserProfile(user_id=target.id)
         p1 = UserProfile(user_id=follower1.id, full_name="Follower 1")
@@ -196,6 +199,7 @@ class TestSocialServiceGetFollowing:
         db_session.add(user)
         db_session.add(followed1)
         db_session.add(followed2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
 
         p_user = UserProfile(user_id=user.id)
         p1 = UserProfile(user_id=followed1.id, full_name="Followed 1")
@@ -245,6 +249,7 @@ class TestSocialServiceGetFollowStatus:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
         p1 = UserProfile(user_id=user1.id)
         p2 = UserProfile(user_id=user2.id)
         db_session.add(p1)
@@ -288,6 +293,7 @@ class TestDuplicateFollowPrevention:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
         p1 = UserProfile(user_id=user1.id)
         p2 = UserProfile(user_id=user2.id)
         db_session.add(p1)
@@ -328,6 +334,7 @@ class TestCounterUpdateOnFollowUnfollow:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
         p1 = UserProfile(user_id=user1.id, following_count=0)
         p2 = UserProfile(user_id=user2.id, followers_count=0)
         db_session.add(p1)
@@ -364,6 +371,7 @@ class TestCounterUpdateOnFollowUnfollow:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Flush to generate IDs before creating profiles
         p1 = UserProfile(user_id=user1.id, following_count=1)
         p2 = UserProfile(user_id=user2.id, followers_count=1)
         db_session.add(p1)

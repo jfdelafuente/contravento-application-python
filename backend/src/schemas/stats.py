@@ -21,6 +21,19 @@ class CountryInfo(BaseModel):
     code: str = Field(..., description="Código ISO del país (e.g., 'ES')")
     name: str = Field(..., description="Nombre del país en español (e.g., 'España')")
 
+    def __contains__(self, item: str) -> bool:
+        """Allow 'in' operator to check for field names (dict-like behavior)."""
+        return item in {"code", "name"}
+
+    def __getitem__(self, item: str) -> str:
+        """Allow bracket access like a dict (e.g., country['code'])."""
+        if item == "code":
+            return self.code
+        elif item == "name":
+            return self.name
+        else:
+            raise KeyError(f"'{item}' not found in CountryInfo")
+
     class Config:
         """Pydantic config."""
 
