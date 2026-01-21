@@ -553,35 +553,37 @@ export const TripDetailPage: React.FC = () => {
               )}
 
               {/* Author (Feature 004) - Right-aligned */}
-              <div className="trip-detail-page__author">
-                <Link to={`/users/${trip.author.username}`} className="trip-detail-page__author-link">
-                  {trip.author.profile_photo_url ? (
-                    <img
-                      src={getPhotoUrl(trip.author.profile_photo_url)}
-                      alt={trip.author.username}
-                      className="trip-detail-page__author-avatar"
-                    />
-                  ) : (
-                    <div className="trip-detail-page__author-avatar trip-detail-page__author-avatar--placeholder">
-                      {trip.author.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="trip-detail-page__author-info">
-                    <span className="trip-detail-page__author-username">{trip.author.username}</span>
-                    {trip.author.full_name && (
-                      <span className="trip-detail-page__author-fullname">{trip.author.full_name}</span>
+              {trip.author && (
+                <div className="trip-detail-page__author">
+                  <Link to={`/users/${trip.author.username}`} className="trip-detail-page__author-link">
+                    {trip.author.profile_photo_url ? (
+                      <img
+                        src={getPhotoUrl(trip.author.profile_photo_url)}
+                        alt={trip.author.username}
+                        className="trip-detail-page__author-avatar"
+                      />
+                    ) : (
+                      <div className="trip-detail-page__author-avatar trip-detail-page__author-avatar--placeholder">
+                        {trip.author.username.charAt(0).toUpperCase()}
+                      </div>
                     )}
-                  </div>
-                </Link>
-                {!isOwner && (
-                  <FollowButton
-                    username={trip.author.username}
-                    initialFollowing={trip.author.is_following || false}
-                    size="small"
-                    variant="secondary"
-                  />
-                )}
-              </div>
+                    <div className="trip-detail-page__author-info">
+                      <span className="trip-detail-page__author-username">{trip.author.username}</span>
+                      {trip.author.full_name && (
+                        <span className="trip-detail-page__author-fullname">{trip.author.full_name}</span>
+                      )}
+                    </div>
+                  </Link>
+                  {!isOwner && (
+                    <FollowButton
+                      username={trip.author.username}
+                      initialFollowing={trip.author.is_following || false}
+                      size="small"
+                      variant="secondary"
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
