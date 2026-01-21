@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-21 (Integration Tests Improvements + CI/CD activado ✅)
-**Estado actual**: 21 integration tests corregidos (+13% mejora), CI/CD Pipeline funcionando
+**Última actualización**: 2026-01-21 (Feature 003 - GPS Routes Interactive Phase 4 completada ✅)
+**Estado actual**: MVP GPS Routes completado (upload, stats, map visualization, download)
 
 ---
 
@@ -740,6 +740,126 @@
 - Accessibility (WCAG 2.1 AA compliant)
 - Mobile responsive design
 
+### Feature 003: GPS Routes Interactive (🔄 EN PROGRESO - Phase 4/8 Completada)
+
+**Branch**: `003-gps-routes` (activa)
+**Status**: 🔄 **50% COMPLETADO** - Phase 4 completada (Visualización Mínima en Mapa)
+**Last update**: 2026-01-21
+**Priority**: P2 (Medium-High - MVP GPS functionality)
+**Commits totales**: 5 commits
+
+**Fases Completadas** (4/8):
+
+- ✅ **Phase 1**: GPX Data Model & Migrations (13 tasks) - 100%
+- ✅ **Phase 2**: Backend Services & API (11 tasks) - 100%
+- ✅ **Phase 3**: Frontend Upload & Stats (10 tasks + T041.5) - 100%
+- ✅ **Phase 4**: Visualización Mínima en Mapa (6 tasks) - 100%
+
+**Fases Pendientes** (4/8):
+
+- 🔜 **Phase 5**: User Story 3 - Perfil de Elevación Interactivo (15 tasks) - DEFERRED
+- 🔜 **Phase 6**: User Story 4 - Puntos de Interés (14 tasks) - DEFERRED
+- 🔜 **Phase 7**: User Story 5 - Estadísticas Avanzadas (10 tasks) - DEFERRED
+- 🔜 **Phase 8**: Testing & Documentation (21 tasks) - DEFERRED
+
+**Implementación Completada (MVP - Phases 1-4)**:
+
+**Backend**:
+
+- ✅ Data Model: GPXFile, GPXTrack, TrackPoint (PostgreSQL + SQLite DDL)
+- ✅ Migrations: `create_gpx_tables.py` (3 tablas)
+- ✅ Services: `gpx_service.py` (parse, simplify, calculate stats, elevation)
+  - gpxpy library para parsing GPX 1.0/1.1
+  - rdp (Ramer-Douglas-Peucker) para simplificación de tracks (90% reducción)
+  - Haversine formula para cálculo de distancias
+  - Threshold-based elevation filtering (3m)
+- ✅ API Endpoints (trips.py):
+  - POST `/trips/{trip_id}/gpx` - Upload GPX (sync <1MB)
+  - GET `/gpx/{gpx_file_id}/track` - Get simplified trackpoints
+  - GET `/gpx/{gpx_file_id}/download` - Download original GPX
+  - DELETE `/trips/{trip_id}/gpx` - Delete GPX (cascade)
+- ✅ Schemas: GPXUploadResponse, TrackDataResponse, TrackPoint
+- ✅ Storage: Hybrid filesystem + database
+  - Original files: `storage/gpx_files/{year}/{month}/{trip_id}/original.gpx`
+  - Simplified points: PostgreSQL/SQLite (90% size reduction)
+
+**Frontend**:
+
+- ✅ GPXUploader component
+  - Drag-drop file upload (react-dropzone pattern)
+  - Validación: .gpx extension, ≤10MB size
+  - Loading states, error handling
+- ✅ GPXStats component
+  - 5 stat cards: Distance, Elevation Gain/Loss, Max/Min Altitude
+  - Card-based grid layout (responsive: 5/3/2/1 columns)
+  - Color-coded icons (blue, green, orange, purple, teal)
+  - Download button (owner-only, FR-039)
+  - "No elevation data" message fallback
+- ✅ TripMap integration con GPX
+  - Polyline roja (#dc2626) para ruta GPS
+  - Marcadores: verde (inicio), rojo (fin)
+  - Auto-fit bounds con padding 50px
+  - Click en marcadores muestra popup con coordenadas (5 decimales)
+- ✅ Custom Hooks:
+  - `useGPXUpload.ts` - Upload con polling (async)
+  - `useGPXTrack.ts` - Fetch simplified trackpoints
+- ✅ Services:
+  - `gpxService.ts` - API integration (upload, download, track)
+- ✅ Types:
+  - `gpx.ts` - TypeScript interfaces completas
+
+**Testing**:
+
+- ✅ Backend Unit: 8/8 tests passing (test_gpx_service.py)
+- ✅ Backend Integration: 6/7 tests passing (test_gpx_api.py) - async processing deferred
+- ✅ Coverage: 88.68% (gpx_service.py)
+- 🔜 Frontend Unit: GPXUploader, GPXStats (T041, T042 - PENDING)
+- 🔜 E2E Tests: Upload, visualización, download (T063-T067 - PENDING)
+
+**Archivos Principales**:
+
+- Backend: 7 archivos (models, services, API, schemas, migrations, tests)
+- Frontend: 8 archivos (components, hooks, services, types, CSS)
+- Specs: 6 archivos (spec.md, plan.md, tasks.md, data-model.md, contracts/, MANUAL_TESTING.md)
+
+**Commits realizados**: 5 commits
+
+- feat(backend): GPX data model, service, API endpoints
+- feat(frontend): GPX upload, stats, map visualization
+- feat(frontend): add GPX download button to GPXStats component
+- docs(003-gps-routes): update T048 manual testing guide + API verification
+- docs(003-gps-routes): update MANUAL_TESTING.md index
+
+**Tiempo invertido**: ~8 horas (backend + frontend + testing + documentación)
+
+**Decisiones Técnicas Clave**:
+
+- ✅ gpxpy para parsing (madura, pure Python, GPX 1.0/1.1)
+- ✅ Sync processing solo <1MB (async >1MB deferred - T047)
+- ✅ Douglas-Peucker simplification (90% reducción: 10k→1k points)
+- ✅ Hybrid storage (filesystem original + DB simplified)
+- ✅ Elevation threshold filtering (3m para GPS noise)
+- ⏸️ Async processing >1MB: DEFERRED (returns 501 Not Implemented)
+
+**Fase Actual Completada**: MVP funcional con upload sync (<1MB), visualización en mapa, estadísticas básicas, y download.
+
+**Próximo Paso (Post-MVP - DEFERRED)**:
+
+- ⏭️ Phase 5: Perfil de Elevación Interactivo (Recharts)
+- ⏭️ Phase 6: Puntos de Interés (POI management)
+- ⏭️ Phase 7: Estadísticas Avanzadas (speed, climbs)
+- ⏭️ Async processing >1MB (BackgroundTasks)
+
+**Manual Testing Guide**: `specs/003-gps-routes/MANUAL_TESTING.md`
+
+- T046: Upload <1MB ✅
+- T047: Upload >1MB (async - returns 501) ⏸️
+- T048: Download GPX ✅ (UI + API verification)
+- T049: Delete cascade ✅
+- T065: Visualización mapa ✅
+
+**Documentación**: Ver [`specs/003-gps-routes/`](specs/003-gps-routes/) para especificación completa
+
 ### Feature 011: Frontend Deployment Integration ✅
 - 4 deployment modes (SQLite Local, Docker Minimal, Docker Full, Production)
 - Cross-platform scripts (Linux/Mac + Windows)
@@ -905,11 +1025,12 @@ Realizar primer deployment a staging para validación real con usuarios.
 
 ## Métricas de Progreso 📊
 
-### Features Completadas y Mergeadas (15/16) 🎉
+### Features Completadas y Mergeadas (16/17) 🎉
 
 - ✅ 001-testing-qa: Testing & QA Suite (mergeada 2026-01-16)
 - ✅ 001: User Profiles Backend
 - ✅ 002: Travel Diary Backend
+- 🔄 003: GPS Routes Interactive (Phase 4/8 completada - MVP funcional) - **EN PROGRESO** (2026-01-21) - 50% completa
 - ✅ 004: Social Network (US1+US2+US3) - **MERGEADA** (2026-01-20) - 60% completa
 - ✅ 005: Frontend User Auth
 - ✅ 006: Dashboard Dinámico
@@ -921,6 +1042,7 @@ Realizar primer deployment a staging para validación real con usuarios.
 - ✅ 012: TypeScript Code Quality
 - ✅ 013: Public Trips Feed (MVP Desktop)
 - ✅ 014: Landing Page Inspiradora
+- 🔄 015: Dashboard Redesign (Phase 3/7 completada) - **EN PROGRESO** (2026-01-21) - 43% completa
 
 ### Features Parcialmente Completadas (Trabajo Futuro)
 
