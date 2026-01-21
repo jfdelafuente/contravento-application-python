@@ -122,6 +122,7 @@
 **Frontend Tests**
 
 - [X] T041 [P] [US1] Unit test: GPXUploader file validation (>10MB shows error, .kml rejected) in `frontend/tests/unit/GPXUploader.test.tsx` (see [quickstart.md:426-437](quickstart.md#L426-L437))
+- [X] T041.5 [US1] Add download button to GPXStats component with owner-only visibility (FR-039) - Enables manual testing T048
 - [X] T042 [P] [US1] Unit test: GPXUploader loading state during upload in `frontend/tests/unit/GPXUploader.test.tsx`
 
 **Verification**
