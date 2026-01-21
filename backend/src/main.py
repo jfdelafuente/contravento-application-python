@@ -2,8 +2,6 @@
 FastAPI application entry point for ContraVento backend.
 
 Initializes the FastAPI app with middleware, error handling, and routing.
-
-CI/CD Test: Validating GitHub Actions with SECRET_KEY from GitHub Secrets.
 """
 
 from datetime import UTC, datetime
