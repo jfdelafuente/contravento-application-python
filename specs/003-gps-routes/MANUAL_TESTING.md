@@ -220,48 +220,181 @@ else:
 ### Objetivo
 Verificar que se puede descargar el archivo GPX original subido (FR-039)
 
+### Prerequisitos
+- ✅ Viaje publicado con archivo GPX cargado (completar T046 primero)
+- ✅ Login como propietario del viaje (owner-only feature)
+- ✅ Frontend ejecutándose en http://localhost:5173
+
 ### Pasos
 
 1. **Navegar al viaje con GPX** (del T046):
-   - Ir a "Test Ruta GPS"
+   - Login con usuario propietario: `testgpx` / `TestGPX123!`
+   - Ir a "Mis Viajes" → Click en "Test Ruta GPS"
+   - URL: `http://localhost:5173/trips/{trip-id}`
 
-2. **Abrir DevTools (Opcional)**:
+2. **Ubicar sección "Ruta GPS"**:
+   - Scroll hasta la sección "Ruta GPS"
+   - Debe aparecer **después** de las fotos (si hay)
+   - Debe aparecer **antes** del mapa de ubicaciones (Feature 009)
+
+3. **Verificar botón de descarga visible**:
+   - ✅ Botón azul con icono de descarga (⬇)
+   - ✅ Texto: "Descargar GPX Original"
+   - ✅ Ubicado **después** de las estadísticas (Distance, Desnivel, etc.)
+   - ✅ Centrado horizontalmente
+   - ⚠️ **IMPORTANTE**: Solo visible para el propietario del viaje
+
+4. **Abrir DevTools (Opcional)**:
    - F12 → Network tab
    - Filtrar: `download`
 
-3. **Buscar botón de descarga**:
-   - ⚠️ **NOTA**: El botón de descarga no está implementado en el frontend aún
-   - **Workaround**: Usar API directamente
+5. **Click en botón de descarga**:
+   - Click en "Descargar GPX Original"
+   - Observar comportamiento:
+     - ✅ Toast notification verde: "Descargando archivo GPX original..."
+     - ✅ Navegador inicia descarga automáticamente
+     - ✅ Request en Network tab: `GET /gpx/{gpx_file_id}/download` → 200 OK
 
-4. **Descarga via API**:
+6. **Verificar archivo descargado**:
+   - Buscar archivo en carpeta de Descargas del navegador
+   - Nombre del archivo: `original.gpx`
+   - Verificar tamaño y contenido:
+     ```bash
+     # Windows PowerShell
+     Get-ChildItem $env:USERPROFILE\Downloads\original.gpx | Format-List Name, Length
+     Get-Content $env:USERPROFILE\Downloads\original.gpx -Head 5
+
+     # Linux/Mac
+     ls -lh ~/Downloads/original.gpx
+     head -n 5 ~/Downloads/original.gpx
+     ```
+
+7. **Comparar con archivo original**:
    ```bash
-   # Obtener GPX ID del viaje
-   curl http://localhost:8000/trips/{TRIP_ID}/gpx
+   # Verificar que el contenido es idéntico
+   # Windows PowerShell
+   Compare-Object (Get-Content backend\tests\fixtures\gpx\short_route.gpx) (Get-Content $env:USERPROFILE\Downloads\original.gpx)
+   # Si no hay output, los archivos son idénticos
 
-   # Descargar archivo original (reemplazar {GPX_FILE_ID})
-   curl -o downloaded.gpx http://localhost:8000/gpx/{GPX_FILE_ID}/download
+   # Linux/Mac
+   diff backend/tests/fixtures/gpx/short_route.gpx ~/Downloads/original.gpx
+   # Si no hay output, los archivos son idénticos
    ```
 
-5. **Verificar archivo descargado**:
-   ```bash
-   # Comparar tamaño
-   ls -lh downloaded.gpx
-   ls -lh test-gpx-files/short_route.gpx
-
-   # Verificar contenido (primeras 5 líneas)
-   head -n 5 downloaded.gpx
-   ```
+8. **Verificar ownership check (no owner)**:
+   - Logout del usuario propietario
+   - Login con otro usuario: `maria_garcia` / `SecurePass456!`
+   - Navegar al mismo viaje (URL: `http://localhost:5173/trips/{trip-id}`)
+   - ✅ Botón de descarga **NO debe aparecer** (owner-only)
 
 ### Criterios de Éxito ✅
 
+#### Funcionalidad
+- [ ] Botón de descarga visible solo para propietario
+- [ ] Click en botón inicia descarga automática
+- [ ] Toast notification de éxito mostrado
 - [ ] Archivo se descarga correctamente
-- [ ] Tamaño coincide con original
-- [ ] Contenido es XML válido
+
+#### Archivo Descargado
 - [ ] Nombre del archivo: `original.gpx`
+- [ ] Tamaño coincide con archivo original subido
+- [ ] Contenido es XML válido (empieza con `<?xml version="1.0"`)
+- [ ] Contenido idéntico al archivo original (diff sin diferencias)
 
-### Captura de Pantalla
+#### UX
+- [ ] Botón visible en sección "Ruta GPS"
+- [ ] Botón centrado horizontalmente
+- [ ] Icono de descarga visible (⬇)
+- [ ] Hover effect funciona (background más oscuro)
+- [ ] Botón responsive en móvil (full width en <640px)
 
-📸 Capturar: Archivo descargado en carpeta de descargas
+#### Ownership Check
+- [ ] Botón NO visible para usuarios no propietarios
+- [ ] Botón NO visible cuando no hay sesión (visitante anónimo)
+
+### Troubleshooting
+
+#### ❌ **Problema**: Botón no aparece para propietario
+
+**Diagnóstico**:
+1. Verificar en Console (F12):
+   ```javascript
+   // Verificar props en React DevTools
+   isOwner: true
+   gpxFileId: "abc123..."
+   ```
+
+**Solución**:
+- Verificar que `trip.user_id === user.user_id`
+- Verificar que `trip.gpx_file.gpx_file_id` existe
+- Revisar componente GPXStats en React DevTools
+
+---
+
+#### ❌ **Problema**: Click en botón no descarga archivo
+
+**Diagnóstico**:
+1. Verificar en Network tab:
+   ```
+   Request: GET /gpx/{gpx_file_id}/download
+   Status: 200 OK
+   Response Type: application/gpx+xml
+   ```
+
+**Solución**:
+- Si error 404: Verificar que gpx_file_id es correcto
+- Si error 401: Verificar que estás autenticado
+- Si error 403: Verificar que eres propietario del viaje
+
+---
+
+#### ❌ **Problema**: Toast error "No se puede descargar: ID de archivo GPX no disponible"
+
+**Causa**: `gpxFileId` prop no se pasó correctamente a GPXStats
+
+**Solución**:
+- Verificar en TripDetailPage.tsx:
+  ```tsx
+  <GPXStats
+    metadata={trip.gpx_file}
+    gpxFileId={trip.gpx_file.gpx_file_id}  // ← Debe estar presente
+    isOwner={isOwner}
+  />
+  ```
+
+### Captura de Pantalla Recomendada
+
+📸 Capturar las siguientes vistas:
+
+1. **Botón de descarga en desktop**:
+   - Sección "Ruta GPS" completa
+   - Estadísticas + botón de descarga + mapa (si hay)
+
+2. **Hover state del botón**:
+   - Mouse sobre el botón (background más oscuro)
+
+3. **Toast notification**:
+   - Toast verde con mensaje "Descargando archivo GPX original..."
+
+4. **Archivo en carpeta Descargas**:
+   - Explorador de archivos mostrando `original.gpx`
+
+5. **Vista mobile** (opcional):
+   - Botón full width en móvil (<640px)
+
+### Archivo GPX de Prueba Recomendado
+
+**Para esta prueba usar**: `backend/tests/fixtures/gpx/short_route.gpx`
+
+**Características**:
+- Tamaño: ~2.8 KB
+- 10 trackpoints originales
+- Fácil de verificar con diff/compare
+
+**Resultado esperado en Descargas**:
+- Nombre: `original.gpx`
+- Tamaño: ~2.8 KB (idéntico al original)
+- Contenido XML válido y completo
 
 ---
 
