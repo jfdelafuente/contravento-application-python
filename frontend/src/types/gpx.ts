@@ -374,6 +374,12 @@ export interface ElevationProfileProps {
 export interface GPXStatsProps {
   /** GPX file metadata to display */
   metadata: GPXFileMetadata;
+
+  /** GPX file ID (required for download functionality) */
+  gpxFileId?: string;
+
+  /** Whether current user is trip owner (enables download button) */
+  isOwner?: boolean;
 }
 
 // ============================================================================

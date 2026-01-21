@@ -672,7 +672,11 @@ export const TripDetailPage: React.FC = () => {
         {trip.gpx_file && (
           <section className="trip-detail-page__section">
             <h2 className="trip-detail-page__section-title">Ruta GPS</h2>
-            <GPXStats metadata={trip.gpx_file} />
+            <GPXStats
+              metadata={trip.gpx_file}
+              gpxFileId={trip.gpx_file.gpx_file_id}
+              isOwner={isOwner}
+            />
           </section>
         )}
 

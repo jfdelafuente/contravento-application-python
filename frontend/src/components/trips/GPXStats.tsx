@@ -4,12 +4,14 @@
  * Feature 003 - GPS Routes Interactive
  * Displays route statistics in a card-based grid layout.
  *
- * Functional Requirements: FR-003 (Display Route Statistics)
+ * Functional Requirements: FR-003 (Display Route Statistics), FR-039 (Download GPX)
  * Success Criteria: SC-005 (>90% elevation accuracy)
  */
 
 import React from 'react';
 import { GPXStatsProps } from '../../types/gpx';
+import { downloadGPX } from '../../services/gpxService';
+import toast from 'react-hot-toast';
 import './GPXStats.css';
 
 /**
@@ -20,10 +22,11 @@ import './GPXStats.css';
  * - Elevation Gain (meters, if available)
  * - Elevation Loss (meters, if available)
  * - Max/Min Altitude (meters, if available)
+ * - Download button (owner-only)
  *
  * Design pattern: Similar to StatsCard from dashboard
  */
-export const GPXStats: React.FC<GPXStatsProps> = ({ metadata }) => {
+export const GPXStats: React.FC<GPXStatsProps> = ({ metadata, gpxFileId, isOwner = false }) => {
   // Safety check: metadata should always be provided by parent
   if (!metadata) {
     console.error('GPXStats: metadata is required');
@@ -38,6 +41,25 @@ export const GPXStats: React.FC<GPXStatsProps> = ({ metadata }) => {
     min_elevation,
     has_elevation,
   } = metadata;
+
+  /**
+   * Handle GPX file download
+   * FR-039: Owner can download original GPX file
+   */
+  const handleDownload = async () => {
+    if (!gpxFileId) {
+      toast.error('No se puede descargar: ID de archivo GPX no disponible');
+      return;
+    }
+
+    try {
+      await downloadGPX(gpxFileId);
+      toast.success('Descargando archivo GPX original...');
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast.error('Error al descargar archivo GPX');
+    }
+  };
 
   return (
     <div className="gpx-stats">
@@ -167,6 +189,31 @@ export const GPXStats: React.FC<GPXStatsProps> = ({ metadata }) => {
           </div>
         )}
       </div>
+
+      {/* Download Button (Owner-only) */}
+      {isOwner && gpxFileId && (
+        <div className="gpx-stats__actions">
+          <button
+            onClick={handleDownload}
+            className="gpx-stats__download-btn"
+            aria-label="Descargar archivo GPX original"
+          >
+            <svg
+              className="gpx-stats__download-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Descargar GPX Original</span>
+          </button>
+        </div>
+      )}
 
       {/* No elevation data message */}
       {!has_elevation && (
