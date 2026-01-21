@@ -52,8 +52,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(66, 153, 225, 0.1);
-  color: #4299e1;
   margin-bottom: 0.25rem;
 }
 
@@ -99,32 +97,32 @@
 
 /* Distance - Blue */
 .gpx-stat-card--distance .gpx-stat-card__icon-wrapper {
-  background-color: rgba(66, 153, 225, 0.1);
-  color: #4299e1;
+  background-color: #bfdbfe !important;
+  color: #1e40af !important;
 }
 
 /* Elevation Gain - Green (uphill) */
 .gpx-stat-card--gain .gpx-stat-card__icon-wrapper {
-  background-color: rgba(72, 187, 120, 0.1);
-  color: #48bb78;
+  background-color: #bbf7d0 !important;
+  color: #15803d !important;
 }
 
 /* Elevation Loss - Orange (downhill) */
 .gpx-stat-card--loss .gpx-stat-card__icon-wrapper {
-  background-color: rgba(237, 137, 54, 0.1);
-  color: #ed8936;
+  background-color: #fed7aa !important;
+  color: #c2410c !important;
 }
 
 /* Max Elevation - Purple (peak) */
 .gpx-stat-card--max .gpx-stat-card__icon-wrapper {
-  background-color: rgba(159, 122, 234, 0.1);
-  color: #9f7aea;
+  background-color: #e9d5ff !important;
+  color: #7c3aed !important;
 }
 
 /* Min Elevation - Teal (valley) */
 .gpx-stat-card--min .gpx-stat-card__icon-wrapper {
-  background-color: rgba(56, 178, 172, 0.1);
-  color: #38b2ac;
+  background-color: #99f6e4 !important;
+  color: #0f766e !important;
 }
 
 /* No Elevation Message */
