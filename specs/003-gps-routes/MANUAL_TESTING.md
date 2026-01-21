@@ -6,6 +6,7 @@
 2. [T046: Upload de archivo pequeño (<1MB)](#t046-upload-de-archivo-pequeño-1mb)
 3. [T047: Upload de archivo grande (>1MB)](#t047-upload-de-archivo-grande-1mb)
 4. [T048: Descarga de archivo GPX original](#t048-descarga-de-archivo-gpx-original)
+   - [Verificación Alternativa por API](#verificación-alternativa-por-api-sin-frontend)
 5. [T049: Eliminación con cascade](#t049-eliminación-con-cascade)
 6. [Verificación de Errores](#verificación-de-errores)
 7. [Checklist Final](#checklist-final)
