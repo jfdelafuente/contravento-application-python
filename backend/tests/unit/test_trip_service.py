@@ -699,7 +699,7 @@ class TestTripServicePhotoUpload:
             db_session.add(stats)
             await db_session.commit()
 
-        initial_photo_count = stats.total_trip_photos
+        initial_photo_count = stats.total_photos
 
         # Act - Upload photo
         img = Image.new("RGB", (200, 200), color="blue")
@@ -717,7 +717,7 @@ class TestTripServicePhotoUpload:
 
         # Assert - Stats updated
         await db_session.refresh(stats)
-        assert stats.total_trip_photos == initial_photo_count + 1
+        assert stats.total_photos == initial_photo_count + 1
 
 
 @pytest.mark.unit
@@ -948,11 +948,11 @@ class TestTripServicePhotoDelete:
         )
         stats = result.scalar_one_or_none()
         if not stats:
-            stats = UserStats(user_id=test_user.id, total_trip_photos=1)
+            stats = UserStats(user_id=test_user.id, total_photos=1)
             db_session.add(stats)
             await db_session.commit()
 
-        initial_photo_count = stats.total_trip_photos
+        initial_photo_count = stats.total_photos
 
         service = TripService(db_session)
 
@@ -961,7 +961,7 @@ class TestTripServicePhotoDelete:
 
         # Assert - Stats updated
         await db_session.refresh(stats)
-        assert stats.total_trip_photos == initial_photo_count - 1
+        assert stats.total_photos == initial_photo_count - 1
 
 
 @pytest.mark.unit

@@ -182,6 +182,11 @@ class TripPhoto(Base):
 
     # Property mappings for schema compatibility
     @property
+    def id(self) -> str:
+        """Map photo_id to id for backward compatibility."""
+        return self.photo_id
+
+    @property
     def thumbnail_url(self) -> str:
         """Map thumb_url to thumbnail_url for schema compatibility."""
         return self.thumb_url
