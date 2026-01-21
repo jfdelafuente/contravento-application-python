@@ -202,7 +202,7 @@ class TestPostLike:
         # Create auth headers for trip owner
         from src.utils.security import create_access_token
 
-        token = create_access_token(subject=trip_owner.id, token_type="access")
+        token = create_access_token({"sub": trip_owner.id, "type": "access"})
         owner_headers = {"Authorization": f"Bearer {token}"}
 
         # Act
@@ -214,6 +214,8 @@ class TestPostLike:
         # Assert
         assert response.status_code == 400
         data = response.json()
+        # HTTPException is wrapped by exception handler middleware
+        # Format: {"success": false, "data": null, "error": {"code": "...", "message": "..."}}
         assert data["success"] is False
         assert "No puedes dar like a tu propio viaje" in data["error"]["message"]
 

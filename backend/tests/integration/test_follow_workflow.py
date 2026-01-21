@@ -53,12 +53,13 @@ class TestFollowWorkflow:
         )
         db_session.add(user_a)
         db_session.add(user_b)
+        await db_session.flush()  # Get user IDs
 
         profile_a = UserProfile(user_id=user_a.id)
         profile_b = UserProfile(user_id=user_b.id)
         db_session.add(profile_a)
         db_session.add(profile_b)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         token_a = create_access_token({"sub": user_a.id, "type": "access"})
 
@@ -127,12 +128,13 @@ class TestFollowerCounterUpdates:
         )
         db_session.add(user1)
         db_session.add(user2)
+        await db_session.flush()  # Get user IDs
 
         profile1 = UserProfile(user_id=user1.id)
         profile2 = UserProfile(user_id=user2.id)
         db_session.add(profile1)
         db_session.add(profile2)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         # Initial counters should be 0
         assert profile1.following_count == 0
@@ -185,9 +187,10 @@ class TestFollowersPagination:
             is_verified=True,
         )
         db_session.add(target)
+        await db_session.flush()  # Get user ID
+
         target_profile = UserProfile(user_id=target.id)
         db_session.add(target_profile)
-        await db_session.flush()
 
         # Create 60 followers
         for i in range(60):
@@ -207,7 +210,7 @@ class TestFollowersPagination:
             follow = Follow(follower_id=follower.id, following_id=target.id)
             db_session.add(follow)
 
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         # Get first page (default limit is 50)
         response1 = await client.get(f"/users/{target.username}/followers")
@@ -252,10 +255,11 @@ class TestSelfFollowPrevention:
             is_verified=True,
         )
         db_session.add(user)
+        await db_session.flush()  # Get user ID
 
         profile = UserProfile(user_id=user.id)
         db_session.add(profile)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         token = create_access_token({"sub": user.id, "type": "access"})
 
@@ -297,10 +301,11 @@ class TestUnauthenticatedFollowRedirect:
             is_verified=True,
         )
         db_session.add(user)
+        await db_session.flush()  # Get user ID
 
         profile = UserProfile(user_id=user.id)
         db_session.add(profile)
-        await db_session.commit()
+        await db_session.flush()  # Persist but keep transaction open
 
         # Try to follow without auth
         response = await client.post(f"/users/{user.username}/follow")
