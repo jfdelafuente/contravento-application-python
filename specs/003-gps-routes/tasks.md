@@ -43,19 +43,19 @@
 
 ### Database Schema
 
-- [ ] T006 Create Alembic migration script `backend/migrations/versions/xxx_create_gpx_tables.py` with dual-database DDL (see [data-model.md:428-520](data-model.md#L428-L520))
-- [ ] T007 Apply migration to create `gpx_files` and `track_points` tables: `poetry run alembic upgrade head`
-- [ ] T008 Verify tables exist in database with correct schema (indexes, foreign keys, constraints)
+- [X] T006 Create Alembic migration script `backend/migrations/versions/xxx_create_gpx_tables.py` with dual-database DDL (see [data-model.md:428-520](data-model.md#L428-L520))
+- [X] T007 Apply migration to create `gpx_files` and `track_points` tables: `poetry run alembic upgrade head`
+- [X] T008 Verify tables exist in database with correct schema (indexes, foreign keys, constraints)
 
 ### Core Models
 
-- [ ] T009 [P] Create `backend/src/models/gpx.py` with GPXFile model (see [data-model.md:333-384](data-model.md#L333-L384), [quickstart.md:132-168](quickstart.md#L132-L168))
-- [ ] T010 [P] Add TrackPoint model to `backend/src/models/gpx.py` (see [data-model.md:387-408](data-model.md#L387-L408), [quickstart.md:170-185](quickstart.md#L170-L185))
-- [ ] T011 Extend Trip model in `backend/src/models/trip.py` with gpx_file relationship (see [data-model.md:410-422](data-model.md#L410-L422))
+- [X] T009 [P] Create `backend/src/models/gpx.py` with GPXFile model (see [data-model.md:333-384](data-model.md#L333-L384), [quickstart.md:132-168](quickstart.md#L132-L168))
+- [X] T010 [P] Add TrackPoint model to `backend/src/models/gpx.py` (see [data-model.md:387-408](data-model.md#L387-L408), [quickstart.md:170-185](quickstart.md#L170-L185))
+- [X] T011 Extend Trip model in `backend/src/models/trip.py` with gpx_file relationship (see [data-model.md:410-422](data-model.md#L410-L422))
 
 ### Shared Types (Frontend)
 
-- [ ] T012 [P] Create `frontend/src/types/gpx.ts` with TypeScript interfaces: GPXTrack, TrackPoint, GPXUploadResponse, GPXStatusResponse
+- [X] T012 [P] Create `frontend/src/types/gpx.ts` with TypeScript interfaces: GPXTrack, TrackPoint, GPXUploadResponse, GPXStatusResponse
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
