@@ -9,6 +9,8 @@ Endpoints:
 Authentication: All endpoints require JWT authentication
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,16 +22,36 @@ from src.services.like_service import LikeService
 router = APIRouter(prefix="/trips", tags=["Likes"])
 
 
+def create_response(
+    success: bool, data: Any = None, error: dict = None, message: str = None
+) -> dict:
+    """
+    Create standardized JSON response.
+
+    Args:
+        success: Success flag
+        data: Response data
+        error: Error details
+        message: Optional success message
+
+    Returns:
+        Standardized response dict
+    """
+    response = {"success": success, "data": data, "error": error}
+    if message:
+        response["message"] = message
+    return response
+
+
 @router.post(
     "/{trip_id}/like",
-    response_model=LikeResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def like_trip(
     trip_id: str = Path(..., description="Trip ID to like"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> LikeResponse:
+) -> dict:
     """
     Like a trip (FR-009) - T055, T046.
 
@@ -48,7 +70,8 @@ async def like_trip(
     """
     try:
         result = await LikeService.like_trip(db=db, user_id=current_user.id, trip_id=trip_id)
-        return result
+        like_data = LikeResponse.model_validate(result).model_dump()
+        return create_response(success=True, data=like_data)
     except ValueError as e:
         error_message = str(e)
 
@@ -65,12 +88,12 @@ async def like_trip(
         )
 
 
-@router.delete("/{trip_id}/like", response_model=UnlikeResponse)
+@router.delete("/{trip_id}/like")
 async def unlike_trip(
     trip_id: str = Path(..., description="Trip ID to unlike"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> UnlikeResponse:
+) -> dict:
     """
     Unlike a trip (FR-009) - T056, T047.
 
@@ -85,7 +108,8 @@ async def unlike_trip(
     """
     try:
         result = await LikeService.unlike_trip(db=db, user_id=current_user.id, trip_id=trip_id)
-        return result
+        unlike_data = UnlikeResponse.model_validate(result).model_dump()
+        return create_response(success=True, data=unlike_data)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -93,13 +117,13 @@ async def unlike_trip(
         )
 
 
-@router.get("/{trip_id}/likes", response_model=LikesListResponse)
+@router.get("/{trip_id}/likes")
 async def get_trip_likes(
     trip_id: str = Path(..., description="Trip ID"),
     page: int = Query(default=1, ge=1, description="Page number (min 1)"),
     limit: int = Query(default=20, ge=1, le=50, description="Items per page (min 1, max 50)"),
     db: AsyncSession = Depends(get_db),
-) -> LikesListResponse:
+) -> dict:
     """
     Get users who liked a trip (FR-014) - T057, T048.
 
@@ -118,5 +142,5 @@ async def get_trip_likes(
     **Performance**: SC-008 (<300ms p95 with 50 likes)
     """
     result = await LikeService.get_trip_likes(db=db, trip_id=trip_id, page=page, limit=limit)
-
-    return result
+    likes_data = LikesListResponse.model_validate(result).model_dump()
+    return create_response(success=True, data=likes_data)

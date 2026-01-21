@@ -12,6 +12,8 @@ Authentication:
 - GET allows unauthenticated access (public reading, FR-025)
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,9 +32,29 @@ from src.services.comment_service import CommentService
 router = APIRouter(tags=["Comments"])
 
 
+def create_response(
+    success: bool, data: Any = None, error: dict = None, message: str = None
+) -> dict:
+    """
+    Create standardized JSON response.
+
+    Args:
+        success: Success flag
+        data: Response data
+        error: Error details
+        message: Optional success message
+
+    Returns:
+        Standardized response dict
+    """
+    response = {"success": success, "data": data, "error": error}
+    if message:
+        response["message"] = message
+    return response
+
+
 @router.post(
     "/trips/{trip_id}/comments",
-    response_model=CommentResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_comment(
@@ -40,7 +62,7 @@ async def create_comment(
     comment_input: CommentCreateInput = ...,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> CommentResponse:
+) -> dict:
     try:
         comment = await CommentService.create_comment(
             db=db,
@@ -48,7 +70,8 @@ async def create_comment(
             user_id=current_user.id,
             content=comment_input.content,
         )
-        return CommentResponse.model_validate(comment)
+        comment_data = CommentResponse.model_validate(comment).model_dump()
+        return create_response(success=True, data=comment_data)
     except ValueError as e:
         error_message = str(e)
         if "límite" in error_message.lower():
@@ -69,14 +92,13 @@ async def create_comment(
 
 @router.get(
     "/trips/{trip_id}/comments",
-    response_model=CommentsListResponse,
 )
 async def get_trip_comments(
     trip_id: str = Path(..., description="Trip ID to get comments for"),
     limit: int = Query(50, ge=1, le=50),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
-) -> CommentsListResponse:
+) -> dict:
     result = await CommentService.get_trip_comments(
         db=db,
         trip_id=trip_id,
@@ -109,24 +131,24 @@ async def get_trip_comments(
 
         comments_with_authors.append(CommentResponse(**comment_dict))
 
-    return CommentsListResponse(
+    list_response = CommentsListResponse(
         items=comments_with_authors,
         total=result["total"],
         limit=result["limit"],
         offset=result["offset"],
     )
+    return create_response(success=True, data=list_response.model_dump())
 
 
 @router.put(
     "/comments/{comment_id}",
-    response_model=CommentResponse,
 )
 async def update_comment(
     comment_id: str = Path(..., description="Comment ID to update"),
     comment_input: CommentUpdateInput = ...,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> CommentResponse:
+) -> dict:
     try:
         comment = await CommentService.update_comment(
             db=db,
@@ -134,7 +156,8 @@ async def update_comment(
             user_id=current_user.id,
             content=comment_input.content,
         )
-        return CommentResponse.model_validate(comment)
+        comment_data = CommentResponse.model_validate(comment).model_dump()
+        return create_response(success=True, data=comment_data)
     except ValueError as e:
         error_message = str(e)
         if "solo puedes editar" in error_message.lower():
@@ -178,6 +201,7 @@ async def delete_comment(
             user_id=current_user.id,
             trip_id=comment.trip_id,
         )
+        return None
     except ValueError as e:
         error_message = str(e)
         if "no tienes permiso" in error_message.lower():
