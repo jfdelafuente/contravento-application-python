@@ -88,11 +88,11 @@
 
 **Backend Services**
 
-- [ ] T023 [US1] Implement `parse_gpx_file()` in `backend/src/services/gpx_service.py` using gpxpy library (see [quickstart.md:189-254](quickstart.md#L189-L254), [research.md:11-31](research.md#L11-L31))
-- [ ] T024 [US1] Implement `simplify_track()` in `backend/src/services/gpx_service.py` using rdp library with epsilon=0.0001° (see [quickstart.md:256-298](quickstart.md#L256-L298), [research.md:116-140](research.md#L116-L140))
-- [ ] T025 [US1] Implement `calculate_distance()` helper (Haversine formula) in `backend/src/services/gpx_service.py` (see [quickstart.md:301-313](quickstart.md#L301-L313))
-- [ ] T026 [US1] Implement `save_gpx_to_storage()` in `backend/src/services/gpx_service.py` for filesystem storage at `storage/gpx_files/{year}/{month}/{trip_id}/original.gpx` (see [plan.md:98](plan.md#L98))
-- [ ] T027 [US1] Add elevation anomaly detection (range -420m to 8850m) in `backend/src/services/gpx_service.py` (FR-034, see [data-model.md:175-179](data-model.md#L175-L179))
+- [X] T023 [US1] Implement `parse_gpx_file()` in `backend/src/services/gpx_service.py` using gpxpy library (see [quickstart.md:189-254](quickstart.md#L189-L254), [research.md:11-31](research.md#L11-L31))
+- [X] T024 [US1] Implement `simplify_track()` in `backend/src/services/gpx_service.py` using rdp library with epsilon=0.0001° (see [quickstart.md:256-298](quickstart.md#L256-L298), [research.md:116-140](research.md#L116-L140))
+- [X] T025 [US1] Implement `calculate_distance()` helper (Haversine formula) in `backend/src/services/gpx_service.py` (see [quickstart.md:301-313](quickstart.md#L301-L313))
+- [X] T026 [US1] Implement `save_gpx_to_storage()` in `backend/src/services/gpx_service.py` for filesystem storage at `storage/gpx_files/{year}/{month}/{trip_id}/original.gpx` (see [plan.md:98](plan.md#L98))
+- [X] T027 [US1] Add elevation anomaly detection (range -420m to 8850m) in `backend/src/services/gpx_service.py` (FR-034, see [data-model.md:175-179](data-model.md#L175-L179))
 
 **Backend Schemas**
 
