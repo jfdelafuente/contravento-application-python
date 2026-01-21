@@ -186,10 +186,20 @@ class TripPhoto(Base):
         """Map thumb_url to thumbnail_url for schema compatibility."""
         return self.thumb_url
 
+    @thumbnail_url.setter
+    def thumbnail_url(self, value: str) -> None:
+        """Allow setting thumbnail_url by writing to thumb_url."""
+        self.thumb_url = value
+
     @property
     def display_order(self) -> int:
         """Map order to display_order for schema compatibility."""
         return self.order
+
+    @display_order.setter
+    def display_order(self, value: int) -> None:
+        """Allow setting display_order by writing to order."""
+        self.order = value
 
     def __repr__(self) -> str:
         return f"<TripPhoto(photo_id={self.photo_id}, trip_id={self.trip_id})>"
