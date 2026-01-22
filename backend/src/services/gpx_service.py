@@ -78,10 +78,16 @@ class GPXService:
         Success Criteria: SC-005 (>90% elevation accuracy), SC-026 (30% storage reduction)
         """
         try:
+            import time
+            start_time = time.perf_counter()
+
             # Parse GPX XML
             gpx = gpxpy.parse(file_content)
+            parse_time = time.perf_counter() - start_time
+            logger.info(f"GPX parse time: {parse_time:.3f}s")
 
             # Extract all trackpoints
+            extract_start = time.perf_counter()
             points = []
             for track in gpx.tracks:
                 for segment in track.segments:
@@ -90,28 +96,37 @@ class GPXService:
             if not points:
                 raise ValueError("El archivo GPX no contiene puntos de track")
 
+            extract_time = time.perf_counter() - extract_start
+            logger.info(f"Point extraction time: {extract_time:.3f}s, {len(points)} points")
+
             # Detect timestamps
-            has_timestamps = any(p.time is not None for p in points)
+            has_timestamps = any(p.time is not None for p in points[:100])  # Sample first 100 points
 
             # Calculate metrics using gpxpy built-in methods
+            stats_start = time.perf_counter()
             distance_km = gpx.length_3d() / 1000  # meters to km
             uphill, downhill = gpx.get_uphill_downhill()
+            stats_time = time.perf_counter() - stats_start
+            logger.info(f"GPX stats calculation time: {stats_time:.3f}s")
 
             # Extract and validate elevation data (FR-034)
+            elev_start = time.perf_counter()
             elevations = [p.elevation for p in points if p.elevation is not None]
             has_elevation = len(elevations) > 0
 
             if has_elevation:
-                # Anomaly detection (FR-034)
-                for elev in elevations:
-                    if elev < MIN_ELEVATION or elev > MAX_ELEVATION:
-                        raise ValueError(
-                            f"Elevación anómala detectada: {elev}m. "
-                            f"Rango válido: {MIN_ELEVATION}m a {MAX_ELEVATION}m"
-                        )
+                # Anomaly detection (FR-034) - optimized with min/max before loop
+                min_elev = min(elevations)
+                max_elev = max(elevations)
 
-                max_elevation = max(elevations)
-                min_elevation = min(elevations)
+                if min_elev < MIN_ELEVATION or max_elev > MAX_ELEVATION:
+                    raise ValueError(
+                        f"Elevación anómala detectada: {min_elev}m a {max_elev}m. "
+                        f"Rango válido: {MIN_ELEVATION}m a {MAX_ELEVATION}m"
+                    )
+
+                max_elevation = max_elev
+                min_elevation = min_elev
 
                 # Ensure uphill/downhill are not None (gpxpy may return None)
                 uphill = uphill if uphill is not None else 0.0
@@ -122,9 +137,19 @@ class GPXService:
                 uphill = None
                 downhill = None
 
+            elev_time = time.perf_counter() - elev_start
+            logger.info(f"Elevation processing time: {elev_time:.3f}s")
+
             # Simplify trackpoints (Douglas-Peucker algorithm) - T024
-            # epsilon=0.00001° ≈ 1 meter precision (less aggressive than 0.0001)
-            simplified_points = self._simplify_track(points, epsilon=0.00001)
+            # epsilon=0.0001° ≈ 10 meter precision (more aggressive reduction)
+            simplify_start = time.perf_counter()
+            simplified_points = self._simplify_track_optimized(points, epsilon=0.0001)
+            simplify_time = time.perf_counter() - simplify_start
+            logger.info(
+                f"Simplification time: {simplify_time:.3f}s, "
+                f"{len(points)} -> {len(simplified_points)} points "
+                f"({100 * (1 - len(simplified_points) / len(points)):.1f}% reduction)"
+            )
 
             return {
                 "distance_km": round(distance_km, 2),
@@ -147,6 +172,66 @@ class GPXService:
             raise ValueError(f"Error al procesar archivo GPX: {str(e)}")
         except Exception as e:
             raise ValueError(f"Error al procesar archivo GPX: {str(e)}")
+
+    def _simplify_track_optimized(
+        self, points: List[gpxpy.gpx.GPXTrackPoint], epsilon: float = 0.0001
+    ) -> List[Dict[str, Any]]:
+        """
+        OPTIMIZED: Simplify GPS track using Ramer-Douglas-Peucker algorithm.
+
+        Optimizations:
+        - Use dict lookup instead of linear search (O(1) vs O(n))
+        - Pre-calculate point index mapping
+        - Single pass for distance and gradient calculation
+
+        Args:
+            points: Original GPX trackpoints
+            epsilon: Tolerance (0.0001° ≈ 10m precision)
+
+        Returns:
+            Simplified trackpoints (typically 80-95% reduction)
+        """
+        if len(points) < 3:
+            return [self._point_to_dict(p, i, 0.0) for i, p in enumerate(points)]
+
+        # Convert to coordinate array for RDP
+        coords = [(p.latitude, p.longitude) for p in points]
+
+        # Apply Douglas-Peucker algorithm
+        simplified_coords = rdp(coords, epsilon=epsilon)
+
+        # Create point lookup dict (OPTIMIZATION: O(1) lookup instead of O(n))
+        point_map = {(p.latitude, p.longitude): p for p in points}
+
+        # Build simplified trackpoints in single pass
+        simplified = []
+        cumulative_distance = 0.0
+
+        for i, (lat, lon) in enumerate(simplified_coords):
+            # O(1) lookup
+            original = point_map[(lat, lon)]
+
+            # Calculate gradient if elevation data available
+            gradient = None
+            if i > 0 and original.elevation is not None and simplified:
+                prev_point = simplified[-1]
+                if prev_point["elevation"] is not None:
+                    distance_m = (cumulative_distance - prev_point["distance_km"]) * 1000
+                    elevation_diff = original.elevation - prev_point["elevation"]
+                    if distance_m > 0:
+                        gradient = (elevation_diff / distance_m) * 100  # Percentage
+
+            simplified.append(
+                self._point_to_dict(original, i, cumulative_distance, gradient)
+            )
+
+            # Calculate cumulative distance for next point
+            if i < len(simplified_coords) - 1:
+                next_lat, next_lon = simplified_coords[i + 1]
+                segment_distance = self._calculate_distance(lat, lon, next_lat, next_lon)
+                cumulative_distance += segment_distance
+
+        return simplified
 
     def _simplify_track(
         self, points: List[gpxpy.gpx.GPXTrackPoint], epsilon: float = 0.0001

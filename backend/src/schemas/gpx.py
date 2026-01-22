@@ -121,6 +121,7 @@ class GPXStatusResponse(BaseModel):
     processing_status: str = Field(..., description="Current processing status")
     distance_km: float | None = Field(None, description="Total distance (only if completed)")
     elevation_gain: float | None = Field(None, description="Total elevation gain (only if completed)")
+    total_points: int | None = Field(None, description="Original trackpoint count (only if completed)")
     simplified_points: int | None = Field(None, description="Reduced point count (only if completed)")
     uploaded_at: datetime = Field(..., description="Upload timestamp")
     processed_at: datetime | None = Field(None, description="Processing completion timestamp")
