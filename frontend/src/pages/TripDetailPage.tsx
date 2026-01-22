@@ -180,8 +180,10 @@ export const TripDetailPage: React.FC = () => {
     setIsPublishing(true);
 
     try {
-      const publishedTrip = await publishTrip(trip.trip_id);
-      setTrip(publishedTrip);
+      await publishTrip(trip.trip_id);
+
+      // Refetch complete trip data instead of using partial response from publish endpoint
+      await fetchTrip();
 
       toast.success('Viaje publicado correctamente', {
         duration: 3000,
