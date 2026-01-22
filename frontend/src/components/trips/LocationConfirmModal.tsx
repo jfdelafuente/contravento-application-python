@@ -235,7 +235,7 @@ export const LocationConfirmModal: React.FC<LocationConfirmModalProps> = ({
             className="location-confirm-modal-button confirm"
             onClick={handleConfirm}
             disabled={!isNameValid || location.isLoading}
-            aria-label={!isNameValid ? "Confirmar ubicación (deshabilitado: nombre inválido)" : "Confirmar y guardar la ubicación"}
+            aria-label="Confirmar ubicación"
             aria-disabled={!isNameValid || location.isLoading}
             type="button"
           >

@@ -38,7 +38,14 @@ vi.mock('react-leaflet', () => ({
       data-position={JSON.stringify(position)}
       data-icon={JSON.stringify(icon)}
       data-draggable={draggable ? 'true' : 'false'}
-      data-event-handlers={JSON.stringify(eventHandlers || {})}
+      data-event-handlers={JSON.stringify(
+        eventHandlers
+          ? Object.keys(eventHandlers).reduce((acc: any, key: string) => {
+              acc[key] = typeof eventHandlers[key] === 'function' ? 'function' : eventHandlers[key];
+              return acc;
+            }, {})
+          : {}
+      )}
     >
       {children}
     </div>
@@ -621,7 +628,7 @@ describe('TripMap Component', () => {
       markers.forEach((marker) => {
         const eventHandlers = JSON.parse(marker.getAttribute('data-event-handlers') || '{}');
         expect(eventHandlers).toHaveProperty('dragend');
-        expect(typeof eventHandlers.dragend).toBe('function');
+        expect(eventHandlers.dragend).toBe('function');
       });
     });
 
