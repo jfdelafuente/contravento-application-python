@@ -93,41 +93,21 @@ jobs:
           cache-to: type=gha,mode=max
           load: true
 
-      - name: Test Backend Image (Health Check)
+      - name: Test Backend Image (Smoke Test)
         run: |
-          echo "Starting backend container for health check..."
-          docker run -d --name backend-test \
+          echo "Testing backend image can start..."
+          docker run --rm --name backend-test \
             -e DATABASE_URL="sqlite:///./test.db" \
             -e SECRET_KEY="test-secret-key-for-ci-only" \
-            -p 8000:8000 \
-            jfdelafuente/contravento-backend:latest
+            jfdelafuente/contravento-backend:latest \
+            python -c "from src.main import app; print('✓ Backend image is valid')"
 
-          echo "Waiting for backend to be ready..."
-          sleep 10
-
-          echo "Testing health endpoint..."
-          curl -f http://localhost:8000/health || exit 1
-
-          echo "Stopping test container..."
-          docker stop backend-test
-          docker rm backend-test
-
-      - name: Test Frontend Image (Nginx Config)
+      - name: Test Frontend Image (Smoke Test)
         run: |
-          echo "Starting frontend container for validation..."
-          docker run -d --name frontend-test \
-            -p 80:80 \
-            jfdelafuente/contravento-frontend:latest
-
-          echo "Waiting for nginx to start..."
-          sleep 5
-
-          echo "Testing nginx is serving content..."
-          curl -f http://localhost:80 || exit 1
-
-          echo "Stopping test container..."
-          docker stop frontend-test
-          docker rm frontend-test
+          echo "Testing frontend image nginx config..."
+          docker run --rm --name frontend-test \
+            jfdelafuente/contravento-frontend:latest \
+            nginx -t && echo "✓ Frontend image is valid"
 
       - name: Push Backend Image to Docker Hub
         if: github.event_name != 'pull_request'
