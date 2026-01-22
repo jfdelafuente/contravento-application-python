@@ -2,10 +2,12 @@
 # ContraVento - Jenkins CI/CD Environment
 # ============================================================================
 # Standalone Docker Compose file for CI/CD pipelines (Jenkins, GitHub Actions)
+# Uses pre-built images from Docker Hub (built by docker-build-push.yml workflow)
+#
 # Includes all services needed for testing and validation:
 #   - PostgreSQL (database)
-#   - Backend API (FastAPI)
-#   - Frontend (React/Vite production build)
+#   - Backend API (FastAPI) - FROM jfdelafuente/contravento-backend:latest
+#   - Frontend (Nginx/React) - FROM jfdelafuente/contravento-frontend:latest
 #   - pgAdmin (database UI for debugging)
 #
 # This is a self-contained file (no overlays needed) optimized for:
@@ -13,6 +15,7 @@
 #   - GitHub Actions workflows
 #   - CI/CD automated testing
 #   - Quick spin-up/teardown cycles
+#   - NO BUILD REQUIRED - Uses pre-built Docker Hub images
 #
 # Usage:
 #   docker-compose -f docker-compose-jenkins.yml up -d
@@ -24,7 +27,7 @@
 #   TURNSTILE_SITE_KEY:   Defaults to test key (1x00000000000000000000AA)
 #
 # Access:
-#   Frontend:           http://localhost:5173
+#   Frontend:           http://localhost:80
 #   Backend API:        http://localhost:8000
 #   API Docs:           http://localhost:8000/docs
 #   pgAdmin:            http://localhost:5050 (admin@jenkins.local / jenkins)
@@ -63,10 +66,7 @@ services:
   # Backend API - FastAPI
   # ==========================================================================
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: development  # Use development stage for faster builds
+    image: jfdelafuente/contravento-backend:latest
     container_name: contravento-api-jenkins
     environment:
       # Application
@@ -102,9 +102,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Mount source code for debugging (optional)
-      - ./backend/src:/app/src:ro
-      # Local storage for uploads
+      # Mount local storage for uploads (persistent across container restarts)
       - ./backend/storage:/app/storage
     depends_on:
       postgres:
@@ -123,33 +121,22 @@ services:
   # Frontend - React/Vite Production Build
   # ==========================================================================
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev  # Use dev Dockerfile for HMR during CI
+    image: jfdelafuente/contravento-frontend:latest
     container_name: contravento-frontend-jenkins
-    environment:
-      # Backend API URL (accessible from browser on CI runner)
-      VITE_API_URL: http://localhost:8000
-      VITE_ENV: ci
-      VITE_DEBUG: "true"
-      # Turnstile test key (auto-passes for CI)
-      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-1x00000000000000000000AA}
+    # NOTE: Frontend image is production build (Nginx serving static files)
+    # VITE_* variables were embedded at build-time in docker-build-push.yml
+    # No environment variables needed at runtime for static content
     ports:
-      - "5173:5173"
-    volumes:
-      # Mount source code for HMR
-      - ./frontend:/app
-      # Prevent node_modules from being overwritten
-      - /app/node_modules
+      - "80:80"  # Nginx serves on port 80
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 15s
     restart: unless-stopped
     networks:
       - jenkins-network
