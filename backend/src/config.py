@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Application
     app_name: str = Field(default="ContraVento", description="Application name")
     app_env: str = Field(
-        default="development", description="Environment (development, testing, production)"
+        default="development", description="Environment (development, testing, production, ci)"
     )
     debug: bool = Field(default=False, description="Debug mode")
 
@@ -156,7 +156,7 @@ class Settings(BaseSettings):
     @classmethod
     def validate_app_env(cls, v: str) -> str:
         """Validate application environment."""
-        allowed_envs = {"development", "testing", "production"}
+        allowed_envs = {"development", "testing", "production", "ci"}
         if v.lower() not in allowed_envs:
             raise ValueError(f"app_env must be one of {allowed_envs}")
         return v.lower()
