@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormStepIndicator } from './FormStepIndicator';
 import { Step1BasicInfo } from './Step1BasicInfo';
 import { Step2StoryTags } from './Step2StoryTags';
-import { Step3Photos } from './Step3Photos';
+import { Step3Photos, PhotoPreview } from './Step3Photos';
 import { Step4Review } from './Step4Review';
 import { TripCreateInput, TripPhoto } from '../../../types/trip';
 import toast from 'react-hot-toast';
@@ -33,7 +33,7 @@ interface TripFormWizardProps {
   existingPhotos?: TripPhoto[];
 
   /** Callback when form is submitted */
-  onSubmit: (data: TripCreateInput, isDraft: boolean) => Promise<void>;
+  onSubmit: (data: TripCreateInput, isDraft: boolean, photos?: PhotoPreview[]) => Promise<void>;
 
   /** Whether we're in edit mode */
   isEditMode?: boolean;
@@ -139,7 +139,12 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
 
     try {
       const formData = methods.getValues();
-      await onSubmit(formData, true); // isDraft = true
+
+      // Extract selectedPhotos and photosToDelete from form data (they're not part of the backend schema)
+      const { selectedPhotos, photosToDelete, ...cleanedData } = formData as any;
+
+      // Pass photos as third parameter to onSubmit
+      await onSubmit(cleanedData, true, selectedPhotos); // isDraft = true
 
       toast.success('Borrador guardado correctamente', {
         duration: 3000,
@@ -178,7 +183,11 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({
     setIsSubmitting(true);
 
     try {
-      await onSubmit(data, false); // isDraft = false
+      // Extract selectedPhotos and photosToDelete from form data (they're not part of the backend schema)
+      const { selectedPhotos, photosToDelete, ...cleanedData } = data as any;
+
+      // Pass photos as third parameter to onSubmit
+      await onSubmit(cleanedData, false, selectedPhotos); // isDraft = false
 
       toast.success(
         isEditMode ? 'Viaje actualizado correctamente' : 'Viaje publicado correctamente',

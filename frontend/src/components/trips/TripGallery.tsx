@@ -30,9 +30,17 @@ interface TripGalleryProps {
 /**
  * Custom hook for optimized lazy loading with Intersection Observer (T080)
  * Loads images only when they enter the viewport with configurable threshold
+ *
+ * @param totalImages - Total number of images in gallery
+ * @returns Object with loadedImages Set and observeImage callback
  */
-const useLazyLoadImages = () => {
-  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+const useLazyLoadImages = (totalImages: number) => {
+  // Load first 6 images immediately (typical grid shows 2-3 rows on desktop, 2 on mobile)
+  // This prevents placeholder flashing on initial render after navigation
+  const initialLoadCount = Math.min(6, totalImages);
+  const initialLoaded = new Set(Array.from({ length: initialLoadCount }, (_, i) => i));
+
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(initialLoaded);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -72,7 +80,7 @@ const useLazyLoadImages = () => {
 export const TripGallery: React.FC<TripGalleryProps> = ({ photos, tripTitle }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const { loadedImages, observeImage } = useLazyLoadImages();
+  const { loadedImages, observeImage } = useLazyLoadImages(photos.length);
 
   // Handle photo click - open lightbox at clicked photo
   const handlePhotoClick = (index: number) => {
@@ -118,6 +126,8 @@ export const TripGallery: React.FC<TripGalleryProps> = ({ photos, tripTitle }) =
         {/* Photo Grid */}
         <div className="trip-gallery__grid">
           {photos.map((photo, index) => {
+            // Lazy loading with Intersection Observer (T080)
+            // First 6 images load immediately, remaining images load when visible
             const isLoaded = loadedImages.has(index);
             const imageUrl = getPhotoUrl(photo.thumbnail_url || photo.photo_url) || '';
 

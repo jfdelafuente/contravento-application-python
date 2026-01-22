@@ -223,8 +223,8 @@ export const TripMap: React.FC<TripMapProps> = ({
   const gpxBounds = useMemo(() => {
     if (gpxRoutePath.length === 0) return null;
 
-    const lats = gpxRoutePath.map(([lat]) => lat as number);
-    const lngs = gpxRoutePath.map(([_, lng]) => lng as number);
+    const lats = gpxRoutePath.map((point) => (point as [number, number])[0]);
+    const lngs = gpxRoutePath.map((point) => (point as [number, number])[1]);
 
     const bounds = new LatLngBounds(
       [Math.min(...lats), Math.min(...lngs)],

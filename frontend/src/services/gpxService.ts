@@ -72,10 +72,10 @@ export interface TrackPoint {
   point_id: string;
   latitude: number;
   longitude: number;
-  elevation?: number;
+  elevation: number | null;
   distance_km: number;
   sequence: number;
-  gradient?: number;
+  gradient: number | null;
 }
 
 /**

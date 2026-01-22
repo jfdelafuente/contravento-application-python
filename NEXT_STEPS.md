@@ -1,11 +1,72 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-21 (Feature 003 - GPS Routes Interactive Phase 4 completada ✅)
-**Estado actual**: MVP GPS Routes completado (upload, stats, map visualization, download)
+**Última actualización**: 2026-01-22 (Feature 003 - GPS Routes Manual Testing completado + Bug Fixes ✅)
+**Estado actual**: MVP GPS Routes completado y verificado (upload, stats, map visualization, download)
 
 ---
 
-## 🎉 LOGRO RECIENTE: Integration Tests Improvements
+## 🎉 LOGRO RECIENTE: Feature 003 - GPS Routes Manual Testing Completed
+
+**Fecha**: 2026-01-22
+**Branch**: `003-gps-routes` (activa) - Fase de Testing completada ✅
+
+**Resultados**:
+
+- ✅ **4/4 tests manuales pasados** (T046-T049) - 100% success rate
+- ✅ **4 bugs críticos encontrados y corregidos** durante testing session
+- ✅ **MANUAL_TESTING.md actualizado** con resumen completo de testing
+- ✅ **MVP GPX Routes totalmente validado** - Listo para merge a develop
+
+**Tests Ejecutados**:
+
+1. ✅ **T046**: Upload GPX <1MB - Procesamiento sincrónico (<3s) en ambas modalidades
+2. ✅ **T047**: Upload GPX >1MB - Retorna 501 Not Implemented como esperado
+3. ✅ **T048**: Download GPX original - Descarga con trip title como filename (fix aplicado)
+4. ✅ **T049**: Cascade delete - GPXFile y TrackPoints eliminados correctamente
+
+**Bug Fixes Críticos** (4 fixes realizados durante testing):
+
+1. ✅ **Photos Not Uploading** (Commit 7af4071)
+   - **Problema**: Fotos seleccionadas en wizard no se subían al backend
+   - **Causa**: TripFormWizard no pasaba array `photos` a handler `onSubmit`
+   - **Fix**: Extraer `selectedPhotos` de formData y pasar como 3er parámetro
+   - **Archivo**: `frontend/src/components/trips/TripForm/TripFormWizard.tsx`
+
+2. ✅ **Blank Screen After Publish** (Commit 2b429ad)
+   - **Problema**: TripDetailPage mostraba pantalla en blanco tras publicar
+   - **Causa**: Endpoint `publishTrip` retorna objeto parcial (sin relaciones)
+   - **Fix**: Refetch completo tras publish en lugar de usar respuesta parcial
+   - **Archivo**: `frontend/src/pages/TripDetailPage.tsx`
+
+3. ✅ **Gallery Showing Placeholders** (Commit d05124d)
+   - **Problema**: Galería mostraba iconos grises en lugar de fotos
+   - **Causa**: `useLazyLoadImages` inicializaba con Set vacío, observer no se disparaba
+   - **Fix**: Cargar primeras 6 imágenes inmediatamente, lazy loading para resto
+   - **Archivo**: `frontend/src/components/trips/TripGallery.tsx`
+
+4. ✅ **GPX Download Filename** (Commit 4353960)
+   - **Problema**: Archivo descargado mantenía nombre original en lugar de trip title
+   - **Causa**: Endpoint usaba `gpx_file.file_name` directamente
+   - **Fix**: Sanitizar trip title y usar como filename en FileResponse
+   - **Archivo**: `backend/src/api/trips.py`
+
+**Commits del Testing Session**: 5 commits
+
+```bash
+4c8ed4e - docs(003-gps-routes): update MANUAL_TESTING.md with test results and bug fixes summary
+4353960 - fix(backend): download GPX file with trip title as filename
+d05124d - fix(frontend): optimize lazy loading in TripGallery to load first 6 images immediately
+2b429ad - fix(frontend): refetch trip after publish to show complete data
+7af4071 - fix(frontend): pass photos array to onSubmit in TripFormWizard
+```
+
+**Tiempo invertido**: ~3 horas (manual testing + debugging + bug fixes + documentación)
+
+**Próximo Paso**: Configurar GitHub Secrets y crear Pull Request a develop
+
+---
+
+## 🎉 LOGRO ANTERIOR: Integration Tests Improvements
 
 **Fecha**: 2026-01-21
 **Branch**: `fix/integration-tests-failures` → **MERGED to develop** ✅

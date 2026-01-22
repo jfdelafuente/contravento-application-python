@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.api.deps import get_current_user, get_db, get_optional_current_user
 from src.config import settings
@@ -1744,8 +1745,12 @@ async def download_gpx_file(
         404: GPX file not found
     """
     try:
-        # Get GPX file
-        result = await db.execute(select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id))
+        # Get GPX file with associated trip (eager loading)
+        result = await db.execute(
+            select(GPXFile)
+            .options(selectinload(GPXFile.trip))
+            .where(GPXFile.gpx_file_id == gpx_file_id)
+        )
         gpx_file = result.scalar_one_or_none()
 
         if not gpx_file:
@@ -1777,11 +1782,18 @@ async def download_gpx_file(
                 },
             )
 
+        # Generate filename from trip title (T048: Download as {trip_title}.gpx)
+        # Sanitize trip title for filename (remove special characters)
+        import re
+        sanitized_title = re.sub(r'[^\w\s-]', '', gpx_file.trip.title)
+        sanitized_title = re.sub(r'[-\s]+', '-', sanitized_title).strip('-')
+        download_filename = f"{sanitized_title}.gpx"
+
         # Return file
         return FileResponse(
             path=str(file_path),
             media_type="application/gpx+xml",
-            filename=gpx_file.file_name,
+            filename=download_filename,
         )
 
     except HTTPException:

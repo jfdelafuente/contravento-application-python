@@ -115,7 +115,7 @@ export const TripDetailPage: React.FC = () => {
   }, [tripId]);
 
   // Check if current user is the trip owner
-  const isOwner = user && trip && user.user_id === trip.user_id;
+  const isOwner = !!(user && trip && user.user_id === trip.user_id);
 
   // Handle trip deletion - Phase 8: Show confirmation dialog
   const handleDelete = () => {
@@ -180,8 +180,10 @@ export const TripDetailPage: React.FC = () => {
     setIsPublishing(true);
 
     try {
-      const publishedTrip = await publishTrip(trip.trip_id);
-      setTrip(publishedTrip);
+      await publishTrip(trip.trip_id);
+
+      // Refetch complete trip data instead of using partial response from publish endpoint
+      await fetchTrip();
 
       toast.success('Viaje publicado correctamente', {
         duration: 3000,

@@ -985,10 +985,10 @@ Console → Filtrar por "GPX" o "track"
 
 ### Funcionalidad Core ✅
 
-- [ ] **T046**: Upload <1MB completa en <3s
-- [ ] **T048**: Descarga de GPX original funciona
-- [ ] **T049**: Eliminación en cascada verificada
-- [ ] **T047**: Archivo >1MB retorna error esperado (501)
+- [x] **T046**: Upload <1MB completa en <3s ✅ **VERIFIED 2026-01-22**
+- [x] **T048**: Descarga de GPX original funciona ✅ **VERIFIED 2026-01-22** (con fix: download filename usa trip title)
+- [x] **T049**: Eliminación en cascada verificada ✅ **VERIFIED 2026-01-22**
+- [x] **T047**: Archivo >1MB retorna error esperado (501) ✅ **VERIFIED 2026-01-22**
 
 ### UI/UX ✅
 
@@ -1059,6 +1059,65 @@ Si encuentras errores durante el testing manual:
 **Logs**: [adjuntar]
 **Screenshot**: [adjuntar]
 ```
+
+---
+
+## Resumen de Testing - 2026-01-22
+
+### ✅ Tests Completados
+
+Todos los tests manuales de GPX (T046-T049) fueron ejecutados y verificados exitosamente:
+
+| Test | Descripción | Estado | Notas |
+|------|-------------|--------|-------|
+| **T046** | Upload GPX <1MB | ✅ PASS | Procesamiento sincrónico correcto, ambas modalidades verificadas |
+| **T047** | Upload GPX >1MB | ✅ PASS | Retorna 501 Not Implemented como esperado |
+| **T048** | Download GPX original | ✅ PASS | Fix aplicado: filename usa trip title en lugar de nombre original |
+| **T049** | Cascade delete | ✅ PASS | GPXFile y TrackPoints eliminados correctamente al borrar trip |
+
+### 🐛 Bugs Encontrados y Corregidos
+
+Durante el testing manual se encontraron **3 bugs críticos** que fueron diagnosticados y corregidos:
+
+#### 1. **Photos Not Uploading After Trip Creation**
+- **Síntoma**: Fotos seleccionadas en wizard no se subían al backend
+- **Causa**: `TripFormWizard` no pasaba el array `photos` al handler `onSubmit`
+- **Fix**: Commit [7af4071](../../commit/7af4071) - Extraer `selectedPhotos` de formData y pasar como 3er parámetro
+- **Archivos**: `frontend/src/components/trips/TripForm/TripFormWizard.tsx`
+
+#### 2. **Blank Screen After Publishing Trip**
+- **Síntoma**: TripDetailPage mostraba pantalla en blanco tras publicar, requería reload (F5)
+- **Causa**: Endpoint `publishTrip` retorna objeto parcial (solo trip_id, status, published_at), faltaban relaciones
+- **Fix**: Commit [2b429ad](../../commit/2b429ad) - Refetch completo tras publish en lugar de usar respuesta parcial
+- **Archivos**: `frontend/src/pages/TripDetailPage.tsx`
+
+#### 3. **Photo Gallery Showing Placeholders Instead of Images**
+- **Síntoma**: Galería mostraba iconos grises en lugar de fotos, funcionaba solo tras reload
+- **Causa**: `useLazyLoadImages` inicializaba con Set vacío, Intersection Observer no se disparaba en render inicial
+- **Fix**: Commit [d05124d](../../commit/d05124d) - Cargar primeras 6 imágenes inmediatamente, lazy loading para el resto
+- **Archivos**: `frontend/src/components/trips/TripGallery.tsx`
+
+#### 4. **GPX Download Using Original Filename Instead of Trip Title**
+- **Síntoma**: Archivo descargado mantenía nombre original (ej: `short_route.gpx`) en lugar de usar título del trip
+- **Causa**: Endpoint `download_gpx_file` usaba `gpx_file.file_name` directamente
+- **Fix**: Commit [4353960](../../commit/4353960) - Sanitizar trip title y usar como filename en FileResponse
+- **Archivos**: `backend/src/api/trips.py`
+
+### 📊 Commits del Testing Session
+
+```
+4353960 - fix(backend): download GPX file with trip title as filename
+d05124d - fix(frontend): optimize lazy loading in TripGallery to load first 6 images immediately
+2b429ad - fix(frontend): refetch trip after publish to show complete data
+7af4071 - fix(frontend): pass photos array to onSubmit in TripFormWizard
+```
+
+### 🎯 Próximas Tareas
+
+- [ ] Configurar GitHub Secrets (DOCKERHUB, VITE variables)
+- [ ] Validar CI/CD workflow (GitHub Actions)
+- [ ] Actualizar NEXT_STEPS.md con estado final
+- [ ] Crear Pull Request a branch `develop`
 
 ---
 
