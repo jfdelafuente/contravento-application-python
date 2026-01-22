@@ -4,14 +4,17 @@
 
 Entorno Docker standalone optimizado para pipelines de CI/CD (Jenkins, GitHub Actions, GitLab CI).
 
-**Incluye**:
-- PostgreSQL (database)
-- Backend API (FastAPI)
-- Frontend (React/Vite dev server)
-- pgAdmin (database UI)
+**Usa imágenes pre-construidas de Docker Hub** (generadas por workflow `docker-build-push.yml`):
+
+- `jfdelafuente/contravento-backend:latest` - Backend API (FastAPI)
+- `jfdelafuente/contravento-frontend:latest` - Frontend (Nginx/React)
+- `postgres:16-alpine` - Database
+- `dpage/pgadmin4:latest` - Database UI
 
 **Características**:
+
 - ✅ Un solo archivo (no requiere overlays)
+- ✅ Sin builds locales (pull desde Docker Hub)
 - ✅ Auto-configuración (SECRET_KEY auto-generado)
 - ✅ Rápido spin-up/teardown
 - ✅ Scripts helpers cross-platform
@@ -58,7 +61,7 @@ Entorno Docker standalone optimizado para pipelines de CI/CD (Jenkins, GitHub Ac
 
 | Servicio | URL | Credenciales |
 |----------|-----|--------------|
-| **Frontend** | http://localhost:5173 | - |
+| **Frontend** | http://localhost:80 | - |
 | **Backend API** | http://localhost:8000 | - |
 | **API Docs** | http://localhost:8000/docs | - |
 | **pgAdmin** | http://localhost:5050 | admin@jenkins.local / jenkins |
