@@ -53,6 +53,7 @@ def load_test_env():
     # The settings object is instantiated at module import time, so we need to reload it
     # We must reload the entire module to ensure all imports get the new settings
     import importlib
+
     import src.config
     importlib.reload(src.config)
 

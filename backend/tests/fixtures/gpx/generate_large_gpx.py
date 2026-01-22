@@ -4,7 +4,6 @@ Generate a large GPX file (5MB) for performance testing.
 Target: ~15,000 trackpoints to reach 5MB file size.
 """
 
-import sys
 from pathlib import Path
 
 

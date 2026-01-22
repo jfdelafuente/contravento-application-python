@@ -9,7 +9,16 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -1371,7 +1380,6 @@ async def upload_gpx_file(
                 await db.refresh(gpx_file)
 
                 # Save trackpoints
-                from src.schemas.gpx import TrackPointResponse
 
                 trackpoints = []
                 for point_data in parsed_data["trackpoints"]:

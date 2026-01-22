@@ -7,18 +7,15 @@ Success Criteria: SC-002, SC-003, SC-005, SC-026
 """
 
 import logging
-import uuid
 from datetime import UTC, datetime
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import gpxpy
 import gpxpy.gpx
 from rdp import rdp
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.models.gpx import GPXFile, TrackPoint
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +40,7 @@ class GPXService:
         """
         self.db = db
 
-    async def parse_gpx_file(self, file_content: bytes) -> Dict[str, Any]:
+    async def parse_gpx_file(self, file_content: bytes) -> dict[str, Any]:
         """
         Parse GPX file and extract track data.
 
@@ -174,8 +171,8 @@ class GPXService:
             raise ValueError(f"Error al procesar archivo GPX: {str(e)}")
 
     def _simplify_track_optimized(
-        self, points: List[gpxpy.gpx.GPXTrackPoint], epsilon: float = 0.0001
-    ) -> List[Dict[str, Any]]:
+        self, points: list[gpxpy.gpx.GPXTrackPoint], epsilon: float = 0.0001
+    ) -> list[dict[str, Any]]:
         """
         OPTIMIZED: Simplify GPS track using Ramer-Douglas-Peucker algorithm.
 
@@ -204,7 +201,7 @@ class GPXService:
         point_map = {(p.latitude, p.longitude): p for p in points}
 
         # Build simplified trackpoints in single pass
-        simplified = []
+        simplified: list[dict[str, Any]] = []
         cumulative_distance = 0.0
 
         for i, (lat, lon) in enumerate(simplified_coords):
@@ -234,8 +231,8 @@ class GPXService:
         return simplified
 
     def _simplify_track(
-        self, points: List[gpxpy.gpx.GPXTrackPoint], epsilon: float = 0.0001
-    ) -> List[Dict[str, Any]]:
+        self, points: list[gpxpy.gpx.GPXTrackPoint], epsilon: float = 0.0001
+    ) -> list[dict[str, Any]]:
         """
         Simplify GPS track using Ramer-Douglas-Peucker algorithm.
 
@@ -260,7 +257,7 @@ class GPXService:
         simplified_coords = rdp(coords, epsilon=epsilon)
 
         # Map back to original points (preserve elevation)
-        simplified = []
+        simplified: list[dict[str, Any]] = []
         cumulative_distance = 0.0
 
         for i, (lat, lon) in enumerate(simplified_coords):
@@ -295,7 +292,7 @@ class GPXService:
         sequence: int,
         distance_km: float,
         gradient: float = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Convert GPX trackpoint to dictionary format.
 

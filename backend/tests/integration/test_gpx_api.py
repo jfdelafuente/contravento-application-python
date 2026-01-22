@@ -6,15 +6,14 @@ Functional Requirements: FR-001 to FR-008, FR-036, FR-039
 Success Criteria: SC-002, SC-003
 """
 
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.trip import Trip
 from src.models.gpx import GPXFile, TrackPoint
 
 
