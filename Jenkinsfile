@@ -13,10 +13,24 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Backend Docker Image') {
             steps {
-                sh 'docker build -t jfdelafuente/contravento:latest -f backend/Dockerfile backend/'
-                echo 'Build Image Completed'
+                sh 'docker build -t jfdelafuente/contravento-backend:latest -f backend/Dockerfile backend/'
+                echo 'Backend Image Build Completed'
+            }
+        }
+
+        stage('Build Frontend Docker Image') {
+            steps {
+                sh '''
+                    docker build -t jfdelafuente/contravento-frontend:latest \
+                      --build-arg VITE_API_URL=https://api.contravento.com \
+                      --build-arg VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA \
+                      --build-arg VITE_ENV=production \
+                      --build-arg VITE_DEBUG=false \
+                      -f frontend/Dockerfile.prod frontend/
+                '''
+                echo 'Frontend Image Build Completed'
             }
         }
 
@@ -27,10 +41,17 @@ pipeline {
             }
         }
 
-        stage('Push Image to Docker Hub') {
+        stage('Push Backend Image to Docker Hub') {
             steps {
-                sh 'docker push jfdelafuente/contravento:latest'
-                echo 'Push Image Completed'
+                sh 'docker push jfdelafuente/contravento-backend:latest'
+                echo 'Backend Image Push Completed'
+            }
+        }
+
+        stage('Push Frontend Image to Docker Hub') {
+            steps {
+                sh 'docker push jfdelafuente/contravento-frontend:latest'
+                echo 'Frontend Image Push Completed'
             }
         }
     }

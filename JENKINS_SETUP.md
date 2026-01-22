@@ -65,10 +65,12 @@ git --version
 ## 📊 Etapas del Pipeline
 
 1. **Git Checkout**: Clona el repositorio (branch: develop)
-2. **Build Docker Image**: Construye imagen desde `backend/Dockerfile`
-3. **Login to Docker Hub**: Autenticación con credenciales
-4. **Push Image to Docker Hub**: Sube imagen con tag `latest`
-5. **Post-actions**: Logout de Docker Hub (siempre se ejecuta)
+2. **Build Backend Docker Image**: Construye imagen backend desde `backend/Dockerfile`
+3. **Build Frontend Docker Image**: Construye imagen frontend desde `frontend/Dockerfile.prod`
+4. **Login to Docker Hub**: Autenticación con credenciales
+5. **Push Backend Image to Docker Hub**: Sube imagen backend con tag `latest`
+6. **Push Frontend Image to Docker Hub**: Sube imagen frontend con tag `latest`
+7. **Post-actions**: Logout de Docker Hub (siempre se ejecuta)
 
 ## 🔍 Verificar Ejecución
 
@@ -91,11 +93,30 @@ git --version
 ✓ Logout completed
 ```
 
-### Verificar imagen en Docker Hub:
+### Verificar imágenes en Docker Hub:
 
 ```bash
-docker pull jfdelafuente/contravento:latest
+# Pull backend image
+docker pull jfdelafuente/contravento-backend:latest
+
+# Pull frontend image
+docker pull jfdelafuente/contravento-frontend:latest
+
+# List images
 docker images | grep contravento
+```
+
+### Ejecutar contenedores:
+
+```bash
+# Run backend (requires PostgreSQL)
+docker run -d -p 8000:8000 \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
+  -e SECRET_KEY="your-secret-key" \
+  jfdelafuente/contravento-backend:latest
+
+# Run frontend (Nginx on port 80)
+docker run -d -p 80:80 jfdelafuente/contravento-frontend:latest
 ```
 
 ## ⚠️ Problemas Conocidos y Soluciones
@@ -113,8 +134,19 @@ sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
 ```
 
-### Problema 4: Build falla en stage "Build Docker Image"
+### Problema 4: Build falla en stage "Build Backend Docker Image"
 **Solución**: Verificar que `backend/Dockerfile` existe y es válido
+
+### Problema 5: Frontend build falla por variables de entorno faltantes
+**Solución**: El frontend requiere build arguments. Actualizar el comando de build:
+```bash
+docker build -t jfdelafuente/contravento-frontend:latest \
+  --build-arg VITE_API_URL=https://api.contravento.com \
+  --build-arg VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA \
+  -f frontend/Dockerfile.prod frontend/
+```
+
+**Nota**: Para producción, usar las variables correctas (ver `.env.production.example`)
 
 ## 🔄 Próximas Mejoras Recomendadas
 
