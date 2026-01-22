@@ -9,6 +9,7 @@ import { useState, useCallback } from 'react';
 import {
   uploadGPX,
   pollGPXUntilComplete,
+  getGPXStatus,
   GPXUploadResponse,
   GPXStatusResponse,
 } from '../services/gpxService';
@@ -118,16 +119,31 @@ export function useGPXUpload(): UseGPXUploadReturn {
         ) {
           // Asynchronous processing (files >1MB)
           setUploadProgress(20);
-          setStatusMessage('Procesando archivo GPX...');
+          setStatusMessage('Analizando estructura del archivo GPX...');
 
           // Poll status until completed
+          let pollCount = 0;
           const finalStatus = await pollGPXUntilComplete(
             uploadResponse.gpx_file_id,
             (status: GPXStatusResponse) => {
-              // Update progress based on status
+              pollCount++;
+
+              // Update progress and message based on polling progress
               if (status.processing_status === 'processing') {
-                // Gradually increase progress from 20% to 90%
-                setUploadProgress((prev) => Math.min(prev + 10, 90));
+                // Phase-based progress messages
+                if (pollCount <= 1) {
+                  setStatusMessage('Extrayendo puntos GPS del archivo...');
+                  setUploadProgress(30);
+                } else if (pollCount <= 2) {
+                  setStatusMessage('Simplificando ruta GPS (puede tardar hasta 30s)...');
+                  setUploadProgress(50);
+                } else if (pollCount <= 3) {
+                  setStatusMessage('Calculando estadísticas de elevación...');
+                  setUploadProgress(70);
+                } else {
+                  setStatusMessage('Guardando datos en base de datos...');
+                  setUploadProgress((prev) => Math.min(prev + 5, 90));
+                }
               }
             },
             30 // Max 30 seconds
@@ -156,6 +172,42 @@ export function useGPXUpload(): UseGPXUploadReturn {
         // Unknown status
         throw new Error('Estado de procesamiento desconocido');
       } catch (err: any) {
+        // Si timeout o error de red, verificar si procesamiento completó
+        if (
+          (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) &&
+          uploadResponse?.gpx_file_id
+        ) {
+          try {
+            console.log('Timeout detected, verifying if processing completed...');
+            // Esperar 5s y verificar si completó
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            const finalStatus = await getGPXStatus(uploadResponse.gpx_file_id);
+
+            if (finalStatus.processing_status === 'completed') {
+              // ¡Éxito! El timeout fue prematuro pero procesamiento completó
+              console.log('Processing completed despite timeout!');
+
+              // Convertir status response a upload response
+              const completeResponse: GPXUploadResponse = {
+                ...uploadResponse,
+                processing_status: finalStatus.processing_status,
+                distance_km: finalStatus.distance_km,
+                elevation_gain: finalStatus.elevation_gain,
+                simplified_points: finalStatus.simplified_points,
+                processed_at: finalStatus.processed_at,
+              };
+
+              setUploadProgress(100);
+              setStatusMessage('Archivo GPX procesado correctamente');
+              setIsUploading(false);
+              return completeResponse;
+            }
+          } catch (retryError) {
+            console.warn('Verification failed, showing original error', retryError);
+            // Verificación falló, mostrar error original
+          }
+        }
+
         const errorMessage =
           err.response?.data?.error?.message ||
           err.message ||
