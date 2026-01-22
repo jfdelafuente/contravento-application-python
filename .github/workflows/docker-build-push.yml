@@ -98,7 +98,7 @@ jobs:
           echo "Testing backend image can start..."
           docker run --rm --name backend-test \
             -e DATABASE_URL="sqlite:///./test.db" \
-            -e SECRET_KEY="test-secret-key-for-ci-smoke-test-only-min-32-chars" \
+            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
             jfdelafuente/contravento-backend:latest \
             python -c "from src.main import app; print('✓ Backend image is valid')"
 
