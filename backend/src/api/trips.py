@@ -1083,6 +1083,118 @@ async def get_all_tags(
 # ============================================================================
 
 
+async def process_gpx_background(
+    gpx_file_id: str,
+    trip_id: str,
+    file_content: bytes,
+    filename: str,
+) -> None:
+    """
+    Background task to process large GPX files (>1MB).
+
+    This function runs asynchronously after returning 202 Accepted to the client.
+    It performs the same processing as sync mode but without blocking the HTTP response.
+
+    Args:
+        gpx_file_id: GPX file record ID to update
+        trip_id: Trip identifier
+        file_content: Raw GPX file bytes
+        filename: Original filename
+
+    Updates GPX record status to "completed" or "failed"
+    """
+    from datetime import UTC, datetime
+
+    from sqlalchemy import select
+
+    from src.database import get_db
+    from src.models.gpx import GPXFile, TrackPoint
+    from src.services.gpx_service import GPXService
+
+    # Get database session using the application's session factory
+    async for db in get_db():
+        try:
+            # Fetch GPX file record
+            result = await db.execute(select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id))
+            gpx_file = result.scalar_one_or_none()
+
+            if not gpx_file:
+                logger.error(f"GPX file {gpx_file_id} not found in background task")
+                return
+
+            # Initialize GPX service
+            gpx_service = GPXService(db)
+
+            # Parse GPX file
+            parsed_data = await gpx_service.parse_gpx_file(file_content)
+
+            # Save original file to storage
+            file_url = await gpx_service.save_gpx_to_storage(
+                trip_id=trip_id, file_content=file_content, filename=filename
+            )
+
+            # Update GPX file record with parsed data
+            gpx_file.file_url = file_url
+            gpx_file.distance_km = parsed_data["distance_km"]
+            gpx_file.elevation_gain = parsed_data["elevation_gain"]
+            gpx_file.elevation_loss = parsed_data["elevation_loss"]
+            gpx_file.max_elevation = parsed_data["max_elevation"]
+            gpx_file.min_elevation = parsed_data["min_elevation"]
+            gpx_file.start_lat = parsed_data["start_lat"]
+            gpx_file.start_lon = parsed_data["start_lon"]
+            gpx_file.end_lat = parsed_data["end_lat"]
+            gpx_file.end_lon = parsed_data["end_lon"]
+            gpx_file.total_points = parsed_data["total_points"]
+            gpx_file.simplified_points = parsed_data["simplified_points_count"]
+            gpx_file.has_elevation = parsed_data["has_elevation"]
+            gpx_file.has_timestamps = parsed_data["has_timestamps"]
+            gpx_file.processing_status = "completed"
+            gpx_file.processed_at = datetime.now(UTC)
+
+            await db.commit()
+
+            # Save trackpoints
+            trackpoints = []
+            for point_data in parsed_data["trackpoints"]:
+                track_point = TrackPoint(
+                    gpx_file_id=gpx_file.gpx_file_id,
+                    latitude=point_data["latitude"],
+                    longitude=point_data["longitude"],
+                    elevation=point_data["elevation"],
+                    distance_km=point_data["distance_km"],
+                    sequence=point_data["sequence"],
+                    gradient=point_data["gradient"],
+                )
+                trackpoints.append(track_point)
+
+            db.add_all(trackpoints)
+            await db.commit()
+
+            logger.info(
+                f"Background GPX processing completed for file {gpx_file_id} "
+                f"({len(trackpoints)} points, {parsed_data['distance_km']:.2f} km)"
+            )
+
+        except ValueError as e:
+            # GPX parsing error - mark as failed
+            logger.error(f"GPX parsing error in background task for {gpx_file_id}: {e}")
+            if gpx_file:
+                gpx_file.processing_status = "failed"
+                gpx_file.error_message = str(e)
+                await db.commit()
+
+        except Exception as e:
+            # Unexpected error - mark as failed
+            logger.error(f"Unexpected error in background GPX processing for {gpx_file_id}: {e}", exc_info=True)
+            if gpx_file:
+                gpx_file.processing_status = "failed"
+                gpx_file.error_message = "Error interno al procesar el archivo GPX"
+                await db.commit()
+
+        # Session will be automatically closed by async context manager
+        break  # Exit after first (and only) session iteration
+
+
 @router.post(
     "/{trip_id}/gpx",
     response_model=GPXUploadSuccessResponse,
@@ -1316,17 +1428,85 @@ async def upload_gpx_file(
 
         else:
             # Asynchronous processing (>1MB files) - SC-003
-            # TODO: Implement async processing with BackgroundTasks
-            # For now, return 501 Not Implemented
-            raise HTTPException(
-                status_code=status.HTTP_501_NOT_IMPLEMENTED,
-                detail={
-                    "success": False,
-                    "data": None,
-                    "error": {
-                        "code": "NOT_IMPLEMENTED",
-                        "message": "Procesamiento asíncrono de archivos grandes aún no implementado",
+            # Create GPX file record with "processing" status
+            from datetime import UTC, datetime
+
+            gpx_file = GPXFile(
+                trip_id=trip_id,
+                file_url="",  # Will be set after file is saved in background
+                file_size=file_size,
+                file_name=file.filename,
+                distance_km=0.0,  # Will be updated after processing
+                elevation_gain=0.0,
+                elevation_loss=0.0,
+                max_elevation=0.0,
+                min_elevation=0.0,
+                start_lat=0.0,  # Will be updated after parsing
+                start_lon=0.0,
+                end_lat=0.0,
+                end_lon=0.0,
+                total_points=0,  # Will be updated after parsing
+                simplified_points=0,
+                has_elevation=False,  # Will be updated after parsing
+                has_timestamps=False,
+                processing_status="processing",
+                uploaded_at=datetime.now(UTC),
+            )
+
+            db.add(gpx_file)
+            await db.commit()
+            await db.refresh(gpx_file)
+
+            # Add background task to process GPX file
+            if background_tasks is None:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={
+                        "success": False,
+                        "data": None,
+                        "error": {
+                            "code": "INTERNAL_ERROR",
+                            "message": "BackgroundTasks no disponible para procesamiento asíncrono",
+                        },
                     },
+                )
+
+            background_tasks.add_task(
+                process_gpx_background,
+                gpx_file_id=str(gpx_file.gpx_file_id),
+                trip_id=trip_id,
+                file_content=file_content,
+                filename=file.filename,
+            )
+
+            # Return 202 Accepted with gpx_file_id for polling
+            from src.schemas.gpx import GPXUploadResponse
+
+            response_data = GPXUploadResponse(
+                gpx_file_id=gpx_file.gpx_file_id,
+                trip_id=gpx_file.trip_id,
+                processing_status="processing",
+                distance_km=None,
+                elevation_gain=None,
+                elevation_loss=None,
+                max_elevation=None,
+                min_elevation=None,
+                has_elevation=None,
+                has_timestamps=None,
+                total_points=None,
+                simplified_points=None,
+                uploaded_at=gpx_file.uploaded_at,
+                processed_at=None,
+            )
+
+            from fastapi.responses import JSONResponse
+
+            return JSONResponse(
+                status_code=status.HTTP_202_ACCEPTED,
+                content={
+                    "success": True,
+                    "data": response_data.model_dump(mode="json"),
+                    "error": None,
                 },
             )
 
