@@ -128,6 +128,7 @@ class TripService:
                 selectinload(Trip.user).selectinload(
                     User.profile
                 ),  # Need user + profile for author info (Feature 004)
+                selectinload(Trip.gpx_file),  # Feature 003 - GPS Routes Interactive
             )
         )
         trip = result.scalar_one_or_none()
@@ -401,6 +402,7 @@ class TripService:
                 selectinload(Trip.photos),
                 selectinload(Trip.locations),
                 selectinload(Trip.trip_tags).selectinload(TripTag.tag),
+                selectinload(Trip.gpx_file),  # Feature 003 - GPS Routes Interactive
             )
         )
         loaded_trip = result.scalar_one()
@@ -410,6 +412,7 @@ class TripService:
         trip.photos = loaded_trip.photos
         trip.locations = loaded_trip.locations
         trip.trip_tags = loaded_trip.trip_tags
+        trip.gpx_file = loaded_trip.gpx_file
 
     async def upload_photo(
         self,

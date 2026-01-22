@@ -82,6 +82,9 @@ export interface Trip {
 
   /** Whether current user has liked this trip (Feature 004 - US2, null if not authenticated) */
   is_liked?: boolean;
+
+  /** GPX file metadata (Feature 003 - GPS Routes Interactive, null if no GPX uploaded) */
+  gpx_file?: import('./gpx').GPXFileMetadata | null;
 }
 
 /**

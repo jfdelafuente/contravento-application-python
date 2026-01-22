@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Ruta Corta de Prueba</name>
+    <desc>Pequeña ruta de prueba para testing (~5 km)</desc>
+    <time>2024-06-15T10:00:00Z</time>
+  </metadata>
+  <trk>
+    <name>Ruta Corta</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="40.4165" lon="-3.7026">
+        <ele>650</ele>
+        <time>2024-06-15T10:00:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4175" lon="-3.7036">
+        <ele>655</ele>
+        <time>2024-06-15T10:05:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4185" lon="-3.7046">
+        <ele>660</ele>
+        <time>2024-06-15T10:10:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4195" lon="-3.7056">
+        <ele>665</ele>
+        <time>2024-06-15T10:15:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4205" lon="-3.7066">
+        <ele>670</ele>
+        <time>2024-06-15T10:20:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4215" lon="-3.7076">
+        <ele>675</ele>
+        <time>2024-06-15T10:25:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4225" lon="-3.7086">
+        <ele>680</ele>
+        <time>2024-06-15T10:30:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4235" lon="-3.7096">
+        <ele>685</ele>
+        <time>2024-06-15T10:35:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4245" lon="-3.7106">
+        <ele>690</ele>
+        <time>2024-06-15T10:40:00Z</time>
+      </trkpt>
+      <trkpt lat="40.4255" lon="-3.7116">
+        <ele>695</ele>
+        <time>2024-06-15T10:45:00Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

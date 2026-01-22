@@ -129,6 +129,14 @@ class Trip(Base):
         cascade="all, delete-orphan",
     )
 
+    # GPS Routes (Feature 003)
+    gpx_file: Mapped["GPXFile"] = relationship(  # type: ignore
+        "GPXFile",
+        back_populates="trip",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
     # Indexes
     __table_args__ = (
         Index("idx_trip_user_status", "user_id", "status"),  # List user's trips by status

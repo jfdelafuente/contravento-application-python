@@ -16,8 +16,11 @@ import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
 import { CommentList } from '../components/comments/CommentList';
+import { GPXUploader } from '../components/trips/GPXUploader';
+import { GPXStats } from '../components/trips/GPXStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
+import { useGPXTrack } from '../hooks/useGPXTrack';
 import type { LocationSelection } from '../types/geocoding';
 import type { LocationInput } from '../types/trip';
 import {
@@ -55,12 +58,14 @@ export const TripDetailPage: React.FC = () => {
   const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
   const { geocode } = useReverseGeocode();
 
+  // GPX track hook (Feature 003: GPS Routes - User Story 2)
+  const { track: gpxTrack } = useGPXTrack(trip?.gpx_file?.gpx_file_id);
+
   // Likes list modal state (Feature 004 - US2)
   const [showLikesModal, setShowLikesModal] = useState(false);
 
-  // Fetch trip details
-  useEffect(() => {
-    const fetchTrip = async () => {
+  // Fetch trip details (extracted for reuse)
+  const fetchTrip = async () => {
       if (!tripId) {
         setError('ID de viaje no válido');
         setIsLoading(false);
@@ -102,8 +107,10 @@ export const TripDetailPage: React.FC = () => {
       } finally {
         setIsLoading(false);
       }
-    };
+  };
 
+  // Fetch trip on mount and when tripId changes
+  useEffect(() => {
     fetchTrip();
   }, [tripId]);
 
@@ -546,35 +553,37 @@ export const TripDetailPage: React.FC = () => {
               )}
 
               {/* Author (Feature 004) - Right-aligned */}
-              <div className="trip-detail-page__author">
-                <Link to={`/users/${trip.author.username}`} className="trip-detail-page__author-link">
-                  {trip.author.profile_photo_url ? (
-                    <img
-                      src={getPhotoUrl(trip.author.profile_photo_url)}
-                      alt={trip.author.username}
-                      className="trip-detail-page__author-avatar"
-                    />
-                  ) : (
-                    <div className="trip-detail-page__author-avatar trip-detail-page__author-avatar--placeholder">
-                      {trip.author.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="trip-detail-page__author-info">
-                    <span className="trip-detail-page__author-username">{trip.author.username}</span>
-                    {trip.author.full_name && (
-                      <span className="trip-detail-page__author-fullname">{trip.author.full_name}</span>
+              {trip.author && (
+                <div className="trip-detail-page__author">
+                  <Link to={`/users/${trip.author.username}`} className="trip-detail-page__author-link">
+                    {trip.author.profile_photo_url ? (
+                      <img
+                        src={getPhotoUrl(trip.author.profile_photo_url)}
+                        alt={trip.author.username}
+                        className="trip-detail-page__author-avatar"
+                      />
+                    ) : (
+                      <div className="trip-detail-page__author-avatar trip-detail-page__author-avatar--placeholder">
+                        {trip.author.username.charAt(0).toUpperCase()}
+                      </div>
                     )}
-                  </div>
-                </Link>
-                {!isOwner && (
-                  <FollowButton
-                    username={trip.author.username}
-                    initialFollowing={trip.author.is_following || false}
-                    size="small"
-                    variant="secondary"
-                  />
-                )}
-              </div>
+                    <div className="trip-detail-page__author-info">
+                      <span className="trip-detail-page__author-username">{trip.author.username}</span>
+                      {trip.author.full_name && (
+                        <span className="trip-detail-page__author-fullname">{trip.author.full_name}</span>
+                      )}
+                    </div>
+                  </Link>
+                  {!isOwner && (
+                    <FollowButton
+                      username={trip.author.username}
+                      initialFollowing={trip.author.is_following || false}
+                      size="small"
+                      variant="secondary"
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -659,6 +668,35 @@ export const TripDetailPage: React.FC = () => {
           </section>
         )}
 
+        {/* GPX Section (Feature 003 - GPS Routes Interactive) */}
+        {trip.gpx_file && (
+          <section className="trip-detail-page__section">
+            <h2 className="trip-detail-page__section-title">Ruta GPS</h2>
+            <GPXStats
+              metadata={trip.gpx_file}
+              gpxFileId={trip.gpx_file.gpx_file_id}
+              isOwner={isOwner}
+            />
+          </section>
+        )}
+
+        {/* GPX Uploader (owner-only, if no GPX exists) */}
+        {isOwner && !trip.gpx_file && (
+          <section className="trip-detail-page__section">
+            <h2 className="trip-detail-page__section-title">Subir Archivo GPX</h2>
+            <GPXUploader
+              tripId={trip.trip_id}
+              onUploadComplete={() => {
+                toast.success('Archivo GPX procesado correctamente', {
+                  duration: 3000,
+                  position: 'top-center',
+                });
+                fetchTrip(); // Refetch trip to show GPX data
+              }}
+            />
+          </section>
+        )}
+
         {/* Map Section - TripMap shows locations list + map (or just list if no GPS) */}
         {trip.locations && trip.locations.length > 0 && (
           <section className="trip-detail-page__section">
@@ -673,6 +711,9 @@ export const TripDetailPage: React.FC = () => {
                 isEditMode={isMapEditMode}
                 onMapClick={handleMapClick}
                 onMarkerDrag={handleMarkerDrag}
+                gpxTrackPoints={gpxTrack?.trackpoints}
+                gpxStartPoint={gpxTrack?.start_point}
+                gpxEndPoint={gpxTrack?.end_point}
               />
             </Suspense>
           </section>

@@ -274,6 +274,7 @@ app.include_router(likes.router)  # Feature 004: Likes/Me Gusta
 app.include_router(comments.router)  # Feature 004: Comments
 app.include_router(trips.router)
 app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
+app.include_router(trips.gpx_router)  # Feature 003: GPX Routes Interactive
 app.include_router(cycling_types.router)  # Public cycling types endpoint
 app.include_router(cycling_types.admin_router)  # Admin cycling types endpoints
 

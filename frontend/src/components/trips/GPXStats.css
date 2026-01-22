@@ -1,0 +1,280 @@
+/**
+ * GPXStats Styles
+ *
+ * Feature 003 - GPS Routes Interactive
+ * Card-based layout for displaying route statistics
+ */
+
+.gpx-stats {
+  margin: 2rem 0;
+}
+
+.gpx-stats__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Grid Layout - Single row with 5 columns */
+.gpx-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Stat Card - More compact */
+.gpx-stat-card {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  text-align: center;
+}
+
+.gpx-stat-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Icon Wrapper - Smaller and centered */
+.gpx-stat-card__icon-wrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.gpx-stat-card__icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Content - Centered */
+.gpx-stat-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+  width: 100%;
+}
+
+.gpx-stat-card__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #718096;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.gpx-stat-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.gpx-stat-card__unit {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #718096;
+}
+
+/* Card Color Variants */
+
+/* Distance - Blue */
+.gpx-stat-card--distance .gpx-stat-card__icon-wrapper {
+  background-color: #bfdbfe !important;
+  color: #1e40af !important;
+}
+
+/* Elevation Gain - Green (uphill) */
+.gpx-stat-card--gain .gpx-stat-card__icon-wrapper {
+  background-color: #bbf7d0 !important;
+  color: #15803d !important;
+}
+
+/* Elevation Loss - Orange (downhill) */
+.gpx-stat-card--loss .gpx-stat-card__icon-wrapper {
+  background-color: #fed7aa !important;
+  color: #c2410c !important;
+}
+
+/* Max Elevation - Purple (peak) */
+.gpx-stat-card--max .gpx-stat-card__icon-wrapper {
+  background-color: #e9d5ff !important;
+  color: #7c3aed !important;
+}
+
+/* Min Elevation - Teal (valley) */
+.gpx-stat-card--min .gpx-stat-card__icon-wrapper {
+  background-color: #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+/* Download Button Actions */
+.gpx-stats__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gpx-stats__download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gpx-stats__download-btn:hover {
+  background-color: #2563eb;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.gpx-stats__download-btn:active {
+  background-color: #1d4ed8;
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.gpx-stats__download-btn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.gpx-stats__download-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* No Elevation Message */
+.gpx-stats__no-elevation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #718096;
+  font-size: 0.9375rem;
+}
+
+.gpx-stats__no-elevation-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #a0aec0;
+}
+
+.gpx-stats__no-elevation p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Mobile Responsive - Stack cards vertically */
+@media (max-width: 640px) {
+  .gpx-stats__grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .gpx-stat-card {
+    padding: 0.875rem;
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .gpx-stat-card__icon-wrapper {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0;
+    margin-right: 0.75rem;
+  }
+
+  .gpx-stat-card__icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .gpx-stat-card__content {
+    align-items: flex-start;
+  }
+
+  .gpx-stat-card__label {
+    font-size: 0.7rem;
+  }
+
+  .gpx-stat-card__value {
+    font-size: 1.25rem;
+  }
+
+  .gpx-stat-card__unit {
+    font-size: 0.75rem;
+  }
+
+  .gpx-stats__title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Download button full width on mobile */
+  .gpx-stats__download-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .gpx-stats__actions {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Small tablet - 2 columns */
+@media (min-width: 641px) and (max-width: 768px) {
+  .gpx-stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .gpx-stat-card {
+    padding: 0.875rem;
+  }
+
+  .gpx-stat-card__value {
+    font-size: 1.375rem;
+  }
+}
+
+/* Tablet - 3 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .gpx-stats__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

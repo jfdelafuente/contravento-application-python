@@ -792,6 +792,8 @@ See `.specify/` directory for templates and workflows.
 - Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend) (013-public-trips-feed)
 - PostgreSQL (production), SQLite (development) - existing User and Trip models (013-public-trips-feed)
 - Python 3.12 (backend tests), TypeScript 5.x (frontend E2E tests) (001-testing-qa)
+- [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION] (develop)
+- [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (develop)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
@@ -1596,9 +1598,9 @@ const PRECISION_DECIMALS = 3; // ~111m at equator
 ```
 
 ## Recent Changes
+- develop: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 - 001-testing-qa: Added Python 3.12 (backend tests), TypeScript 5.x (frontend E2E tests)
 - 013-public-trips-feed: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend)
-- 010-reverse-geocoding: Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x (NEW), axios 1.x
 
 
-**Last updated**: 2026-01-16
+**Last updated**: 2026-01-21
