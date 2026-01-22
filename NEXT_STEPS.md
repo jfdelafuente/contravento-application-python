@@ -1,11 +1,31 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-22 (Feature 003 - Async GPX Processing ✅ COMPLETADO)
-**Estado actual**: Procesamiento asíncrono optimizado y funcionando correctamente
+**Última actualización**: 2026-01-22 (Feature 003 - GPX Upload Timeout Fix ✅ COMPLETADO)
+**Estado actual**: Upload de GPX optimizado y con manejo correcto de timeouts
 
 ---
 
-## 🎉 LOGRO RECIENTE: Async GPX Processing Optimization (Feature 003 - Phase 6)
+## 🎉 LOGRO RECIENTE: GPX Upload Timeout Fix (Feature 003 - UX Improvement)
+
+**Fecha**: 2026-01-22
+**Commit**: 2d6a44d (timeout fix)
+**Status**: ✅ **COMPLETADO** - False timeout errors eliminated
+
+**Problema Resuelto**:
+
+- ❌ **Antes**: Usuarios veían error en uploads exitosos (timeout 10s vs procesamiento 7-8s)
+- ✅ **Después**: Timeout de 30s permite procesamiento completo sin errores falsos
+- ✅ **UX mejorada**: No más reintentos innecesarios por timeouts prematuros
+
+**Cambios Aplicados**:
+
+- ✅ `gpxService.ts`: Timeout específico de 30s para endpoint `/trips/{id}/gpx`
+- ✅ Otros endpoints mantienen timeout de 10s (sin cambios)
+- ✅ Soporta archivos hasta 10MB sin timeouts falsos
+
+---
+
+## 🎉 LOGRO ANTERIOR: Async GPX Processing Optimization (Feature 003 - Phase 6)
 
 **Fecha**: 2026-01-22
 **Commits**: 556ab50 (async implementation) + 74dc770 (performance optimization)
