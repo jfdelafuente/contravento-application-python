@@ -80,6 +80,8 @@ export function useGPXUpload(): UseGPXUploadReturn {
    */
   const upload = useCallback(
     async (tripId: string, file: File): Promise<GPXUploadResponse> => {
+      let uploadResponse: GPXUploadResponse | undefined;
+
       try {
         // Reset state
         setIsUploading(true);
@@ -104,7 +106,7 @@ export function useGPXUpload(): UseGPXUploadReturn {
 
         // Upload file
         setUploadProgress(10);
-        const uploadResponse = await uploadGPX(tripId, file);
+        uploadResponse = await uploadGPX(tripId, file);
 
         // Check processing status
         if (uploadResponse.processing_status === 'completed') {
