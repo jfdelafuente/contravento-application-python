@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_id')
+        VITE_API_URL = credentials('vite_api_url')
+        VITE_TURNSTILE_SITE_KEY = credentials('vite_turnstile_site_key')
     }
 
     stages {
@@ -24,8 +26,8 @@ pipeline {
             steps {
                 sh '''
                     docker build -t jfdelafuente/contravento-frontend:latest \
-                      --build-arg VITE_API_URL=https://api.contravento.com \
-                      --build-arg VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA \
+                      --build-arg VITE_API_URL=$VITE_API_URL \
+                      --build-arg VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY \
                       --build-arg VITE_ENV=production \
                       --build-arg VITE_DEBUG=false \
                       -f frontend/Dockerfile.prod frontend/
