@@ -30,8 +30,8 @@ def upgrade() -> None:
     # Create gpx_files table
     op.create_table(
         'gpx_files',
-        sa.Column('gpx_file_id', sa.String(36) if not is_postgresql else sa.UUID(), primary_key=True),
-        sa.Column('trip_id', sa.String(36) if not is_postgresql else sa.UUID(), nullable=False),
+        sa.Column('gpx_file_id', sa.String(36), primary_key=True),
+        sa.Column('trip_id', sa.String(36), nullable=False),
         sa.Column('file_url', sa.String(500), nullable=False),
         sa.Column('file_size', sa.Integer(), nullable=False),
         sa.Column('file_name', sa.String(255), nullable=False),
@@ -62,8 +62,8 @@ def upgrade() -> None:
     # Create track_points table
     op.create_table(
         'track_points',
-        sa.Column('point_id', sa.String(36) if not is_postgresql else sa.UUID(), primary_key=True),
-        sa.Column('gpx_file_id', sa.String(36) if not is_postgresql else sa.UUID(), nullable=False),
+        sa.Column('point_id', sa.String(36), primary_key=True),
+        sa.Column('gpx_file_id', sa.String(36), nullable=False),
         sa.Column('latitude', sa.Float(), nullable=False),
         sa.Column('longitude', sa.Float(), nullable=False),
         sa.Column('elevation', sa.Float(), nullable=True),
