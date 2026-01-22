@@ -115,7 +115,7 @@ export const TripDetailPage: React.FC = () => {
   }, [tripId]);
 
   // Check if current user is the trip owner
-  const isOwner = user && trip && user.user_id === trip.user_id;
+  const isOwner = !!(user && trip && user.user_id === trip.user_id);
 
   // Handle trip deletion - Phase 8: Show confirmation dialog
   const handleDelete = () => {
