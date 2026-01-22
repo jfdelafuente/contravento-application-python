@@ -1194,7 +1194,10 @@ async def process_gpx_background(
 
         except Exception as e:
             # Unexpected error - mark as failed
-            logger.error(f"Unexpected error in background GPX processing for {gpx_file_id}: {e}", exc_info=True)
+            logger.error(
+                f"Unexpected error in background GPX processing for {gpx_file_id}: {e}",
+                exc_info=True,
+            )
             if gpx_file:
                 gpx_file.processing_status = "failed"
                 gpx_file.error_message = "Error interno al procesar el archivo GPX"
@@ -1872,7 +1875,9 @@ async def get_gpx_status(
             elevation_gain=gpx_file.elevation_gain
             if gpx_file.processing_status == "completed"
             else None,
-            total_points=gpx_file.total_points if gpx_file.processing_status == "completed" else None,
+            total_points=gpx_file.total_points
+            if gpx_file.processing_status == "completed"
+            else None,
             simplified_points=gpx_file.simplified_points
             if gpx_file.processing_status == "completed"
             else None,
@@ -2070,8 +2075,9 @@ async def download_gpx_file(
         # Generate filename from trip title (T048: Download as {trip_title}.gpx)
         # Sanitize trip title for filename (remove special characters)
         import re
-        sanitized_title = re.sub(r'[^\w\s-]', '', gpx_file.trip.title)
-        sanitized_title = re.sub(r'[-\s]+', '-', sanitized_title).strip('-')
+
+        sanitized_title = re.sub(r"[^\w\s-]", "", gpx_file.trip.title)
+        sanitized_title = re.sub(r"[-\s]+", "-", sanitized_title).strip("-")
         download_filename = f"{sanitized_title}.gpx"
 
         # Return file

@@ -76,6 +76,7 @@ class GPXService:
         """
         try:
             import time
+
             start_time = time.perf_counter()
 
             # Parse GPX XML
@@ -97,7 +98,9 @@ class GPXService:
             logger.info(f"Point extraction time: {extract_time:.3f}s, {len(points)} points")
 
             # Detect timestamps
-            has_timestamps = any(p.time is not None for p in points[:100])  # Sample first 100 points
+            has_timestamps = any(
+                p.time is not None for p in points[:100]
+            )  # Sample first 100 points
 
             # Calculate metrics using gpxpy built-in methods
             stats_start = time.perf_counter()
@@ -218,9 +221,7 @@ class GPXService:
                     if distance_m > 0:
                         gradient = (elevation_diff / distance_m) * 100  # Percentage
 
-            simplified.append(
-                self._point_to_dict(original, i, cumulative_distance, gradient)
-            )
+            simplified.append(self._point_to_dict(original, i, cumulative_distance, gradient))
 
             # Calculate cumulative distance for next point
             if i < len(simplified_coords) - 1:
@@ -274,9 +275,7 @@ class GPXService:
                     if distance_m > 0:
                         gradient = (elevation_diff / distance_m) * 100  # Percentage
 
-            simplified.append(
-                self._point_to_dict(original, i, cumulative_distance, gradient)
-            )
+            simplified.append(self._point_to_dict(original, i, cumulative_distance, gradient))
 
             # Calculate cumulative distance for next point (T025: Haversine)
             if i < len(simplified_coords) - 1:
@@ -314,9 +313,7 @@ class GPXService:
             "gradient": round(gradient, 2) if gradient is not None else None,
         }
 
-    def _calculate_distance(
-        self, lat1: float, lon1: float, lat2: float, lon2: float
-    ) -> float:
+    def _calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """
         Calculate distance between two GPS coordinates using Haversine formula.
 
@@ -340,9 +337,7 @@ class GPXService:
 
         return R * c
 
-    async def save_gpx_to_storage(
-        self, trip_id: str, file_content: bytes, filename: str
-    ) -> str:
+    async def save_gpx_to_storage(self, trip_id: str, file_content: bytes, filename: str) -> str:
         """
         Save original GPX file to filesystem storage.
 

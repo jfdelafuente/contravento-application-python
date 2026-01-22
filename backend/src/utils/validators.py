@@ -52,7 +52,9 @@ def validate_username(value: str) -> str:
         raise ValueError("El nombre de usuario debe tener entre 3 y 30 caracteres")
 
     if not USERNAME_PATTERN.match(value):
-        raise ValueError("El nombre de usuario solo puede contener caracteres alfanuméricos y guiones bajos")
+        raise ValueError(
+            "El nombre de usuario solo puede contener caracteres alfanuméricos y guiones bajos"
+        )
 
     return value  # Preserve case
 

@@ -76,9 +76,7 @@ class TestGPXUploadWorkflow:
         assert gpx_data["processed_at"] is not None
 
         # Step 3: Verify database persistence
-        result = await db_session.execute(
-            select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id)
-        )
+        result = await db_session.execute(select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id))
         db_gpx = result.scalar_one_or_none()
 
         assert db_gpx is not None
