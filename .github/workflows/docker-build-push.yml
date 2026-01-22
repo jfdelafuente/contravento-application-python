@@ -97,15 +97,17 @@ jobs:
         run: |
           echo "Testing backend image can start..."
           docker run --rm --name backend-test \
+            --entrypoint python \
             jfdelafuente/contravento-backend:latest \
-            python -c "import sys; print(f'Python {sys.version}'); print('✓ Backend image is valid')"
+            -c "import sys; print(f'Python {sys.version}'); print('✓ Backend image is valid')"
 
       - name: Test Frontend Image (Smoke Test)
         run: |
           echo "Testing frontend image nginx config..."
           docker run --rm --name frontend-test \
+            --entrypoint nginx \
             jfdelafuente/contravento-frontend:latest \
-            nginx -t && echo "✓ Frontend image is valid"
+            -t && echo "✓ Frontend image is valid"
 
       - name: Push Backend Image to Docker Hub
         if: github.event_name != 'pull_request'
