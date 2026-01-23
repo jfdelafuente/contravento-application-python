@@ -74,17 +74,36 @@ pipeline {
                 script {
                     // Run tests inside Python 3.12 Docker container
                     // No need to install Python on Jenkins host
+                    echo '🐍 Ejecutando tests en contenedor Docker (python:3.12-slim)'
+                    echo "📂 Directorio de trabajo: $(pwd)/backend"
+                    echo '📦 Instalando Poetry y dependencias...'
+
                     sh '''
+                        set -x  # Enable command echoing for debugging
+
+                        echo "=== Iniciando contenedor de tests ==="
                         docker run --rm \
                           -v $(pwd)/backend:/app \
                           -w /app \
                           python:3.12-slim \
                           bash -c "
+                            echo '📦 Instalando Poetry...' && \
                             pip install --quiet poetry && \
+                            echo '✓ Poetry instalado' && \
+                            \
+                            echo '📥 Instalando dependencias del proyecto...' && \
                             poetry install --no-interaction && \
+                            echo '✓ Dependencias instaladas' && \
+                            \
+                            echo '🧪 Ejecutando pytest con coverage...' && \
                             poetry run pytest --cov=src --cov-report=term --cov-report=html -v
                           "
+
+                        echo "=== Tests completados ==="
                     '''
+
+                    echo '✅ Tests ejecutados exitosamente'
+                    echo '📊 Coverage report generado en: backend/htmlcov/'
                 }
 
                 echo '✅ Backend Tests Passed'
@@ -99,13 +118,18 @@ pipeline {
                         echo 'Stage: Build Backend Image'
                         echo '========================================='
 
+                        echo "🐳 Construyendo imagen: ${BACKEND_IMAGE}"
+                        echo '📄 Dockerfile: backend/Dockerfile'
+                        echo '📂 Contexto: backend/'
+
                         sh """
+                            set -x
                             docker build -t ${BACKEND_IMAGE} \
                               -f backend/Dockerfile \
                               backend/
                         """
 
-                        echo '✅ Backend Image Build Completed'
+                        echo "✅ Imagen construida: ${BACKEND_IMAGE}"
                     }
                 }
 
@@ -115,7 +139,17 @@ pipeline {
                         echo 'Stage: Build Frontend Image'
                         echo '========================================='
 
+                        echo "🐳 Construyendo imagen: ${FRONTEND_IMAGE}"
+                        echo '📄 Dockerfile: frontend/Dockerfile.prod'
+                        echo '📂 Contexto: frontend/'
+                        echo '🔧 Build args:'
+                        echo "   - VITE_API_URL: ${VITE_API_URL}"
+                        echo "   - VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY.substring(0, 10)}..."
+                        echo '   - VITE_ENV: production'
+                        echo '   - VITE_DEBUG: false'
+
                         sh """
+                            set -x
                             docker build -t ${FRONTEND_IMAGE} \
                               --build-arg VITE_API_URL=${VITE_API_URL} \
                               --build-arg VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY} \
@@ -125,7 +159,7 @@ pipeline {
                               frontend/
                         """
 
-                        echo '✅ Frontend Image Build Completed'
+                        echo "✅ Imagen construida: ${FRONTEND_IMAGE}"
                     }
                 }
             }
@@ -139,22 +173,28 @@ pipeline {
 
                 script {
                     // Login to Docker Hub
+                    echo "🔐 Autenticando en Docker Hub como: ${DOCKERHUB_CREDENTIALS_USR}"
                     sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    echo '✅ Login exitoso'
 
                     // Push backend image
+                    echo "📤 Subiendo imagen backend: ${BACKEND_IMAGE}"
                     sh """
+                        set -x
                         docker push ${BACKEND_IMAGE}
-                        echo '✅ Backend Image Pushed'
                     """
+                    echo '✅ Backend image subida correctamente'
 
                     // Push frontend image
+                    echo "📤 Subiendo imagen frontend: ${FRONTEND_IMAGE}"
                     sh """
+                        set -x
                         docker push ${FRONTEND_IMAGE}
-                        echo '✅ Frontend Image Pushed'
                     """
+                    echo '✅ Frontend image subida correctamente'
                 }
 
-                echo '✅ All Images Pushed to Docker Hub'
+                echo '✅ Todas las imágenes subidas a Docker Hub'
             }
         }
 
@@ -165,33 +205,47 @@ pipeline {
                 echo '========================================='
 
                 script {
+                    echo "📄 Archivo docker-compose: ${COMPOSE_FILE}"
+
                     // Stop any existing containers
+                    echo '🛑 Deteniendo contenedores existentes...'
                     sh """
+                        set -x
                         docker compose -f ${COMPOSE_FILE} down -v || true
-                        echo 'Stopped existing containers'
                     """
+                    echo '✅ Contenedores detenidos'
 
                     // Pull latest images
+                    echo '📥 Descargando últimas imágenes desde Docker Hub...'
                     sh """
+                        set -x
                         docker compose -f ${COMPOSE_FILE} pull
-                        echo 'Pulled latest images'
                     """
+                    echo '✅ Imágenes descargadas'
 
                     // Start services
+                    echo '🚀 Iniciando servicios de preproducción...'
                     sh """
+                        set -x
                         docker compose -f ${COMPOSE_FILE} up -d
-                        echo 'Started preproduction environment'
                     """
+                    echo '✅ Servicios iniciados'
 
                     // Wait for services to be healthy
+                    echo '⏳ Esperando a que los servicios estén saludables (30s)...'
                     sh """
-                        echo 'Waiting for services to be healthy...'
                         sleep 30
+                        echo '📊 Estado de los servicios:'
                         docker compose -f ${COMPOSE_FILE} ps
                     """
                 }
 
-                echo '✅ Preproduction Deployment Completed'
+                echo '✅ Deployment a Preproducción completado'
+                echo '🌐 Acceso:'
+                echo '   - Frontend: http://localhost:5173'
+                echo '   - Backend API: http://localhost:8000'
+                echo '   - API Docs: http://localhost:8000/docs'
+                echo '   - pgAdmin: http://localhost:5050'
             }
         }
 
@@ -203,38 +257,44 @@ pipeline {
 
                 script {
                     // Check backend health
+                    echo '🏥 Verificando health check del backend...'
+                    echo '🔗 Endpoint: http://localhost:8000/health'
                     sh '''
-                        echo 'Checking backend health endpoint...'
+                        set -x
                         for i in {1..10}; do
+                            echo "Intento $i/10..."
                             if curl -f http://localhost:8000/health; then
-                                echo '✅ Backend is healthy'
+                                echo '✅ Backend está saludable'
                                 break
                             else
-                                echo "Attempt $i/10 failed, retrying in 5s..."
+                                echo "⏳ Reintentando en 5 segundos..."
                                 sleep 5
                             fi
                         done
                     '''
 
                     // Check frontend
+                    echo '🌐 Verificando accesibilidad del frontend...'
+                    echo '🔗 URL: http://localhost:5173'
                     sh '''
-                        echo 'Checking frontend...'
+                        set -x
                         if curl -f http://localhost:5173; then
-                            echo '✅ Frontend is accessible'
+                            echo '✅ Frontend es accesible'
                         else
-                            echo '❌ Frontend is not accessible'
+                            echo '❌ Frontend no es accesible'
                             exit 1
                         fi
                     '''
 
                     // Display logs
+                    echo '📋 Mostrando logs recientes del backend:'
                     sh """
-                        echo 'Recent backend logs:'
                         docker compose -f ${COMPOSE_FILE} logs --tail=50 backend
                     """
                 }
 
-                echo '✅ Deployment Validation Passed'
+                echo '✅ Validación del deployment completada exitosamente'
+                echo '🎉 Entorno de preproducción listo para pruebas'
             }
         }
     }
