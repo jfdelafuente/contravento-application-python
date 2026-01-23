@@ -59,7 +59,7 @@ pipeline {
                     // Run tests inside Python 3.12 Docker container
                     // No need to install Python on Jenkins host
                     echo '🐍 Ejecutando tests en contenedor Docker (python:3.12-slim)'
-                    echo "📂 Directorio de trabajo: $(pwd)/backend"
+                    sh 'echo "📂 Directorio de trabajo: $(pwd)/backend"'
                     echo '📦 Instalando Poetry y dependencias...'
 
                     sh '''
