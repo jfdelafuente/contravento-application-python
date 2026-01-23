@@ -1,23 +1,70 @@
-# Jenkins CI/CD Environment - Quick Start Guide
+# Testing/Preproduction Environment - Quick Start Guide
 
 ## 📋 Descripción
 
-Entorno Docker standalone optimizado para pipelines de CI/CD (Jenkins, GitHub Actions, GitLab CI).
+Entorno Docker para desplegar y validar imágenes pre-construidas desde Docker Hub en un ambiente local de testing/preproducción.
 
-**Usa imágenes pre-construidas de Docker Hub** (generadas por workflow `docker-build-push.yml`):
+**Usa imágenes pre-construidas de Docker Hub**:
 
 - `jfdelafuente/contravento-backend:latest` - Backend API (FastAPI)
 - `jfdelafuente/contravento-frontend:latest` - Frontend (Nginx/React)
 - `postgres:16-alpine` - Database
 - `dpage/pgadmin4:latest` - Database UI
 
+**Imágenes construidas por**:
+
+- 🏆 **PRIMARY**: GitHub Actions (`.github/workflows/docker-build-push.yml`)
+- 🔄 **BACKUP**: Jenkins (`Jenkinsfile`) - si GitHub Actions falla
+
 **Características**:
 
 - ✅ Un solo archivo (no requiere overlays)
-- ✅ Sin builds locales (pull desde Docker Hub)
+- ✅ Sin builds locales (descarga desde Docker Hub)
 - ✅ Auto-configuración (SECRET_KEY auto-generado)
 - ✅ Rápido spin-up/teardown
 - ✅ Scripts helpers cross-platform
+- ✅ Ideal para testing/preproducción local
+
+---
+
+## 🔄 Flujo CI/CD Completo
+
+```
+┌──────────────────┐
+│  Code Push       │
+│  (develop/main)  │
+└────────┬─────────┘
+         │
+         ├──────────────────────────────────┐
+         │                                  │
+         v                                  v
+┌────────────────────┐          ┌──────────────────────┐
+│  GitHub Actions    │          │  Jenkins             │
+│  (PRIMARY)         │          │  (BACKUP)            │
+├────────────────────┤          ├──────────────────────┤
+│ 1. Run Tests       │          │ 1. Build Images      │
+│ 2. Build Images    │          │ 2. Push to Docker Hub│
+│ 3. Push Docker Hub │          └──────────┬───────────┘
+└────────┬───────────┘                     │
+         │                                  │
+         └──────────────┬───────────────────┘
+                        │
+                        v
+            ┌────────────────────────┐
+            │    Docker Hub          │
+            │  (Image Registry)      │
+            └────────┬───────────────┘
+                     │
+                     v
+        ┌────────────────────────────┐
+        │  docker-compose-jenkins.yml│
+        │  (Testing/Preproduction)   │
+        ├────────────────────────────┤
+        │ 1. Pull Images             │
+        │ 2. Deploy Locally          │
+        │ 3. Validate                │
+        └────────────────────────────┘
+```
 
 ---
 
@@ -347,4 +394,4 @@ Si encuentras problemas o tienes sugerencias para mejorar este entorno:
 
 ---
 
-**Última actualización**: 2026-01-22
+**Última actualización**: 2026-01-23

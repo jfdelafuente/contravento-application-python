@@ -1,20 +1,22 @@
 # ============================================================================
-# ContraVento - Jenkins CI/CD Environment
+# ContraVento - Testing/Preproduction Environment
 # ============================================================================
-# Standalone Docker Compose file for CI/CD pipelines (Jenkins, GitHub Actions)
+# Docker Compose file for deploying pre-built images from Docker Hub
 #
-# Includes all services needed for testing and validation:
+# Includes all services needed for testing/preproduction:
 #   - PostgreSQL (database)
-#   - Backend API (FastAPI) - Uses ${BACKEND_IMAGE} or builds from backend/Dockerfile
-#   - Frontend (Vite Dev Server) - Builds from frontend/Dockerfile.dev
+#   - Backend API (FastAPI) - FROM Docker Hub: jfdelafuente/contravento-backend:latest
+#   - Frontend (Nginx/React) - FROM Docker Hub: jfdelafuente/contravento-frontend:latest
 #   - pgAdmin (database UI for debugging)
 #
-# This is a self-contained file (no overlays needed) optimized for:
-#   - Jenkins pipelines
-#   - GitHub Actions workflows
-#   - CI/CD automated testing
-#   - Quick spin-up/teardown cycles
-#   - Frontend uses dev server with runtime env vars (no build-time hardcoding)
+# Images are built and pushed to Docker Hub by:
+#   - PRIMARY: GitHub Actions workflow (.github/workflows/docker-build-push.yml)
+#   - BACKUP: Jenkins pipeline (Jenkinsfile) - if GitHub Actions fails
+#
+# This compose file is used for:
+#   - Local testing/preproduction environment
+#   - Validating images before production deployment
+#   - NO BUILD REQUIRED - Downloads pre-built images from Docker Hub
 #
 # Usage:
 #   docker-compose -f docker-compose-jenkins.yml up -d
@@ -23,7 +25,8 @@
 # Environment variables (optional):
 #   SECRET_KEY:           Auto-generated if missing
 #   POSTGRES_PASSWORD:    Defaults to 'jenkins_test_password'
-#   BACKEND_IMAGE:        Defaults to 'jfdelafuente/contravento-backend:latest'
+#   BACKEND_IMAGE:        Docker Hub image tag (default: jfdelafuente/contravento-backend:latest)
+#   FRONTEND_IMAGE:       Docker Hub image tag (default: jfdelafuente/contravento-frontend:latest)
 #
 # Access:
 #   Frontend:           http://localhost:5173  (CI/Testing port)
@@ -117,34 +120,21 @@ services:
       - jenkins-network
 
   # ==========================================================================
-  # Frontend - React/Vite Development Server (CI Environment)
+  # Frontend - React/Vite Production Build (from Docker Hub)
   # ==========================================================================
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+    image: ${FRONTEND_IMAGE:-jfdelafuente/contravento-frontend:latest}
     container_name: contravento-frontend-jenkins
-    environment:
-      # Vite environment variables for CI
-      VITE_API_URL: http://localhost:8000
-      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
-      VITE_ENV: ci
-      VITE_DEBUG: "true"
+    # NOTE: Frontend image uses pre-built production bundle from Docker Hub
+    # Built by GitHub Actions (docker-build-push.yml) or Jenkins (Jenkinsfile)
+    # VITE_* variables were embedded at build-time, cannot be changed at runtime
     ports:
-      - "5173:5173"  # Native Vite dev server port
-    volumes:
-      # Mount source code for hot reload (optional in CI, useful for debugging)
-      # - ./frontend/src:/app/src
-      # - ./frontend/public:/app/public
+      - "5173:80"  # Map host port 5173 to container Nginx port 80
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+    # No healthcheck - nginx:alpine doesn't include curl by default
+    # depends_on with service_healthy ensures correct startup order
     restart: unless-stopped
     networks:
       - jenkins-network
@@ -221,15 +211,14 @@ configs:
 #    docker-compose -f docker-compose-jenkins.yml logs -f backend
 #    docker-compose -f docker-compose-jenkins.yml logs -f frontend
 #
-# 3. Run backend tests:
+# 3. Pull latest images from Docker Hub:
+#    docker-compose -f docker-compose-jenkins.yml pull
+#
+# 4. Restart with updated images:
+#    docker-compose -f docker-compose-jenkins.yml up -d --force-recreate
+#
+# 5. Run backend tests (inside container):
 #    docker-compose -f docker-compose-jenkins.yml exec backend pytest
-#
-# 4. Run frontend tests (if available):
-#    docker-compose -f docker-compose-jenkins.yml exec frontend npm test
-#
-# 5. Access frontend dev server with hot reload:
-#    - Source code is mounted as volume
-#    - Changes in ./frontend/src will trigger automatic rebuild
 #
 # 6. Stop all services:
 #    docker-compose -f docker-compose-jenkins.yml down
@@ -238,44 +227,29 @@ configs:
 #    docker-compose -f docker-compose-jenkins.yml down -v
 #
 # ============================================================================
-# Jenkins Pipeline Integration
+# CI/CD Pipeline Notes
 # ============================================================================
-# Jenkinsfile example:
+# This file is NOT used for building images. It deploys pre-built images.
 #
-#   pipeline {
-#     agent any
-#     environment {
-#       BACKEND_IMAGE = 'jfdelafuente/contravento-backend:ci'
-#     }
-#     stages {
-#       stage('Build Images') {
-#         steps {
-#           // Build backend image for CI
-#           sh 'docker build -t $BACKEND_IMAGE -f backend/Dockerfile backend/'
-#         }
-#       }
-#       stage('Setup CI Environment') {
-#         steps {
-#           // Frontend will build automatically from Dockerfile.dev
-#           sh 'docker-compose -f docker-compose-jenkins.yml up -d --build'
-#           sh 'sleep 30'  // Wait for services to be healthy
-#         }
-#       }
-#       stage('Test Backend') {
-#         steps {
-#           sh 'docker-compose -f docker-compose-jenkins.yml exec -T backend pytest --cov=src'
-#         }
-#       }
-#       stage('Test Frontend') {
-#         steps {
-#           sh 'docker-compose -f docker-compose-jenkins.yml exec -T frontend npm test || echo "No tests configured"'
-#         }
-#       }
-#     }
-#     post {
-#       always {
-#         sh 'docker-compose -f docker-compose-jenkins.yml down -v'
-#       }
-#     }
-#   }
+# Images are built and pushed by:
+#
+# 1. PRIMARY METHOD - GitHub Actions (.github/workflows/docker-build-push.yml):
+#    - Triggers on push to develop/main branches
+#    - Builds both backend and frontend images
+#    - Pushes to Docker Hub with appropriate tags
+#    - See: .github/workflows/docker-build-push.yml
+#
+# 2. BACKUP METHOD - Jenkins (Jenkinsfile):
+#    - Used if GitHub Actions fails or is unavailable
+#    - Builds and pushes same images to Docker Hub
+#    - See: Jenkinsfile in project root
+#
+# Testing is handled by GitHub Actions workflows:
+#    - backend-tests.yml: Backend unit/integration tests
+#    - frontend-tests.yml: Frontend unit/E2E tests
+#    - ci.yml: Combined CI checks
+#
+# This compose file is only for:
+#    - Deploying pre-built images to local testing/preproduction
+#    - Validating images before production deployment
 # ============================================================================
