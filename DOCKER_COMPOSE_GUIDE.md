@@ -1,8 +1,8 @@
-# Testing/Preproduction Environment - Quick Start Guide
+# Preproduction Environment - Quick Start Guide
 
 ## 📋 Descripción
 
-Entorno Docker para desplegar y validar imágenes pre-construidas desde Docker Hub en un ambiente local de testing/preproducción.
+Entorno Docker para desplegar y validar imágenes pre-construidas desde Docker Hub en un ambiente local de preproducción (Jenkins).
 
 **Usa imágenes pre-construidas de Docker Hub**:
 
@@ -23,7 +23,7 @@ Entorno Docker para desplegar y validar imágenes pre-construidas desde Docker H
 - ✅ Auto-configuración (SECRET_KEY auto-generado)
 - ✅ Rápido spin-up/teardown
 - ✅ Scripts helpers cross-platform
-- ✅ Ideal para testing/preproducción local
+- ✅ Ideal para validación en preproducción local
 
 ---
 
@@ -57,8 +57,8 @@ Entorno Docker para desplegar y validar imágenes pre-construidas desde Docker H
                      │
                      v
         ┌────────────────────────────┐
-        │  docker-compose-jenkins.yml│
-        │  (Testing/Preproduction)   │
+        │  docker-compose.preproduction.yml│
+        │  (Preproduction/Jenkins)   │
         ├────────────────────────────┤
         │ 1. Pull Images             │
         │ 2. Deploy Locally          │
@@ -120,7 +120,7 @@ Entorno Docker para desplegar y validar imágenes pre-construidas desde Docker H
 ```
 Host:      localhost
 Port:      5432
-Database:  contravento_ci
+Database:  contravento_jenkins
 User:      postgres
 Password:  jenkins_test_password
 ```
@@ -148,22 +148,22 @@ Password:  jenkins_test_password
 
 ```bash
 # Iniciar
-docker-compose -f docker-compose-jenkins.yml up -d
+docker-compose -f docker-compose.preproduction.yml up -d
 
 # Ver logs
-docker-compose -f docker-compose-jenkins.yml logs -f
+docker-compose -f docker-compose.preproduction.yml logs -f
 
 # Ejecutar tests backend
-docker-compose -f docker-compose-jenkins.yml exec backend pytest
+docker-compose -f docker-compose.preproduction.yml exec backend pytest
 
 # Ejecutar tests frontend
-docker-compose -f docker-compose-jenkins.yml exec frontend npm test
+docker-compose -f docker-compose.preproduction.yml exec frontend npm test
 
 # Detener
-docker-compose -f docker-compose-jenkins.yml down
+docker-compose -f docker-compose.preproduction.yml down
 
 # Limpiar volúmenes
-docker-compose -f docker-compose-jenkins.yml down -v
+docker-compose -f docker-compose.preproduction.yml down -v
 ```
 
 ---
@@ -179,33 +179,33 @@ pipeline {
     stages {
         stage('Setup Environment') {
             steps {
-                sh 'docker-compose -f docker-compose-jenkins.yml up -d'
+                sh 'docker-compose -f docker-compose.preproduction.yml up -d'
                 sh 'sleep 30'  // Esperar a que servicios estén healthy
             }
         }
 
         stage('Backend Tests') {
             steps {
-                sh 'docker-compose -f docker-compose-jenkins.yml exec -T backend pytest --cov=src --cov-report=term'
+                sh 'docker-compose -f docker-compose.preproduction.yml exec -T backend pytest --cov=src --cov-report=term'
             }
         }
 
         stage('Frontend Tests') {
             steps {
-                sh 'docker-compose -f docker-compose-jenkins.yml exec -T frontend npm test'
+                sh 'docker-compose -f docker-compose.preproduction.yml exec -T frontend npm test'
             }
         }
 
         stage('E2E Tests') {
             steps {
-                sh 'docker-compose -f docker-compose-jenkins.yml exec -T frontend npm run test:e2e'
+                sh 'docker-compose -f docker-compose.preproduction.yml exec -T frontend npm run test:e2e'
             }
         }
     }
 
     post {
         always {
-            sh 'docker-compose -f docker-compose-jenkins.yml down -v'
+            sh 'docker-compose -f docker-compose.preproduction.yml down -v'
         }
     }
 }
@@ -231,20 +231,20 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Start CI environment
-        run: docker-compose -f docker-compose-jenkins.yml up -d
+        run: docker-compose -f docker-compose.preproduction.yml up -d
 
       - name: Wait for services
         run: sleep 30
 
       - name: Run backend tests
-        run: docker-compose -f docker-compose-jenkins.yml exec -T backend pytest --cov=src
+        run: docker-compose -f docker-compose.preproduction.yml exec -T backend pytest --cov=src
 
       - name: Run frontend tests
-        run: docker-compose -f docker-compose-jenkins.yml exec -T frontend npm test
+        run: docker-compose -f docker-compose.preproduction.yml exec -T frontend npm test
 
       - name: Cleanup
         if: always()
-        run: docker-compose -f docker-compose-jenkins.yml down -v
+        run: docker-compose -f docker-compose.preproduction.yml down -v
 ```
 
 ---
@@ -277,7 +277,7 @@ VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA
 .\run-jenkins-env.ps1 clean
 
 # Manual
-docker-compose -f docker-compose-jenkins.yml down -v
+docker-compose -f docker-compose.preproduction.yml down -v
 docker volume prune -f
 ```
 
@@ -292,7 +292,7 @@ docker volume prune -f
 sudo systemctl stop postgresql  # Linux
 brew services stop postgresql   # Mac
 
-# O cambiar puerto en docker-compose-jenkins.yml:
+# O cambiar puerto en docker-compose.preproduction.yml:
 ports:
   - "5433:5432"  # Usar 5433 en host
 ```
@@ -301,20 +301,20 @@ ports:
 
 ```bash
 # Ver logs del backend
-docker-compose -f docker-compose-jenkins.yml logs backend
+docker-compose -f docker-compose.preproduction.yml logs backend
 
 # Verificar base de datos
-docker-compose -f docker-compose-jenkins.yml exec postgres psql -U postgres -d contravento_ci -c "\dt"
+docker-compose -f docker-compose.preproduction.yml exec postgres psql -U postgres -d contravento_jenkins -c "\dt"
 ```
 
 ### Error: "Frontend build fails"
 
 ```bash
 # Rebuild frontend
-docker-compose -f docker-compose-jenkins.yml build --no-cache frontend
+docker-compose -f docker-compose.preproduction.yml build --no-cache frontend
 
 # Ver logs
-docker-compose -f docker-compose-jenkins.yml logs frontend
+docker-compose -f docker-compose.preproduction.yml logs frontend
 ```
 
 ---
@@ -330,7 +330,7 @@ Todos los servicios tienen health checks configurados:
 # O manualmente
 curl http://localhost:8000/health          # Backend
 curl http://localhost:5173                 # Frontend
-docker-compose -f docker-compose-jenkins.yml exec postgres pg_isready
+docker-compose -f docker-compose.preproduction.yml exec postgres pg_isready
 ```
 
 ---

@@ -1,72 +1,32 @@
-# Docker Compose Environments - Quick Reference
+# Docker Compose Preproduction Environment
 
-Este proyecto usa **2 archivos docker-compose** para diferentes propósitos. Aquí está la guía rápida para saber cuál usar:
-
----
-
-## 📊 Comparación Rápida
-
-| Aspecto | `docker-compose.ci.yml` | `docker-compose.preproduction.yml` |
-|---------|-------------------------|-----------------------------------|
-| **Propósito** | Testing local flexible | Validar imágenes de producción |
-| **Frontend** | Dockerfile.dev (dev server) | Dockerfile.prod (Nginx) |
-| **Variables VITE_*** | Runtime (mutables) | Build-time (inmutables) |
-| **Hot Reload** | ✅ Sí | ❌ No |
-| **Build Required** | ✅ Sí (local) | ❌ No (Docker Hub) |
-| **Tamaño** | ~500 MB | ~50 MB |
-| **Usado Por** | GitHub Actions, devs | Validación pre-deploy |
-| **Puerto Frontend** | 5173 (nativo) | 5173:80 (mapeo) |
+Este proyecto usa **docker-compose.preproduction.yml** para validación pre-producción local.
 
 ---
 
-## 1️⃣ docker-compose.ci.yml
+## 📊 Características
+
+| Aspecto | `docker-compose.preproduction.yml` |
+|---------|-----------------------------------|
+| **Propósito** | Validación pre-producción local |
+| **Frontend** | Docker Hub (Dockerfile.prod) |
+| **Backend** | Docker Hub (latest) |
+| **Variables VITE_*** | Build-time (inmutables) |
+| **Hot Reload** | ❌ No |
+| **Build Required** | ❌ No (Docker Hub) |
+| **Tamaño** | ~50 MB |
+| **Usado Por** | Validación manual/Jenkins |
+| **Puerto Frontend** | 5173:80 (mapeo) |
+| **Container Names** | `*-jenkins` |
+| **Network Name** | `jenkins-network` |
+| **Volumes** | `*_jenkins` |
+
+---
+
+## docker-compose.preproduction.yml
 
 ### **Cuándo usar**:
-- ✅ Testing local con configuración flexible
-- ✅ GitHub Actions workflows
-- ✅ Necesitas cambiar VITE_API_URL en runtime
-- ✅ Debugging con hot reload
-- ✅ Desarrollo de features
 
-### **Características**:
-```yaml
-frontend:
-  build:
-    dockerfile: Dockerfile.dev  # Dev server
-  environment:
-    VITE_API_URL: http://localhost:8000  # ✅ Cambiable
-    VITE_ENV: ci
-```
-
-### **Comandos**:
-```bash
-# Iniciar (con build)
-docker-compose -f docker-compose.ci.yml up -d --build
-
-# Cambiar variables y reiniciar
-VITE_API_URL=http://backend:8000 docker-compose -f docker-compose.ci.yml up -d --force-recreate frontend
-
-# Ver logs en tiempo real
-docker-compose -f docker-compose.ci.yml logs -f frontend
-```
-
-### **Pros**:
-- ✅ Variables flexibles en runtime
-- ✅ Hot reload para debugging
-- ✅ Incluye curl para healthchecks
-- ✅ Ideal para iteración rápida
-
-### **Contras**:
-- ❌ Más lento (servidor de desarrollo)
-- ❌ Más pesado (~500 MB)
-- ❌ NO testea la imagen de producción
-- ❌ Requiere build local
-
----
-
-## 2️⃣ docker-compose.preproduction.yml
-
-### **Cuándo usar**:
 - ✅ Validar imágenes antes de producción
 - ✅ Testear exactamente lo que irá a producción
 - ✅ Verificar que las imágenes de Docker Hub funcionan
@@ -90,30 +50,23 @@ docker-compose -f docker-compose.preproduction.yml up -d --force-recreate
 ```
 
 ### **Pros**:
+
 - ✅ Rápido (imagen pre-construida)
 - ✅ Ligero (~50 MB)
 - ✅ Testeas EXACTAMENTE la imagen de producción
 - ✅ Sin builds locales
 
 ### **Contras**:
+
 - ❌ Variables VITE_* inmutables (hardcodeadas)
 - ❌ Sin hot reload
 - ❌ Depende de Docker Hub
-- ❌ Menos flexible
 
 ---
 
-## 🔄 Flujo de Trabajo Completo
+## 🔄 Flujo de Trabajo
 
 ```
-┌─────────────────────────┐
-│  Desarrollo Local       │
-│  (docker-compose.ci.yml)│
-│  - Variables flexibles  │
-│  - Hot reload           │
-└────────────┬────────────┘
-             │
-             v
    ┌─────────────────────┐
    │  GitHub Actions     │
    │  1. Tests           │
@@ -122,36 +75,44 @@ docker-compose -f docker-compose.preproduction.yml up -d --force-recreate
    └────────┬────────────┘
             │
             v
-┌────────────────────────────────┐
-│  Validación Preproducción      │
-│  (docker-compose.preproduction)│
-│  - Descargar de Docker Hub     │
-│  - Validar imagen producción   │
-└────────────┬───────────────────┘
-             │
-             v
-   ┌──────────────────┐
-   │   PRODUCCIÓN     │
-   └──────────────────┘
+┌──────────────────────────┐
+│  Preproducción (Jenkins) │
+│  - Docker Hub images     │
+│  - Validate before prod  │
+│  - Manual testing        │
+└────────┬─────────────────┘
+         │
+         v
+   ┌──────────────┐
+   │  PRODUCCIÓN  │
+   └──────────────┘
 ```
+
+**Nota**: Las imágenes se construyen en GitHub Actions y se descargan desde Docker Hub para validación pre-producción.
 
 ---
 
-## 🎯 Guía Rápida de Decisión
+## 🎯 Uso
 
-**Necesitas cambiar VITE_API_URL?**
-- ✅ Sí → Usa `docker-compose.ci.yml`
-- ❌ No → Usa `docker-compose.preproduction.yml`
+**¿Quieres validar localmente antes de deploy a producción?**
 
-**Estás desarrollando una feature?**
-- ✅ Sí → Usa `docker-compose.ci.yml`
+- ✅ Usa `docker-compose.preproduction.yml`
 
-**Quieres validar antes de deploy a producción?**
-- ✅ Sí → Usa `docker-compose.preproduction.yml`
+**Comandos**:
 
-**Necesitas hot reload?**
-- ✅ Sí → Usa `docker-compose.ci.yml`
-- ❌ No → Usa `docker-compose.preproduction.yml`
+```bash
+# Iniciar preproducción
+docker-compose -f docker-compose.preproduction.yml up -d
+
+# Ver logs
+docker-compose -f docker-compose.preproduction.yml logs -f
+
+# Detener
+docker-compose -f docker-compose.preproduction.yml down
+
+# Limpiar todo (incluyendo volúmenes)
+docker-compose -f docker-compose.preproduction.yml down -v
+```
 
 ---
 
@@ -159,7 +120,7 @@ docker-compose -f docker-compose.preproduction.yml up -d --force-recreate
 
 - [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md) - Guía detallada de comandos y troubleshooting
 - [CLAUDE.md](CLAUDE.md) - Arquitectura general del proyecto
-- [.github/workflows/](..github/workflows/) - GitHub Actions workflows
+- [.github/workflows/](.github/workflows/) - GitHub Actions workflows
 
 ---
 
@@ -167,28 +128,38 @@ docker-compose -f docker-compose.preproduction.yml up -d --force-recreate
 
 ### Sobre Variables VITE_*
 
-**En docker-compose.ci.yml** (Dockerfile.dev):
+**Variables hardcodeadas durante el BUILD**:
+
 ```bash
-# Variables en runtime - MUTABLES
-VITE_API_URL=http://api.local:8000 docker-compose -f docker-compose.ci.yml up -d
+# Variables embebidas en tiempo de compilación
+# No se pueden cambiar en runtime
+# Definidas en GitHub Actions al construir la imagen
 ```
 
-**En docker-compose.preproduction.yml** (Dockerfile.prod):
-```bash
-# Variables hardcodeadas durante el BUILD
-# No se pueden cambiar en runtime
-# Definidas en GitHub Actions o Jenkins al construir la imagen
-```
+Las variables VITE_* son inmutables porque se embeben durante el build de producción.
+Para cambiarlas, debes:
+
+1. Modificar las variables en GitHub Actions secrets
+2. Ejecutar el build/push nuevamente
+3. Descargar la nueva imagen con `docker-compose pull`
 
 ### Sobre Imágenes
 
-**docker-compose.ci.yml**:
-- Frontend: Se construye localmente desde `frontend/Dockerfile.dev`
-- Backend: Descarga de Docker Hub (configurable con `BACKEND_IMAGE`)
-
 **docker-compose.preproduction.yml**:
-- Frontend: Descarga de Docker Hub `jfdelafuente/contravento-frontend:latest`
+
+- Frontend: Descarga de Docker Hub `jfdelafuente/contravento-frontend:latest` (Dockerfile.prod)
 - Backend: Descarga de Docker Hub `jfdelafuente/contravento-backend:latest`
+- Naming: `*-jenkins`, `jenkins-network`, `*_jenkins`
+
+### Acceso
+
+Una vez iniciado el entorno de preproducción:
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+- **pgAdmin**: http://localhost:5050 (admin@example.com / jenkins_admin)
+- **PostgreSQL**: localhost:5432 (contravento_jenkins / postgres / jenkins_test_password)
 
 ---
 
