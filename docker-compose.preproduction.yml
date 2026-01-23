@@ -18,9 +18,15 @@
 #   - Validating images before production deployment
 #   - NO BUILD REQUIRED - Downloads pre-built images from Docker Hub
 #
+# Key differences from docker-compose.ci.yml:
+#   - Uses pre-built production images from Docker Hub (not local builds)
+#   - Frontend is Dockerfile.prod (optimized) not Dockerfile.dev (dev server)
+#   - VITE_* variables hardcoded at build-time (immutable)
+#   - Validates production-ready images before deployment
+#
 # Usage:
-#   docker-compose -f docker-compose-jenkins.yml up -d
-#   docker-compose -f docker-compose-jenkins.yml down
+#   docker-compose -f docker-compose.preproduction.yml up -d
+#   docker-compose -f docker-compose.preproduction.yml down
 #
 # Environment variables (optional):
 #   SECRET_KEY:           Auto-generated if missing
@@ -205,26 +211,26 @@ configs:
 # Usage Examples
 # ============================================================================
 # 1. Start all services:
-#    docker-compose -f docker-compose-jenkins.yml up -d
+#    docker-compose -f docker-compose.preproduction.yml up -d
 #
 # 2. View logs:
-#    docker-compose -f docker-compose-jenkins.yml logs -f backend
-#    docker-compose -f docker-compose-jenkins.yml logs -f frontend
+#    docker-compose -f docker-compose.preproduction.yml logs -f backend
+#    docker-compose -f docker-compose.preproduction.yml logs -f frontend
 #
 # 3. Pull latest images from Docker Hub:
-#    docker-compose -f docker-compose-jenkins.yml pull
+#    docker-compose -f docker-compose.preproduction.yml pull
 #
 # 4. Restart with updated images:
-#    docker-compose -f docker-compose-jenkins.yml up -d --force-recreate
+#    docker-compose -f docker-compose.preproduction.yml up -d --force-recreate
 #
 # 5. Run backend tests (inside container):
-#    docker-compose -f docker-compose-jenkins.yml exec backend pytest
+#    docker-compose -f docker-compose.preproduction.yml exec backend pytest
 #
 # 6. Stop all services:
-#    docker-compose -f docker-compose-jenkins.yml down
+#    docker-compose -f docker-compose.preproduction.yml down
 #
 # 7. Clean up everything (including volumes):
-#    docker-compose -f docker-compose-jenkins.yml down -v
+#    docker-compose -f docker-compose.preproduction.yml down -v
 #
 # ============================================================================
 # CI/CD Pipeline Notes

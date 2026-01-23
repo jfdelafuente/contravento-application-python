@@ -1,0 +1,263 @@
+# ============================================================================
+# ContraVento - CI/Testing Environment
+# ============================================================================
+# Docker Compose file for flexible testing with runtime variables
+#
+# Includes all services needed for CI/testing:
+#   - PostgreSQL (database)
+#   - Backend API (FastAPI) - Uses ${BACKEND_IMAGE} or builds from backend/Dockerfile
+#   - Frontend (Vite Dev Server) - Builds from frontend/Dockerfile.dev with runtime vars
+#   - pgAdmin (database UI for debugging)
+#
+# This compose file is used by:
+#   - GitHub Actions workflows (.github/workflows/*.yml)
+#   - Local development testing
+#   - Manual validation with flexible configuration
+#
+# Key differences from docker-compose.preproduction.yml:
+#   - Frontend uses Dockerfile.dev (dev server) instead of pre-built production image
+#   - VITE_* variables configurable at runtime (not hardcoded)
+#   - Hot reload available for debugging
+#   - Includes curl for healthchecks
+#
+# Usage:
+#   docker-compose -f docker-compose.ci.yml up -d --build
+#   docker-compose -f docker-compose.ci.yml down
+#
+# Environment variables (optional):
+#   SECRET_KEY:           Auto-generated if missing
+#   POSTGRES_PASSWORD:    Defaults to 'ci_test_password'
+#   BACKEND_IMAGE:        Docker Hub image or 'build' to compile locally
+#   VITE_API_URL:         Defaults to 'http://localhost:8000'
+#   VITE_TURNSTILE_SITE_KEY: Defaults to test key
+#
+# Access:
+#   Frontend:           http://localhost:5173  (Vite dev server)
+#   Backend API:        http://localhost:8000
+#   API Docs:           http://localhost:8000/docs
+#   pgAdmin:            http://localhost:5050 (admin@example.com / ci_admin)
+#   PostgreSQL:         localhost:5432 (contravento_ci / postgres / ci_test_password)
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # PostgreSQL - CI/Testing Database
+  # ==========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: contravento-db-ci
+    environment:
+      POSTGRES_DB: contravento_ci
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ci_test_password}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=en_US.UTF-8
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_ci:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d contravento_ci"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - ci-network
+
+  # ==========================================================================
+  # Backend API - FastAPI
+  # ==========================================================================
+  backend:
+    image: ${BACKEND_IMAGE:-jfdelafuente/contravento-backend:latest}
+    container_name: contravento-api-ci
+    environment:
+      # Application
+      APP_NAME: ContraVento
+      APP_ENV: ci
+      DEBUG: "true"
+
+      # Database
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-ci_test_password}@postgres:5432/contravento_ci
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-ci_default_secret_key_for_testing_only}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+      BCRYPT_ROUNDS: 4  # Fast hashing for CI
+
+      # SMTP (disabled for CI)
+      SMTP_HOST: ""
+      SMTP_PORT: "1025"
+      SMTP_FROM: noreply@contravento.com
+
+      # CORS - Allow frontend dev server
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8000
+
+      # Storage
+      STORAGE_PATH: /app/storage
+
+      # Logging
+      LOG_LEVEL: INFO
+      LOG_FORMAT: text
+
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ci-network
+
+  # ==========================================================================
+  # Frontend - React/Vite Development Server
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: contravento-frontend-ci
+    environment:
+      # Vite environment variables (runtime - can be changed)
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-1x00000000000000000000AA}
+      VITE_ENV: ${VITE_ENV:-ci}
+      VITE_DEBUG: ${VITE_DEBUG:-true}
+    ports:
+      - "5173:5173"  # Native Vite dev server port
+    volumes:
+      # Mount source code for hot reload (useful for local debugging)
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - ci-network
+
+  # ==========================================================================
+  # pgAdmin - Database UI (for debugging)
+  # ==========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: contravento-pgadmin-ci
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: ci_admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data_ci:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - ci-network
+    configs:
+      - source: pgadmin_servers
+        target: /pgadmin4/servers.json
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_data_ci:
+    driver: local
+  pgadmin_data_ci:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  ci-network:
+    driver: bridge
+    name: ci-network
+
+# ============================================================================
+# Configs (pgAdmin auto-configuration)
+# ============================================================================
+configs:
+  pgadmin_servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "ContraVento CI Database",
+            "Group": "CI/Testing",
+            "Host": "postgres",
+            "Port": 5432,
+            "MaintenanceDB": "contravento_ci",
+            "Username": "postgres",
+            "SSLMode": "prefer",
+            "PassFile": "/tmp/pgpass"
+          }
+        }
+      }
+
+# ============================================================================
+# Usage Examples
+# ============================================================================
+# 1. Start all services (build frontend):
+#    docker-compose -f docker-compose.ci.yml up -d --build
+#
+# 2. View logs:
+#    docker-compose -f docker-compose.ci.yml logs -f backend
+#    docker-compose -f docker-compose.ci.yml logs -f frontend
+#
+# 3. Run backend tests:
+#    docker-compose -f docker-compose.ci.yml exec backend pytest --cov=src
+#
+# 4. Run frontend tests:
+#    docker-compose -f docker-compose.ci.yml exec frontend npm test
+#
+# 5. Change environment variables:
+#    VITE_API_URL=http://backend:8000 docker-compose -f docker-compose.ci.yml up -d --force-recreate frontend
+#
+# 6. Stop all services:
+#    docker-compose -f docker-compose.ci.yml down
+#
+# 7. Clean up everything (including volumes):
+#    docker-compose -f docker-compose.ci.yml down -v
+#
+# ============================================================================
+# GitHub Actions Integration
+# ============================================================================
+# Example workflow step:
+#
+#   - name: Start CI Environment
+#     run: |
+#       docker-compose -f docker-compose.ci.yml up -d --build
+#       sleep 30  # Wait for services to be healthy
+#
+#   - name: Run Tests
+#     run: |
+#       docker-compose -f docker-compose.ci.yml exec -T backend pytest --cov=src
+#       docker-compose -f docker-compose.ci.yml exec -T frontend npm test
+#
+#   - name: Cleanup
+#     if: always()
+#     run: docker-compose -f docker-compose.ci.yml down -v
+# ============================================================================
