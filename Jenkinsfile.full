@@ -9,13 +9,13 @@
 //   - vite_turnstile_site_key: Cloudflare Turnstile site key
 //
 // Stages:
-//   1. Git Checkout - Clone repository
-//   2. Run Backend Tests - Execute pytest suite
-//   3. Build Images - Build backend and frontend Docker images
-//   4. Push to Docker Hub - Push images to registry
-//   5. Deploy to Preproduction - Deploy using docker compose.preproduction.yml
-//   6. Validate Deployment - Run smoke tests
-//   7. Cleanup - Remove containers and logout
+//   1. Run Backend Tests - Execute pytest suite in Docker container
+//   2. Build Images - Build backend and frontend Docker images (parallel)
+//   3. Push to Docker Hub - Push images to registry
+//   4. Deploy to Preproduction - Deploy using docker-compose.preproduction.yml
+//   5. Validate Deployment - Run smoke tests and health checks
+//
+// Note: Git checkout is automatic (done by Jenkins SCM)
 // ============================================================================
 
 pipeline {
@@ -49,22 +49,6 @@ pipeline {
     }
 
     stages {
-        stage('Git Checkout') {
-            steps {
-                echo '========================================='
-                echo 'Stage: Git Checkout'
-                echo '========================================='
-
-                git branch: 'develop',
-                    url: 'https://github.com/jfdelafuente/contravento-application-python.git'
-
-                // Display current commit
-                sh 'git log -1 --oneline'
-
-                echo '✅ Git Checkout Completed'
-            }
-        }
-
         stage('Run Backend Tests') {
             steps {
                 echo '========================================='
