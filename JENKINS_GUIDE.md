@@ -21,12 +21,11 @@ Guía completa para configurar y ejecutar el pipeline de Jenkins para ContraVent
 ### Software Requerido en Jenkins Server
 
 - **Jenkins**: Versión 2.400+ con Blue Ocean plugin (recomendado)
-- **Docker**: Versión 24.0+
-- **Docker Compose**: Versión 2.20+
-- **Python**: 3.12+ (para ejecutar tests)
-- **Poetry**: 1.7+ (gestor de dependencias Python)
+- **Docker**: Versión 24.0+ (con Docker Compose v2 integrado)
 - **Git**: 2.40+
 - **curl**: Para health checks
+
+**Nota**: Python y Poetry **NO** son necesarios en el servidor Jenkins. Los tests se ejecutan dentro de contenedores Docker.
 
 ### Jenkins Plugins
 
@@ -124,9 +123,33 @@ Para obtener tokens reales y configuración avanzada, ver [JENKINS_CREDENTIALS_S
 
 ---
 
-## Pipeline Stages
+## Versiones del Pipeline
 
-El pipeline de Jenkins ejecuta 6 stages principales:
+Este proyecto incluye **2 versiones** del Jenkinsfile:
+
+### 📦 Versión Simplificada (Default) - `Jenkinsfile`
+
+**3 Stages**: Git Checkout → Build (parallel) → Push
+
+**Duración**: ~5-10 minutos
+
+**Cuándo usar**: Solo necesitas build y push a Docker Hub
+
+### 🚀 Versión Completa - `Jenkinsfile.full`
+
+**6 Stages**: Git Checkout → Tests → Build (parallel) → Push → Deploy → Validate
+
+**Duración**: ~15-20 minutos
+
+**Cuándo usar**: Necesitas pipeline completo con tests y deployment automático
+
+**📖 Ver comparación completa**: [JENKINSFILE_VERSIONS.md](JENKINSFILE_VERSIONS.md)
+
+---
+
+## Pipeline Stages (Versión Simplificada)
+
+El pipeline simplificado ejecuta 3 stages principales:
 
 ### 1. Git Checkout
 ```
@@ -135,46 +158,76 @@ El pipeline de Jenkins ejecuta 6 stages principales:
 ✅ Muestra el último commit
 ```
 
-### 2. Run Backend Tests
+**Duración**: ~10-20 segundos
+
+### 2. Build Docker Images (Parallel)
+
+**Backend y Frontend se construyen en paralelo**:
+
 ```
-✅ Instala Poetry (si no existe)
-✅ Instala dependencias del backend
-✅ Ejecuta pytest con coverage
-✅ Requiere ≥90% coverage para pasar
+Backend:
+✅ Construye imagen desde backend/Dockerfile
+✅ Tag: jfdelafuente/contravento-backend:latest
+
+Frontend:
+✅ Construye imagen desde frontend/Dockerfile.prod
+✅ Variables VITE_* embebidas en tiempo de compilación
+✅ Tag: jfdelafuente/contravento-frontend:latest
 ```
 
-### 3. Build Docker Images (Parallel)
-```
-✅ Backend: Construye imagen desde backend/Dockerfile
-✅ Frontend: Construye imagen desde frontend/Dockerfile.prod
-✅ Frontend embebe variables VITE_* en tiempo de compilación
-```
+**Duración**: ~3-5 minutos (paralelo)
 
-### 4. Push to Docker Hub
+### 3. Push to Docker Hub
 ```
 ✅ Login a Docker Hub con credenciales
 ✅ Push jfdelafuente/contravento-backend:latest
 ✅ Push jfdelafuente/contravento-frontend:latest
 ```
 
-### 5. Deploy to Preproduction
+**Duración**: ~1-3 minutos
+
+---
+
+## Pipeline Stages (Versión Completa)
+
+La versión completa (`Jenkinsfile.full`) incluye 3 stages adicionales:
+
+### 2. Run Backend Tests (adicional)
 ```
-✅ Detiene contenedores existentes (docker-compose down -v)
-✅ Pull de imágenes más recientes desde Docker Hub
-✅ Inicia servicios con docker-compose.preproduction.yml
-✅ Espera 30s para que servicios estén healthy
+✅ Instala Poetry y dependencias
+✅ Ejecuta pytest con coverage
+✅ Requiere ≥90% coverage
 ```
 
-### 6. Validate Deployment
+### 5. Deploy to Preproduction (adicional)
 ```
-✅ Health check del backend (http://localhost:8000/health)
-✅ Verifica accesibilidad del frontend (http://localhost:5173)
-✅ Muestra logs recientes del backend
+✅ Detiene contenedores existentes
+✅ Despliega con docker-compose.preproduction.yml
+✅ Espera a que servicios estén healthy
 ```
+
+### 6. Validate Deployment (adicional)
+```
+✅ Health checks automáticos
+✅ Verifica frontend y backend
+✅ Muestra logs
+```
+
+**Ver detalles completos**: [JENKINSFILE_VERSIONS.md](JENKINSFILE_VERSIONS.md)
 
 ---
 
 ## Ejecutar el Pipeline
+
+### Seleccionar Versión del Pipeline
+
+**Por defecto**: Usa `Jenkinsfile` (versión simplificada)
+
+**Para usar versión completa**:
+1. Opción A: Renombrar `Jenkinsfile.full` a `Jenkinsfile`
+2. Opción B: Crear job separado en Jenkins apuntando a `Jenkinsfile.full`
+
+Ver: [JENKINSFILE_VERSIONS.md - Cómo Cambiar de Versión](JENKINSFILE_VERSIONS.md#-cómo-cambiar-de-versión)
 
 ### Ejecución Manual
 
