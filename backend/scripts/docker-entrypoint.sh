@@ -13,8 +13,8 @@ alembic upgrade head
 echo "✅ Migrations completed"
 echo ""
 
-# Step 2: Initialize development data (only in development/testing)
-if [ "$APP_ENV" = "development" ] || [ "$APP_ENV" = "testing" ]; then
+# Step 2: Initialize development data (only in development/testing/ci)
+if [ "$APP_ENV" = "development" ] || [ "$APP_ENV" = "testing" ] || [ "$APP_ENV" = "ci" ]; then
     echo "🌱 Initializing development data..."
     python scripts/init_dev_data.py
     echo ""

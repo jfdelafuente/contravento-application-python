@@ -27,7 +27,7 @@
 #   TURNSTILE_SITE_KEY:   Defaults to test key (1x00000000000000000000AA)
 #
 # Access:
-#   Frontend:           http://localhost:80
+#   Frontend:           http://localhost:5173  (CI/Testing port)
 #   Backend API:        http://localhost:8000
 #   API Docs:           http://localhost:8000/docs
 #   pgAdmin:            http://localhost:5050 (admin@example.com / jenkins)
@@ -90,7 +90,7 @@ services:
       SMTP_FROM: noreply@contravento.local
 
       # CORS
-      CORS_ORIGINS: http://localhost:5173,http://localhost:8000
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8000  # CI/Testing ports
 
       # Storage
       STORAGE_PATH: /app/storage
@@ -127,12 +127,12 @@ services:
     # VITE_* variables were embedded at build-time in docker-build-push.yml
     # No environment variables needed at runtime for static content
     ports:
-      - "80:80"  # Nginx serves on port 80
+      - "5173:80"  # CI/Testing port (matches local dev), Nginx serves on internal port 80
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]  # Internal Nginx port
       interval: 10s
       timeout: 5s
       retries: 5

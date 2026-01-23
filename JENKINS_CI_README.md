@@ -61,10 +61,10 @@ Entorno Docker standalone optimizado para pipelines de CI/CD (Jenkins, GitHub Ac
 
 | Servicio | URL | Credenciales |
 |----------|-----|--------------|
-| **Frontend** | http://localhost:80 | - |
+| **Frontend** | http://localhost:5173 | - |
 | **Backend API** | http://localhost:8000 | - |
 | **API Docs** | http://localhost:8000/docs | - |
-| **pgAdmin** | http://localhost:5050 | admin@jenkins.local / jenkins |
+| **pgAdmin** | http://localhost:5050 | admin@example.com / jenkins |
 
 ---
 
