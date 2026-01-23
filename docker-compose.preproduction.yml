@@ -80,7 +80,7 @@ services:
     environment:
       # Application
       APP_NAME: ContraVento
-      APP_ENV: preproduction
+      APP_ENV: production
       DEBUG: "true"
 
       # Database
