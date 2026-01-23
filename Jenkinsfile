@@ -4,9 +4,10 @@
 // Pipeline simplificado para build y push de imágenes Docker
 //
 // Stages:
-//   1. Git Checkout - Clona el repositorio
-//   2. Build Docker Images (parallel) - Construye backend + frontend
-//   3. Push to Docker Hub - Sube imágenes a Docker Hub
+//   1. Build Docker Images (parallel) - Construye backend + frontend
+//   2. Push to Docker Hub - Sube imágenes a Docker Hub
+//
+// Note: Git checkout is automatic (done by Jenkins SCM)
 //
 // Prerequisites (Jenkins Credentials):
 //   - dockerhub_id: Docker Hub credentials (username + password)
@@ -42,20 +43,6 @@ pipeline {
     }
 
     stages {
-        stage('Git Checkout') {
-            steps {
-                echo '========================================='
-                echo 'Stage: Git Checkout'
-                echo '========================================='
-
-                git branch: 'develop',
-                    url: 'https://github.com/jfdelafuente/contravento-application-python.git'
-
-                sh 'git log -1 --oneline'
-                echo '✅ Git Checkout Completed'
-            }
-        }
-
         stage('Build Docker Images') {
             parallel {
                 stage('Build Backend Image') {
