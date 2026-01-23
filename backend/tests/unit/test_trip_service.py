@@ -1206,7 +1206,7 @@ class TestTripServiceGetUserTrips:
             from src.schemas.trip import TripCreateRequest
 
             request = TripCreateRequest(**data)
-            trip = await service.create_trip(user_id=test_user.id, trip_data=request)
+            trip = await service.create_trip(user_id=test_user.id, data=request)
             trips.append(trip)
 
         return trips
@@ -1413,46 +1413,48 @@ class TestTripServiceTagLimit:
         )
 
         # Act
-        trip = await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+        trip = await service.create_trip(user_id=test_user.id, data=trip_data)
 
         # Assert
-        assert len(trip.tags) == 10
+        assert len(trip.trip_tags) == 10
 
     async def test_create_trip_exceeds_max_tags(self, db_session: AsyncSession, test_user: User):
-        """Test creating trip with more than 10 tags raises ValueError."""
+        """Test creating trip with more than 10 tags raises ValidationError."""
         # Arrange
+        from pydantic import ValidationError
+
         from src.schemas.trip import TripCreateRequest
         from src.services.trip_service import TripService
 
         service = TripService(db_session)
 
-        # Create trip with 11 tags (exceeds limit)
-        trip_data = TripCreateRequest(
-            title="Trip with Too Many Tags",
-            description="Descripción de al menos 50 caracteres para trip con exceso de tags...",
-            start_date=date(2024, 6, 1),
-            tags=[
-                "tag1",
-                "tag2",
-                "tag3",
-                "tag4",
-                "tag5",
-                "tag6",
-                "tag7",
-                "tag8",
-                "tag9",
-                "tag10",
-                "tag11",  # 11th tag - exceeds limit
-            ],
-        )
-
-        # Act & Assert
-        with pytest.raises(ValueError, match="máximo.*10 tags"):
-            await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+        # Act & Assert - Pydantic validates tags limit before service is called
+        with pytest.raises(ValidationError, match="at most 10"):
+            # Create trip with 11 tags (exceeds limit)
+            trip_data = TripCreateRequest(
+                title="Trip with Too Many Tags",
+                description="Descripción de al menos 50 caracteres para trip con exceso de tags...",
+                start_date=date(2024, 6, 1),
+                tags=[
+                    "tag1",
+                    "tag2",
+                    "tag3",
+                    "tag4",
+                    "tag5",
+                    "tag6",
+                    "tag7",
+                    "tag8",
+                    "tag9",
+                    "tag10",
+                    "tag11",  # 11th tag - exceeds limit
+                ],
+            )
 
     async def test_update_trip_exceeds_max_tags(self, db_session: AsyncSession, test_user: User):
-        """Test updating trip to exceed 10 tags raises ValueError."""
+        """Test updating trip to exceed 10 tags raises ValidationError."""
         # Arrange
+        from pydantic import ValidationError
+
         from src.schemas.trip import TripCreateRequest, TripUpdateRequest
         from src.services.trip_service import TripService
 
@@ -1465,30 +1467,26 @@ class TestTripServiceTagLimit:
             start_date=date(2024, 6, 1),
             tags=["tag1", "tag2", "tag3", "tag4", "tag5"],
         )
-        trip = await service.create_trip(user_id=test_user.id, trip_data=create_data)
+        trip = await service.create_trip(user_id=test_user.id, data=create_data)
 
-        # Prepare update with 11 tags
-        update_data = TripUpdateRequest(
-            tags=[
-                "tag1",
-                "tag2",
-                "tag3",
-                "tag4",
-                "tag5",
-                "tag6",
-                "tag7",
-                "tag8",
-                "tag9",
-                "tag10",
-                "tag11",  # 11th tag - exceeds limit
-            ],
-            client_updated_at=datetime.utcnow(),
-        )
-
-        # Act & Assert
-        with pytest.raises(ValueError, match="máximo.*10 tags"):
-            await service.update_trip(
-                trip_id=trip.trip_id, user_id=test_user.id, trip_data=update_data
+        # Act & Assert - Pydantic validates tags limit before service is called
+        with pytest.raises(ValidationError, match="at most 10"):
+            # Prepare update with 11 tags
+            update_data = TripUpdateRequest(
+                tags=[
+                    "tag1",
+                    "tag2",
+                    "tag3",
+                    "tag4",
+                    "tag5",
+                    "tag6",
+                    "tag7",
+                    "tag8",
+                    "tag9",
+                    "tag10",
+                    "tag11",  # 11th tag - exceeds limit
+                ],
+                client_updated_at=datetime.utcnow(),
             )
 
     async def test_get_all_tags_returns_all(self, db_session: AsyncSession, test_user: User):
@@ -1523,7 +1521,7 @@ class TestTripServiceTagLimit:
 
         for data in trip_data_list:
             request = TripCreateRequest(**data)
-            await service.create_trip(user_id=test_user.id, trip_data=request)
+            await service.create_trip(user_id=test_user.id, data=request)
 
         # Act
         tags = await service.get_all_tags()
@@ -1588,7 +1586,7 @@ class TestTripServiceUpdateTrip:
             distance_km=100.0,
         )
 
-        trip = await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+        trip = await service.create_trip(user_id=test_user.id, data=trip_data)
         return trip
 
     async def test_update_trip_basic_fields(
@@ -1612,7 +1610,7 @@ class TestTripServiceUpdateTrip:
         updated_trip = await service.update_trip(
             trip_id=test_trip.trip_id,
             user_id=test_user.id,
-            trip_data=update_data,
+            data=update_data,
         )
 
         # Assert
@@ -1644,7 +1642,7 @@ class TestTripServiceUpdateTrip:
         updated_trip = await service.update_trip(
             trip_id=test_trip.trip_id,
             user_id=test_user.id,
-            trip_data=update_data,
+            data=update_data,
         )
 
         # Assert - Title updated
@@ -1675,7 +1673,7 @@ class TestTripServiceUpdateTrip:
         await service.update_trip(
             trip_id=test_trip.trip_id,
             user_id=test_user.id,
-            trip_data=update_1,
+            data=update_1,
         )
 
         # Try to update with stale timestamp
@@ -1689,7 +1687,7 @@ class TestTripServiceUpdateTrip:
             await service.update_trip(
                 trip_id=test_trip.trip_id,
                 user_id=test_user.id,
-                trip_data=update_2,
+                data=update_2,
             )
 
     async def test_update_trip_unauthorized_user(
@@ -1722,7 +1720,7 @@ class TestTripServiceUpdateTrip:
             await service.update_trip(
                 trip_id=test_trip.trip_id,
                 user_id=other_user.id,
-                trip_data=update_data,
+                data=update_data,
             )
 
     async def test_update_trip_not_found(self, db_session: AsyncSession, test_user: User):
@@ -1744,7 +1742,7 @@ class TestTripServiceUpdateTrip:
             await service.update_trip(
                 trip_id=fake_trip_id,
                 user_id=test_user.id,
-                trip_data=update_data,
+                update_data=update_data,
             )
 
     async def test_update_trip_with_tags(
@@ -1766,7 +1764,7 @@ class TestTripServiceUpdateTrip:
         trip_with_tags = await service.update_trip(
             trip_id=test_trip.trip_id,
             user_id=test_user.id,
-            trip_data=initial_update,
+            data=initial_update,
         )
 
         # Update with new tags
@@ -1778,7 +1776,7 @@ class TestTripServiceUpdateTrip:
         updated_trip = await service.update_trip(
             trip_id=test_trip.trip_id,
             user_id=test_user.id,
-            trip_data=new_update,
+            data=new_update,
         )
 
         # Assert - New tags present
@@ -1829,7 +1827,7 @@ class TestTripServiceDeleteTrip:
             distance_km=75.0,
         )
 
-        trip = await service.create_trip(user_id=test_user.id, trip_data=trip_data)
+        trip = await service.create_trip(user_id=test_user.id, data=trip_data)
         return trip
 
     async def test_delete_trip_success(

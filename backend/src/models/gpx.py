@@ -7,9 +7,8 @@ Supports both PostgreSQL (production) and SQLite (development/testing).
 
 import uuid
 from datetime import datetime
-from typing import List, Optional
 
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, Text, TIMESTAMP
+from sqlalchemy import TIMESTAMP, Boolean, Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, relationship
 
 from src.database import Base
@@ -88,7 +87,7 @@ class GPXFile(Base):
 
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="gpx_file")  # type: ignore
-    track_points: Mapped[List["TrackPoint"]] = relationship(
+    track_points: Mapped[list["TrackPoint"]] = relationship(
         "TrackPoint",
         back_populates="gpx_file",
         order_by="TrackPoint.sequence",

@@ -61,7 +61,9 @@ class GPXFileMetadata(BaseModel):
     max_elevation: float | None = Field(None, description="Maximum altitude in meters")
     min_elevation: float | None = Field(None, description="Minimum altitude in meters")
     total_points: int = Field(..., ge=0, description="Original trackpoint count")
-    simplified_points: int = Field(..., ge=0, description="Reduced trackpoint count after simplification")
+    simplified_points: int = Field(
+        ..., ge=0, description="Reduced trackpoint count after simplification"
+    )
     has_elevation: bool = Field(..., description="True if GPX includes elevation data")
     has_timestamps: bool = Field(..., description="True if GPX includes timestamp data")
     processing_status: str = Field(
@@ -92,18 +94,30 @@ class GPXUploadResponse(BaseModel):
 
     # Fields below only present if processing_status = 'completed'
     distance_km: float | None = Field(None, description="Total distance (only if completed)")
-    elevation_gain: float | None = Field(None, description="Total elevation gain (only if completed)")
-    elevation_loss: float | None = Field(None, description="Total elevation loss (only if completed)")
+    elevation_gain: float | None = Field(
+        None, description="Total elevation gain (only if completed)"
+    )
+    elevation_loss: float | None = Field(
+        None, description="Total elevation loss (only if completed)"
+    )
     max_elevation: float | None = Field(None, description="Maximum altitude (only if completed)")
     min_elevation: float | None = Field(None, description="Minimum altitude (only if completed)")
-    has_elevation: bool | None = Field(None, description="True if GPX has elevation (only if completed)")
-    has_timestamps: bool | None = Field(None, description="True if GPX has timestamps (only if completed)")
-    total_points: int | None = Field(None, description="Original trackpoint count (only if completed)")
+    has_elevation: bool | None = Field(
+        None, description="True if GPX has elevation (only if completed)"
+    )
+    has_timestamps: bool | None = Field(
+        None, description="True if GPX has timestamps (only if completed)"
+    )
+    total_points: int | None = Field(
+        None, description="Original trackpoint count (only if completed)"
+    )
     simplified_points: int | None = Field(
         None, description="Reduced trackpoint count (only if completed)"
     )
     uploaded_at: datetime = Field(..., description="Upload timestamp (ISO 8601)")
-    processed_at: datetime | None = Field(None, description="Processing completion timestamp (only if completed)")
+    processed_at: datetime | None = Field(
+        None, description="Processing completion timestamp (only if completed)"
+    )
     error_message: str | None = Field(None, description="Error details (only if status=error)")
 
     class Config:
@@ -120,8 +134,15 @@ class GPXStatusResponse(BaseModel):
     gpx_file_id: str = Field(..., description="Unique GPX file identifier (UUID)")
     processing_status: str = Field(..., description="Current processing status")
     distance_km: float | None = Field(None, description="Total distance (only if completed)")
-    elevation_gain: float | None = Field(None, description="Total elevation gain (only if completed)")
-    simplified_points: int | None = Field(None, description="Reduced point count (only if completed)")
+    elevation_gain: float | None = Field(
+        None, description="Total elevation gain (only if completed)"
+    )
+    total_points: int | None = Field(
+        None, description="Original trackpoint count (only if completed)"
+    )
+    simplified_points: int | None = Field(
+        None, description="Reduced point count (only if completed)"
+    )
     uploaded_at: datetime = Field(..., description="Upload timestamp")
     processed_at: datetime | None = Field(None, description="Processing completion timestamp")
     error_message: str | None = Field(None, description="Error details if processing failed")
@@ -141,11 +162,15 @@ class TrackDataResponse(BaseModel):
     trip_id: str = Field(..., description="Associated trip ID (UUID)")
     distance_km: float = Field(..., ge=0.0, description="Total distance in kilometers")
     elevation_gain: float | None = Field(None, description="Total elevation gain in meters")
-    simplified_points_count: int = Field(..., ge=0, description="Number of points in trackpoints array")
+    simplified_points_count: int = Field(
+        ..., ge=0, description="Number of points in trackpoints array"
+    )
     has_elevation: bool = Field(..., description="True if trackpoints contain elevation data")
     start_point: CoordinateResponse = Field(..., description="Route start coordinate")
     end_point: CoordinateResponse = Field(..., description="Route end coordinate")
-    trackpoints: list[TrackPointResponse] = Field(..., description="Simplified trackpoints ordered by sequence")
+    trackpoints: list[TrackPointResponse] = Field(
+        ..., description="Simplified trackpoints ordered by sequence"
+    )
 
     class Config:
         from_attributes = True

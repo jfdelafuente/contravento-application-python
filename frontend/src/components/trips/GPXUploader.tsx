@@ -14,9 +14,10 @@
  * Feature 003 - GPS Routes Interactive (T038)
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useGPXUpload } from '../../hooks/useGPXUpload';
+import { ProcessingTimer } from './ProcessingTimer';
 import './GPXUploader.css';
 
 export interface GPXUploaderProps {
@@ -43,6 +44,9 @@ export const GPXUploader: React.FC<GPXUploaderProps> = ({
   const { upload, isUploading, uploadProgress, error, statusMessage, reset } =
     useGPXUpload();
 
+  // Track upload start time for ProcessingTimer
+  const [uploadStartTime, setUploadStartTime] = useState<number | null>(null);
+
   /**
    * Handle file drop
    */
@@ -59,15 +63,23 @@ export const GPXUploader: React.FC<GPXUploaderProps> = ({
       if (!file) return;
 
       try {
+        // Capture start time for ProcessingTimer
+        setUploadStartTime(Date.now());
+
         await upload(tripId, file);
 
         // Notify parent on success
         if (onUploadComplete) {
           onUploadComplete();
         }
+
+        // Reset timer on success
+        setUploadStartTime(null);
       } catch (err) {
         // Error is already set by useGPXUpload hook
         console.error('GPX upload failed:', err);
+        // Reset timer on error
+        setUploadStartTime(null);
       }
     },
     [tripId, upload, onUploadComplete]
@@ -141,6 +153,15 @@ export const GPXUploader: React.FC<GPXUploaderProps> = ({
                 ></div>
               </div>
               <p className="gpx-progress-percent">{uploadProgress}%</p>
+
+              {/* Processing Timer - shows elapsed time with warnings */}
+              {uploadStartTime && (
+                <ProcessingTimer
+                  startTime={uploadStartTime}
+                  maxSeconds={30}
+                  status={uploadProgress < 90 ? 'processing' : 'warning'}
+                />
+              )}
             </div>
           </div>
         )}

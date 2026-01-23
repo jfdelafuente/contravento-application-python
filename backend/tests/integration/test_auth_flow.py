@@ -15,7 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class TestRegistrationToLoginFlow:
     """T046: Integration test for registration → email verification → login flow."""
 
-    @pytest.mark.skip(reason="TODO: Implement extraction of verification token from database (JWT generation from token_hash)")
+    @pytest.mark.skip(
+        reason="TODO: Implement extraction of verification token from database (JWT generation from token_hash)"
+    )
     async def test_complete_registration_and_login_journey(
         self, client: AsyncClient, db_session: AsyncSession, faker_instance
     ):
@@ -153,7 +155,9 @@ class TestRegistrationToLoginFlow:
         assert login_data["success"] is False
         assert login_data["error"]["code"] == "EMAIL_NOT_VERIFIED"
 
-    @pytest.mark.skip(reason="TODO: Implement email verification workflow and token extraction from database")
+    @pytest.mark.skip(
+        reason="TODO: Implement email verification workflow and token extraction from database"
+    )
     async def test_resend_verification_email(self, client: AsyncClient, faker_instance):
         """
         Test resending verification email.
@@ -187,7 +191,9 @@ class TestRegistrationToLoginFlow:
 class TestPasswordResetFlow:
     """T047: Integration test for forgot password → reset → login flow."""
 
-    @pytest.mark.skip(reason="TODO: Implement password reset token extraction and JWT generation from database")
+    @pytest.mark.skip(
+        reason="TODO: Implement password reset token extraction and JWT generation from database"
+    )
     async def test_complete_password_reset_journey(
         self, client: AsyncClient, db_session: AsyncSession, faker_instance
     ):
@@ -285,7 +291,9 @@ class TestPasswordResetFlow:
         assert new_login_response.status_code == 200
         assert new_login_response.json()["success"] is True
 
-    @pytest.mark.skip(reason="TODO: Implement token expiration testing - requires time mocking and database manipulation")
+    @pytest.mark.skip(
+        reason="TODO: Implement token expiration testing - requires time mocking and database manipulation"
+    )
     async def test_password_reset_token_expires(
         self, client: AsyncClient, db_session: AsyncSession, faker_instance
     ):
@@ -323,7 +331,9 @@ class TestPasswordResetFlow:
 class TestTokenRefreshFlow:
     """T048: Integration test for token refresh mechanism."""
 
-    @pytest.mark.skip(reason="TODO: Implement email verification before login - user must be verified first")
+    @pytest.mark.skip(
+        reason="TODO: Implement email verification before login - user must be verified first"
+    )
     async def test_refresh_token_mechanism(self, client: AsyncClient, faker_instance):
         """
         Test the token refresh flow.
@@ -401,7 +411,9 @@ class TestTokenRefreshFlow:
         assert old_refresh_response.status_code == 401
         assert old_refresh_response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
 
-    @pytest.mark.skip(reason="TODO: Implement complete auth workflow - requires email verification and token management")
+    @pytest.mark.skip(
+        reason="TODO: Implement complete auth workflow - requires email verification and token management"
+    )
     async def test_logout_invalidates_refresh_token(self, client: AsyncClient, faker_instance):
         """
         Test that logout invalidates refresh token.
@@ -467,7 +479,9 @@ class TestTokenRefreshFlow:
 class TestRateLimiting:
     """T049: Integration test for rate limiting (5 failed login attempts)."""
 
-    @pytest.mark.skip(reason="TODO: Implement email verification step - user must be verified before testing lockout")
+    @pytest.mark.skip(
+        reason="TODO: Implement email verification step - user must be verified before testing lockout"
+    )
     async def test_account_lockout_after_five_failed_attempts(
         self, client: AsyncClient, faker_instance
     ):
@@ -531,7 +545,9 @@ class TestRateLimiting:
         # Step 4: TODO: Mock time to advance 15 minutes
         # Step 5: TODO: Verify account is unlocked and can login
 
-    @pytest.mark.skip(reason="TODO: Implement email verification step - user must be verified before login")
+    @pytest.mark.skip(
+        reason="TODO: Implement email verification step - user must be verified before login"
+    )
     async def test_successful_login_resets_failed_attempts(
         self, client: AsyncClient, faker_instance
     ):
@@ -593,7 +609,9 @@ class TestRateLimiting:
             # Should return 401, not 429 (account locked)
             assert response.status_code == 401
 
-    @pytest.mark.skip(reason="TODO: Implement verification email resend workflow and rate limiting tracking")
+    @pytest.mark.skip(
+        reason="TODO: Implement verification email resend workflow and rate limiting tracking"
+    )
     async def test_verification_email_rate_limiting(self, client: AsyncClient, faker_instance):
         """
         Test rate limiting for verification email resends (3 per hour).

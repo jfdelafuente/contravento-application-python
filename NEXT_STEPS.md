@@ -1,68 +1,157 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-22 (Feature 003 - GPS Routes Manual Testing completado + Bug Fixes ✅)
-**Estado actual**: MVP GPS Routes completado y verificado (upload, stats, map visualization, download)
+**Última actualización**: 2026-01-22 (Feature 003 - GPX Upload Timeout Fix ✅ COMPLETADO)
+**Estado actual**: Upload de GPX optimizado y con manejo correcto de timeouts
 
 ---
 
-## 🎉 LOGRO RECIENTE: Feature 003 - GPS Routes Manual Testing Completed
+## 🎉 LOGRO RECIENTE: GPX Upload Timeout Fix (Feature 003 - UX Improvement)
 
 **Fecha**: 2026-01-22
-**Branch**: `003-gps-routes` (activa) - Fase de Testing completada ✅
+**Commit**: 2d6a44d (timeout fix)
+**Status**: ✅ **COMPLETADO** - False timeout errors eliminated
 
-**Resultados**:
+**Problema Resuelto**:
 
-- ✅ **4/4 tests manuales pasados** (T046-T049) - 100% success rate
-- ✅ **4 bugs críticos encontrados y corregidos** durante testing session
-- ✅ **MANUAL_TESTING.md actualizado** con resumen completo de testing
-- ✅ **MVP GPX Routes totalmente validado** - Listo para merge a develop
+- ❌ **Antes**: Usuarios veían error en uploads exitosos (timeout 10s vs procesamiento 7-8s)
+- ✅ **Después**: Timeout de 30s permite procesamiento completo sin errores falsos
+- ✅ **UX mejorada**: No más reintentos innecesarios por timeouts prematuros
 
-**Tests Ejecutados**:
+**Cambios Aplicados**:
 
-1. ✅ **T046**: Upload GPX <1MB - Procesamiento sincrónico (<3s) en ambas modalidades
-2. ✅ **T047**: Upload GPX >1MB - Retorna 501 Not Implemented como esperado
-3. ✅ **T048**: Download GPX original - Descarga con trip title como filename (fix aplicado)
-4. ✅ **T049**: Cascade delete - GPXFile y TrackPoints eliminados correctamente
+- ✅ `gpxService.ts`: Timeout específico de 30s para endpoint `/trips/{id}/gpx`
+- ✅ Otros endpoints mantienen timeout de 10s (sin cambios)
+- ✅ Soporta archivos hasta 10MB sin timeouts falsos
 
-**Bug Fixes Críticos** (4 fixes realizados durante testing):
+---
 
-1. ✅ **Photos Not Uploading** (Commit 7af4071)
-   - **Problema**: Fotos seleccionadas en wizard no se subían al backend
-   - **Causa**: TripFormWizard no pasaba array `photos` a handler `onSubmit`
-   - **Fix**: Extraer `selectedPhotos` de formData y pasar como 3er parámetro
-   - **Archivo**: `frontend/src/components/trips/TripForm/TripFormWizard.tsx`
+## 🎉 LOGRO ANTERIOR: Async GPX Processing Optimization (Feature 003 - Phase 6)
 
-2. ✅ **Blank Screen After Publish** (Commit 2b429ad)
-   - **Problema**: TripDetailPage mostraba pantalla en blanco tras publicar
-   - **Causa**: Endpoint `publishTrip` retorna objeto parcial (sin relaciones)
-   - **Fix**: Refetch completo tras publish en lugar de usar respuesta parcial
-   - **Archivo**: `frontend/src/pages/TripDetailPage.tsx`
+**Fecha**: 2026-01-22
+**Commits**: 556ab50 (async implementation) + 74dc770 (performance optimization)
+**Status**: ✅ **COMPLETADO** - SC-003 achieved (<15s for 5MB files)
 
-3. ✅ **Gallery Showing Placeholders** (Commit d05124d)
-   - **Problema**: Galería mostraba iconos grises en lugar de fotos
-   - **Causa**: `useLazyLoadImages` inicializaba con Set vacío, observer no se disparaba
-   - **Fix**: Cargar primeras 6 imágenes inmediatamente, lazy loading para resto
-   - **Archivo**: `frontend/src/components/trips/TripGallery.tsx`
+**Implementación Completada**:
 
-4. ✅ **GPX Download Filename** (Commit 4353960)
-   - **Problema**: Archivo descargado mantenía nombre original en lugar de trip title
-   - **Causa**: Endpoint usaba `gpx_file.file_name` directamente
-   - **Fix**: Sanitizar trip title y usar como filename en FileResponse
-   - **Archivo**: `backend/src/api/trips.py`
+- ✅ **Background Processing**: FastAPI BackgroundTasks implementado
+- ✅ **Status Polling**: Endpoint GET /gpx/{gpx_file_id}/status funcionando
+- ✅ **Database Integration**: Sesión de DB compartida con get_db()
+- ✅ **Error Handling**: Estados "processing", "completed", "failed" con mensajes
+- ✅ **SQLite Testing Fix**: Procesamiento sincrónico en modo testing para evitar isolation issues
+- ✅ **Performance Optimization**: Douglas-Peucker algorithm optimized (O(n) → O(1) lookup)
+- ✅ **Test T019**: ✅ PASANDO (7/7 integration tests passing)
 
-**Commits del Testing Session**: 5 commits
+**Performance Results**:
+
+- **Target (SC-003)**: <15 segundos para archivos 5-10MB
+- **Before optimization**: ~20 segundos para archivo 5MB ❌
+- **After optimization**: ~7.3 segundos para archivo 5MB ✅
+- **Improvement**: **63% faster** (13s reduction)
+
+**Optimizations Applied**:
+
+1. ✅ **Profiling Infrastructure** (T031): time.perf_counter() timing logs for each pipeline phase
+2. ✅ **Douglas-Peucker Optimization** (T032): O(1) dict lookup vs O(n) linear search
+3. ✅ **Aggressive Simplification**: epsilon 0.00001° → 0.0001° (10m precision)
+4. ✅ **Elevation Processing**: min/max check before loop
+5. ✅ **Timestamp Detection**: Sample first 100 points vs all points
+
+**Test Results**:
+
+- ✅ **T019**: Integration test passing with SC-003 compliance
+- ✅ **All GPX tests**: 7/7 passing
+- ✅ **No regressions**: Existing functionality preserved
+
+---
+
+## 🎉 LOGRO ANTERIOR: Feature 003 - GPS Routes MERGED TO DEVELOP
+
+**Fecha**: 2026-01-22
+**Branch**: `003-gps-routes` → **MERGED to develop** ✅
+**Commits totales**: 43 commits
+**Pull Request**: Completada y mergeada exitosamente
+
+**Implementación Completada**:
+
+- ✅ **MVP GPS Routes 100% funcional** - Upload, processing, stats, map visualization, download
+- ✅ **Backend**: GPXFile/TrackPoint models, gpxpy parsing, Douglas-Peucker simplification
+- ✅ **Frontend**: GPXUploader, GPXStats, TripMap integration con ruta GPS
+- ✅ **Testing**: 8/8 unit tests, 6/7 integration tests (async processing deferred)
+- ✅ **Manual Testing**: 4/4 tests pasados (T046-T049)
+- ✅ **CI/CD Validation**: Docker smoke tests corregidos y workflows pasando
+- ✅ **4 bug fixes críticos** aplicados durante testing session
+
+**Fases Completadas** (4/8):
+
+1. ✅ **Phase 1**: GPX Data Model & Migrations (13 tasks)
+2. ✅ **Phase 2**: Backend Services & API (11 tasks)
+3. ✅ **Phase 3**: Frontend Upload & Stats (10 tasks + T041.5)
+4. ✅ **Phase 4**: Visualización Mínima en Mapa (6 tasks)
+
+**Fases Diferidas a Post-MVP**:
+
+- ⏭️ **Phase 5**: Perfil de Elevación Interactivo (Recharts) - 15 tasks
+- ⏭️ **Phase 6**: Puntos de Interés (POI management) - 14 tasks
+- ⏭️ **Phase 7**: Estadísticas Avanzadas (speed, climbs) - 10 tasks
+- ⏭️ **Phase 8**: Testing & Documentation - 21 tasks
+
+**Tests Ejecutados** (Manual Testing):
+
+1. ✅ **T046**: Upload GPX <1MB - Procesamiento sincrónico (<3s) ✅
+2. ✅ **T047**: Upload GPX >1MB - Retorna 501 Not Implemented (async deferred) ✅
+3. ✅ **T048**: Download GPX original - Descarga con trip title como filename ✅
+4. ✅ **T049**: Cascade delete - GPXFile y TrackPoints eliminados correctamente ✅
+
+**Bug Fixes Aplicados** (4 fixes durante testing):
+
+1. ✅ **Photos Not Uploading** (Commit 7af4071) - TripFormWizard photos array fix
+2. ✅ **Blank Screen After Publish** (Commit 2b429ad) - Refetch completo tras publish
+3. ✅ **Gallery Showing Placeholders** (Commit d05124d) - Lazy loading optimizado
+4. ✅ **GPX Download Filename** (Commit 4353960) - Trip title sanitization
+
+**CI/CD Infrastructure Improvements** (2 fixes):
+
+1. ✅ **SQLAlchemy AsyncIO Error** (Commit cfa1ac4) - Simplified smoke test sin database
+2. ✅ **Docker ENTRYPOINT Bypass** (Commit 9945c75) - `--entrypoint` flag en smoke tests
+
+**Commits del Feature** (43 commits totales):
 
 ```bash
+# CI/CD Fixes (últimos 2 commits)
+9945c75 - fix(ci): bypass Docker ENTRYPOINT in smoke tests to avoid migration execution
+cfa1ac4 - fix(ci): simplify backend smoke test to avoid database initialization
+
+# Manual Testing & Bug Fixes
 4c8ed4e - docs(003-gps-routes): update MANUAL_TESTING.md with test results and bug fixes summary
 4353960 - fix(backend): download GPX file with trip title as filename
 d05124d - fix(frontend): optimize lazy loading in TripGallery to load first 6 images immediately
 2b429ad - fix(frontend): refetch trip after publish to show complete data
 7af4071 - fix(frontend): pass photos array to onSubmit in TripFormWizard
+
+# Documentation
+29d7d23 - docs: update NEXT_STEPS.md with Feature 003 GPS Routes status
+222ab06 - docs(003-gps-routes): update MANUAL_TESTING.md index with API verification subsection
+db6eb9e - docs(003-gps-routes): add API verification guide to T048
+19202ee - docs(003-gps-routes): add T041.5 - GPX download button implementation
+4e6dee4 - docs(003-gps-routes): update T048 manual testing guide for download button
+
+# ... (38 more commits from development phases)
 ```
 
-**Tiempo invertido**: ~3 horas (manual testing + debugging + bug fixes + documentación)
+**Tiempo Total Invertido**: ~12 horas
+- Backend implementation: ~4 horas
+- Frontend implementation: ~3 horas
+- Manual testing & bug fixes: ~3 horas
+- CI/CD validation: ~2 horas
 
-**Próximo Paso**: Configurar GitHub Secrets y crear Pull Request a develop
+**Archivos Añadidos/Modificados**: 25 archivos
+- Backend: 7 archivos (models, services, API, schemas, migrations, tests)
+- Frontend: 8 archivos (components, hooks, services, types, CSS)
+- CI/CD: 1 archivo (.github/workflows/docker-build-push.yml)
+- Specs: 6 archivos (spec.md, plan.md, tasks.md, data-model.md, contracts/, MANUAL_TESTING.md)
+- Docs: 2 archivos (NEXT_STEPS.md, tasks.md)
+
+**Próximo Paso**: Continuar con próxima feature o deployment a staging
 
 ---
 

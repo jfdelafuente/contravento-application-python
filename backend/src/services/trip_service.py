@@ -1062,7 +1062,8 @@ class TripService:
             .join(User, Trip.user_id == User.id)
             .where(
                 Trip.status == TripStatus.PUBLISHED,  # Only published trips
-                User.profile_visibility == "public",  # Only trips from public profiles (Feature 013 FR-003, FR-016)
+                User.profile_visibility
+                == "public",  # Only trips from public profiles (Feature 013 FR-003, FR-016)
             )
             .options(
                 selectinload(Trip.user).selectinload(User.profile),  # Eager load user with profile

@@ -234,8 +234,8 @@ export const TripMap: React.FC<TripMapProps> = ({
     return bounds;
   }, [gpxRoutePath]);
 
-  // No locations at all and NOT in edit mode - show empty state
-  if (locations.length === 0 && !isEditMode) {
+  // No valid locations (all have null coordinates) and NOT in edit mode - show empty state
+  if (validLocations.length === 0 && !isEditMode) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
@@ -384,33 +384,40 @@ export const TripMap: React.FC<TripMapProps> = ({
         {/* Location Markers with Numbered Icons */}
         {validLocations
           .sort((a, b) => a.sequence - b.sequence)
-          .map((location, index) => (
-            <Marker
-              key={location.location_id}
-              position={[location.latitude!, location.longitude!]}
-              icon={createNumberedMarkerIcon(index + 1)}
-              draggable={isEditMode && !!onMarkerDrag}
-              eventHandlers={
-                isEditMode && onMarkerDrag
-                  ? {
-                      dragend: (e: any) => {
-                        const { lat, lng } = e.target.getLatLng();
-                        onMarkerDrag(location.location_id, lat, lng);
-                      },
-                    }
-                  : undefined
-              }
-            >
-              <Popup>
-                <div className="trip-map__popup">
-                  <strong className="trip-map__popup-title">
-                    {index + 1}. {location.name}
-                  </strong>
-                  <p className="trip-map__popup-subtitle">{tripTitle}</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          .map((location, index) => {
+            // Markers are draggable in edit mode
+            const isDraggable = isEditMode;
+
+            // Event handler only attached if onMarkerDrag callback is provided
+            const eventHandlers =
+              isEditMode && onMarkerDrag
+                ? {
+                    dragend: (e: any) => {
+                      const { lat, lng } = e.target.getLatLng();
+                      onMarkerDrag(location.location_id, lat, lng);
+                    },
+                  }
+                : undefined;
+
+            return (
+              <Marker
+                key={location.location_id}
+                position={[location.latitude!, location.longitude!]}
+                icon={createNumberedMarkerIcon(index + 1)}
+                draggable={isDraggable}
+                eventHandlers={eventHandlers}
+              >
+                <Popup>
+                  <div className="trip-map__popup">
+                    <strong className="trip-map__popup-title">
+                      {index + 1}. {location.name}
+                    </strong>
+                    <p className="trip-map__popup-subtitle">{tripTitle}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       )}
 
@@ -457,25 +464,24 @@ export const TripMap: React.FC<TripMapProps> = ({
         </button>
       )}
 
-      {/* Location List - Show ALL locations (with or without GPS) */}
-      <div className="trip-map__locations">
-        <h4 className="trip-map__locations-title">Ubicaciones ({locations.length})</h4>
-        <ul className="trip-map__locations-list">
-          {locations
-            .sort((a, b) => a.sequence - b.sequence)
-            .map((location, index) => (
-              <li key={location.location_id} className="trip-map__location-item">
-                <span className="trip-map__location-number">{index + 1}</span>
-                <div className="trip-map__location-details">
-                  <span className="trip-map__location-name">{location.name}</span>
-                  {location.latitude === null || location.longitude === null ? (
-                    <span className="trip-map__location-no-gps">Sin coordenadas GPS</span>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-        </ul>
-      </div>
+      {/* Location List - Show only valid locations (with GPS coordinates) */}
+      {validLocations.length > 0 && (
+        <div className="trip-map__locations">
+          <h4 className="trip-map__locations-title">Ubicaciones ({validLocations.length})</h4>
+          <ul className="trip-map__locations-list">
+            {validLocations
+              .sort((a, b) => a.sequence - b.sequence)
+              .map((location, index) => (
+                <li key={location.location_id} className="trip-map__location-item">
+                  <span className="trip-map__location-number">{index + 1}</span>
+                  <div className="trip-map__location-details">
+                    <span className="trip-map__location-name">{location.name}</span>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

@@ -117,6 +117,47 @@ export const TripDetailPage: React.FC = () => {
   // Check if current user is the trip owner
   const isOwner = !!(user && trip && user.user_id === trip.user_id);
 
+  // Auto-refresh: Passive polling to detect GPX completed in background (Layer 3c)
+  // If user is owner and trip has no GPX, check every 5s if GPX appeared
+  // This handles cases where upload showed timeout error but processing completed
+  useEffect(() => {
+    if (!trip?.gpx_file && isOwner) {
+      console.log('[Auto-refresh] Starting passive polling for GPX completion...');
+
+      const interval = setInterval(async () => {
+        try {
+          const updatedTrip = await getTripById(tripId!);
+
+          if (updatedTrip.gpx_file) {
+            console.log('[Auto-refresh] GPX detected! Refreshing trip data...');
+            setTrip(updatedTrip);
+
+            toast.success('Ruta GPS cargada correctamente', {
+              duration: 4000,
+              position: 'top-center',
+            });
+
+            clearInterval(interval);
+          }
+        } catch (error) {
+          // Ignore errors in background polling (don't disturb user)
+          console.warn('[Auto-refresh] Polling error (ignored):', error);
+        }
+      }, 5000); // Check every 5 seconds
+
+      // Stop polling after 60 seconds (prevent infinite polling)
+      const timeout = setTimeout(() => {
+        console.log('[Auto-refresh] Stopping passive polling after 60s');
+        clearInterval(interval);
+      }, 60000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [trip?.gpx_file, isOwner, tripId]);
+
   // Handle trip deletion - Phase 8: Show confirmation dialog
   const handleDelete = () => {
     if (!trip || !isOwner) return;

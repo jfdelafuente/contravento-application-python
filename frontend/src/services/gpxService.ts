@@ -119,6 +119,7 @@ export async function uploadGPX(
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 30000, // 30 seconds for GPX processing (files up to 10MB)
   });
 
   return response.data.data;
@@ -135,7 +136,9 @@ export async function uploadGPX(
 export async function getGPXStatus(
   gpxFileId: string
 ): Promise<GPXStatusResponse> {
-  const response = await api.get(`/gpx/${gpxFileId}/status`);
+  const response = await api.get(`/gpx/${gpxFileId}/status`, {
+    timeout: 30000, // 30 seconds for status polling
+  });
   return response.data.data;
 }
 
@@ -207,28 +210,56 @@ export async function pollGPXUntilComplete(
 ): Promise<GPXStatusResponse> {
   const pollInterval = 2000; // 2 seconds
   const maxAttempts = Math.floor((maxWaitSeconds * 1000) / pollInterval);
+  let consecutiveErrors = 0;
+  const MAX_CONSECUTIVE_ERRORS = 3;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const status = await getGPXStatus(gpxFileId);
+    try {
+      console.log(`[GPX Polling] Attempt ${attempt + 1}/${maxAttempts} - Checking status...`);
+      const status = await getGPXStatus(gpxFileId);
+      consecutiveErrors = 0; // Reset error count on success
 
-    // Notify progress callback
-    if (onProgress) {
-      onProgress(status);
+      console.log(`[GPX Polling] Status: ${status.processing_status}`, {
+        distance_km: status.distance_km,
+        elevation_gain: status.elevation_gain,
+        simplified_points: status.simplified_points,
+      });
+
+      // Notify progress callback
+      if (onProgress) {
+        onProgress(status);
+      }
+
+      // Check if completed or error
+      if (status.processing_status === 'completed') {
+        console.log('[GPX Polling] ✅ Processing completed successfully!');
+        return status;
+      }
+
+      if (status.processing_status === 'error') {
+        console.error('[GPX Polling] ❌ Processing failed:', status.error_message);
+        throw new Error(
+          status.error_message || 'Error al procesar archivo GPX'
+        );
+      }
+
+      // Wait before next poll
+      console.log(`[GPX Polling] Status: ${status.processing_status}, waiting ${pollInterval}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    } catch (error: any) {
+      consecutiveErrors++;
+
+      // Si es timeout de red pero no hemos excedido límite de errores
+      if (consecutiveErrors < MAX_CONSECUTIVE_ERRORS) {
+        console.warn(`[GPX Polling] ⚠️ Attempt ${attempt + 1} failed (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}), retrying...`, error.message);
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        continue; // Retry
+      }
+
+      // Si excedimos errores consecutivos, propagar error
+      console.error('[GPX Polling] ❌ Max consecutive errors reached, giving up');
+      throw error;
     }
-
-    // Check if completed or error
-    if (status.processing_status === 'completed') {
-      return status;
-    }
-
-    if (status.processing_status === 'error') {
-      throw new Error(
-        status.error_message || 'Error al procesar archivo GPX'
-      );
-    }
-
-    // Wait before next poll
-    await new Promise((resolve) => setTimeout(resolve, pollInterval));
   }
 
   throw new Error(

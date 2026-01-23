@@ -385,7 +385,9 @@ class TripResponse(BaseModel):
 
     trip_id: str = Field(..., description="Unique trip identifier")
     user_id: str = Field(..., description="Trip author's user ID")
-    author: UserSummary | None = Field(None, description="Trip author's profile summary (Feature 004)")
+    author: UserSummary | None = Field(
+        None, description="Trip author's profile summary (Feature 004)"
+    )
     title: str = Field(..., description="Trip title")
     description: str = Field(..., description="Trip description (HTML)")
     status: str = Field(..., description="Trip status (draft/published)")
@@ -414,6 +416,7 @@ class TripResponse(BaseModel):
     def model_validate(cls, obj, **kwargs):
         """Custom validation to handle trip_tags -> tags conversion and dynamic attributes."""
         import logging
+
         logger = logging.getLogger(__name__)
 
         if hasattr(obj, "trip_tags"):
@@ -434,7 +437,9 @@ class TripResponse(BaseModel):
                 }
                 author = UserSummary.model_validate(author_data)
             except Exception as e:
-                logger.error(f"Failed to build author data: {e}, hasattr user: {hasattr(obj, 'user')}, user value: {getattr(obj, 'user', 'NOT_FOUND')}")
+                logger.error(
+                    f"Failed to build author data: {e}, hasattr user: {hasattr(obj, 'user')}, user value: {getattr(obj, 'user', 'NOT_FOUND')}"
+                )
                 author = None
 
             # Create a dict with all attributes
