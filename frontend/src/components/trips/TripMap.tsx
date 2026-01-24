@@ -34,6 +34,9 @@ interface TripMapProps {
   /** Callback when user drags a marker in edit mode (Feature 010 - User Story 2) */
   onMarkerDrag?: (locationId: string, newLat: number, newLng: number) => void;
 
+  /** Whether trip has a GPX file (even if trackpoints are still loading) (Feature 003) */
+  hasGPX?: boolean;
+
   /** GPX trackpoints for route visualization (Feature 003 - User Story 2) */
   gpxTrackPoints?: TrackPoint[];
 
@@ -106,6 +109,7 @@ export const TripMap: React.FC<TripMapProps> = ({
   isEditMode = false,
   onMapClick,
   onMarkerDrag,
+  hasGPX = false,
   gpxTrackPoints,
   gpxStartPoint,
   gpxEndPoint,
@@ -242,8 +246,8 @@ export const TripMap: React.FC<TripMapProps> = ({
   }, [gpxRoutePath]);
 
   // No valid locations (all have null coordinates), NOT in edit mode, AND no GPX - show empty state
-  // Feature 003: Show map if there's GPX track even without text locations
-  if (validLocations.length === 0 && !isEditMode && (!gpxTrackPoints || gpxTrackPoints.length === 0)) {
+  // Feature 003: Show map if there's GPX file even if trackpoints are still loading
+  if (validLocations.length === 0 && !isEditMode && !hasGPX && (!gpxTrackPoints || gpxTrackPoints.length === 0)) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">

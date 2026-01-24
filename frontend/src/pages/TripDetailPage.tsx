@@ -741,8 +741,9 @@ export const TripDetailPage: React.FC = () => {
         )}
 
         {/* Map Section - TripMap shows locations list + map (or just list if no GPS) */}
-        {/* Show map if there are locations OR if there's a GPX track (Feature 003) */}
-        {((trip.locations && trip.locations.length > 0) || gpxTrack) && (
+        {/* Show map if there are locations OR if there's a GPX file (Feature 003) */}
+        {/* Use trip.gpx_file (metadata) instead of gpxTrack (hook result) to avoid loading state issues */}
+        {((trip.locations && trip.locations.length > 0) || trip.gpx_file) && (
           <section className="trip-detail-page__section">
             <Suspense
               fallback={
@@ -755,6 +756,7 @@ export const TripDetailPage: React.FC = () => {
                 isEditMode={isMapEditMode}
                 onMapClick={handleMapClick}
                 onMarkerDrag={handleMarkerDrag}
+                hasGPX={!!trip.gpx_file}
                 gpxTrackPoints={gpxTrack?.trackpoints}
                 gpxStartPoint={gpxTrack?.start_point}
                 gpxEndPoint={gpxTrack?.end_point}
