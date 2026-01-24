@@ -67,16 +67,20 @@ pipeline {
                         echo 'Stage: Build Frontend Image'
                         echo '========================================='
 
-                        sh """
-                            docker build -t ${FRONTEND_IMAGE} \
-                              --build-arg VITE_API_URL=${VITE_API_URL} \
-                              --build-arg VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY} \
-                              --build-arg VITE_ENV=production \
-                              --build-arg VITE_DEBUG=false \
-                              --build-arg VITE_USE_PROXY=true \
-                              -f frontend/Dockerfile.prod \
-                              frontend/
-                        """
+                        script {
+                            // Use single quotes to prevent shell interpolation
+                            // Variables are passed safely through environment
+                            sh '''
+                                docker build -t ${FRONTEND_IMAGE} \
+                                  --build-arg VITE_API_URL="${VITE_API_URL}" \
+                                  --build-arg VITE_TURNSTILE_SITE_KEY="${VITE_TURNSTILE_SITE_KEY}" \
+                                  --build-arg VITE_ENV=production \
+                                  --build-arg VITE_DEBUG=false \
+                                  --build-arg VITE_USE_PROXY=true \
+                                  -f frontend/Dockerfile.prod \
+                                  frontend/
+                            '''
+                        }
 
                         echo '✅ Frontend Image Build Completed'
                     }
