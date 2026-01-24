@@ -165,7 +165,11 @@ export const TripMap: React.FC<TripMapProps> = ({
   // Calculate map center (average of all coordinates)
   const center: LatLngExpression = useMemo(() => {
     if (validLocations.length === 0) {
-      // Default to Spain center if no valid locations
+      // Feature 003: Use GPX start point if available when no text locations with coords
+      if (gpxStartPoint) {
+        return [gpxStartPoint.latitude, gpxStartPoint.longitude];
+      }
+      // Default to Spain center if no valid locations and no GPX
       return [40.4168, -3.7038]; // Madrid
     }
 
@@ -179,11 +183,14 @@ export const TripMap: React.FC<TripMapProps> = ({
       validLocations.reduce((sum, loc) => sum + loc.longitude!, 0) / validLocations.length;
 
     return [avgLat, avgLng];
-  }, [validLocations]);
+  }, [validLocations, gpxStartPoint]);
 
   // Calculate zoom level based on location spread
   const zoom = useMemo(() => {
-    if (validLocations.length === 0) return 6; // Spain overview
+    if (validLocations.length === 0) {
+      // Feature 003: Use higher zoom if GPX exists (will be auto-adjusted by AutoFitBounds)
+      return gpxTrackPoints && gpxTrackPoints.length > 0 ? 10 : 6; // GPX or Spain overview
+    }
     if (validLocations.length === 1) return 12; // City level
 
     // Calculate bounding box
@@ -202,7 +209,7 @@ export const TripMap: React.FC<TripMapProps> = ({
     if (maxDiff > 0.5) return 9; // City
     if (maxDiff > 0.1) return 11; // District
     return 12; // Neighborhood
-  }, [validLocations]);
+  }, [validLocations, gpxTrackPoints]);
 
   // Create polyline for route (connects locations in sequence order)
   const routePath: LatLngExpression[] = useMemo(
@@ -234,8 +241,9 @@ export const TripMap: React.FC<TripMapProps> = ({
     return bounds;
   }, [gpxRoutePath]);
 
-  // No valid locations (all have null coordinates) and NOT in edit mode - show empty state
-  if (validLocations.length === 0 && !isEditMode) {
+  // No valid locations (all have null coordinates), NOT in edit mode, AND no GPX - show empty state
+  // Feature 003: Show map if there's GPX track even without text locations
+  if (validLocations.length === 0 && !isEditMode && (!gpxTrackPoints || gpxTrackPoints.length === 0)) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
