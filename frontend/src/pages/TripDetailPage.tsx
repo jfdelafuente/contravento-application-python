@@ -743,27 +743,41 @@ export const TripDetailPage: React.FC = () => {
         {/* Map Section - TripMap shows locations list + map (or just list if no GPS) */}
         {/* Show map if there are locations OR if there's a GPX file (Feature 003) */}
         {/* Use trip.gpx_file (metadata) instead of gpxTrack (hook result) to avoid loading state issues */}
-        {((trip.locations && trip.locations.length > 0) || trip.gpx_file) && (
-          <section className="trip-detail-page__section">
-            <Suspense
-              fallback={
-                <div className="trip-detail-page__map-loading">Cargando ubicaciones...</div>
-              }
-            >
-              <TripMap
-                locations={trip.locations || []}
-                tripTitle={trip.title}
-                isEditMode={isMapEditMode}
-                onMapClick={handleMapClick}
-                onMarkerDrag={handleMarkerDrag}
-                hasGPX={!!trip.gpx_file}
-                gpxTrackPoints={gpxTrack?.trackpoints}
-                gpxStartPoint={gpxTrack?.start_point}
-                gpxEndPoint={gpxTrack?.end_point}
-              />
-            </Suspense>
-          </section>
-        )}
+        {(() => {
+          const hasLocations = trip.locations && trip.locations.length > 0;
+          const hasGPXFile = !!trip.gpx_file;
+          const shouldShowMap = hasLocations || hasGPXFile;
+
+          console.log('[TripDetailPage] Map rendering decision:', {
+            hasLocations,
+            locationsCount: trip.locations?.length || 0,
+            hasGPXFile,
+            gpx_file: trip.gpx_file,
+            shouldShowMap
+          });
+
+          return shouldShowMap && (
+            <section className="trip-detail-page__section">
+              <Suspense
+                fallback={
+                  <div className="trip-detail-page__map-loading">Cargando ubicaciones...</div>
+                }
+              >
+                <TripMap
+                  locations={trip.locations || []}
+                  tripTitle={trip.title}
+                  isEditMode={isMapEditMode}
+                  onMapClick={handleMapClick}
+                  onMarkerDrag={handleMarkerDrag}
+                  hasGPX={hasGPXFile}
+                  gpxTrackPoints={gpxTrack?.trackpoints}
+                  gpxStartPoint={gpxTrack?.start_point}
+                  gpxEndPoint={gpxTrack?.end_point}
+                />
+              </Suspense>
+            </section>
+          );
+        })()}
 
         {/* Comments Section (Feature 004 - US3) */}
         {trip.status === 'published' && (
