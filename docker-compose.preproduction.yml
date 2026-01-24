@@ -43,8 +43,6 @@
 #   PostgreSQL:         localhost:5432 (contravento_jenkins / postgres / jenkins_test_password)
 # ============================================================================
 
-version: '3.8'
-
 services:
   # ==========================================================================
   # PostgreSQL - Preproduction Database
