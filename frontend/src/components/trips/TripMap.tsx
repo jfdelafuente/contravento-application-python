@@ -245,9 +245,12 @@ export const TripMap: React.FC<TripMapProps> = ({
     return bounds;
   }, [gpxRoutePath]);
 
-  // No valid locations (all have null coordinates), NOT in edit mode, AND no GPX - show empty state
-  // Feature 003: Show map if there's GPX file even if trackpoints are still loading
-  if (validLocations.length === 0 && !isEditMode && !hasGPX && (!gpxTrackPoints || gpxTrackPoints.length === 0)) {
+  // Show empty state ONLY if:
+  // - No locations with coordinates (validLocations empty)
+  // - NOT in edit mode (edit mode needs map for clicking)
+  // - NO GPX file exists (hasGPX false)
+  // Feature 003: If hasGPX=true, always render map even if trackpoints are still loading
+  if (validLocations.length === 0 && !isEditMode && !hasGPX) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
