@@ -4,6 +4,8 @@
 
 set -e
 
+COMPOSE_FILES="-f docker-compose.preproduction.yml -f docker-compose.preproduction.build.yml"
+
 echo "=========================================================="
 echo "🔧 Reconstruyendo Backend - Modo Preproduction"
 echo "=========================================================="
@@ -17,15 +19,16 @@ echo ""
 
 # Paso 2: Reconstruir imagen backend (sin caché para forzar cambios)
 echo "2️⃣ Reconstruyendo imagen del backend..."
+echo "   - Usando overlay: docker-compose.preproduction.build.yml"
 echo "   - Copiando pyproject.toml y poetry.lock"
 echo "   - Habilitando init_dev_data.py en production"
-docker compose -f docker-compose.preproduction.yml build --no-cache backend
+docker compose $COMPOSE_FILES build --no-cache backend
 echo "✅ Imagen reconstruida"
 echo ""
 
 # Paso 3: Iniciar servicios
 echo "3️⃣ Iniciando servicios..."
-docker compose -f docker-compose.preproduction.yml up -d
+docker compose $COMPOSE_FILES up -d
 echo "✅ Servicios iniciados"
 echo ""
 

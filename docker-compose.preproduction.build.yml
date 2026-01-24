@@ -1,0 +1,22 @@
+# ============================================================================
+# ContraVento - Preproduction Build Overlay
+# ============================================================================
+# Overlay para docker-compose.preproduction.yml que habilita el build local
+# en lugar de descargar imágenes de Docker Hub.
+#
+# Uso:
+#   docker compose -f docker-compose.preproduction.yml -f docker-compose.preproduction.build.yml build backend
+#   docker compose -f docker-compose.preproduction.yml -f docker-compose.preproduction.build.yml up -d
+#
+# Este archivo es temporal para pruebas de seeding en production.
+# ============================================================================
+
+services:
+  backend:
+    # Sobrescribe 'image:' con 'build:' para construir localmente
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    # Mantener el nombre de la imagen para compatibilidad
+    image: ${BACKEND_IMAGE:-jfdelafuente/contravento-backend:latest}

@@ -1,6 +1,8 @@
 # Script PowerShell para reconstruir la imagen del backend en modo preproduction
 # con los cambios temporales para seeding
 
+$COMPOSE_FILES = "-f", "docker-compose.preproduction.yml", "-f", "docker-compose.preproduction.build.yml"
+
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "🔧 Reconstruyendo Backend - Modo Preproduction" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -14,15 +16,16 @@ Write-Host ""
 
 # Paso 2: Reconstruir imagen backend (sin caché para forzar cambios)
 Write-Host "2️⃣ Reconstruyendo imagen del backend..." -ForegroundColor Yellow
+Write-Host "   - Usando overlay: docker-compose.preproduction.build.yml" -ForegroundColor Gray
 Write-Host "   - Copiando pyproject.toml y poetry.lock" -ForegroundColor Gray
 Write-Host "   - Habilitando init_dev_data.py en production" -ForegroundColor Gray
-docker compose -f docker-compose.preproduction.yml build --no-cache backend
+& docker compose @COMPOSE_FILES build --no-cache backend
 Write-Host "✅ Imagen reconstruida" -ForegroundColor Green
 Write-Host ""
 
 # Paso 3: Iniciar servicios
 Write-Host "3️⃣ Iniciando servicios..." -ForegroundColor Yellow
-docker compose -f docker-compose.preproduction.yml up -d
+& docker compose @COMPOSE_FILES up -d
 Write-Host "✅ Servicios iniciados" -ForegroundColor Green
 Write-Host ""
 
