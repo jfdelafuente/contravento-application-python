@@ -2,7 +2,7 @@
 # Multi-stage build for optimized image size
 
 # Stage 1: Builder
-FROM python:3.11-slim as builder
+FROM python:3.12-slim as builder
 
 # Set working directory
 WORKDIR /app
@@ -26,7 +26,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry lock --no-update && poetry install --no-dev --no-interaction --no-ansi
 
 # Stage 2: Development (with hot reload)
-FROM python:3.11-slim AS development
+FROM python:3.12-slim AS development
 
 # Set working directory
 WORKDIR /app
@@ -74,7 +74,7 @@ ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # Stage 3: Production Runtime
-FROM python:3.11-slim AS production
+FROM python:3.12-slim AS production
 
 # Set working directory
 WORKDIR /app
@@ -87,7 +87,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
