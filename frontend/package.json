@@ -4,7 +4,7 @@
   "type": "module",
   "description": "ContraVento cycling platform - Frontend authentication and user profiles",
   "scripts": {
-    "dev": "vite --open=false",
+    "dev": "npx vite --open=false",
     "build": "tsc && vite build",
     "build:staging": "tsc && vite build --mode staging",
     "build:prod": "tsc && vite build --mode production",

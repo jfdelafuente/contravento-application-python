@@ -92,13 +92,21 @@ fi
 
 # Reinstall npm packages
 print_info "Reinstalando dependencias de Node.js..."
-npm install
+# Clean install to avoid corrupted modules
+npm ci 2>/dev/null || npm install
 
 # Fix permissions on node_modules/.bin (critical for WSL)
 if [ -d "node_modules/.bin" ]; then
     print_info "Aplicando permisos de ejecución a binarios de Node.js..."
     chmod -R +x node_modules/.bin
     print_success "Permisos aplicados a node_modules/.bin"
+fi
+
+# Verify vite installation
+if [ -f "node_modules/.bin/vite" ]; then
+    print_success "Vite instalado correctamente"
+else
+    print_error "Vite no se instaló correctamente"
 fi
 
 cd ..
