@@ -151,6 +151,7 @@ services:
         VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
         VITE_ENV: production
         VITE_DEBUG: "false"
+        VITE_USE_PROXY: "true"  # Use nginx /api/ proxy in production
     # No direct port exposure - only via Nginx
     deploy:
       replicas: 3  # Run 3 instances for high availability (matches backend)

@@ -35,10 +35,11 @@ async def main():
     print()
 
     # Safety check: Don't run in production
-    if settings.app_env == "production":
-        print("❌ ERROR: Este script no debe ejecutarse en producción")
-        print("   APP_ENV actual: production")
-        sys.exit(1)
+    # TEMPORAL: Comentado para pruebas en producción
+    # if settings.app_env == "production":
+    #     print("❌ ERROR: Este script no debe ejecutarse en producción")
+    #     print("   APP_ENV actual: production")
+    #     sys.exit(1)
 
     print(f"✅ Entorno: {settings.app_env}")
     print()

@@ -89,6 +89,7 @@ jobs:
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
             VITE_ENV=production
             VITE_DEBUG=false
+            VITE_USE_PROXY=true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           load: true
@@ -135,6 +136,7 @@ jobs:
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
             VITE_ENV=production
             VITE_DEBUG=false
+            VITE_USE_PROXY=true
           cache-from: type=gha
 
       - name: Image Digest

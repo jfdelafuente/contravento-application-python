@@ -95,6 +95,7 @@ services:
         VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
         VITE_ENV: staging
         VITE_DEBUG: "false"
+        VITE_USE_PROXY: "true"  # Use nginx /api/ proxy in staging
     container_name: contravento-frontend-staging
     restart: unless-stopped
     networks:

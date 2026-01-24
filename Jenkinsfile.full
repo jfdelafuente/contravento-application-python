@@ -139,6 +139,7 @@ pipeline {
                               --build-arg VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY} \
                               --build-arg VITE_ENV=production \
                               --build-arg VITE_DEBUG=false \
+                              --build-arg VITE_USE_PROXY=true \
                               -f frontend/Dockerfile.prod \
                               frontend/
                         """

@@ -9,10 +9,15 @@ export default defineConfig(({ mode }) => ({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // Dynamic target based on environment:
+        // - Docker: 'http://backend:8000' (via VITE_PROXY_TARGET env var)
+        // - Host: 'http://localhost:8000' (default)
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-        // Do NOT rewrite path - backend expects /api/* routes
+        // Rewrite /api/* to /* because backend routes don't include /api prefix
+        // Example: /api/auth/me → /auth/me
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

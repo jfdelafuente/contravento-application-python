@@ -9,8 +9,22 @@ declare module 'axios' {
   }
 }
 
+// Determine API base URL based on environment:
+// - Production/Docker (with proxy): Use '/api' prefix (nginx or Vite proxy handles routing to backend)
+// - Development (no Docker): Use full URL 'http://localhost:8000' directly
+const getBaseURL = (): string => {
+  // If VITE_USE_PROXY is set, we're in an environment with proxy support
+  // (Docker with Vite dev server OR production with Nginx)
+  if (import.meta.env.VITE_USE_PROXY === 'true') {
+    return '/api';
+  }
+
+  // Fallback to direct API URL for local development without Docker
+  return import.meta.env.VITE_API_URL || 'http://localhost:8000';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: getBaseURL(),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
