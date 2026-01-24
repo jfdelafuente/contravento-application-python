@@ -95,6 +95,8 @@ COPY src/ ./src/
 COPY alembic.ini ./
 COPY scripts/ ./scripts/
 COPY config/ ./config/
+# TEMPORAL: Copiar pyproject.toml y poetry.lock para poder usar Poetry en producción
+COPY pyproject.toml poetry.lock ./
 
 # Make entrypoint script executable
 RUN chmod +x scripts/docker-entrypoint.sh

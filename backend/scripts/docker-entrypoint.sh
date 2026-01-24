@@ -14,7 +14,8 @@ echo "✅ Migrations completed"
 echo ""
 
 # Step 2: Initialize development data (only in development/testing/ci)
-if [ "$APP_ENV" = "development" ] || [ "$APP_ENV" = "testing" ] || [ "$APP_ENV" = "ci" ]; then
+# TEMPORAL: Permitir ejecución en production para pruebas
+if [ "$APP_ENV" = "development" ] || [ "$APP_ENV" = "testing" ] || [ "$APP_ENV" = "ci" ] || [ "$APP_ENV" = "production" ]; then
     echo "🌱 Initializing development data..."
     python scripts/init_dev_data.py
     echo ""
