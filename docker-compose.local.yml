@@ -40,6 +40,8 @@ services:
   postgres:
     ports:
       - "5432:5432"  # Expose for local DB clients (DBeaver, psql, etc.)
+    networks:
+      - contravento-network
 
   # ==========================================================================
   # Redis - Local Development (Optional)
@@ -50,6 +52,8 @@ services:
   redis:
     ports:
       - "6379:6379"  # Expose for local Redis clients
+    networks:
+      - contravento-network
 
   # ==========================================================================
   # Backend API - Local Development
@@ -71,6 +75,8 @@ services:
       LOG_LEVEL: DEBUG
       LOG_FORMAT: text  # Human-readable logs for development
       BCRYPT_ROUNDS: "4"  # Fast hashing for quicker tests
+    networks:
+      - contravento-network
 
   # ==========================================================================
   # MailHog - Email Testing (Optional - Use when testing email features)
@@ -128,6 +134,8 @@ services:
         condition: service_healthy
     deploy:
       replicas: 0  # Disabled by default - use --with-frontend flag to enable
+    networks:
+      - contravento-network
 
   # ==========================================================================
   # pgAdmin - Database UI (Optional - Use if you prefer visual DB tools)
@@ -138,3 +146,5 @@ services:
   pgadmin:
     ports:
       - "5050:80"  # Web UI at http://localhost:5050
+    networks:
+      - contravento-network
