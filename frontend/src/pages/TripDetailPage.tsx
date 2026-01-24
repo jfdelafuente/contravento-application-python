@@ -741,7 +741,8 @@ export const TripDetailPage: React.FC = () => {
         )}
 
         {/* Map Section - TripMap shows locations list + map (or just list if no GPS) */}
-        {trip.locations && trip.locations.length > 0 && (
+        {/* Show map if there are locations OR if there's a GPX track (Feature 003) */}
+        {((trip.locations && trip.locations.length > 0) || gpxTrack) && (
           <section className="trip-detail-page__section">
             <Suspense
               fallback={
@@ -749,7 +750,7 @@ export const TripDetailPage: React.FC = () => {
               }
             >
               <TripMap
-                locations={trip.locations}
+                locations={trip.locations || []}
                 tripTitle={trip.title}
                 isEditMode={isMapEditMode}
                 onMapClick={handleMapClick}
