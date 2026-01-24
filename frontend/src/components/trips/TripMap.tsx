@@ -171,11 +171,9 @@ export const TripMap: React.FC<TripMapProps> = ({
     if (validLocations.length === 0) {
       // Feature 003: Use GPX start point if available when no text locations with coords
       if (gpxStartPoint) {
-        console.log('[TripMap] Using GPX start point as center:', gpxStartPoint);
         return [gpxStartPoint.latitude, gpxStartPoint.longitude];
       }
       // Default to Spain center if no valid locations and no GPX
-      console.log('[TripMap] Using Madrid as default center (no locations, no GPX)');
       return [40.4168, -3.7038]; // Madrid
     }
 
@@ -252,19 +250,7 @@ export const TripMap: React.FC<TripMapProps> = ({
   // - NOT in edit mode (edit mode needs map for clicking)
   // - NO GPX file exists (hasGPX false)
   // Feature 003: If hasGPX=true, always render map even if trackpoints are still loading
-  const shouldShowEmpty = validLocations.length === 0 && !isEditMode && !hasGPX;
-
-  console.log('[TripMap] Empty state decision:', {
-    validLocationsCount: validLocations.length,
-    totalLocationsCount: locations.length,
-    isEditMode,
-    hasGPX,
-    gpxTrackPointsCount: gpxTrackPoints?.length || 0,
-    gpxStartPoint: !!gpxStartPoint,
-    shouldShowEmpty
-  });
-
-  if (shouldShowEmpty) {
+  if (validLocations.length === 0 && !isEditMode && !hasGPX) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
@@ -286,13 +272,6 @@ export const TripMap: React.FC<TripMapProps> = ({
       </div>
     );
   }
-
-  console.log('[TripMap] Rendering map with:', {
-    center,
-    zoom,
-    gpxRoutePathLength: gpxRoutePath.length,
-    routePathLength: routePath.length
-  });
 
   return (
     <div
