@@ -6,7 +6,7 @@ Supports both PostgreSQL (production) and SQLite (development/testing).
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import TIMESTAMP, Boolean, Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, relationship
@@ -81,7 +81,7 @@ class GPXFile(Base):
     uploaded_at = Column(
         TIMESTAMP,
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
     )  # When file was uploaded
     processed_at = Column(TIMESTAMP, nullable=True)  # When processing completed
 
