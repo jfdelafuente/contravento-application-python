@@ -10,10 +10,15 @@
    ============================================================================ */
 
 .trip-map {
-  position: relative; /* Required for absolute positioned fullscreen button */
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Wrapper for map + fullscreen button (required for absolute positioning) */
+.trip-map__map-wrapper {
+  position: relative; /* Required for absolute positioned fullscreen button */
+  width: 100%;
 }
 
 .trip-map__container {

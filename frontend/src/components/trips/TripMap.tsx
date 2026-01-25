@@ -381,13 +381,14 @@ export const TripMap: React.FC<TripMapProps> = ({
       {/* Map Container - Show if there are valid GPS coordinates OR GPX track OR in edit mode */}
       {/* Feature 003: Show map if there's GPX track even without text locations */}
       {!hasMapError && (validLocations.length > 0 || hasGPX || isEditMode) && (
-        <MapContainer
-          key={mapKey}
-          center={center}
-          zoom={zoom}
-          scrollWheelZoom={true}
-          className="trip-map__container"
-        >
+        <div className="trip-map__map-wrapper">
+          <MapContainer
+            key={mapKey}
+            center={center}
+            zoom={zoom}
+            scrollWheelZoom={true}
+            className="trip-map__container"
+          >
           {/* Tile Error Listener */}
           <TileErrorListener onError={handleTileError} />
 
@@ -607,49 +608,48 @@ export const TripMap: React.FC<TripMapProps> = ({
             );
           })}
         </MapContainer>
-      )}
 
-      {/* Fullscreen Toggle Button - Only show if map is visible */}
-      {!hasMapError && (validLocations.length > 0 || isEditMode || (gpxTrackPoints && gpxTrackPoints.length > 0)) && (
-        <button
-          type="button"
-          className="trip-map__fullscreen-button"
-          onClick={toggleFullscreen}
-          aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-          title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa'}
-        >
-          {isFullscreen ? (
-            // Exit fullscreen icon
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          ) : (
-            // Enter fullscreen icon
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-              />
-            </svg>
-          )}
-        </button>
+          {/* Fullscreen Toggle Button - Only show if map is visible */}
+          <button
+            type="button"
+            className="trip-map__fullscreen-button"
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+            title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa'}
+          >
+            {isFullscreen ? (
+              // Exit fullscreen icon
+              <svg
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ) : (
+              // Enter fullscreen icon
+              <svg
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Location List - Show only valid locations (with GPS coordinates) */}
