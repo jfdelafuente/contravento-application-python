@@ -18,7 +18,6 @@
 
 import React, { useMemo, useCallback } from 'react';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,

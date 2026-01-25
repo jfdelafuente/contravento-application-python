@@ -781,7 +781,7 @@ export const TripDetailPage: React.FC = () => {
             <ElevationProfile
               trackpoints={gpxTrack.trackpoints}
               hasElevation={trip.gpx_file.has_elevation}
-              distanceKm={trip.gpx_file.total_distance_km}
+              distanceKm={trip.gpx_file.distance_km}
               onPointClick={handleProfilePointClick}
               onPointHover={setActiveProfilePoint}
               height={300}
