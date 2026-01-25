@@ -787,3 +787,62 @@
   animation: pulse-marker 1.5s ease-in-out infinite;
   transform-origin: center;
 }
+
+/* ============================================================================
+   Map Layer Control (T061 - Feature 003 - User Story 2)
+   ============================================================================ */
+
+/**
+ * Fix z-index conflict between LayersControl and fullscreen button
+ * LayersControl needs higher z-index to be clickable above fullscreen button
+ */
+.leaflet-control-layers {
+  z-index: 1001 !important; /* Higher than fullscreen button (z-index: 1000) */
+}
+
+/* Ensure layers control is visible in fullscreen mode */
+.trip-map--fullscreen .leaflet-control-layers {
+  z-index: 10000 !important; /* Higher than fullscreen container (z-index: 9999) */
+}
+
+/* Style improvements for layer control */
+.leaflet-control-layers {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-control-layers-toggle {
+  width: 40px;
+  height: 40px;
+  background-size: 20px 20px;
+}
+
+/* Dark mode for layer control */
+@media (prefers-color-scheme: dark) {
+  .leaflet-control-layers {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .leaflet-control-layers-base label,
+  .leaflet-control-layers-overlays label {
+    color: #f9fafb;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .leaflet-control-layers {
+    margin-right: 8px;
+    margin-top: 8px;
+  }
+
+  .leaflet-control-layers-toggle {
+    width: 36px;
+    height: 36px;
+    background-size: 18px 18px;
+  }
+}
