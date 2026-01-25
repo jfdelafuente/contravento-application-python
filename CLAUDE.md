@@ -1600,10 +1600,204 @@ const DEBOUNCE_DELAY_MS = 1000; // 1 second
 const PRECISION_DECIMALS = 3; // ~111m at equator
 ```
 
+## GPS Routes Feature (Feature 003)
+
+The GPS Routes feature enables users to upload GPX files with their trips to display interactive maps and elevation profiles.
+
+### User Story 3: Interactive Elevation Profile
+
+Displays an interactive elevation chart using Recharts that synchronizes with the trip map.
+
+**Features Implemented**:
+
+- FR-017: Line chart showing elevation vs distance
+- FR-018: Hover tooltip with elevation, distance, gradient
+- FR-019: Click on chart centers map on point
+- FR-020: Color coding by gradient (green=uphill, blue=downhill, gray=flat)
+- FR-021: "No elevation data" fallback message
+- FR-022: Responsive layout for mobile devices
+- **Bonus**: Pulsating hover marker on map following cursor over profile
+
+### Elevation Profile Components
+
+**[ElevationProfile.tsx](frontend/src/components/trips/ElevationProfile.tsx)**
+Interactive elevation chart component:
+
+- Uses Recharts 3.7.0 (ComposedChart with Line + Area)
+- Custom tooltip showing elevation (m), distance (km), gradient (%)
+- Gradient color coding with multiple shades:
+  - Uphill (green): gentle (0-3%), moderate (3-6%), steep (6-10%), very steep (>10%)
+  - Downhill (blue): gentle (0 to -3%), moderate (-3 to -6%), steep (-6 to -10%), very steep (<-10%)
+  - Flat (gray): ±0.5%
+- Empty state for GPX files without elevation data
+- Mobile-responsive design
+
+**[useMapProfileSync.ts](frontend/src/hooks/useMapProfileSync.ts)**
+Custom hook for map-profile synchronization:
+
+```typescript
+const { mapRef, handleProfilePointClick } = useMapProfileSync();
+
+// mapRef: Pass to TripMap component as ref
+// handleProfilePointClick: Pass to ElevationProfile as onPointClick
+```
+
+### Elevation Profile Implementation Pattern
+
+**Profile-to-Map Sync**:
+```typescript
+// In TripDetailPage.tsx
+const { mapRef, handleProfilePointClick } = useMapProfileSync();
+const [activeProfilePoint, setActiveProfilePoint] = useState<any>(null);
+
+return (
+  <>
+    {/* Map with ref and active point marker */}
+    <TripMap
+      ref={mapRef}
+      activeProfilePoint={activeProfilePoint}
+      // ... other props
+    />
+
+    {/* Elevation profile with click and hover handlers */}
+    <ElevationProfile
+      trackpoints={gpxTrack.trackpoints}
+      hasElevation={trip.gpx_file.has_elevation}
+      distanceKm={trip.gpx_file.total_distance_km}
+      onPointClick={handleProfilePointClick}
+      onPointHover={setActiveProfilePoint}
+      height={300}
+    />
+  </>
+);
+```
+
+**Map Centering on Click**:
+```typescript
+// In useMapProfileSync.ts
+mapRef.current.flyTo([latitude, longitude], 15, {
+  duration: 0.5,        // 0.5s smooth animation
+  easeLinearity: 0.25,  // Easing function
+});
+```
+
+**Hover Marker**:
+```typescript
+// In TripMap.tsx
+{activeProfilePoint && (
+  <CircleMarker
+    center={[activeProfilePoint.latitude, activeProfilePoint.longitude]}
+    radius={8}
+    pathOptions={{
+      color: '#f59e0b',      // Orange border
+      fillColor: '#fbbf24',  // Gold fill
+      fillOpacity: 0.8,
+      weight: 3,
+    }}
+  />
+)}
+```
+
+### Recharts 3.x Compatibility
+
+**Important**: Recharts 3.x uses `activeIndex` instead of `activePayload`:
+
+```typescript
+// CORRECT (Recharts 3.x):
+const handleClick = (data: any) => {
+  if (data && typeof data.activeIndex !== 'undefined') {
+    const index = parseInt(data.activeIndex as string, 10);
+    const point = chartData[index] as TrackPoint;
+    onPointClick?.(point);
+  }
+};
+
+// INCORRECT (Recharts 2.x - deprecated):
+const handleClick = (data: any) => {
+  if (data && data.activePayload && data.activePayload.length > 0) {
+    const point = data.activePayload[0].payload;
+    onPointClick?.(point);
+  }
+};
+```
+
+### Gradient Calculation (Backend)
+
+Gradient is calculated in `gpx_service.py` during track simplification:
+
+```python
+# Calculate percentage slope between consecutive points
+if i > 0 and original.elevation is not None and simplified:
+    prev_point = simplified[-1]
+    if prev_point["elevation"] is not None:
+        distance_m = (cumulative_distance - prev_point["distance_km"]) * 1000
+        elevation_diff = original.elevation - prev_point["elevation"]
+        if distance_m > 0:
+            gradient = (elevation_diff / distance_m) * 100  # Percentage
+```
+
+**TrackPoint Schema** (in `schemas/gpx.py`):
+
+```python
+gradient: float | None = Field(
+    None,
+    description="Percentage slope (e.g., 5.2 = 5.2% uphill)"
+)
+```
+
+### Elevation Profile Known Limitations
+
+**Hover Marker Precision**:
+
+- Marker jumps between simplified trackpoints (~200-500 points)
+- Not smooth continuous movement due to Douglas-Peucker simplification
+- Performance vs precision tradeoff (original GPX: ~5000 points)
+
+**Future Enhancements (Deferred)**:
+
+1. Increase trackpoint density in backend (more data, better precision)
+2. Add frontend interpolation between simplified points
+3. Implement dual dataset approach (full for hover, simplified for chart display)
+
+### Elevation Profile Testing
+
+**Manual Testing**:
+
+1. Upload GPX with elevation data
+2. Verify chart displays correctly with gradient colors
+3. Hover over chart → verify tooltip shows elevation/distance/gradient
+4. Click chart point → verify map centers on location <300ms
+5. Hover over chart → verify orange marker follows cursor on map
+6. Upload GPX without elevation → verify "No data" message
+7. Test on mobile device → verify responsive layout
+
+**Automated Tests** (Pending):
+
+- Unit test: Gradient calculation accuracy ±2% (SC-023)
+- Performance test: Chart loads <2s for 1000 points (SC-013)
+- Integration test: Click-to-map sync <300ms (SC-016)
+
+### Common Pitfalls
+
+1. **Don't use Recharts 2.x patterns**: Use `activeIndex` not `activePayload` in click handlers
+2. **Don't forget coordinate validation**: Check lat/lng bounds before calling map.flyTo()
+3. **Don't skip empty state**: Always show "No elevation data" message when GPX lacks elevation
+4. **Don't add debounce to hover**: Immediate response is better (debounce was tested and rejected)
+5. **Don't expect smooth hover marker**: Simplified trackpoints cause discrete jumps (inherent limitation)
+6. **Don't forget mobile responsiveness**: Use ResponsiveContainer and media queries
+7. **Don't skip gradient color coding**: Visual distinction between uphill/downhill is key UX feature
+
 ## Recent Changes
-- develop: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
-- 001-testing-qa: Added Python 3.12 (backend tests), TypeScript 5.x (frontend E2E tests)
-- 013-public-trips-feed: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend)
 
+- **003-gps-routes** (2026-01-25): Implemented User Story 3 - Interactive Elevation Profile
+  - Added Recharts 3.7.0 for elevation visualization
+  - Created ElevationProfile component with gradient color coding
+  - Created useMapProfileSync hook for map-profile synchronization
+  - Added pulsating hover marker on map following elevation profile cursor
+  - Fixed Recharts 3.x API compatibility (activeIndex vs activePayload)
+  - Known limitation: Hover marker precision limited by simplified trackpoints (~200-500 points)
+- **010-reverse-geocoding** (2026-01-21): Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x
+- **013-public-trips-feed** (2026-01-21): Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend)
+- **001-testing-qa** (2026-01-21): Added Python 3.12 (backend tests), TypeScript 5.x (frontend E2E tests)
 
-**Last updated**: 2026-01-21
+**Last updated**: 2026-01-25

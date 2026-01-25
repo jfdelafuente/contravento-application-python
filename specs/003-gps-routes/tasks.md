@@ -209,26 +209,35 @@
 
 **Backend Services**
 
-- [ ] T072 [US3] Add gradient calculation to `simplify_track()` in `backend/src/services/gpx_service.py` (calculate % slope between consecutive points) (see [data-model.md:147](data-model.md#L147))
-- [ ] T073 [US3] Update TrackPoint response schema to include gradient field in `backend/src/schemas/gpx.py` (see [contracts/gpx-api.yaml:708-713](contracts/gpx-api.yaml#L708-L713))
+- [x] T072 [US3] Add gradient calculation to `simplify_track()` in `backend/src/services/gpx_service.py` (calculate % slope between consecutive points) (see [data-model.md:147](data-model.md#L147)) ✅ Already implemented
+- [x] T073 [US3] Update TrackPoint response schema to include gradient field in `backend/src/schemas/gpx.py` (see [contracts/gpx-api.yaml:708-713](contracts/gpx-api.yaml#L708-L713)) ✅ Already implemented
 
 **Frontend Components**
 
-- [ ] T074 [P] [US3] Create `frontend/src/components/trips/ElevationProfile.tsx` using Recharts LineChart (see [research.md:178-211](research.md#L178-L211))
-- [ ] T075 [US3] Add hover tooltip showing elevation, distance, gradient to ElevationProfile
-- [ ] T076 [US3] Add click handler emitting `onPointClick(point)` event to ElevationProfile (FR-019)
-- [ ] T077 [US3] Add gradient color coding: green (uphill), blue (downhill) to chart (FR-020)
-- [ ] T078 [US3] Make ElevationProfile responsive for mobile in CSS (FR-022)
-- [ ] T079 [US3] Show "No elevation data available" message when GPX lacks elevation (FR-021)
+- [x] T074 [P] [US3] Create `frontend/src/components/trips/ElevationProfile.tsx` using Recharts LineChart (see [research.md:178-211](research.md#L178-L211)) ✅ Implemented with Recharts 3.7.0 (ComposedChart with Line + Area)
+- [x] T075 [US3] Add hover tooltip showing elevation, distance, gradient to ElevationProfile ✅ CustomTooltip component with dark theme
+- [x] T076 [US3] Add click handler emitting `onPointClick(point)` event to ElevationProfile (FR-019) ✅ Fixed for Recharts 3.x API (activeIndex)
+- [x] T077 [US3] Add gradient color coding: green (uphill), blue (downhill) to chart (FR-020) ✅ Implemented with multiple shades based on steepness
+- [x] T078 [US3] Make ElevationProfile responsive for mobile in CSS (FR-022) ✅ Media queries for mobile/tablet
+- [x] T079 [US3] Show "No elevation data available" message when GPX lacks elevation (FR-021) ✅ Empty state with icon and message
 
 **Frontend Hooks**
 
-- [ ] T080 [P] [US3] Create `frontend/src/hooks/useMapProfileSync.ts` for state management between map and profile
+- [x] T080 [P] [US3] Create `frontend/src/hooks/useMapProfileSync.ts` for state management between map and profile ✅ Implemented with mapRef and click handler
 
 **Frontend Integration**
 
-- [ ] T081 [US3] Integrate ElevationProfile into `frontend/src/pages/TripDetailPage.tsx` below TripMap
-- [ ] T082 [US3] Wire `onPointClick` event to center map on selected point (FR-019, SC-016)
+- [x] T081 [US3] Integrate ElevationProfile into `frontend/src/pages/TripDetailPage.tsx` below TripMap ✅ Placed in dedicated section after map
+- [x] T082 [US3] Wire `onPointClick` event to center map on selected point (FR-019, SC-016) ✅ Uses Leaflet flyTo with 0.5s animation
+
+**Bonus Features**
+
+- [x] T082b [US3] Add hover marker on map following cursor over elevation profile ✅ Implemented with pulsating CircleMarker (orange/gold)
+  - ⚠️ **Known Limitation**: Marker jumps between simplified trackpoints (~200-500 points) instead of smooth continuous movement
+  - **Future Enhancement (Deferred)**:
+    - Option 1: Increase trackpoint density in backend (more data, better precision)
+    - Option 2: Add frontend interpolation between points
+    - Option 3: Implement dual dataset (full for hover, simplified for display)
 
 **Verification**
 
