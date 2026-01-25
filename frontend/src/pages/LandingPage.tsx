@@ -13,6 +13,8 @@ import { DiscoverTripsSection } from '../components/landing/DiscoverTripsSection
 import { CTASection } from '../components/landing/CTASection';
 import { Footer } from '../components/landing/Footer';
 import './LandingPage.css';
+// Import hero image for SEO meta tags
+import heroImage from '../assets/images/landing/hero.jpg';
 
 /**
  * LandingPage Container (Feature 014 - User Story 1)
@@ -38,7 +40,7 @@ export const LandingPage: React.FC = () => {
     title: 'ContraVento - Pedalear para Conectar',
     description:
       'Una plataforma para ciclistas que pedalean para conectar, no para competir. Documenta viajes, regenera territorios, y únete a la comunidad que valora el camino sobre el destino.',
-    image: '/src/assets/images/landing/hero.jpg',
+    image: heroImage,
     url: 'https://contravento.com',
   };
   useSEO(seoConfig);
