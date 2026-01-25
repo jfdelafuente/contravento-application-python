@@ -819,6 +819,36 @@
   background-size: 20px 20px;
 }
 
+/* Fix text alignment in expanded layer control panel */
+.leaflet-control-layers-expanded {
+  padding: 8px 12px;
+  min-width: 200px;
+}
+
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.leaflet-control-layers-base label input,
+.leaflet-control-layers-overlays label input {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.leaflet-control-layers-base label span,
+.leaflet-control-layers-overlays label span {
+  flex: 1;
+  vertical-align: middle;
+}
+
 /* Dark mode for layer control */
 @media (prefers-color-scheme: dark) {
   .leaflet-control-layers {

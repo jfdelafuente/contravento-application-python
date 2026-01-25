@@ -610,7 +610,7 @@ export const TripMap: React.FC<TripMapProps> = ({
       )}
 
       {/* Fullscreen Toggle Button - Only show if map is visible */}
-      {!hasMapError && (validLocations.length > 0 || isEditMode) && (
+      {!hasMapError && (validLocations.length > 0 || isEditMode || (gpxTrackPoints && gpxTrackPoints.length > 0)) && (
         <button
           type="button"
           className="trip-map__fullscreen-button"
