@@ -243,11 +243,18 @@
 
 - [ ] T083 [US3] Run Unit test: `poetry run pytest tests/unit/test_gpx_service.py::test_gradient_calculation_accuracy -v`
 - [ ] T084 [US3] Run Performance test: `npm run test:performance -- tests/performance/elevation-profile.test.tsx` (verify SC-013)
-- [ ] T085 [US3] Manual test: Upload GPX with elevation, verify chart displays correctly
-- [ ] T086 [US3] Manual test: Hover over chart, verify tooltip shows elevation/distance/gradient
-- [ ] T087 [US3] Manual test: Click chart point, verify map centers on that location <300ms (SC-016)
-- [ ] T088 [US3] Manual test: Upload GPX without elevation, verify "No data" message (FR-021)
-- [ ] T089 [US3] Manual test: View elevation profile on mobile, verify responsive layout (FR-022)
+- [x] T085 [US3] Manual test: Upload GPX with elevation, verify chart displays correctly ✅ PASSED
+- [x] T086 [US3] Manual test: Hover over chart, verify tooltip shows elevation/distance/gradient ✅ PASSED
+- [x] T087 [US3] Manual test: Click chart point, verify map centers on that location <300ms (SC-016) ✅ PASSED
+- [x] T088 [US3] Manual test: Upload GPX without elevation, verify "No data" message (FR-021) ✅ PASSED
+- [x] T089 [US3] Manual test: View elevation profile on mobile, verify responsive layout (FR-022) ✅ PASSED
+
+**Manual Testing Results** (2026-01-25):
+- T085-T089: All core features working correctly
+- T087b (Bonus hover marker): UX not optimal - marker jumps between discrete trackpoints instead of smoothly following GPX line
+  - Decision: Accept limitation, feature remains functional but with documented UX issue
+  - Rationale: Bonus feature (not in original requirements FR-017 to FR-022), core functionality complete
+  - Future improvement: Implement interpolation or increase trackpoint density (deferred to future iteration)
 
 **Checkpoint**: User Story 3 fully functional - Elevation profile with map sync working independently
 
