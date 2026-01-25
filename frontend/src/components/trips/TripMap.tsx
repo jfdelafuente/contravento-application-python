@@ -9,7 +9,7 @@
  */
 
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
 import { LatLngExpression, Icon, LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
@@ -45,6 +45,12 @@ interface TripMapProps {
 
   /** GPX route end point (Feature 003 - User Story 2) */
   gpxEndPoint?: Coordinate;
+
+  /** Ref to expose Leaflet map instance for programmatic control (Feature 003 - User Story 3) */
+  mapRef?: React.MutableRefObject<any>;
+
+  /** Active point from elevation profile hover (Feature 003 - User Story 3) */
+  activeProfilePoint?: TrackPoint | null;
 }
 
 // Custom icons for GPX route start/end markers
@@ -103,6 +109,29 @@ const AutoFitBounds: React.FC<AutoFitBoundsProps> = ({ bounds }) => {
   return null;
 };
 
+/**
+ * MapRefExposer Component
+ * Exposes the Leaflet map instance to parent component via ref (Feature 003 - User Story 3)
+ */
+interface MapRefExposerProps {
+  mapRef: React.MutableRefObject<any>;
+}
+
+const MapRefExposer: React.FC<MapRefExposerProps> = ({ mapRef }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    mapRef.current = map;
+
+    // Cleanup on unmount
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+
+  return null;
+};
+
 export const TripMap: React.FC<TripMapProps> = ({
   locations,
   tripTitle,
@@ -113,6 +142,8 @@ export const TripMap: React.FC<TripMapProps> = ({
   gpxTrackPoints,
   gpxStartPoint,
   gpxEndPoint,
+  mapRef,
+  activeProfilePoint,
 }) => {
   // Error state for map tile loading failures
   const [hasMapError, setHasMapError] = useState(false);
@@ -324,6 +355,9 @@ export const TripMap: React.FC<TripMapProps> = ({
           {/* Tile Error Listener */}
           <TileErrorListener onError={handleTileError} />
 
+          {/* Expose map instance to parent via ref (Feature 003 - User Story 3) */}
+          {mapRef && <MapRefExposer mapRef={mapRef} />}
+
           {/* Auto-fit bounds for GPX route */}
           {gpxBounds && <AutoFitBounds bounds={gpxBounds} />}
 
@@ -382,6 +416,38 @@ export const TripMap: React.FC<TripMapProps> = ({
               </div>
             </Popup>
           </Marker>
+        )}
+
+        {/* Active Profile Point Marker (Feature 003 - User Story 3) */}
+        {activeProfilePoint && (
+          <CircleMarker
+            center={[activeProfilePoint.latitude, activeProfilePoint.longitude]}
+            radius={8}
+            pathOptions={{
+              color: '#f59e0b',
+              fillColor: '#fbbf24',
+              fillOpacity: 0.8,
+              weight: 3,
+            }}
+          >
+            <Popup>
+              <div className="trip-map__popup">
+                <strong className="trip-map__popup-title">Punto activo</strong>
+                <p className="trip-map__popup-subtitle">
+                  Elevación: {activeProfilePoint.elevation?.toFixed(0)}m
+                </p>
+                <p className="trip-map__popup-subtitle">
+                  Distancia: {activeProfilePoint.distance_km.toFixed(2)}km
+                </p>
+                {activeProfilePoint.gradient !== null && (
+                  <p className="trip-map__popup-subtitle">
+                    Pendiente: {activeProfilePoint.gradient > 0 ? '+' : ''}
+                    {activeProfilePoint.gradient.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </CircleMarker>
         )}
 
         {/* Route Polyline (if multiple locations) */}

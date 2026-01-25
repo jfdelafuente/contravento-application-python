@@ -18,9 +18,11 @@ import { FollowButton } from '../components/social/FollowButton';
 import { CommentList } from '../components/comments/CommentList';
 import { GPXUploader } from '../components/trips/GPXUploader';
 import { GPXStats } from '../components/trips/GPXStats';
+import { ElevationProfile } from '../components/trips/ElevationProfile';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { useGPXTrack } from '../hooks/useGPXTrack';
+import { useMapProfileSync } from '../hooks/useMapProfileSync';
 import type { LocationSelection } from '../types/geocoding';
 import type { LocationInput } from '../types/trip';
 import {
@@ -60,6 +62,12 @@ export const TripDetailPage: React.FC = () => {
 
   // GPX track hook (Feature 003: GPS Routes - User Story 2)
   const { track: gpxTrack } = useGPXTrack(trip?.gpx_file?.gpx_file_id);
+
+  // Map-Profile sync hook (Feature 003: GPS Routes - User Story 3)
+  const { mapRef, handleProfilePointClick } = useMapProfileSync();
+
+  // Active point from elevation profile hover (Feature 003: GPS Routes - User Story 3)
+  const [activeProfilePoint, setActiveProfilePoint] = useState<any>(null);
 
   // Likes list modal state (Feature 004 - US2)
   const [showLikesModal, setShowLikesModal] = useState(false);
@@ -760,8 +768,24 @@ export const TripDetailPage: React.FC = () => {
                 gpxTrackPoints={gpxTrack?.trackpoints}
                 gpxStartPoint={gpxTrack?.start_point}
                 gpxEndPoint={gpxTrack?.end_point}
+                mapRef={mapRef}
+                activeProfilePoint={activeProfilePoint}
               />
             </Suspense>
+          </section>
+        )}
+
+        {/* Elevation Profile (Feature 003 - User Story 3) */}
+        {trip.gpx_file && gpxTrack && gpxTrack.trackpoints && gpxTrack.trackpoints.length > 0 && (
+          <section className="trip-detail-page__section">
+            <ElevationProfile
+              trackpoints={gpxTrack.trackpoints}
+              hasElevation={trip.gpx_file.has_elevation}
+              distanceKm={trip.gpx_file.total_distance_km}
+              onPointClick={handleProfilePointClick}
+              onPointHover={setActiveProfilePoint}
+              height={300}
+            />
           </section>
         )}
 
