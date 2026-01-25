@@ -172,8 +172,14 @@
 - [X] T057 [US2] Modify `frontend/src/components/trips/TripMap.tsx` to render GPX polyline using react-leaflet (see [research.md:143-175](research.md#L143-L175))
 - [X] T058 [US2] Add start marker (green) and end marker (red) to TripMap (FR-011)
 - [X] T059 [US2] Implement auto-fit bounds to show entire route on load (FR-012)
-- [ ] T060 [US2] Add click handler to polyline showing tooltip with coordinates, elevation, distance (FR-013) - DEFERRED
-- [ ] T061 [US2] Add map layer selector (terrain, satellite, cycling) using Leaflet controls (FR-010) - DEFERRED
+- [x] T060 [US2] Add click handler to polyline showing tooltip with coordinates, elevation, distance (FR-013) ✅ Implemented with CircleMarker + Popup
+  - Click on GPX polyline shows nearest trackpoint information
+  - Displays: coordinates (5 decimals), elevation, distance from start, gradient
+  - Blue CircleMarker appears at clicked point
+- [x] T061 [US2] Add map layer selector (terrain, satellite, cycling) using Leaflet controls (FR-010) ✅ Implemented with LayersControl
+  - 4 base layers: OpenStreetMap (default), Topográfico, Satélite, Ciclismo
+  - No API keys required (all free tile services)
+  - Layer selector positioned top-right corner
 - [ ] T062 [US2] Ensure touch gestures work on mobile (pinch zoom, drag pan) (FR-014, SC-008) - DEFERRED (already works from Feature 009)
 
 **Verification**
@@ -181,7 +187,11 @@
 - [X] T063 [US2] Run Integration test: `poetry run pytest tests/integration/test_gpx_api.py::test_get_track_points -v` - ✅ PASSED
 - [ ] T064 [US2] Run Performance test: `npm run test:performance -- tests/performance/map-render.test.tsx` (verify SC-007) - DEFERRED
 - [X] T065 [US2] Manual test: Upload GPX, verify map displays route with correct start/end markers - ✅ PASSED
-- [ ] T066 [US2] Manual test: Test zoom in/out, pan, click on route line shows information - DEFERRED (basic zoom/pan works)
+- [x] T066 [US2] Manual test: Test zoom in/out, pan, click on route line shows information ✅ PASSED
+  - Zoom in/out: Working ✓
+  - Pan (drag): Working ✓
+  - Click on route: Shows coordinates, elevation, distance ✓ (T060 implemented)
+  - Layer selector: 4 layers available ✓ (T061 implemented)
 - [ ] T067 [US2] Manual test: Test on mobile device (iOS/Android) - touch gestures work (SC-008) - DEFERRED
 - [ ] T068 [US2] Manual test: Load route with 1000+ points, verify <3s load time (SC-007) - DEFERRED
 

@@ -9,7 +9,7 @@
  */
 
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMapEvents, useMap, LayersControl } from 'react-leaflet';
 import { LatLngExpression, Icon, LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
@@ -153,6 +153,9 @@ export const TripMap: React.FC<TripMapProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
+  // Clicked point on GPX route (T060 - Feature 003 - User Story 2 - FR-013)
+  const [clickedRoutePoint, setClickedRoutePoint] = useState<TrackPoint | null>(null);
+
   // Filter locations that have coordinates
   const validLocations = useMemo(
     () => locations.filter((loc) => loc.latitude !== null && loc.longitude !== null),
@@ -196,6 +199,39 @@ export const TripMap: React.FC<TripMapProps> = ({
       console.error('Error toggling fullscreen:', error);
     }
   }, []);
+
+  /**
+   * Handle click on GPX route polyline (T060 - FR-013)
+   * Finds the nearest trackpoint to the clicked location and displays its information
+   */
+  const handlePolylineClick = useCallback(
+    (e: any) => {
+      if (!gpxTrackPoints || gpxTrackPoints.length === 0) return;
+
+      const clickedLat = e.latlng.lat;
+      const clickedLng = e.latlng.lng;
+
+      // Find nearest trackpoint to clicked location
+      let nearestPoint = gpxTrackPoints[0];
+      let minDistance = Infinity;
+
+      gpxTrackPoints.forEach((point) => {
+        // Calculate Euclidean distance (simple approximation)
+        const distance = Math.sqrt(
+          Math.pow(point.latitude - clickedLat, 2) +
+          Math.pow(point.longitude - clickedLng, 2)
+        );
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestPoint = point;
+        }
+      });
+
+      setClickedRoutePoint(nearestPoint);
+    },
+    [gpxTrackPoints]
+  );
 
   // Calculate map center (average of all coordinates)
   const center: LatLngExpression = useMemo(() => {
@@ -366,11 +402,40 @@ export const TripMap: React.FC<TripMapProps> = ({
             <MapClickHandler enabled={isEditMode} onMapClick={onMapClick} />
           )}
 
-          {/* OpenStreetMap Tiles */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          {/* Map Layer Selector (T061 - Feature 003 - User Story 2 - FR-010) */}
+          <LayersControl position="topright">
+            {/* Base Maps */}
+            <LayersControl.BaseLayer checked name="OpenStreetMap">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Topográfico">
+              <TileLayer
+                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                maxZoom={17}
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Satélite">
+              <TileLayer
+                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Ciclismo">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &amp; <a href="https://www.cyclosm.org">CyclOSM</a>'
+                url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
+                maxZoom={20}
+              />
+            </LayersControl.BaseLayer>
+          </LayersControl>
 
         {/* GPX Route Polyline (Feature 003 - User Story 2) */}
         {gpxRoutePath.length > 1 && (
@@ -380,6 +445,9 @@ export const TripMap: React.FC<TripMapProps> = ({
               color: '#dc2626',
               weight: 3,
               opacity: 0.8,
+            }}
+            eventHandlers={{
+              click: handlePolylineClick,
             }}
           />
         )}
@@ -443,6 +511,44 @@ export const TripMap: React.FC<TripMapProps> = ({
                   <p className="trip-map__popup-subtitle">
                     Pendiente: {activeProfilePoint.gradient > 0 ? '+' : ''}
                     {activeProfilePoint.gradient.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </CircleMarker>
+        )}
+
+        {/* Clicked Route Point Marker (T060 - Feature 003 - User Story 2 - FR-013) */}
+        {clickedRoutePoint && (
+          <CircleMarker
+            center={[clickedRoutePoint.latitude, clickedRoutePoint.longitude]}
+            radius={6}
+            pathOptions={{
+              color: '#3b82f6',
+              fillColor: '#60a5fa',
+              fillOpacity: 0.9,
+              weight: 2,
+            }}
+          >
+            <Popup>
+              <div className="trip-map__popup">
+                <strong className="trip-map__popup-title">Información del punto</strong>
+                <p className="trip-map__popup-subtitle">
+                  <strong>Coordenadas:</strong><br />
+                  {clickedRoutePoint.latitude.toFixed(5)}, {clickedRoutePoint.longitude.toFixed(5)}
+                </p>
+                {clickedRoutePoint.elevation !== null && (
+                  <p className="trip-map__popup-subtitle">
+                    <strong>Elevación:</strong> {clickedRoutePoint.elevation.toFixed(0)}m
+                  </p>
+                )}
+                <p className="trip-map__popup-subtitle">
+                  <strong>Distancia desde inicio:</strong> {clickedRoutePoint.distance_km.toFixed(2)}km
+                </p>
+                {clickedRoutePoint.gradient !== null && (
+                  <p className="trip-map__popup-subtitle">
+                    <strong>Pendiente:</strong> {clickedRoutePoint.gradient > 0 ? '+' : ''}
+                    {clickedRoutePoint.gradient.toFixed(1)}%
                   </p>
                 )}
               </div>
