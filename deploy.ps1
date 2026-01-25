@@ -1,6 +1,9 @@
 # ============================================================================
 # ContraVento - Multi-Environment Deployment Script (PowerShell)
 # ============================================================================
+# 📖 Documentation: docs/deployment/README.md
+#    Complete guide with decision tree, troubleshooting, and mode details
+#
 # Simplified deployment for all environments:
 #   .\deploy.ps1 local                  - Start local development
 #   .\deploy.ps1 local -WithFrontend    - Start local + frontend

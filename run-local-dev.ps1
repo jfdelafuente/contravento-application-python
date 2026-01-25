@@ -4,6 +4,9 @@
 # Quick start development server with SQLite database
 # No Docker required - instant startup!
 #
+# 📖 Documentation: docs/deployment/modes/local-dev.md
+#    For complete guide with troubleshooting and configuration details
+#
 # Usage:
 #   .\run-local-dev.ps1                     # Start backend only
 #   .\run-local-dev.ps1 -WithFrontend       # Start backend + frontend

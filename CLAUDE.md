@@ -159,6 +159,9 @@ npm run build:prod
 
 ### Local Development Options
 
+> **📘 New Unified Documentation Available!**
+> This section provides a quick overview. For comprehensive guides with troubleshooting, architecture details, and workflows, see the **[Deployment Documentation](docs/deployment/README.md)**.
+
 ContraVento offers multiple ways to develop locally, from instant SQLite setup to full Docker environments:
 
 #### Option 1: LOCAL-DEV (SQLite - No Docker) ⚡ FASTEST & RECOMMENDED
@@ -253,7 +256,7 @@ nano .env.local-minimal
 | **local-minimal** | ~10s | ✅ Yes | PostgreSQL | PostgreSQL testing |
 | **local-full** | ~20s | ✅ Yes | PostgreSQL | Email/cache testing |
 
-See [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) for complete deployment guide.
+**📖 For complete deployment documentation**: See **[Deployment Guide](docs/deployment/README.md)** for detailed guides on all deployment modes, troubleshooting, and configuration.
 
 ### Development Server
 

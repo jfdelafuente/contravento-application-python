@@ -2,6 +2,9 @@
 # ============================================================================
 # ContraVento - Multi-Environment Deployment Script
 # ============================================================================
+# 📖 Documentation: docs/deployment/README.md
+#    Complete guide with decision tree, troubleshooting, and mode details
+#
 # Simplified deployment for all environments:
 #   ./deploy.sh local                   - Start local development
 #   ./deploy.sh local --with-frontend   - Start local + frontend

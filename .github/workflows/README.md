@@ -440,6 +440,14 @@ gh workflow run backend-tests.yml --ref main
 
 ## References
 
+### Deployment Documentation
+
+For detailed guides on all deployment modes (local, staging, production), see:
+
+- **[Deployment Guide](../../docs/deployment/README.md)** - Complete deployment documentation with decision tree and mode-specific guides
+
+### External Resources
+
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Codecov GitHub Action](https://github.com/codecov/codecov-action)
 - [Playwright CI Documentation](https://playwright.dev/docs/ci)
