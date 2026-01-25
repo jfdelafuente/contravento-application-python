@@ -613,10 +613,10 @@
    Fullscreen Mode (Phase 5.3)
    ============================================================================ */
 
-/* Fullscreen toggle button */
+/* Fullscreen toggle button - positioned at bottom-right to avoid conflict with LayersControl */
 .trip-map__fullscreen-button {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
   z-index: 1000;
   display: flex;
@@ -686,7 +686,7 @@
 
 /* Adjust fullscreen button position in fullscreen mode */
 .trip-map--fullscreen .trip-map__fullscreen-button {
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   width: 48px;
   height: 48px;
@@ -750,7 +750,7 @@
   }
 
   .trip-map--fullscreen .trip-map__fullscreen-button {
-    top: 16px;
+    bottom: 16px;
     right: 16px;
     width: 44px;
     height: 44px;
@@ -793,11 +793,11 @@
    ============================================================================ */
 
 /**
- * Fix z-index conflict between LayersControl and fullscreen button
- * LayersControl needs higher z-index to be clickable above fullscreen button
+ * LayersControl styling and positioning
+ * Positioned at top-right corner (fullscreen button is at bottom-right to avoid overlap)
  */
 .leaflet-control-layers {
-  z-index: 1001 !important; /* Higher than fullscreen button (z-index: 1000) */
+  z-index: 1000 !important; /* Ensure visibility above map elements */
 }
 
 /* Ensure layers control is visible in fullscreen mode */
