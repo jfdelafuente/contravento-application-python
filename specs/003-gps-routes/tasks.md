@@ -241,7 +241,11 @@
 
 **Verification**
 
-- [ ] T083 [US3] Run Unit test: `poetry run pytest tests/unit/test_gpx_service.py::test_gradient_calculation_accuracy -v`
+- [x] T083 [US3] Unit test: Gradient calculation accuracy ±2% (SC-023) ✅ PASSED (3/3 tests)
+  - `test_gradient_calculation_accuracy` - Validates ±2% accuracy on uphill/downhill gradients
+  - `test_gradient_calculation_flat_terrain` - Validates 0% gradient on flat terrain
+  - `test_gradient_calculation_no_elevation_data` - Validates gradient=None when no elevation data
+  - **Fix Applied**: Modified synthetic GPX to use non-collinear points to prevent Douglas-Peucker simplification
 - [ ] T084 [US3] Run Performance test: `npm run test:performance -- tests/performance/elevation-profile.test.tsx` (verify SC-013)
 - [x] T085 [US3] Manual test: Upload GPX with elevation, verify chart displays correctly ✅ PASSED
 - [x] T086 [US3] Manual test: Hover over chart, verify tooltip shows elevation/distance/gradient ✅ PASSED

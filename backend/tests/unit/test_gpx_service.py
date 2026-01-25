@@ -281,3 +281,152 @@ class TestGPXServiceAnomalyDetection:
             or "elevation" in error_message.lower()
             or "altitud" in error_message.lower()
         )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestGPXServiceGradientCalculation:
+    """
+    T083: Unit tests for gradient calculation accuracy.
+
+    Tests that gradient (slope percentage) is calculated accurately within ±2%.
+    Success Criteria: SC-023 (Gradient calculation accuracy ±2%)
+    Functional Requirements: FR-017 to FR-020 (Elevation profile with gradients)
+    """
+
+    async def test_gradient_calculation_accuracy(self, db_session: AsyncSession):
+        """
+        Test gradient calculation is accurate within ±2% (SC-023).
+
+        Creates synthetic GPX with 3 trackpoints with known elevation/distance:
+        - Point 1: 0.0 km, 100m elevation → gradient: None (first point)
+        - Point 2: 1.0 km, 200m elevation → gradient: +10.0% (uphill)
+        - Point 3: 2.0 km, 100m elevation → gradient: -10.0% (downhill)
+
+        Validates calculated gradients are within ±2% of expected values.
+        """
+        # Arrange
+        service = GPXService(db_session)
+
+        # Create synthetic GPX with known gradients
+        # Distance: ~1km apart, Elevation: +100m, then -100m
+        # Expected gradients: +10% uphill, -10% downhill
+        # NOTE: Middle point has slight longitude offset to prevent Douglas-Peucker simplification
+        synthetic_gpx = b"""<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Gradient Test Route</name>
+    <trkseg>
+      <trkpt lat="40.0000" lon="-3.0000">
+        <ele>100</ele>
+      </trkpt>
+      <trkpt lat="40.0090" lon="-3.0010">
+        <ele>200</ele>
+      </trkpt>
+      <trkpt lat="40.0180" lon="-3.0000">
+        <ele>100</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>"""
+
+        # Act
+        result = await service.parse_gpx_file(synthetic_gpx)
+        trackpoints = result["trackpoints"]
+
+        # Assert - We should have 3 trackpoints
+        assert len(trackpoints) == 3, f"Expected 3 trackpoints, got {len(trackpoints)}"
+
+        # Assert - Point 1: First point has no gradient
+        point_1 = trackpoints[0]
+        assert point_1["gradient"] is None, (
+            f"First point should have gradient=None, got {point_1['gradient']}"
+        )
+
+        # Assert - Point 2: Uphill gradient ~+10%
+        # 1km = 1000m horizontal, +100m vertical → (100/1000)*100 = 10%
+        point_2 = trackpoints[1]
+        assert point_2["gradient"] is not None, "Point 2 should have a gradient value"
+
+        expected_uphill = 10.0
+        actual_uphill = point_2["gradient"]
+        uphill_error = abs(actual_uphill - expected_uphill)
+
+        assert uphill_error <= 2.0, (
+            f"Uphill gradient should be {expected_uphill}% ±2%, "
+            f"got {actual_uphill:.2f}% (error: {uphill_error:.2f}%)"
+        )
+
+        # Assert - Point 3: Downhill gradient ~-10%
+        # 1km = 1000m horizontal, -100m vertical → (-100/1000)*100 = -10%
+        point_3 = trackpoints[2]
+        assert point_3["gradient"] is not None, "Point 3 should have a gradient value"
+
+        expected_downhill = -10.0
+        actual_downhill = point_3["gradient"]
+        downhill_error = abs(actual_downhill - expected_downhill)
+
+        assert downhill_error <= 2.0, (
+            f"Downhill gradient should be {expected_downhill}% ±2%, "
+            f"got {actual_downhill:.2f}% (error: {downhill_error:.2f}%)"
+        )
+
+    async def test_gradient_calculation_flat_terrain(self, db_session: AsyncSession):
+        """Test gradient calculation for flat terrain (0% slope)."""
+        # Arrange
+        service = GPXService(db_session)
+
+        # Create GPX with flat terrain (same elevation)
+        flat_gpx = b"""<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Flat Route</name>
+    <trkseg>
+      <trkpt lat="40.0000" lon="-3.0000">
+        <ele>100</ele>
+      </trkpt>
+      <trkpt lat="40.0090" lon="-3.0000">
+        <ele>100</ele>
+      </trkpt>
+      <trkpt lat="40.0180" lon="-3.0000">
+        <ele>100</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>"""
+
+        # Act
+        result = await service.parse_gpx_file(flat_gpx)
+        trackpoints = result["trackpoints"]
+
+        # Assert - Points 2 and 3 should have ~0% gradient
+        for i, point in enumerate(trackpoints[1:], start=2):
+            gradient = point["gradient"]
+            assert gradient is not None, f"Point {i} should have a gradient value"
+
+            # Flat terrain should be within ±2% of 0%
+            assert abs(gradient) <= 2.0, (
+                f"Flat terrain gradient should be ~0% ±2%, "
+                f"got {gradient:.2f}% for point {i}"
+            )
+
+    async def test_gradient_calculation_no_elevation_data(self, db_session: AsyncSession):
+        """Test gradient is None when GPX has no elevation data."""
+        # Arrange
+        service = GPXService(db_session)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "no_elevation.gpx"
+
+        with open(gpx_path, "rb") as f:
+            gpx_content = f.read()
+
+        # Act
+        result = await service.parse_gpx_file(gpx_content)
+        trackpoints = result["trackpoints"]
+
+        # Assert - All trackpoints should have gradient=None
+        for i, point in enumerate(trackpoints):
+            assert point["gradient"] is None, (
+                f"Point {i} should have gradient=None when no elevation data, "
+                f"got {point['gradient']}"
+            )
