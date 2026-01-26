@@ -30,6 +30,45 @@ USERNAME="testuser"
 PASSWORD="TestPass123!"
 GPX_DIR="test_data"
 
+# Función auxiliar para crear y publicar viajes
+create_and_publish_trip() {
+    local title=$1
+    local description=$2
+
+    TRIP_RESPONSE=$(curl -s -X POST "$API_URL/trips" \
+      -H "Authorization: Bearer $ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"title\": \"$title\",
+        \"description\": \"$description\",
+        \"start_date\": \"2024-06-15\",
+        \"distance_km\": 25.0
+      }")
+
+    TRIP_ID=$(echo "$TRIP_RESPONSE" | jq -r '.data.trip_id')
+
+    if [ "$TRIP_ID" == "null" ]; then
+        echo -e "${RED}  Error: No se pudo crear el viaje.${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}  ✓ Viaje creado con ID: $TRIP_ID${NC}"
+
+    # Publicar viaje
+    PUBLISH_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP_ID/publish" \
+      -H "Authorization: Bearer $ACCESS_TOKEN")
+
+    PUBLISH_STATUS=$(echo "$PUBLISH_RESPONSE" | jq -r '.data.status')
+
+    if [ "$PUBLISH_STATUS" != "published" ]; then
+        echo -e "${RED}  Error: No se pudo publicar el viaje.${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}  ✓ Viaje publicado correctamente${NC}"
+    echo "$TRIP_ID"
+}
+
 # Banner
 echo -e "${BLUE}"
 echo "=================================================="
@@ -49,7 +88,7 @@ if ! command -v curl &> /dev/null; then
 fi
 
 # Verificar que el backend está corriendo
-echo -e "${YELLOW}[1/6] Verificando backend...${NC}"
+echo -e "${YELLOW}[1/2] Verificando backend...${NC}"
 if ! curl -s "$API_URL/health" > /dev/null 2>&1; then
     echo -e "${RED}Error: Backend no está corriendo en $API_URL${NC}"
     echo "Inicia el backend con: poetry run uvicorn src.main:app --reload"
@@ -58,10 +97,10 @@ fi
 echo -e "${GREEN}✓ Backend activo en $API_URL${NC}"
 
 # Autenticación
-echo -e "${YELLOW}[2/6] Autenticando usuario...${NC}"
+echo -e "${YELLOW}[2/2] Autenticando usuario...${NC}"
 LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
+  -d "{\"login\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
 
 if [ -z "$LOGIN_RESPONSE" ]; then
     echo -e "${RED}Error: No se pudo autenticar. Verifica que el usuario existe.${NC}"
@@ -69,7 +108,7 @@ if [ -z "$LOGIN_RESPONSE" ]; then
     exit 1
 fi
 
-ACCESS_TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.access_token')
+ACCESS_TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.data.access_token')
 
 if [ "$ACCESS_TOKEN" == "null" ]; then
     echo -e "${RED}Error: Login falló. Respuesta del servidor:${NC}"
@@ -79,42 +118,8 @@ fi
 
 echo -e "${GREEN}✓ Autenticación exitosa (token obtenido)${NC}"
 
-# Crear viaje de prueba
-echo -e "${YELLOW}[3/6] Creando viaje de prueba...${NC}"
-TRIP_RESPONSE=$(curl -s -X POST "$API_URL/trips" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Prueba Estadísticas GPX (Automatizado)",
-    "description": "Viaje de prueba automatizado para validar estadísticas avanzadas de rutas GPX (User Story 5). Este viaje se creó mediante script de testing.",
-    "start_date": "2024-06-15",
-    "distance_km": 25.0
-  }')
-
-TRIP_ID=$(echo "$TRIP_RESPONSE" | jq -r '.data.trip_id')
-
-if [ "$TRIP_ID" == "null" ]; then
-    echo -e "${RED}Error: No se pudo crear el viaje. Respuesta del servidor:${NC}"
-    echo "$TRIP_RESPONSE" | jq '.'
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Viaje creado con ID: $TRIP_ID${NC}"
-
-# Publicar viaje (requerido para subir GPX)
-echo -e "${YELLOW}[4/6] Publicando viaje...${NC}"
-PUBLISH_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP_ID/publish" \
-  -H "Authorization: Bearer $ACCESS_TOKEN")
-
-PUBLISH_STATUS=$(echo "$PUBLISH_RESPONSE" | jq -r '.data.status')
-
-if [ "$PUBLISH_STATUS" != "published" ]; then
-    echo -e "${RED}Error: No se pudo publicar el viaje. Respuesta del servidor:${NC}"
-    echo "$PUBLISH_RESPONSE" | jq '.'
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Viaje publicado correctamente${NC}"
+# Array para almacenar los trip IDs creados
+TRIP_IDS=()
 
 # Test 1: GPX con timestamps (debe generar estadísticas)
 echo ""
@@ -123,8 +128,13 @@ echo "  TEST 1: test_with_timestamps.gpx"
 echo "  Expectativa: ✓ route_statistics presente"
 echo -e "==================================================${NC}"
 
-echo -e "${YELLOW}[5/6] Subiendo test_with_timestamps.gpx...${NC}"
-GPX1_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP_ID/gpx" \
+echo -e "${YELLOW}[1/3] Creando y publicando viaje para Test 1...${NC}"
+TRIP1_ID=$(create_and_publish_trip "Test 1: GPX con Timestamps (Automatizado)" "Viaje de prueba para validar calculo de estadisticas avanzadas con GPX que contiene timestamps. User Story 5 - Test 1.")
+TRIP_IDS+=("$TRIP1_ID")
+
+echo ""
+echo -e "${YELLOW}[2/3] Subiendo test_with_timestamps.gpx...${NC}"
+GPX1_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP1_ID/gpx" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -F "file=@$GPX_DIR/test_with_timestamps.gpx")
 
@@ -140,7 +150,8 @@ if [ "$GPX1_STATUS" == "processing" ]; then
 fi
 
 # Obtener trackdata con estadísticas
-echo -e "${YELLOW}[6/6] Obteniendo estadísticas calculadas...${NC}"
+echo ""
+echo -e "${YELLOW}[3/3] Obteniendo estadísticas calculadas...${NC}"
 TRACK1_RESPONSE=$(curl -s -X GET "$API_URL/gpx/$GPX1_FILE_ID/track" \
   -H "Authorization: Bearer $ACCESS_TOKEN")
 
@@ -214,14 +225,13 @@ echo "  TEST 2: test_without_timestamps.gpx"
 echo "  Expectativa: ✗ route_statistics null"
 echo -e "==================================================${NC}"
 
-# Primero, eliminar GPX anterior
-echo -e "${YELLOW}Eliminando GPX anterior...${NC}"
-DELETE_RESPONSE=$(curl -s -X DELETE "$API_URL/trips/$TRIP_ID/gpx" \
-  -H "Authorization: Bearer $ACCESS_TOKEN")
-echo -e "${GREEN}✓ GPX anterior eliminado${NC}"
+echo -e "${YELLOW}[1/3] Creando y publicando viaje para Test 2...${NC}"
+TRIP2_ID=$(create_and_publish_trip "Test 2: GPX sin Timestamps (Automatizado)" "Viaje de prueba para validar que NO se calculan estadisticas avanzadas cuando el GPX no contiene timestamps. User Story 5 - Test 2.")
+TRIP_IDS+=("$TRIP2_ID")
 
-echo -e "${YELLOW}Subiendo test_without_timestamps.gpx...${NC}"
-GPX2_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP_ID/gpx" \
+echo ""
+echo -e "${YELLOW}[2/3] Subiendo test_without_timestamps.gpx...${NC}"
+GPX2_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP2_ID/gpx" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -F "file=@$GPX_DIR/test_without_timestamps.gpx")
 
@@ -237,7 +247,8 @@ if [ "$GPX2_STATUS" == "processing" ]; then
 fi
 
 # Obtener trackdata
-echo -e "${YELLOW}Obteniendo estadísticas...${NC}"
+echo ""
+echo -e "${YELLOW}[3/3] Obteniendo estadísticas...${NC}"
 TRACK2_RESPONSE=$(curl -s -X GET "$API_URL/gpx/$GPX2_FILE_ID/track" \
   -H "Authorization: Bearer $ACCESS_TOKEN")
 
@@ -263,14 +274,13 @@ echo "  TEST 3: test_realistic_gradients.gpx"
 echo "  Expectativa: ✓ max_gradient < 35%"
 echo -e "==================================================${NC}"
 
-# Eliminar GPX anterior
-echo -e "${YELLOW}Eliminando GPX anterior...${NC}"
-DELETE_RESPONSE=$(curl -s -X DELETE "$API_URL/trips/$TRIP_ID/gpx" \
-  -H "Authorization: Bearer $ACCESS_TOKEN")
-echo -e "${GREEN}✓ GPX anterior eliminado${NC}"
+echo -e "${YELLOW}[1/3] Creando y publicando viaje para Test 3...${NC}"
+TRIP3_ID=$(create_and_publish_trip "Test 3: Gradientes Realistas (Automatizado)" "Viaje de prueba para validar que los gradientes calculados son realistas (<35%). Puerto de Navacerrada. User Story 5 - Test 3.")
+TRIP_IDS+=("$TRIP3_ID")
 
-echo -e "${YELLOW}Subiendo test_realistic_gradients.gpx...${NC}"
-GPX3_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP_ID/gpx" \
+echo ""
+echo -e "${YELLOW}[2/3] Subiendo test_realistic_gradients.gpx...${NC}"
+GPX3_RESPONSE=$(curl -s -X POST "$API_URL/trips/$TRIP3_ID/gpx" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -F "file=@$GPX_DIR/test_realistic_gradients.gpx")
 
@@ -286,7 +296,8 @@ if [ "$GPX3_STATUS" == "processing" ]; then
 fi
 
 # Obtener trackdata
-echo -e "${YELLOW}Obteniendo estadísticas...${NC}"
+echo ""
+echo -e "${YELLOW}[3/3] Obteniendo estadísticas...${NC}"
 TRACK3_RESPONSE=$(curl -s -X GET "$API_URL/gpx/$GPX3_FILE_ID/track" \
   -H "Authorization: Bearer $ACCESS_TOKEN")
 
@@ -323,6 +334,9 @@ echo -e "${GREEN}✓ Test 1: GPX con timestamps → Estadísticas calculadas${NC
 echo -e "${GREEN}✓ Test 2: GPX sin timestamps → Sin estadísticas (null)${NC}"
 echo -e "${GREEN}✓ Test 3: Gradientes realistas → max_gradient < 35%${NC}"
 echo ""
-echo -e "${BLUE}Viaje de prueba creado: http://localhost:5173/trips/$TRIP_ID${NC}"
+echo -e "${BLUE}Viajes de prueba creados:${NC}"
+echo -e "${CYAN}  Test 1: http://localhost:5173/trips/${TRIP_IDS[0]}${NC}"
+echo -e "${CYAN}  Test 2: http://localhost:5173/trips/${TRIP_IDS[1]}${NC}"
+echo -e "${CYAN}  Test 3: http://localhost:5173/trips/${TRIP_IDS[2]}${NC}"
 echo ""
 echo -e "${GREEN}¡Todas las pruebas pasaron exitosamente! ✓${NC}"
