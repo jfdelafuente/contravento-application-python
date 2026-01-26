@@ -193,18 +193,23 @@ class RouteStatisticsService:
             if prev_point.elevation is None or curr_point.elevation is None:
                 continue
 
-            # Calculate distance (meters)
-            distance_m = prev_point.distance_3d(curr_point) or 0.0
+            # Calculate HORIZONTAL distance (2D, not 3D) for accurate gradient
+            # Using distance_2d() excludes vertical component
+            distance_m = prev_point.distance_2d(curr_point) or 0.0
             if distance_m <= 0:
                 continue
 
             # Calculate elevation change (meters)
             elevation_diff_m = curr_point.elevation - prev_point.elevation
 
-            # Calculate gradient (percentage)
+            # Calculate gradient (percentage) = rise / run * 100
+            # This gives accurate slope percentage
             gradient = (elevation_diff_m / distance_m) * 100
 
-            gradients.append(gradient)
+            # Filter unrealistic gradients (GPS errors can cause spikes)
+            # Realistic cycling gradients: -35% to +35%
+            if -35 <= gradient <= 35:
+                gradients.append(gradient)
 
         if not gradients:
             return {
@@ -271,8 +276,8 @@ class RouteStatisticsService:
             if prev_point.elevation is None or curr_point.elevation is None:
                 continue
 
-            # Calculate distance
-            distance_m = prev_point.distance_3d(curr_point) or 0.0
+            # Calculate HORIZONTAL distance (2D) for accurate gradient calculation
+            distance_m = prev_point.distance_2d(curr_point) or 0.0
             cumulative_distance_km += distance_m / 1000
 
             elevation_diff = curr_point.elevation - prev_point.elevation
