@@ -166,6 +166,7 @@ class GPXService:
                 "has_elevation": has_elevation,
                 "has_timestamps": has_timestamps,
                 "trackpoints": simplified_points,
+                "original_points": points,  # Include original points for statistics calculation
             }
 
         except gpxpy.gpx.GPXException as e:

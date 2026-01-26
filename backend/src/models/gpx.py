@@ -93,6 +93,12 @@ class GPXFile(Base):
         order_by="TrackPoint.sequence",
         cascade="all, delete-orphan",
     )
+    route_statistics: Mapped["RouteStatistics"] = relationship(
+        "RouteStatistics",
+        back_populates="gpx_file",
+        uselist=False,  # One-to-one relationship
+        cascade="all, delete-orphan",
+    )  # type: ignore
 
     def __repr__(self) -> str:
         return (

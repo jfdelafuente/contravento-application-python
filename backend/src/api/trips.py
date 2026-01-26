@@ -1400,6 +1400,38 @@ async def upload_gpx_file(
                 db.add_all(trackpoints)
                 await db.commit()
 
+                # Calculate advanced route statistics if timestamps available (User Story 5)
+                if parsed_data["has_timestamps"]:
+                    from src.models.route_statistics import RouteStatistics
+                    from src.services.route_statistics_service import RouteStatisticsService
+
+                    try:
+                        # Calculate statistics from original points with timestamps
+                        stats_data = RouteStatisticsService.calculate_statistics(
+                            parsed_data["original_points"]
+                        )
+
+                        if stats_data:
+                            # Create RouteStatistics record
+                            route_stats = RouteStatistics(
+                                gpx_file_id=gpx_file.gpx_file_id,
+                                avg_speed_kmh=stats_data.get("avg_speed_kmh"),
+                                max_speed_kmh=stats_data.get("max_speed_kmh"),
+                                total_time_minutes=stats_data.get("total_time_minutes"),
+                                moving_time_minutes=stats_data.get("moving_time_minutes"),
+                                avg_gradient=stats_data.get("avg_gradient"),
+                                max_gradient=stats_data.get("max_gradient"),
+                                top_climbs=stats_data.get("top_climbs"),
+                            )
+                            db.add(route_stats)
+                            await db.commit()
+                            logger.info(
+                                f"Route statistics calculated for GPX {gpx_file.gpx_file_id}"
+                            )
+                    except Exception as e:
+                        # Log error but don't fail the upload
+                        logger.error(f"Failed to calculate route statistics: {e}")
+
                 # Return full response (201 Created)
                 from src.schemas.gpx import GPXUploadResponse
 
@@ -1498,6 +1530,38 @@ async def upload_gpx_file(
 
                     db.add_all(trackpoints)
                     await db.commit()
+
+                    # Calculate advanced route statistics if timestamps available (User Story 5)
+                    if parsed_data["has_timestamps"]:
+                        from src.models.route_statistics import RouteStatistics
+                        from src.services.route_statistics_service import RouteStatisticsService
+
+                        try:
+                            # Calculate statistics from original points with timestamps
+                            stats_data = RouteStatisticsService.calculate_statistics(
+                                parsed_data["original_points"]
+                            )
+
+                            if stats_data:
+                                # Create RouteStatistics record
+                                route_stats = RouteStatistics(
+                                    gpx_file_id=gpx_file.gpx_file_id,
+                                    avg_speed_kmh=stats_data.get("avg_speed_kmh"),
+                                    max_speed_kmh=stats_data.get("max_speed_kmh"),
+                                    total_time_minutes=stats_data.get("total_time_minutes"),
+                                    moving_time_minutes=stats_data.get("moving_time_minutes"),
+                                    avg_gradient=stats_data.get("avg_gradient"),
+                                    max_gradient=stats_data.get("max_gradient"),
+                                    top_climbs=stats_data.get("top_climbs"),
+                                )
+                                db.add(route_stats)
+                                await db.commit()
+                                logger.info(
+                                    f"Route statistics calculated for GPX {gpx_file.gpx_file_id}"
+                                )
+                        except Exception as e:
+                            # Log error but don't fail the upload
+                            logger.error(f"Failed to calculate route statistics: {e}")
 
                     # Return 201 Created (synchronous)
                     from src.schemas.gpx import GPXUploadResponse
@@ -1973,8 +2037,21 @@ async def get_track_data(
         )
         trackpoints = trackpoints_result.scalars().all()
 
+        # Get route statistics (User Story 5) if available
+        from src.models.route_statistics import RouteStatistics
+
+        stats_result = await db.execute(
+            select(RouteStatistics).where(RouteStatistics.gpx_file_id == gpx_file_id)
+        )
+        route_statistics = stats_result.scalar_one_or_none()
+
         # Convert to response schema
-        from src.schemas.gpx import CoordinateResponse, TrackDataResponse, TrackPointResponse
+        from src.schemas.gpx import (
+            CoordinateResponse,
+            RouteStatisticsResponse,
+            TrackDataResponse,
+            TrackPointResponse,
+        )
 
         track_data = TrackDataResponse(
             gpx_file_id=gpx_file.gpx_file_id,
@@ -1988,6 +2065,11 @@ async def get_track_data(
             ),
             end_point=CoordinateResponse(latitude=gpx_file.end_lat, longitude=gpx_file.end_lon),
             trackpoints=[TrackPointResponse.model_validate(tp) for tp in trackpoints],
+            route_statistics=(
+                RouteStatisticsResponse.model_validate(route_statistics)
+                if route_statistics
+                else None
+            ),
         )
 
         return TrackDataSuccessResponse(success=True, data=track_data)
