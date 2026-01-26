@@ -19,6 +19,7 @@ import { CommentList } from '../components/comments/CommentList';
 import { GPXUploader } from '../components/trips/GPXUploader';
 import { GPXStats } from '../components/trips/GPXStats';
 import { ElevationProfile } from '../components/trips/ElevationProfile';
+import { AdvancedStats } from '../components/trips/AdvancedStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { useGPXTrack } from '../hooks/useGPXTrack';
@@ -728,6 +729,11 @@ export const TripDetailPage: React.FC = () => {
               gpxFileId={trip.gpx_file.gpx_file_id}
               isOwner={isOwner}
             />
+
+            {/* Advanced Statistics (User Story 5) */}
+            {gpxTrack?.route_statistics && (
+              <AdvancedStats statistics={gpxTrack.route_statistics} />
+            )}
           </section>
         )}
 

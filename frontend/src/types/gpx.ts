@@ -225,6 +225,66 @@ export interface GPXStatusResponse {
 }
 
 /**
+ * Individual climb data in top climbs list (User Story 5)
+ *
+ * Represents a single climb segment with elevation and gradient details.
+ */
+export interface TopClimb {
+  /** Distance from start where climb begins (km) */
+  start_km: number;
+
+  /** Distance from start where climb ends (km) */
+  end_km: number;
+
+  /** Total elevation gain in climb (meters) */
+  elevation_gain_m: number;
+
+  /** Average gradient of climb (percentage, e.g., 8.5 = 8.5% slope) */
+  avg_gradient: number;
+
+  /** Human-readable climb description */
+  description: string;
+}
+
+/**
+ * Advanced route statistics (User Story 5)
+ *
+ * Only present if GPX file has timestamps (has_timestamps=True).
+ * Includes speed metrics, time analysis, gradient analysis, and top climbs.
+ */
+export interface RouteStatistics {
+  /** Unique statistics record ID (UUID) */
+  stats_id: string;
+
+  /** Associated GPX file ID (UUID) */
+  gpx_file_id: string;
+
+  /** Average speed (km/h) */
+  avg_speed_kmh: number | null;
+
+  /** Maximum speed (km/h) */
+  max_speed_kmh: number | null;
+
+  /** Total elapsed time (minutes) */
+  total_time_minutes: number | null;
+
+  /** Time in motion, excludes stops (minutes) */
+  moving_time_minutes: number | null;
+
+  /** Average gradient over route (%) */
+  avg_gradient: number | null;
+
+  /** Maximum gradient (steepest uphill) (%) */
+  max_gradient: number | null;
+
+  /** Top 3 hardest climbs (max 3 items) */
+  top_climbs: TopClimb[] | null;
+
+  /** When statistics were calculated (ISO 8601) */
+  created_at: string;
+}
+
+/**
  * Response from track data endpoint
  *
  * Returned by GET /gpx/{gpx_file_id}/track with simplified trackpoints for rendering.
@@ -266,6 +326,9 @@ export interface TrackDataResponse {
 
     /** Simplified trackpoints ordered by sequence */
     trackpoints: TrackPoint[];
+
+    /** Advanced route statistics (only if GPX has timestamps) - User Story 5 */
+    route_statistics: RouteStatistics | null;
   };
 }
 
