@@ -14,8 +14,10 @@ import { LatLngExpression, Icon, LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
 import { TrackPoint, Coordinate } from '../../types/gpx';
+import { POI } from '../../types/poi';
 import { createNumberedMarkerIcon } from '../../utils/mapHelpers';
 import { MapClickHandler } from './MapClickHandler';
+import { POIMarker } from './POIMarker';
 import './TripMap.css';
 
 interface TripMapProps {
@@ -51,6 +53,18 @@ interface TripMapProps {
 
   /** Active point from elevation profile hover (Feature 003 - User Story 3) */
   activeProfilePoint?: TrackPoint | null;
+
+  /** Array of POIs for this trip (Feature 003 - User Story 4) */
+  pois?: POI[];
+
+  /** Whether the current user is the owner of the trip (Feature 003 - User Story 4) */
+  isOwner?: boolean;
+
+  /** Callback when user clicks Edit on a POI (Feature 003 - User Story 4) */
+  onPOIEdit?: (poi: POI) => void;
+
+  /** Callback when user clicks Delete on a POI (Feature 003 - User Story 4) */
+  onPOIDelete?: (poiId: string) => void;
 }
 
 // Custom icons for GPX route start/end markers
@@ -144,6 +158,10 @@ export const TripMap: React.FC<TripMapProps> = ({
   gpxEndPoint,
   mapRef,
   activeProfilePoint,
+  pois = [],
+  isOwner = false,
+  onPOIEdit,
+  onPOIDelete,
 }) => {
   // Error state for map tile loading failures
   const [hasMapError, setHasMapError] = useState(false);
@@ -607,6 +625,17 @@ export const TripMap: React.FC<TripMapProps> = ({
               </Marker>
             );
           })}
+
+        {/* POI Markers (Feature 003 - User Story 4) */}
+        {pois.map((poi) => (
+          <POIMarker
+            key={poi.poi_id}
+            poi={poi}
+            isOwner={isOwner}
+            onEdit={onPOIEdit}
+            onDelete={onPOIDelete}
+          />
+        ))}
         </MapContainer>
 
           {/* Fullscreen Toggle Button - Only show if map is visible */}

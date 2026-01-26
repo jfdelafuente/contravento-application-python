@@ -20,6 +20,7 @@ from src.models.comment import Comment  # noqa: F401
 from src.models.cycling_type import CyclingType  # noqa: F401
 from src.models.like import Like  # noqa: F401
 from src.models.notification import Notification, NotificationArchive  # noqa: F401
+from src.models.poi import PointOfInterest  # noqa: F401
 from src.models.share import Share  # noqa: F401
 from src.models.social import Follow  # noqa: F401
 from src.models.stats import Achievement, UserAchievement, UserStats  # noqa: F401
@@ -262,7 +263,7 @@ async def root() -> dict[str, Any]:
 
 
 # Include routers (T028)
-from src.api import auth, comments, cycling_types, feed, likes, profile, social, stats, trips
+from src.api import auth, comments, cycling_types, feed, likes, pois, profile, social, stats, trips
 
 app.include_router(auth.router)
 app.include_router(profile.router)
@@ -275,6 +276,7 @@ app.include_router(comments.router)  # Feature 004: Comments
 app.include_router(trips.router)
 app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
 app.include_router(trips.gpx_router)  # Feature 003: GPX Routes Interactive
+app.include_router(pois.router)  # Feature 003: Points of Interest (US4)
 app.include_router(cycling_types.router)  # Public cycling types endpoint
 app.include_router(cycling_types.admin_router)  # Admin cycling types endpoints
 

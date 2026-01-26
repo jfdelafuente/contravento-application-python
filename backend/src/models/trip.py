@@ -137,6 +137,13 @@ class Trip(Base):
         cascade="all, delete-orphan",
     )
 
+    points_of_interest: Mapped[list["PointOfInterest"]] = relationship(
+        "PointOfInterest",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+        order_by="PointOfInterest.sequence",
+    )
+
     # Indexes
     __table_args__ = (
         Index("idx_trip_user_status", "user_id", "status"),  # List user's trips by status

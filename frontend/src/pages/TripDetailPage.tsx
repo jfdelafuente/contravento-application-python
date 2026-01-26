@@ -12,6 +12,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TripGallery } from '../components/trips/TripGallery';
 import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
+import { POIForm } from '../components/trips/POIForm';
 import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
@@ -22,11 +23,13 @@ import { ElevationProfile } from '../components/trips/ElevationProfile';
 import { AdvancedStats } from '../components/trips/AdvancedStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { deleteGPX } from '../services/gpxService';
+import { getTripPOIs, createPOI, updatePOI, deletePOI } from '../services/poiService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { useGPXTrack } from '../hooks/useGPXTrack';
 import { useMapProfileSync } from '../hooks/useMapProfileSync';
 import type { LocationSelection } from '../types/geocoding';
 import type { LocationInput } from '../types/trip';
+import type { POI, POICreateInput, POIUpdateInput } from '../types/poi';
 import {
   getDifficultyLabel,
   getDifficultyClass,
@@ -73,6 +76,16 @@ export const TripDetailPage: React.FC = () => {
 
   // Likes list modal state (Feature 004 - US2)
   const [showLikesModal, setShowLikesModal] = useState(false);
+
+  // POI state (Feature 003 - User Story 4)
+  const [pois, setPois] = useState<POI[]>([]);
+  const [isPOIsLoading, setIsPOIsLoading] = useState(false);
+  const [isAddingPOI, setIsAddingPOI] = useState(false);
+  const [editingPOI, setEditingPOI] = useState<POI | null>(null);
+  const [poiCoordinates, setPoiCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [showPOIForm, setShowPOIForm] = useState(false);
+  const [isPOISubmitting, setIsPOISubmitting] = useState(false);
+  const [poiError, setPOIError] = useState<string | null>(null);
 
   // Fetch trip details (extracted for reuse)
   const fetchTrip = async () => {
@@ -126,6 +139,29 @@ export const TripDetailPage: React.FC = () => {
 
   // Check if current user is the trip owner
   const isOwner = !!(user && trip && user.user_id === trip.user_id);
+
+  // Fetch POIs for this trip (Feature 003 - User Story 4)
+  const fetchPOIs = async () => {
+    if (!tripId) return;
+
+    setIsPOIsLoading(true);
+    try {
+      const response = await getTripPOIs(tripId);
+      setPois(response.pois);
+    } catch (err: any) {
+      console.error('Error fetching POIs:', err);
+      // Don't show error toast for POIs (non-critical feature)
+    } finally {
+      setIsPOIsLoading(false);
+    }
+  };
+
+  // Load POIs when trip is loaded
+  useEffect(() => {
+    if (trip) {
+      fetchPOIs();
+    }
+  }, [trip?.trip_id]);
 
   // Auto-refresh: Passive polling to detect GPX completed in background (Layer 3c)
   // If user is owner and trip has no GPX, check every 5s if GPX appeared
@@ -446,6 +482,106 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
+  // POI Handlers (Feature 003 - User Story 4)
+
+  // Toggle POI add mode
+  const handleToggleAddPOI = () => {
+    setIsAddingPOI(!isAddingPOI);
+    if (!isAddingPOI) {
+      // Enable map edit mode when adding POI
+      setIsMapEditMode(true);
+    } else {
+      // Cancel adding POI
+      setIsMapEditMode(false);
+      setPoiCoordinates(null);
+      setShowPOIForm(false);
+    }
+  };
+
+  // Handle POI map click (when in add mode)
+  const handlePOIMapClick = async (lat: number, lng: number) => {
+    if (!isAddingPOI) return;
+
+    // Set coordinates and show POI form
+    setPoiCoordinates({ latitude: lat, longitude: lng });
+    setShowPOIForm(true);
+  };
+
+  // Handle POI form submission
+  const handlePOISubmit = async (data: POICreateInput | POIUpdateInput) => {
+    if (!trip) return;
+
+    setIsPOISubmitting(true);
+    setPOIError(null);
+
+    try {
+      if (editingPOI) {
+        // Update existing POI
+        await updatePOI(editingPOI.poi_id, data as POIUpdateInput);
+        toast.success('POI actualizado correctamente');
+      } else {
+        // Create new POI
+        await createPOI(trip.trip_id, data as POICreateInput);
+        toast.success('POI añadido correctamente');
+      }
+
+      // Refresh POIs
+      await fetchPOIs();
+
+      // Close form and reset state
+      setShowPOIForm(false);
+      setEditingPOI(null);
+      setPoiCoordinates(null);
+      setIsAddingPOI(false);
+      setIsMapEditMode(false);
+    } catch (err: any) {
+      console.error('Error saving POI:', err);
+      const errorMsg = err.response?.data?.detail || 'Error al guardar POI';
+      setPOIError(errorMsg);
+      toast.error(errorMsg);
+      throw err; // Propagate to form
+    } finally {
+      setIsPOISubmitting(false);
+    }
+  };
+
+  // Handle POI edit
+  const handlePOIEdit = (poi: POI) => {
+    setEditingPOI(poi);
+    setShowPOIForm(true);
+  };
+
+  // Handle POI delete
+  const handlePOIDelete = async (poiId: string) => {
+    if (!window.confirm('¿Eliminar este POI? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      await deletePOI(poiId);
+      toast.success('POI eliminado correctamente');
+
+      // Refresh POIs
+      await fetchPOIs();
+    } catch (err: any) {
+      console.error('Error deleting POI:', err);
+      const errorMsg = err.response?.data?.detail || 'Error al eliminar POI';
+      toast.error(errorMsg);
+    }
+  };
+
+  // Cancel POI form
+  const handleCancelPOIForm = () => {
+    setShowPOIForm(false);
+    setEditingPOI(null);
+    setPoiCoordinates(null);
+    setPOIError(null);
+    if (isAddingPOI) {
+      setIsAddingPOI(false);
+      setIsMapEditMode(false);
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -688,9 +824,26 @@ export const TripDetailPage: React.FC = () => {
                     : 'trip-detail-page__action-button--edit'
                 }`}
                 onClick={handleToggleMapEdit}
+                disabled={isAddingPOI}
               >
                 {isMapEditMode ? 'Cancelar edición' : 'Editar ubicaciones'}
               </button>
+
+              {/* Add POI button (Feature 003 - User Story 4) */}
+              {trip.status === 'published' && (
+                <button
+                  className={`trip-detail-page__action-button ${
+                    isAddingPOI
+                      ? 'trip-detail-page__action-button--cancel'
+                      : 'trip-detail-page__action-button--primary'
+                  }`}
+                  onClick={handleToggleAddPOI}
+                  disabled={pois.length >= 20}
+                  title={pois.length >= 20 ? 'Máximo 20 POIs por viaje' : 'Añadir punto de interés'}
+                >
+                  {isAddingPOI ? 'Cancelar POI' : `Añadir POI (${pois.length}/20)`}
+                </button>
+              )}
 
               {/* Edit button - Phase 7 */}
               <Link
@@ -796,7 +949,7 @@ export const TripDetailPage: React.FC = () => {
                 locations={trip.locations || []}
                 tripTitle={trip.title}
                 isEditMode={isMapEditMode}
-                onMapClick={handleMapClick}
+                onMapClick={isAddingPOI ? handlePOIMapClick : handleMapClick}
                 onMarkerDrag={handleMarkerDrag}
                 hasGPX={!!trip.gpx_file}
                 gpxTrackPoints={gpxTrack?.trackpoints}
@@ -804,6 +957,10 @@ export const TripDetailPage: React.FC = () => {
                 gpxEndPoint={gpxTrack?.end_point}
                 mapRef={mapRef}
                 activeProfilePoint={activeProfilePoint}
+                pois={pois}
+                isOwner={isOwner}
+                onPOIEdit={handlePOIEdit}
+                onPOIDelete={handlePOIDelete}
               />
             </Suspense>
           </section>
@@ -915,6 +1072,19 @@ export const TripDetailPage: React.FC = () => {
           tripTitle={trip.title}
           isOpen={showLikesModal}
           onClose={() => setShowLikesModal(false)}
+        />
+      )}
+
+      {/* POI Form Modal (Feature 003 - User Story 4) */}
+      {showPOIForm && trip && (
+        <POIForm
+          tripId={trip.trip_id}
+          editingPOI={editingPOI}
+          coordinates={poiCoordinates}
+          onCancel={handleCancelPOIForm}
+          onSubmit={handlePOISubmit}
+          isSubmitting={isPOISubmitting}
+          error={poiError}
         />
       )}
     </div>
