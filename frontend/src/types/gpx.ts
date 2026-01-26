@@ -441,8 +441,11 @@ export interface GPXStatsProps {
   /** GPX file ID (required for download functionality) */
   gpxFileId?: string;
 
-  /** Whether current user is trip owner (enables download button) */
+  /** Whether current user is trip owner (enables download and delete buttons) */
   isOwner?: boolean;
+
+  /** Callback when GPX file is deleted (owner-only action) */
+  onDelete?: () => void;
 }
 
 // ============================================================================

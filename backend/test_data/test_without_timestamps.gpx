@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Ruta de Prueba - SIN Timestamps (Solo Elevación)</name>
+    <desc>Archivo GPX de prueba SIN timestamps para validar que NO se calculan estadísticas avanzadas. Solo tiene coordenadas y elevación.</desc>
+  </metadata>
+  <trk>
+    <name>Ruta sin Timestamps - No debería generar estadísticas</name>
+    <desc>Ruta de ~15km con elevación pero sin timestamps. Las estadísticas avanzadas deberían ser NULL.</desc>
+    <trkseg>
+      <!-- Inicio: Km 0.0 - NO HAY timestamps en ningún punto -->
+      <trkpt lat="41.3874" lon="2.1686">
+        <ele>10</ele>
+      </trkpt>
+
+      <!-- Km 1.0 -->
+      <trkpt lat="41.3964" lon="2.1693">
+        <ele>12</ele>
+      </trkpt>
+
+      <!-- Km 2.0 -->
+      <trkpt lat="41.4054" lon="2.1700">
+        <ele>15</ele>
+      </trkpt>
+
+      <!-- Km 3.0 - Inicio subida -->
+      <trkpt lat="41.4144" lon="2.1707">
+        <ele>18</ele>
+      </trkpt>
+
+      <!-- Km 4.0 -->
+      <trkpt lat="41.4234" lon="2.1714">
+        <ele>58</ele>
+      </trkpt>
+
+      <!-- Km 5.0 -->
+      <trkpt lat="41.4324" lon="2.1721">
+        <ele>98</ele>
+      </trkpt>
+
+      <!-- Km 6.0 - Pico -->
+      <trkpt lat="41.4414" lon="2.1728">
+        <ele>138</ele>
+      </trkpt>
+
+      <!-- Km 7.0 - Bajada -->
+      <trkpt lat="41.4504" lon="2.1735">
+        <ele>108</ele>
+      </trkpt>
+
+      <!-- Km 8.0 -->
+      <trkpt lat="41.4594" lon="2.1742">
+        <ele>78</ele>
+      </trkpt>
+
+      <!-- Km 9.0 -->
+      <trkpt lat="41.4684" lon="2.1749">
+        <ele>50</ele>
+      </trkpt>
+
+      <!-- Km 10.0 - Otra subida -->
+      <trkpt lat="41.4774" lon="2.1756">
+        <ele>52</ele>
+      </trkpt>
+
+      <!-- Km 11.0 -->
+      <trkpt lat="41.4864" lon="2.1763">
+        <ele>82</ele>
+      </trkpt>
+
+      <!-- Km 12.0 -->
+      <trkpt lat="41.4954" lon="2.1770">
+        <ele>112</ele>
+      </trkpt>
+
+      <!-- Km 13.0 - Pico 2 -->
+      <trkpt lat="41.5044" lon="2.1777">
+        <ele>142</ele>
+      </trkpt>
+
+      <!-- Km 14.0 - Bajada final -->
+      <trkpt lat="41.5134" lon="2.1784">
+        <ele>102</ele>
+      </trkpt>
+
+      <!-- Km 15.0 - Fin -->
+      <trkpt lat="41.5224" lon="2.1791">
+        <ele>65</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

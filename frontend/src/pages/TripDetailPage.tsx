@@ -21,6 +21,7 @@ import { GPXStats } from '../components/trips/GPXStats';
 import { ElevationProfile } from '../components/trips/ElevationProfile';
 import { AdvancedStats } from '../components/trips/AdvancedStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
+import { deleteGPX } from '../services/gpxService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { useGPXTrack } from '../hooks/useGPXTrack';
 import { useMapProfileSync } from '../hooks/useMapProfileSync';
@@ -212,6 +213,32 @@ export const TripDetailPage: React.FC = () => {
   // Cancel deletion
   const cancelDelete = () => {
     setShowDeleteConfirm(false);
+  };
+
+  /**
+   * Handle GPX file deletion
+   * Called from GPXStats component after user confirms deletion
+   */
+  const handleDeleteGPX = async () => {
+    if (!trip || !isOwner || !trip.gpx_file) return;
+
+    try {
+      await deleteGPX(trip.trip_id);
+      toast.success('Archivo GPX eliminado correctamente', {
+        duration: 3000,
+        position: 'top-center',
+      });
+      // Refetch trip to update UI (GPX data removed)
+      fetchTrip();
+    } catch (error: any) {
+      console.error('Error deleting GPX:', error);
+      const errorMessage =
+        error.response?.data?.error?.message || 'Error al eliminar archivo GPX';
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-center',
+      });
+    }
   };
 
   // Handle trip publishing
@@ -728,6 +755,7 @@ export const TripDetailPage: React.FC = () => {
               metadata={trip.gpx_file}
               gpxFileId={trip.gpx_file.gpx_file_id}
               isOwner={isOwner}
+              onDelete={handleDeleteGPX}
             />
 
             {/* Advanced Statistics (User Story 5) */}

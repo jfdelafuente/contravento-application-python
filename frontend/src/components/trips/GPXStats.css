@@ -125,14 +125,17 @@
   color: #0f766e !important;
 }
 
-/* Download Button Actions */
+/* Action Buttons */
 .gpx-stats__actions {
   display: flex;
   justify-content: center;
+  gap: 1rem;
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
+/* Download Button (Blue) */
 .gpx-stats__download-btn {
   display: inline-flex;
   align-items: center;
@@ -167,6 +170,46 @@
 }
 
 .gpx-stats__download-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Delete Button (Red/Danger) */
+.gpx-stats__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gpx-stats__delete-btn:hover {
+  background-color: #b91c1c;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.gpx-stats__delete-btn:active {
+  background-color: #991b1b;
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.gpx-stats__delete-btn:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+.gpx-stats__delete-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
@@ -276,5 +319,181 @@
 @media (min-width: 769px) and (max-width: 1024px) {
   .gpx-stats__grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Delete Confirmation Modal */
+.gpx-delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.gpx-delete-modal {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: gpx-modal-fade-in 0.2s ease;
+}
+
+@keyframes gpx-modal-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.gpx-delete-modal__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  background-color: #fee2e2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gpx-delete-modal__icon svg {
+  width: 32px;
+  height: 32px;
+  color: #dc2626;
+}
+
+.gpx-delete-modal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin: 0 0 1rem 0;
+}
+
+.gpx-delete-modal__description {
+  font-size: 1rem;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+}
+
+.gpx-delete-modal__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.gpx-delete-modal__button {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 200px;
+}
+
+.gpx-delete-modal__button--cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.gpx-delete-modal__button--cancel:hover {
+  background-color: #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gpx-delete-modal__button--cancel:active {
+  background-color: #d1d5db;
+}
+
+.gpx-delete-modal__button--cancel:focus {
+  outline: 2px solid #9ca3af;
+  outline-offset: 2px;
+}
+
+.gpx-delete-modal__button--confirm {
+  background-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gpx-delete-modal__button--confirm:hover {
+  background-color: #b91c1c;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.gpx-delete-modal__button--confirm:active {
+  background-color: #991b1b;
+}
+
+.gpx-delete-modal__button--confirm:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+/* Mobile responsive modal */
+@media (max-width: 640px) {
+  .gpx-delete-modal {
+    padding: 1.5rem;
+  }
+
+  .gpx-delete-modal__icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1rem;
+  }
+
+  .gpx-delete-modal__icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .gpx-delete-modal__title {
+    font-size: 1.25rem;
+  }
+
+  .gpx-delete-modal__description {
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .gpx-delete-modal__actions {
+    flex-direction: column;
+  }
+
+  .gpx-delete-modal__button {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .gpx-stats__actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .gpx-stats__download-btn,
+  .gpx-stats__delete-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
   }
 }
