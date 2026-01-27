@@ -102,6 +102,58 @@ class TestGPXServiceSimplification:
             f"Route may not render properly with so few points."
         )
 
+    async def test_simplification_accuracy(self, db_session: AsyncSession):
+        """
+        T051: Test that Douglas-Peucker simplification maintains <5% distance accuracy.
+
+        Validates that simplified route distance is within 5% of original route distance.
+        This ensures the simplification algorithm doesn't lose significant route accuracy
+        while achieving storage reduction.
+
+        Success Criteria: Distance difference <5% (SC-007 implicitly requires accuracy)
+        Functional Requirements: FR-009 (Accurate route visualization)
+        """
+        # Arrange
+        service = GPXService(db_session)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "camino_del_cid.gpx"  # 2000 points
+
+        with open(gpx_path, "rb") as f:
+            gpx_content = f.read()
+
+        # Act
+        result = await service.parse_gpx_file(gpx_content)
+
+        # Get distances
+        simplified_distance_km = result["distance_km"]
+        original_points = result["original_points"]
+
+        # Calculate original distance by summing all segments
+        original_distance_km = 0.0
+        for i in range(len(original_points) - 1):
+            p1 = original_points[i]
+            p2 = original_points[i + 1]
+            segment_distance = service._calculate_distance(
+                p1.latitude, p1.longitude, p2.latitude, p2.longitude
+            )
+            original_distance_km += segment_distance
+
+        # Assert - Distance accuracy <5%
+        distance_diff = abs(simplified_distance_km - original_distance_km)
+        accuracy_percentage = (distance_diff / original_distance_km) * 100
+
+        assert accuracy_percentage < 5.0, (
+            f"Simplification accuracy must be <5%, got {accuracy_percentage:.2f}%. "
+            f"Original distance: {original_distance_km:.2f} km, "
+            f"Simplified distance: {simplified_distance_km:.2f} km, "
+            f"Difference: {distance_diff:.2f} km"
+        )
+
+        # Additional assertion - simplified distance should be reasonably close
+        # (typically within 1-2% for well-behaved routes)
+        assert simplified_distance_km > 0, "Simplified distance must be positive"
+        assert original_distance_km > 0, "Original distance must be positive"
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio

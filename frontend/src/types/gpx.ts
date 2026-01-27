@@ -247,6 +247,42 @@ export interface TopClimb {
 }
 
 /**
+ * Gradient category statistics (User Story 5 - FR-032)
+ *
+ * Statistics for one gradient category in the route.
+ */
+export interface GradientCategory {
+  /** Total distance in this category (km) */
+  distance_km: number;
+
+  /** Percentage of total route distance */
+  percentage: number;
+}
+
+/**
+ * Gradient distribution breakdown (User Story 5 - FR-032)
+ *
+ * Classifies route segments into gradient categories:
+ * - Llano (flat): 0-3%
+ * - Moderado (moderate): 3-6%
+ * - Empinado (steep): 6-10%
+ * - Muy empinado (very steep): >10%
+ */
+export interface GradientDistribution {
+  /** Flat terrain: 0-3% gradient */
+  llano: GradientCategory;
+
+  /** Moderate terrain: 3-6% gradient */
+  moderado: GradientCategory;
+
+  /** Steep terrain: 6-10% gradient */
+  empinado: GradientCategory;
+
+  /** Very steep terrain: >10% gradient */
+  muy_empinado: GradientCategory;
+}
+
+/**
  * Advanced route statistics (User Story 5)
  *
  * Only present if GPX file has timestamps (has_timestamps=True).
@@ -282,6 +318,9 @@ export interface RouteStatistics {
 
   /** When statistics were calculated (ISO 8601) */
   created_at: string;
+
+  /** Gradient distribution breakdown (FR-032) */
+  gradient_distribution?: GradientDistribution;
 }
 
 /**

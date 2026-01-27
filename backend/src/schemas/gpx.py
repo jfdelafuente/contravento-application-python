@@ -176,6 +176,36 @@ class TopClimbResponse(BaseModel):
         return v
 
 
+class GradientCategoryResponse(BaseModel):
+    """
+    Statistics for one gradient category (FR-032).
+
+    Used in gradient distribution visualization.
+    """
+
+    distance_km: float = Field(..., ge=0.0, description="Total distance in this category (km)")
+    percentage: float = Field(..., ge=0.0, le=100.0, description="Percentage of total route distance")
+
+
+class GradientDistributionResponse(BaseModel):
+    """
+    Complete gradient distribution breakdown (FR-032).
+
+    Classifies route segments into gradient categories:
+    - Llano (flat): 0-3%
+    - Moderado (moderate): 3-6%
+    - Empinado (steep): 6-10%
+    - Muy empinado (very steep): >10%
+    """
+
+    llano: GradientCategoryResponse = Field(..., description="Flat terrain: 0-3% gradient")
+    moderado: GradientCategoryResponse = Field(..., description="Moderate terrain: 3-6% gradient")
+    empinado: GradientCategoryResponse = Field(..., description="Steep terrain: 6-10% gradient")
+    muy_empinado: GradientCategoryResponse = Field(
+        ..., description="Very steep terrain: >10% gradient"
+    )
+
+
 class RouteStatisticsResponse(BaseModel):
     """
     Advanced route statistics calculated from GPX data.
@@ -214,6 +244,19 @@ class RouteStatisticsResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RouteStatisticsWithDistributionResponse(RouteStatisticsResponse):
+    """
+    Extended route statistics with gradient distribution (FR-032).
+
+    Includes all RouteStatisticsResponse fields plus detailed gradient breakdown.
+    Used in frontend visualization for gradient distribution charts.
+    """
+
+    gradient_distribution: GradientDistributionResponse | None = Field(
+        None, description="Gradient distribution breakdown (NULL if no elevation)"
+    )
 
 
 class TrackDataResponse(BaseModel):

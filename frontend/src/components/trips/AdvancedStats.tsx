@@ -169,6 +169,97 @@ export const AdvancedStats: React.FC<AdvancedStatsProps> = ({ statistics }) => {
         </div>
       </div>
 
+      {/* Gradient Distribution Chart (FR-032) */}
+      {statistics.gradient_distribution && (
+        <div className="advanced-stats__gradient">
+          <h4 className="advanced-stats__section-title">
+            <svg
+              className="advanced-stats__icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            Distribución de Pendientes
+          </h4>
+          <div className="advanced-stats__gradient-chart">
+            {/* Llano (0-3%) */}
+            <div className="advanced-stats__gradient-bar">
+              <div className="advanced-stats__gradient-label">
+                <span className="advanced-stats__gradient-name">Llano (0-3%)</span>
+                <span className="advanced-stats__gradient-value">
+                  {statistics.gradient_distribution.llano.distance_km.toFixed(1)} km (
+                  {statistics.gradient_distribution.llano.percentage.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="advanced-stats__gradient-bar-bg">
+                <div
+                  className="advanced-stats__gradient-bar-fill advanced-stats__gradient-bar-fill--llano"
+                  style={{ width: `${statistics.gradient_distribution.llano.percentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Moderado (3-6%) */}
+            <div className="advanced-stats__gradient-bar">
+              <div className="advanced-stats__gradient-label">
+                <span className="advanced-stats__gradient-name">Moderado (3-6%)</span>
+                <span className="advanced-stats__gradient-value">
+                  {statistics.gradient_distribution.moderado.distance_km.toFixed(1)} km (
+                  {statistics.gradient_distribution.moderado.percentage.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="advanced-stats__gradient-bar-bg">
+                <div
+                  className="advanced-stats__gradient-bar-fill advanced-stats__gradient-bar-fill--moderado"
+                  style={{ width: `${statistics.gradient_distribution.moderado.percentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Empinado (6-10%) */}
+            <div className="advanced-stats__gradient-bar">
+              <div className="advanced-stats__gradient-label">
+                <span className="advanced-stats__gradient-name">Empinado (6-10%)</span>
+                <span className="advanced-stats__gradient-value">
+                  {statistics.gradient_distribution.empinado.distance_km.toFixed(1)} km (
+                  {statistics.gradient_distribution.empinado.percentage.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="advanced-stats__gradient-bar-bg">
+                <div
+                  className="advanced-stats__gradient-bar-fill advanced-stats__gradient-bar-fill--empinado"
+                  style={{ width: `${statistics.gradient_distribution.empinado.percentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Muy empinado (>10%) */}
+            <div className="advanced-stats__gradient-bar">
+              <div className="advanced-stats__gradient-label">
+                <span className="advanced-stats__gradient-name">Muy empinado (&gt;10%)</span>
+                <span className="advanced-stats__gradient-value">
+                  {statistics.gradient_distribution.muy_empinado.distance_km.toFixed(1)} km (
+                  {statistics.gradient_distribution.muy_empinado.percentage.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="advanced-stats__gradient-bar-bg">
+                <div
+                  className="advanced-stats__gradient-bar-fill advanced-stats__gradient-bar-fill--muy-empinado"
+                  style={{ width: `${statistics.gradient_distribution.muy_empinado.percentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Climbs Table */}
       {statistics.top_climbs && statistics.top_climbs.length > 0 && (
         <div className="advanced-stats__climbs">

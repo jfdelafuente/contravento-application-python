@@ -98,6 +98,74 @@
   font-weight: 800;
 }
 
+/* Gradient Distribution Section (FR-032) */
+.advanced-stats__gradient {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.advanced-stats__gradient-chart {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.advanced-stats__gradient-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.advanced-stats__gradient-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.advanced-stats__gradient-name {
+  font-weight: 600;
+  color: #334155;
+}
+
+.advanced-stats__gradient-value {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.advanced-stats__gradient-bar-bg {
+  height: 32px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.advanced-stats__gradient-bar-fill {
+  height: 100%;
+  transition: width 0.6s ease-out;
+  border-radius: 6px;
+  position: relative;
+}
+
+.advanced-stats__gradient-bar-fill--llano {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.advanced-stats__gradient-bar-fill--moderado {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.advanced-stats__gradient-bar-fill--empinado {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.advanced-stats__gradient-bar-fill--muy-empinado {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
 /* Climbs Section */
 .advanced-stats__climbs {
   margin-top: 24px;

@@ -314,6 +314,60 @@ class GPXService:
             "gradient": round(gradient, 2) if gradient is not None else None,
         }
 
+    def convert_points_for_stats(
+        self, points: list[gpxpy.gpx.GPXTrackPoint]
+    ) -> list[dict[str, Any]]:
+        """
+        Convert GPX trackpoints to dictionary format for RouteStatsService.
+
+        This method converts original GPX trackpoints (gpxpy objects) to the
+        dictionary format expected by RouteStatsService for statistics calculation.
+
+        Args:
+            points: List of original GPX trackpoint objects
+
+        Returns:
+            List of trackpoint dictionaries with fields:
+            - latitude, longitude: GPS coordinates
+            - elevation: Elevation in meters (None if missing)
+            - distance_km: Cumulative distance from start
+            - timestamp: Timestamp (datetime object, None if missing)
+            - sequence: Point order in sequence
+
+        Note:
+            Distance is calculated cumulatively using Haversine formula.
+        """
+        if not points:
+            return []
+
+        trackpoints = []
+        cumulative_distance_km = 0.0
+
+        for i, point in enumerate(points):
+            # Calculate cumulative distance (Haversine formula)
+            if i > 0:
+                prev_point = points[i - 1]
+                segment_distance = self._calculate_distance(
+                    prev_point.latitude,
+                    prev_point.longitude,
+                    point.latitude,
+                    point.longitude,
+                )
+                cumulative_distance_km += segment_distance
+
+            trackpoints.append(
+                {
+                    "latitude": point.latitude,
+                    "longitude": point.longitude,
+                    "elevation": point.elevation if point.elevation is not None else None,
+                    "distance_km": round(cumulative_distance_km, 3),
+                    "timestamp": point.time if point.time is not None else None,
+                    "sequence": i,
+                }
+            )
+
+        return trackpoints
+
     def _calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """
         Calculate distance between two GPS coordinates using Haversine formula.

@@ -915,6 +915,33 @@ export const TripDetailPage: React.FC = () => {
             {gpxTrack?.route_statistics && (
               <AdvancedStats statistics={gpxTrack.route_statistics} />
             )}
+
+            {/* No timestamps message (FR-033) - Only show when GPX explicitly lacks timestamps */}
+            {trip.gpx_file && trip.gpx_file.has_timestamps === false && (
+              <div className="trip-detail-page__no-timestamps" role="status">
+                <svg
+                  className="trip-detail-page__no-timestamps-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <div className="trip-detail-page__no-timestamps-content">
+                  <h4 className="trip-detail-page__no-timestamps-title">
+                    Estadísticas Avanzadas No Disponibles
+                  </h4>
+                  <p className="trip-detail-page__no-timestamps-text">
+                    Este archivo GPX no contiene timestamps (marcas de tiempo). Las estadísticas de
+                    velocidad, tiempo y análisis de subidas requieren datos temporales para
+                    calcularse.
+                  </p>
+                </div>
+              </div>
+            )}
           </section>
         )}
 

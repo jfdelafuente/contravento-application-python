@@ -1184,6 +1184,93 @@ async def process_gpx_background(
                 f"({len(trackpoints)} points, {parsed_data['distance_km']:.2f} km)"
             )
 
+            # Calculate route statistics if GPX has timestamps (T134 - User Story 5)
+            if parsed_data["has_timestamps"]:
+                try:
+                    from src.models.route_statistics import RouteStatistics
+                    from src.services.route_stats_service import RouteStatsService
+
+                    logger.info(f"Calculating route statistics for GPX file {gpx_file_id}...")
+
+                    # Convert original points to format expected by RouteStatsService
+                    trackpoints_for_stats = gpx_service.convert_points_for_stats(
+                        parsed_data["original_points"]
+                    )
+
+                    # Calculate statistics
+                    stats_service = RouteStatsService(db)
+                    speed_metrics = await stats_service.calculate_speed_metrics(trackpoints_for_stats)
+                    top_climbs = await stats_service.detect_climbs(trackpoints_for_stats)
+                    gradient_dist = await stats_service.classify_gradients(trackpoints_for_stats)
+
+                    # Fix floating-point precision issue: ensure moving_time <= total_time
+                    if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
+                        if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
+                            # Clamp moving_time to total_time (precision error fix)
+                            speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+
+                    # Calculate weighted average gradient from distribution
+                    total_distance = gradient_dist["llano"]["distance_km"] + \
+                                   gradient_dist["moderado"]["distance_km"] + \
+                                   gradient_dist["empinado"]["distance_km"] + \
+                                   gradient_dist["muy_empinado"]["distance_km"]
+
+                    if total_distance > 0:
+                        avg_gradient = (
+                            (gradient_dist["llano"]["distance_km"] * 1.5) +
+                            (gradient_dist["moderado"]["distance_km"] * 4.5) +
+                            (gradient_dist["empinado"]["distance_km"] * 8.0) +
+                            (gradient_dist["muy_empinado"]["distance_km"] * 12.0)
+                        ) / total_distance
+                    else:
+                        avg_gradient = None
+
+                    # Find max gradient from trackpoints
+                    max_gradient = None
+                    if parsed_data["has_elevation"]:
+                        gradients = [p.get("gradient") for p in trackpoints_for_stats if p.get("gradient") is not None]
+                        max_gradient = max(gradients) if gradients else None
+
+                    # Convert top climbs to JSON format
+                    top_climbs_data = [
+                        {
+                            "start_km": climb["start_km"],
+                            "end_km": climb["end_km"],
+                            "elevation_gain_m": climb["elevation_gain_m"],
+                            "avg_gradient": climb["avg_gradient"],
+                            "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient"
+                        }
+                        for i, climb in enumerate(top_climbs[:3])
+                    ] if top_climbs else None
+
+                    # Create RouteStatistics record
+                    route_stats = RouteStatistics(
+                        gpx_file_id=gpx_file.gpx_file_id,
+                        avg_speed_kmh=speed_metrics.get("avg_speed_kmh"),
+                        max_speed_kmh=speed_metrics.get("max_speed_kmh"),
+                        total_time_minutes=speed_metrics.get("total_time_minutes"),
+                        moving_time_minutes=speed_metrics.get("moving_time_minutes"),
+                        avg_gradient=avg_gradient,
+                        max_gradient=max_gradient,
+                        top_climbs=top_climbs_data if top_climbs_data else None,
+                    )
+                    db.add(route_stats)
+                    await db.commit()
+                    await db.refresh(route_stats)
+
+                    logger.info(
+                        f"Route statistics created for GPX file {gpx_file_id}: "
+                        f"avg_speed={speed_metrics.get('avg_speed_kmh'):.1f} km/h, "
+                        f"climbs={len(top_climbs) if top_climbs else 0}"
+                    )
+
+                except Exception as stats_error:
+                    # Log error but don't fail the entire GPX processing
+                    logger.error(
+                        f"Error calculating route statistics for GPX file {gpx_file_id}: {stats_error}",
+                        exc_info=True
+                    )
+
         except ValueError as e:
             # GPX parsing error - mark as failed
             logger.error(f"GPX parsing error in background task for {gpx_file_id}: {e}")
@@ -1401,33 +1488,96 @@ async def upload_gpx_file(
                 await db.commit()
 
                 # Calculate advanced route statistics if timestamps available (User Story 5)
+                # FR-030 to FR-034, SC-021 to SC-024
                 if parsed_data["has_timestamps"]:
                     from src.models.route_statistics import RouteStatistics
-                    from src.services.route_statistics_service import RouteStatisticsService
+                    from src.services.route_stats_service import RouteStatsService
 
                     try:
-                        # Calculate statistics from original points with timestamps
-                        stats_data = RouteStatisticsService.calculate_statistics(
+                        # Convert GPX trackpoints to dict format for RouteStatsService
+                        trackpoints_for_stats = gpx_service.convert_points_for_stats(
                             parsed_data["original_points"]
                         )
 
-                        if stats_data:
-                            # Create RouteStatistics record
-                            route_stats = RouteStatistics(
-                                gpx_file_id=gpx_file.gpx_file_id,
-                                avg_speed_kmh=stats_data.get("avg_speed_kmh"),
-                                max_speed_kmh=stats_data.get("max_speed_kmh"),
-                                total_time_minutes=stats_data.get("total_time_minutes"),
-                                moving_time_minutes=stats_data.get("moving_time_minutes"),
-                                avg_gradient=stats_data.get("avg_gradient"),
-                                max_gradient=stats_data.get("max_gradient"),
-                                top_climbs=stats_data.get("top_climbs"),
+                        # Initialize RouteStatsService
+                        stats_service = RouteStatsService(db)
+
+                        # Calculate speed metrics (FR-030)
+                        speed_metrics = await stats_service.calculate_speed_metrics(
+                            trackpoints_for_stats
+                        )
+
+                        # Fix floating-point precision issue: ensure moving_time <= total_time
+                        if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
+                            if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
+                                # Clamp moving_time to total_time (precision error fix)
+                                speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+
+                        # Detect top 3 climbs (FR-031)
+                        top_climbs = await stats_service.detect_climbs(trackpoints_for_stats)
+
+                        # Calculate gradient metrics (avg/max)
+                        gradient_distribution = await stats_service.classify_gradients(
+                            trackpoints_for_stats
+                        )
+
+                        # Calculate avg/max gradient from distribution
+                        # (avg gradient = weighted average of all categories)
+                        # (max gradient = steepest segment in muy_empinado category)
+                        avg_gradient = None
+                        max_gradient = None
+                        if parsed_data["has_elevation"]:
+                            # Weighted average of uphill gradients
+                            total_distance = sum(
+                                cat["distance_km"]
+                                for cat in gradient_distribution.values()
+                                if cat["distance_km"] > 0
                             )
-                            db.add(route_stats)
-                            await db.commit()
-                            logger.info(
-                                f"Route statistics calculated for GPX {gpx_file.gpx_file_id}"
-                            )
+                            if total_distance > 0:
+                                # Weight each category by its midpoint gradient
+                                # llano: 1.5%, moderado: 4.5%, empinado: 8%, muy_empinado: 12%
+                                weighted_sum = (
+                                    gradient_distribution["llano"]["distance_km"] * 1.5
+                                    + gradient_distribution["moderado"]["distance_km"] * 4.5
+                                    + gradient_distribution["empinado"]["distance_km"] * 8.0
+                                    + gradient_distribution["muy_empinado"]["distance_km"] * 12.0
+                                )
+                                avg_gradient = round(weighted_sum / total_distance, 1)
+
+                            # Max gradient is assumed from muy_empinado category
+                            if gradient_distribution["muy_empinado"]["distance_km"] > 0:
+                                max_gradient = 15.0  # Conservative estimate for muy_empinado
+
+                        # Convert top climbs to JSON format with description field
+                        top_climbs_data = [
+                            {
+                                "start_km": climb["start_km"],
+                                "end_km": climb["end_km"],
+                                "elevation_gain_m": climb["elevation_gain_m"],
+                                "avg_gradient": climb["avg_gradient"],
+                                "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient"
+                            }
+                            for i, climb in enumerate(top_climbs[:3])
+                        ] if top_climbs else None
+
+                        # Create RouteStatistics record
+                        route_stats = RouteStatistics(
+                            gpx_file_id=gpx_file.gpx_file_id,
+                            avg_speed_kmh=speed_metrics["avg_speed_kmh"],
+                            max_speed_kmh=speed_metrics["max_speed_kmh"],
+                            total_time_minutes=speed_metrics["total_time_minutes"],
+                            moving_time_minutes=speed_metrics["moving_time_minutes"],
+                            avg_gradient=avg_gradient,
+                            max_gradient=max_gradient,
+                            top_climbs=top_climbs_data if top_climbs_data else None,
+                        )
+                        db.add(route_stats)
+                        await db.commit()
+                        logger.info(
+                            f"Route statistics calculated for GPX {gpx_file.gpx_file_id}: "
+                            f"avg_speed={speed_metrics['avg_speed_kmh']} km/h, "
+                            f"{len(top_climbs_data)} climbs"
+                        )
                     except Exception as e:
                         # Log error but don't fail the upload
                         logger.error(f"Failed to calculate route statistics: {e}")
@@ -1532,33 +1682,94 @@ async def upload_gpx_file(
                     await db.commit()
 
                     # Calculate advanced route statistics if timestamps available (User Story 5)
+                    # FR-030 to FR-034, SC-021 to SC-024
                     if parsed_data["has_timestamps"]:
                         from src.models.route_statistics import RouteStatistics
-                        from src.services.route_statistics_service import RouteStatisticsService
+                        from src.services.route_stats_service import RouteStatsService
 
                         try:
-                            # Calculate statistics from original points with timestamps
-                            stats_data = RouteStatisticsService.calculate_statistics(
+                            # Convert GPX trackpoints to dict format for RouteStatsService
+                            trackpoints_for_stats = gpx_service.convert_points_for_stats(
                                 parsed_data["original_points"]
                             )
 
-                            if stats_data:
-                                # Create RouteStatistics record
-                                route_stats = RouteStatistics(
-                                    gpx_file_id=gpx_file.gpx_file_id,
-                                    avg_speed_kmh=stats_data.get("avg_speed_kmh"),
-                                    max_speed_kmh=stats_data.get("max_speed_kmh"),
-                                    total_time_minutes=stats_data.get("total_time_minutes"),
-                                    moving_time_minutes=stats_data.get("moving_time_minutes"),
-                                    avg_gradient=stats_data.get("avg_gradient"),
-                                    max_gradient=stats_data.get("max_gradient"),
-                                    top_climbs=stats_data.get("top_climbs"),
+                            # Initialize RouteStatsService
+                            stats_service = RouteStatsService(db)
+
+                            # Calculate speed metrics (FR-030)
+                            speed_metrics = await stats_service.calculate_speed_metrics(
+                                trackpoints_for_stats
+                            )
+
+                            # Fix floating-point precision issue: ensure moving_time <= total_time
+                            if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
+                                if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
+                                    # Clamp moving_time to total_time (precision error fix)
+                                    speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+
+                            # Detect top 3 climbs (FR-031)
+                            top_climbs = await stats_service.detect_climbs(
+                                trackpoints_for_stats
+                            )
+
+                            # Calculate gradient metrics (avg/max)
+                            gradient_distribution = await stats_service.classify_gradients(
+                                trackpoints_for_stats
+                            )
+
+                            # Calculate avg/max gradient from distribution
+                            avg_gradient = None
+                            max_gradient = None
+                            if parsed_data["has_elevation"]:
+                                # Weighted average of uphill gradients
+                                total_distance = sum(
+                                    cat["distance_km"]
+                                    for cat in gradient_distribution.values()
+                                    if cat["distance_km"] > 0
                                 )
-                                db.add(route_stats)
-                                await db.commit()
-                                logger.info(
-                                    f"Route statistics calculated for GPX {gpx_file.gpx_file_id}"
-                                )
+                                if total_distance > 0:
+                                    weighted_sum = (
+                                        gradient_distribution["llano"]["distance_km"] * 1.5
+                                        + gradient_distribution["moderado"]["distance_km"] * 4.5
+                                        + gradient_distribution["empinado"]["distance_km"] * 8.0
+                                        + gradient_distribution["muy_empinado"]["distance_km"]
+                                        * 12.0
+                                    )
+                                    avg_gradient = round(weighted_sum / total_distance, 1)
+
+                                if gradient_distribution["muy_empinado"]["distance_km"] > 0:
+                                    max_gradient = 15.0  # Conservative estimate
+
+                            # Convert top climbs to JSON format with description field
+                            top_climbs_data = [
+                                {
+                                    "start_km": climb["start_km"],
+                                    "end_km": climb["end_km"],
+                                    "elevation_gain_m": climb["elevation_gain_m"],
+                                    "avg_gradient": climb["avg_gradient"],
+                                    "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient"
+                                }
+                                for i, climb in enumerate(top_climbs[:3])
+                            ] if top_climbs else None
+
+                            # Create RouteStatistics record
+                            route_stats = RouteStatistics(
+                                gpx_file_id=gpx_file.gpx_file_id,
+                                avg_speed_kmh=speed_metrics["avg_speed_kmh"],
+                                max_speed_kmh=speed_metrics["max_speed_kmh"],
+                                total_time_minutes=speed_metrics["total_time_minutes"],
+                                moving_time_minutes=speed_metrics["moving_time_minutes"],
+                                avg_gradient=avg_gradient,
+                                max_gradient=max_gradient,
+                                top_climbs=top_climbs_data if top_climbs_data else None,
+                            )
+                            db.add(route_stats)
+                            await db.commit()
+                            logger.info(
+                                f"Route statistics calculated for GPX {gpx_file.gpx_file_id}: "
+                                f"avg_speed={speed_metrics['avg_speed_kmh']} km/h, "
+                                f"{len(top_climbs_data)} climbs"
+                            )
                         except Exception as e:
                             # Log error but don't fail the upload
                             logger.error(f"Failed to calculate route statistics: {e}")
@@ -2045,13 +2256,66 @@ async def get_track_data(
         )
         route_statistics = stats_result.scalar_one_or_none()
 
+        # Calculate gradient distribution (FR-032) if statistics exist
+        gradient_distribution = None
+        if route_statistics and gpx_file.has_elevation:
+            from src.services.gpx_service import GPXService
+            from src.services.route_stats_service import RouteStatsService
+
+            # Convert trackpoints to dict format for stats service
+            gpx_service = GPXService(db)
+            trackpoints_for_stats = []
+            for tp in trackpoints:
+                trackpoints_for_stats.append({
+                    "latitude": tp.latitude,
+                    "longitude": tp.longitude,
+                    "elevation": tp.elevation,
+                    "distance_km": tp.distance_km,
+                    "timestamp": None,  # Not needed for gradient classification
+                    "sequence": tp.sequence,
+                })
+
+            # Calculate gradient distribution
+            stats_service = RouteStatsService(db)
+            gradient_distribution = await stats_service.classify_gradients(trackpoints_for_stats)
+
         # Convert to response schema
         from src.schemas.gpx import (
             CoordinateResponse,
+            GradientCategoryResponse,
+            GradientDistributionResponse,
             RouteStatisticsResponse,
+            RouteStatisticsWithDistributionResponse,
             TrackDataResponse,
             TrackPointResponse,
         )
+
+        # Build route statistics response with gradient distribution (FR-032)
+        route_stats_response = None
+        if route_statistics:
+            if gradient_distribution:
+                # Use extended response with gradient distribution
+                route_stats_response = RouteStatisticsWithDistributionResponse(
+                    stats_id=str(route_statistics.stats_id),
+                    gpx_file_id=str(route_statistics.gpx_file_id),
+                    avg_speed_kmh=route_statistics.avg_speed_kmh,
+                    max_speed_kmh=route_statistics.max_speed_kmh,
+                    total_time_minutes=route_statistics.total_time_minutes,
+                    moving_time_minutes=route_statistics.moving_time_minutes,
+                    avg_gradient=route_statistics.avg_gradient,
+                    max_gradient=route_statistics.max_gradient,
+                    top_climbs=route_statistics.top_climbs,
+                    created_at=route_statistics.created_at.isoformat(),
+                    gradient_distribution=GradientDistributionResponse(
+                        llano=GradientCategoryResponse(**gradient_distribution["llano"]),
+                        moderado=GradientCategoryResponse(**gradient_distribution["moderado"]),
+                        empinado=GradientCategoryResponse(**gradient_distribution["empinado"]),
+                        muy_empinado=GradientCategoryResponse(**gradient_distribution["muy_empinado"]),
+                    ),
+                )
+            else:
+                # Use standard response without gradient distribution
+                route_stats_response = RouteStatisticsResponse.model_validate(route_statistics)
 
         track_data = TrackDataResponse(
             gpx_file_id=gpx_file.gpx_file_id,
@@ -2065,11 +2329,7 @@ async def get_track_data(
             ),
             end_point=CoordinateResponse(latitude=gpx_file.end_lat, longitude=gpx_file.end_lon),
             trackpoints=[TrackPointResponse.model_validate(tp) for tp in trackpoints],
-            route_statistics=(
-                RouteStatisticsResponse.model_validate(route_statistics)
-                if route_statistics
-                else None
-            ),
+            route_statistics=route_stats_response,
         )
 
         return TrackDataSuccessResponse(success=True, data=track_data)
