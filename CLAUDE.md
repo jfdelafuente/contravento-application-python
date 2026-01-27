@@ -276,29 +276,29 @@ poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 cd backend
 
 # Create admin user (auto-created during setup, or manually)
-poetry run python scripts/create_admin.py
+poetry run python scripts/user-mgmt/create_admin.py
 # Default: admin / admin@contravento.com / AdminPass123!
 
 # Create additional admin with custom credentials
-poetry run python scripts/create_admin.py --username myadmin --email admin@mycompany.com --password "MySecurePass123!"
+poetry run python scripts/user-mgmt/create_admin.py --username myadmin --email admin@mycompany.com --password "MySecurePass123!"
 
 # Create default test users (testuser and maria_garcia)
-poetry run python scripts/create_verified_user.py
+poetry run python scripts/user-mgmt/create_verified_user.py
 
 # Create custom verified user
-poetry run python scripts/create_verified_user.py --username john --email john@example.com --password "SecurePass123!"
+poetry run python scripts/user-mgmt/create_verified_user.py --username john --email john@example.com --password "SecurePass123!"
 
 # Create custom admin user
-poetry run python scripts/create_verified_user.py --username myadmin --email admin@mycompany.com --password "AdminPass123!" --role admin
+poetry run python scripts/user-mgmt/create_verified_user.py --username myadmin --email admin@mycompany.com --password "AdminPass123!" --role admin
 
 # Verify existing user by email
-poetry run python scripts/create_verified_user.py --verify-email test@example.com
+poetry run python scripts/user-mgmt/create_verified_user.py --verify-email test@example.com
 
 # Promote existing user to admin
-poetry run python scripts/promote_to_admin.py --username testuser
+poetry run python scripts/user-mgmt/promote_to_admin.py --username testuser
 
 # Demote admin to regular user
-poetry run python scripts/promote_to_admin.py --username admin --demote
+poetry run python scripts/user-mgmt/promote_to_admin.py --username admin --demote
 ```
 
 **Default credentials (auto-created during setup):**
@@ -696,10 +696,10 @@ cd backend
 poetry run alembic upgrade head
 
 # Load initial types from YAML config
-poetry run python scripts/seed_cycling_types.py
+poetry run python scripts/seeding/seed_cycling_types.py
 
 # List current types
-poetry run python scripts/seed_cycling_types.py --list
+poetry run python scripts/seeding/seed_cycling_types.py --list
 ```
 
 ### Configuration File
@@ -736,7 +736,7 @@ cycling_types:
 # Add new type entry
 
 # Load with force to update existing
-poetry run python scripts/seed_cycling_types.py --force
+poetry run python scripts/seeding/seed_cycling_types.py --force
 ```
 
 **Option 2**: Via API (for operational changes)
