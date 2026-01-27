@@ -117,28 +117,35 @@ export function interpolateTrackPoint(
   // If factor is 0, we're exactly at one of the trackpoints
   if (factor === 0) return before;
 
-  // Interpolate all numeric fields
+  // IMPORTANT: Use nearest trackpoint coordinates to keep marker on GPX line
+  // Linear interpolation in lat/lng creates a straight line that doesn't match
+  // Leaflet's Mercator projection, causing the marker to visually "drift" off the line.
+  // Solution: Use coordinates from nearest trackpoint, but interpolate elevation/gradient
+  const useNearest = factor < 0.5 ? before : after;
+
+  // Interpolate numeric values for accurate tooltip display
   const interpolatedPoint: TrackPoint = {
-    // Use before.point_id as reference (could also generate UUID)
-    point_id: before.point_id,
+    // Use nearest point's ID
+    point_id: useNearest.point_id,
 
-    // Interpolate coordinates (linear interpolation is acceptable for short distances)
-    latitude: lerp(before.latitude, after.latitude, factor),
-    longitude: lerp(before.longitude, after.longitude, factor),
+    // Use nearest trackpoint coordinates to keep marker ON the GPX line visual
+    // This prevents the marker from appearing "off" the line due to map projection
+    latitude: useNearest.latitude,
+    longitude: useNearest.longitude,
 
-    // Interpolate elevation (null if either endpoint is null)
+    // Interpolate elevation for smooth tooltip values (doesn't affect visual position)
     elevation:
       before.elevation !== null && after.elevation !== null
         ? lerp(before.elevation, after.elevation, factor)
         : before.elevation ?? after.elevation ?? null,
 
-    // Distance is the target distance
+    // Interpolate distance for accurate tooltip
     distance_km: targetDistance,
 
-    // Sequence: use before's sequence (not critical for hover marker)
-    sequence: before.sequence,
+    // Sequence: use nearest's sequence
+    sequence: useNearest.sequence,
 
-    // Interpolate gradient (null if either endpoint is null)
+    // Interpolate gradient for smooth tooltip values
     gradient:
       before.gradient !== null && after.gradient !== null
         ? lerp(before.gradient, after.gradient, factor)
