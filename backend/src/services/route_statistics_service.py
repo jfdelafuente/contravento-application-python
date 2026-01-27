@@ -171,7 +171,9 @@ class RouteStatisticsService:
         }
 
     @staticmethod
-    def _calculate_gradient_metrics(points: list[gpxpy.gpx.GPXTrackPoint]) -> dict[str, float | None]:
+    def _calculate_gradient_metrics(
+        points: list[gpxpy.gpx.GPXTrackPoint],
+    ) -> dict[str, float | None]:
         """
         Calculate gradient metrics from trackpoints with elevation data.
 

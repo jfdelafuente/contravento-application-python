@@ -1199,28 +1199,39 @@ async def process_gpx_background(
 
                     # Calculate statistics
                     stats_service = RouteStatsService(db)
-                    speed_metrics = await stats_service.calculate_speed_metrics(trackpoints_for_stats)
+                    speed_metrics = await stats_service.calculate_speed_metrics(
+                        trackpoints_for_stats
+                    )
                     top_climbs = await stats_service.detect_climbs(trackpoints_for_stats)
                     gradient_dist = await stats_service.classify_gradients(trackpoints_for_stats)
 
                     # Fix floating-point precision issue: ensure moving_time <= total_time
-                    if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
-                        if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
+                    if speed_metrics.get("moving_time_minutes") and speed_metrics.get(
+                        "total_time_minutes"
+                    ):
+                        if (
+                            speed_metrics["moving_time_minutes"]
+                            > speed_metrics["total_time_minutes"]
+                        ):
                             # Clamp moving_time to total_time (precision error fix)
-                            speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+                            speed_metrics["moving_time_minutes"] = speed_metrics[
+                                "total_time_minutes"
+                            ]
 
                     # Calculate weighted average gradient from distribution
-                    total_distance = gradient_dist["llano"]["distance_km"] + \
-                                   gradient_dist["moderado"]["distance_km"] + \
-                                   gradient_dist["empinado"]["distance_km"] + \
-                                   gradient_dist["muy_empinado"]["distance_km"]
+                    total_distance = (
+                        gradient_dist["llano"]["distance_km"]
+                        + gradient_dist["moderado"]["distance_km"]
+                        + gradient_dist["empinado"]["distance_km"]
+                        + gradient_dist["muy_empinado"]["distance_km"]
+                    )
 
                     if total_distance > 0:
                         avg_gradient = (
-                            (gradient_dist["llano"]["distance_km"] * 1.5) +
-                            (gradient_dist["moderado"]["distance_km"] * 4.5) +
-                            (gradient_dist["empinado"]["distance_km"] * 8.0) +
-                            (gradient_dist["muy_empinado"]["distance_km"] * 12.0)
+                            (gradient_dist["llano"]["distance_km"] * 1.5)
+                            + (gradient_dist["moderado"]["distance_km"] * 4.5)
+                            + (gradient_dist["empinado"]["distance_km"] * 8.0)
+                            + (gradient_dist["muy_empinado"]["distance_km"] * 12.0)
                         ) / total_distance
                     else:
                         avg_gradient = None
@@ -1228,20 +1239,28 @@ async def process_gpx_background(
                     # Find max gradient from trackpoints
                     max_gradient = None
                     if parsed_data["has_elevation"]:
-                        gradients = [p.get("gradient") for p in trackpoints_for_stats if p.get("gradient") is not None]
+                        gradients = [
+                            p.get("gradient")
+                            for p in trackpoints_for_stats
+                            if p.get("gradient") is not None
+                        ]
                         max_gradient = max(gradients) if gradients else None
 
                     # Convert top climbs to JSON format
-                    top_climbs_data = [
-                        {
-                            "start_km": climb["start_km"],
-                            "end_km": climb["end_km"],
-                            "elevation_gain_m": climb["elevation_gain_m"],
-                            "avg_gradient": climb["avg_gradient"],
-                            "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient"
-                        }
-                        for i, climb in enumerate(top_climbs[:3])
-                    ] if top_climbs else None
+                    top_climbs_data = (
+                        [
+                            {
+                                "start_km": climb["start_km"],
+                                "end_km": climb["end_km"],
+                                "elevation_gain_m": climb["elevation_gain_m"],
+                                "avg_gradient": climb["avg_gradient"],
+                                "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient",
+                            }
+                            for i, climb in enumerate(top_climbs[:3])
+                        ]
+                        if top_climbs
+                        else None
+                    )
 
                     # Create RouteStatistics record
                     route_stats = RouteStatistics(
@@ -1268,7 +1287,7 @@ async def process_gpx_background(
                     # Log error but don't fail the entire GPX processing
                     logger.error(
                         f"Error calculating route statistics for GPX file {gpx_file_id}: {stats_error}",
-                        exc_info=True
+                        exc_info=True,
                     )
 
         except ValueError as e:
@@ -1508,10 +1527,17 @@ async def upload_gpx_file(
                         )
 
                         # Fix floating-point precision issue: ensure moving_time <= total_time
-                        if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
-                            if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
+                        if speed_metrics.get("moving_time_minutes") and speed_metrics.get(
+                            "total_time_minutes"
+                        ):
+                            if (
+                                speed_metrics["moving_time_minutes"]
+                                > speed_metrics["total_time_minutes"]
+                            ):
                                 # Clamp moving_time to total_time (precision error fix)
-                                speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+                                speed_metrics["moving_time_minutes"] = speed_metrics[
+                                    "total_time_minutes"
+                                ]
 
                         # Detect top 3 climbs (FR-031)
                         top_climbs = await stats_service.detect_climbs(trackpoints_for_stats)
@@ -1549,16 +1575,20 @@ async def upload_gpx_file(
                                 max_gradient = 15.0  # Conservative estimate for muy_empinado
 
                         # Convert top climbs to JSON format with description field
-                        top_climbs_data = [
-                            {
-                                "start_km": climb["start_km"],
-                                "end_km": climb["end_km"],
-                                "elevation_gain_m": climb["elevation_gain_m"],
-                                "avg_gradient": climb["avg_gradient"],
-                                "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient"
-                            }
-                            for i, climb in enumerate(top_climbs[:3])
-                        ] if top_climbs else None
+                        top_climbs_data = (
+                            [
+                                {
+                                    "start_km": climb["start_km"],
+                                    "end_km": climb["end_km"],
+                                    "elevation_gain_m": climb["elevation_gain_m"],
+                                    "avg_gradient": climb["avg_gradient"],
+                                    "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient",
+                                }
+                                for i, climb in enumerate(top_climbs[:3])
+                            ]
+                            if top_climbs
+                            else None
+                        )
 
                         # Create RouteStatistics record
                         route_stats = RouteStatistics(
@@ -1702,15 +1732,20 @@ async def upload_gpx_file(
                             )
 
                             # Fix floating-point precision issue: ensure moving_time <= total_time
-                            if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
-                                if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
+                            if speed_metrics.get("moving_time_minutes") and speed_metrics.get(
+                                "total_time_minutes"
+                            ):
+                                if (
+                                    speed_metrics["moving_time_minutes"]
+                                    > speed_metrics["total_time_minutes"]
+                                ):
                                     # Clamp moving_time to total_time (precision error fix)
-                                    speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+                                    speed_metrics["moving_time_minutes"] = speed_metrics[
+                                        "total_time_minutes"
+                                    ]
 
                             # Detect top 3 climbs (FR-031)
-                            top_climbs = await stats_service.detect_climbs(
-                                trackpoints_for_stats
-                            )
+                            top_climbs = await stats_service.detect_climbs(trackpoints_for_stats)
 
                             # Calculate gradient metrics (avg/max)
                             gradient_distribution = await stats_service.classify_gradients(
@@ -1741,16 +1776,20 @@ async def upload_gpx_file(
                                     max_gradient = 15.0  # Conservative estimate
 
                             # Convert top climbs to JSON format with description field
-                            top_climbs_data = [
-                                {
-                                    "start_km": climb["start_km"],
-                                    "end_km": climb["end_km"],
-                                    "elevation_gain_m": climb["elevation_gain_m"],
-                                    "avg_gradient": climb["avg_gradient"],
-                                    "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient"
-                                }
-                                for i, climb in enumerate(top_climbs[:3])
-                            ] if top_climbs else None
+                            top_climbs_data = (
+                                [
+                                    {
+                                        "start_km": climb["start_km"],
+                                        "end_km": climb["end_km"],
+                                        "elevation_gain_m": climb["elevation_gain_m"],
+                                        "avg_gradient": climb["avg_gradient"],
+                                        "description": f"Subida {i+1}: {climb['elevation_gain_m']:.0f}m gain, {climb['avg_gradient']:.1f}% avg gradient",
+                                    }
+                                    for i, climb in enumerate(top_climbs[:3])
+                                ]
+                                if top_climbs
+                                else None
+                            )
 
                             # Create RouteStatistics record
                             route_stats = RouteStatistics(
@@ -2266,14 +2305,16 @@ async def get_track_data(
             gpx_service = GPXService(db)
             trackpoints_for_stats = []
             for tp in trackpoints:
-                trackpoints_for_stats.append({
-                    "latitude": tp.latitude,
-                    "longitude": tp.longitude,
-                    "elevation": tp.elevation,
-                    "distance_km": tp.distance_km,
-                    "timestamp": None,  # Not needed for gradient classification
-                    "sequence": tp.sequence,
-                })
+                trackpoints_for_stats.append(
+                    {
+                        "latitude": tp.latitude,
+                        "longitude": tp.longitude,
+                        "elevation": tp.elevation,
+                        "distance_km": tp.distance_km,
+                        "timestamp": None,  # Not needed for gradient classification
+                        "sequence": tp.sequence,
+                    }
+                )
 
             # Calculate gradient distribution
             stats_service = RouteStatsService(db)
@@ -2310,7 +2351,9 @@ async def get_track_data(
                         llano=GradientCategoryResponse(**gradient_distribution["llano"]),
                         moderado=GradientCategoryResponse(**gradient_distribution["moderado"]),
                         empinado=GradientCategoryResponse(**gradient_distribution["empinado"]),
-                        muy_empinado=GradientCategoryResponse(**gradient_distribution["muy_empinado"]),
+                        muy_empinado=GradientCategoryResponse(
+                            **gradient_distribution["muy_empinado"]
+                        ),
                     ),
                 )
             else:

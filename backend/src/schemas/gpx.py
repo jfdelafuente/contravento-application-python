@@ -161,7 +161,9 @@ class TopClimbResponse(BaseModel):
 
     start_km: float = Field(..., ge=0.0, description="Distance from start where climb begins (km)")
     end_km: float = Field(..., ge=0.0, description="Distance from start where climb ends (km)")
-    elevation_gain_m: float = Field(..., ge=0.0, description="Total elevation gain in climb (meters)")
+    elevation_gain_m: float = Field(
+        ..., ge=0.0, description="Total elevation gain in climb (meters)"
+    )
     avg_gradient: float = Field(
         ..., description="Average gradient of climb (percentage, e.g., 8.5 = 8.5% slope)"
     )
@@ -184,7 +186,9 @@ class GradientCategoryResponse(BaseModel):
     """
 
     distance_km: float = Field(..., ge=0.0, description="Total distance in this category (km)")
-    percentage: float = Field(..., ge=0.0, le=100.0, description="Percentage of total route distance")
+    percentage: float = Field(
+        ..., ge=0.0, le=100.0, description="Percentage of total route distance"
+    )
 
 
 class GradientDistributionResponse(BaseModel):
@@ -218,7 +222,9 @@ class RouteStatisticsResponse(BaseModel):
     gpx_file_id: str = Field(..., description="Associated GPX file ID (UUID)")
     avg_speed_kmh: float | None = Field(None, ge=0.0, lt=100.0, description="Average speed (km/h)")
     max_speed_kmh: float | None = Field(None, ge=0.0, lt=100.0, description="Maximum speed (km/h)")
-    total_time_minutes: float | None = Field(None, ge=0.0, description="Total elapsed time (minutes)")
+    total_time_minutes: float | None = Field(
+        None, ge=0.0, description="Total elapsed time (minutes)"
+    )
     moving_time_minutes: float | None = Field(
         None, ge=0.0, description="Time in motion, excludes stops (minutes)"
     )

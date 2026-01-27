@@ -71,7 +71,12 @@ class PointOfInterest(Base):
     name = Column(String(100), nullable=False)
     description = Column(String(500), nullable=True)
     poi_type = Column(
-        Enum(POIType, name="poi_type_enum", native_enum=False, values_callable=lambda x: [e.value for e in x]),
+        Enum(
+            POIType,
+            name="poi_type_enum",
+            native_enum=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=False,
         index=True,
     )
@@ -99,12 +104,8 @@ class PointOfInterest(Base):
 
     # Table constraints
     __table_args__ = (
-        CheckConstraint(
-            "latitude >= -90 AND latitude <= 90", name="check_poi_latitude_range"
-        ),
-        CheckConstraint(
-            "longitude >= -180 AND longitude <= 180", name="check_poi_longitude_range"
-        ),
+        CheckConstraint("latitude >= -90 AND latitude <= 90", name="check_poi_latitude_range"),
+        CheckConstraint("longitude >= -180 AND longitude <= 180", name="check_poi_longitude_range"),
     )
 
     def __repr__(self) -> str:

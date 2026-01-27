@@ -391,9 +391,9 @@ class TestGPXServiceGradientCalculation:
 
         # Assert - Point 1: First point has no gradient
         point_1 = trackpoints[0]
-        assert point_1["gradient"] is None, (
-            f"First point should have gradient=None, got {point_1['gradient']}"
-        )
+        assert (
+            point_1["gradient"] is None
+        ), f"First point should have gradient=None, got {point_1['gradient']}"
 
         # Assert - Point 2: Uphill gradient ~+10%
         # 1km = 1000m horizontal, +100m vertical → (100/1000)*100 = 10%
@@ -458,8 +458,7 @@ class TestGPXServiceGradientCalculation:
 
             # Flat terrain should be within ±2% of 0%
             assert abs(gradient) <= 2.0, (
-                f"Flat terrain gradient should be ~0% ±2%, "
-                f"got {gradient:.2f}% for point {i}"
+                f"Flat terrain gradient should be ~0% ±2%, " f"got {gradient:.2f}% for point {i}"
             )
 
     async def test_gradient_calculation_no_elevation_data(self, db_session: AsyncSession):

@@ -334,7 +334,9 @@ class POIService:
             Number of POIs
         """
         result = await self.db.execute(
-            select(func.count()).select_from(PointOfInterest).where(PointOfInterest.trip_id == trip_id)
+            select(func.count())
+            .select_from(PointOfInterest)
+            .where(PointOfInterest.trip_id == trip_id)
         )
         count = result.scalar() or 0
         return int(count)

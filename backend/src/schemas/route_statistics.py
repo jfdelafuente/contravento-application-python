@@ -29,7 +29,9 @@ class TopClimbResponse(BaseModel):
     elevation_gain_m: float = Field(
         ..., ge=0.0, description="Total elevation gain during climb (meters)"
     )
-    avg_gradient: float = Field(..., description="Average gradient of climb (percentage, e.g., 8.5 = 8.5%)")
+    avg_gradient: float = Field(
+        ..., description="Average gradient of climb (percentage, e.g., 8.5 = 8.5%)"
+    )
     description: str | None = Field(None, description="Optional climb name/description")
 
 
@@ -43,7 +45,9 @@ class GradientCategoryResponse(BaseModel):
     """
 
     distance_km: float = Field(..., ge=0.0, description="Total distance in this category (km)")
-    percentage: float = Field(..., ge=0.0, le=100.0, description="Percentage of total route distance")
+    percentage: float = Field(
+        ..., ge=0.0, le=100.0, description="Percentage of total route distance"
+    )
 
 
 class GradientDistributionResponse(BaseModel):
@@ -59,15 +63,9 @@ class GradientDistributionResponse(BaseModel):
     Functional Requirement: FR-032 (Gradient distribution visualization)
     """
 
-    llano: GradientCategoryResponse = Field(
-        ..., description="Flat terrain: 0-3% gradient"
-    )
-    moderado: GradientCategoryResponse = Field(
-        ..., description="Moderate terrain: 3-6% gradient"
-    )
-    empinado: GradientCategoryResponse = Field(
-        ..., description="Steep terrain: 6-10% gradient"
-    )
+    llano: GradientCategoryResponse = Field(..., description="Flat terrain: 0-3% gradient")
+    moderado: GradientCategoryResponse = Field(..., description="Moderate terrain: 3-6% gradient")
+    empinado: GradientCategoryResponse = Field(..., description="Steep terrain: 6-10% gradient")
     muy_empinado: GradientCategoryResponse = Field(
         ..., description="Very steep terrain: >10% gradient"
     )

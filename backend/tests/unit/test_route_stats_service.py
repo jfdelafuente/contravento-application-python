@@ -144,7 +144,10 @@ class TestSpeedCalculation:
                     "latitude": 40.0 + ((i - 1) * 0.009),
                     "longitude": -3.0,
                     "elevation": 500.0,
-                    "timestamp": start_time + timedelta(minutes=25.0 + (i - 7) * 3.75),  # 15min / 4 segments = 3.75min per segment
+                    "timestamp": start_time
+                    + timedelta(
+                        minutes=25.0 + (i - 7) * 3.75
+                    ),  # 15min / 4 segments = 3.75min per segment
                     "distance_km": float(i - 1),
                     "sequence": i,
                 }
@@ -321,12 +324,12 @@ class TestClimbDetection:
 
         # Top climb should be Climb 2 (400m, 8%)
         top_climb = result[0]
-        assert top_climb["elevation_gain_m"] >= 350, (
-            f"Top climb should have ~400m gain, got {top_climb['elevation_gain_m']:.0f}m"
-        )
-        assert 7.0 <= top_climb["avg_gradient"] <= 9.0, (
-            f"Top climb should have ~8% gradient, got {top_climb['avg_gradient']:.1f}%"
-        )
+        assert (
+            top_climb["elevation_gain_m"] >= 350
+        ), f"Top climb should have ~400m gain, got {top_climb['elevation_gain_m']:.0f}m"
+        assert (
+            7.0 <= top_climb["avg_gradient"] <= 9.0
+        ), f"Top climb should have ~8% gradient, got {top_climb['avg_gradient']:.1f}%"
 
         # Second climb could be Climb 3 (100m, 12.5%) or Climb 4 (300m, 6%)
         # Depends on scoring algorithm (steepness vs. total gain)
@@ -452,27 +455,27 @@ class TestGradientClassification:
 
         # Check llano percentage (should be ~33% of total distance)
         llano_pct = (result["llano"]["distance_km"] / total_distance) * 100
-        assert 25 <= llano_pct <= 40, (
-            f"Llano (0-3%) should be ~33% of distance, got {llano_pct:.1f}%"
-        )
+        assert (
+            25 <= llano_pct <= 40
+        ), f"Llano (0-3%) should be ~33% of distance, got {llano_pct:.1f}%"
 
         # Check moderado percentage (should be ~33% of total distance)
         moderado_pct = (result["moderado"]["distance_km"] / total_distance) * 100
-        assert 25 <= moderado_pct <= 40, (
-            f"Moderado (3-6%) should be ~33% of distance, got {moderado_pct:.1f}%"
-        )
+        assert (
+            25 <= moderado_pct <= 40
+        ), f"Moderado (3-6%) should be ~33% of distance, got {moderado_pct:.1f}%"
 
         # Check empinado percentage (should be ~17% of total distance)
         empinado_pct = (result["empinado"]["distance_km"] / total_distance) * 100
-        assert 10 <= empinado_pct <= 25, (
-            f"Empinado (6-10%) should be ~17% of distance, got {empinado_pct:.1f}%"
-        )
+        assert (
+            10 <= empinado_pct <= 25
+        ), f"Empinado (6-10%) should be ~17% of distance, got {empinado_pct:.1f}%"
 
         # Check muy_empinado percentage (should be ~17% of total distance)
         muy_empinado_pct = (result["muy_empinado"]["distance_km"] / total_distance) * 100
-        assert 10 <= muy_empinado_pct <= 25, (
-            f"Muy empinado (>10%) should be ~17% of distance, got {muy_empinado_pct:.1f}%"
-        )
+        assert (
+            10 <= muy_empinado_pct <= 25
+        ), f"Muy empinado (>10%) should be ~17% of distance, got {muy_empinado_pct:.1f}%"
 
         # Total should sum to ~100% (allowing for rounding)
         total_pct = llano_pct + moderado_pct + empinado_pct + muy_empinado_pct
@@ -519,18 +522,14 @@ class TestNoTimestamps:
         result = await service.calculate_speed_metrics(trackpoints)
 
         # Assert - Speed metrics should be None
-        assert result["avg_speed_kmh"] is None, (
-            "avg_speed_kmh should be None when no timestamps"
-        )
-        assert result["max_speed_kmh"] is None, (
-            "max_speed_kmh should be None when no timestamps"
-        )
-        assert result["total_time_minutes"] is None, (
-            "total_time_minutes should be None when no timestamps"
-        )
-        assert result["moving_time_minutes"] is None, (
-            "moving_time_minutes should be None when no timestamps"
-        )
+        assert result["avg_speed_kmh"] is None, "avg_speed_kmh should be None when no timestamps"
+        assert result["max_speed_kmh"] is None, "max_speed_kmh should be None when no timestamps"
+        assert (
+            result["total_time_minutes"] is None
+        ), "total_time_minutes should be None when no timestamps"
+        assert (
+            result["moving_time_minutes"] is None
+        ), "moving_time_minutes should be None when no timestamps"
 
         # Gradient metrics should still work (don't require timestamps)
         gradient_result = await service.classify_gradients(trackpoints)

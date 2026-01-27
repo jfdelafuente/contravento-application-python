@@ -56,12 +56,11 @@ class POICreateInput(BaseModel):
         None, max_length=500, description="Descripción opcional (max 500 caracteres)"
     )
     poi_type: POITypeEnum = Field(
-        ..., description="Tipo de POI (viewpoint, town, water, accommodation, restaurant, mountain_pass, other)"
+        ...,
+        description="Tipo de POI (viewpoint, town, water, accommodation, restaurant, mountain_pass, other)",
     )
     latitude: float = Field(..., ge=-90.0, le=90.0, description="Latitud (-90 a 90 grados)")
-    longitude: float = Field(
-        ..., ge=-180.0, le=180.0, description="Longitud (-180 a 180 grados)"
-    )
+    longitude: float = Field(..., ge=-180.0, le=180.0, description="Longitud (-180 a 180 grados)")
     distance_from_start_km: float | None = Field(
         None, ge=0.0, description="Distancia desde el inicio de la ruta (km)"
     )

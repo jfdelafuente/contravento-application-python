@@ -80,7 +80,9 @@ class RouteStatsService:
 
         # Calculate moving time (exclude stops: speed <3 km/h for >2 minutes)
         STOP_SPEED_THRESHOLD_KMH = 3.0  # Speed below this is considered stopped
-        STOP_DURATION_THRESHOLD_MINUTES = 2.0  # Stops longer than this are excluded (FR-030 revised)
+        STOP_DURATION_THRESHOLD_MINUTES = (
+            2.0  # Stops longer than this are excluded (FR-030 revised)
+        )
         moving_time_minutes = 0.0
         max_speed_kmh = 0.0
         total_distance_km = trackpoints[-1]["distance_km"]
@@ -121,9 +123,7 @@ class RouteStatsService:
             "moving_time_minutes": moving_time_minutes,
         }
 
-    async def detect_climbs(
-        self, trackpoints: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    async def detect_climbs(self, trackpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Detect and rank the top 3 hardest climbs on the route.
 

@@ -28,11 +28,12 @@ class JSONType(TypeDecorator):
     Uses PostgreSQL JSONB for efficiency in production.
     Falls back to JSON (stored as TEXT) in SQLite for development/testing.
     """
+
     impl = JSON
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql':
+        if dialect.name == "postgresql":
             return dialect.type_descriptor(JSONB())
         else:
             return dialect.type_descriptor(JSON())
