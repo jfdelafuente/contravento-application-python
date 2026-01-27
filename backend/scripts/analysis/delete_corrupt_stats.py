@@ -1,4 +1,25 @@
-"""Delete corrupt RouteStatistics record with invalid moving_time > total_time."""
+"""Delete corrupt or unwanted RouteStatistics records from the database.
+
+This script deletes RouteStatistics records for a given GPX file ID. It was originally
+created to delete corrupt records with invalid moving_time > total_time, but can be used
+to delete any RouteStatistics record that needs to be removed.
+
+Usage:
+    poetry run python scripts/analysis/delete_corrupt_stats.py <gpx_file_id>
+
+Args:
+    gpx_file_id: UUID of the GPX file whose RouteStatistics should be deleted
+
+Examples:
+    poetry run python scripts/analysis/delete_corrupt_stats.py 13e24f2f-f792-4873-b636-ad3568861514
+
+Notes:
+    - Only deletes from route_statistics table (does NOT delete GPX file or trackpoints)
+    - Shows record information before deletion
+    - Commits deletion immediately (no confirmation prompt)
+    - Use recalculate_route_stats.py to recreate statistics after deletion
+    - CAUTION: This is a destructive operation with no undo
+"""
 
 import asyncio
 from sqlalchemy import select, delete
@@ -10,7 +31,11 @@ from src.models.route_statistics import RouteStatistics
 
 
 async def delete_corrupt_stats(gpx_file_id: str):
-    """Delete RouteStatistics record for given GPX file ID."""
+    """Delete RouteStatistics record for given GPX file ID.
+
+    Args:
+        gpx_file_id: UUID of GPX file whose RouteStatistics should be deleted
+    """
     engine = create_async_engine(settings.database_url, echo=False)
     async_session_factory = sessionmaker(
         engine, class_=AsyncSession, expire_on_commit=False
@@ -55,5 +80,19 @@ async def delete_corrupt_stats(gpx_file_id: str):
 
 
 if __name__ == "__main__":
-    gpx_file_id = "13e24f2f-f792-4873-b636-ad3568861514"
-    asyncio.run(delete_corrupt_stats(gpx_file_id))
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Delete corrupt or unwanted RouteStatistics records from the database.",
+        epilog="Example:\n"
+               "  %(prog)s 13e24f2f-f792-4873-b636-ad3568861514",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "gpx_file_id",
+        help="UUID of GPX file whose RouteStatistics should be deleted"
+    )
+
+    args = parser.parse_args()
+
+    asyncio.run(delete_corrupt_stats(args.gpx_file_id))

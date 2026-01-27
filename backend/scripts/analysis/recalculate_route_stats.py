@@ -1,4 +1,24 @@
-"""Recalculate RouteStatistics for an existing GPX file without re-uploading."""
+"""Recalculate RouteStatistics for an existing GPX file without re-uploading.
+
+This script recalculates RouteStatistics for a GPX file that is already in the
+database and storage. It reads the GPX file, parses it, calculates all route
+metrics, deletes the old RouteStatistics record (if exists), and creates a new one.
+
+Usage:
+    poetry run python scripts/analysis/recalculate_route_stats.py <gpx_file_id>
+
+Args:
+    gpx_file_id: UUID of the GPX file to recalculate statistics for
+
+Examples:
+    poetry run python scripts/analysis/recalculate_route_stats.py 13e24f2f-f792-4873-b636-ad3568861514
+
+Notes:
+    - Requires GPX file to be in database (gpx_files table)
+    - Requires GPX file to exist in storage (storage_path + file_url)
+    - Requires GPX file to have timestamps (has_timestamps=true)
+    - Deletes existing RouteStatistics and creates new one
+"""
 
 import asyncio
 from pathlib import Path
@@ -14,7 +34,11 @@ from src.services.route_stats_service import RouteStatsService
 
 
 async def recalculate_stats(gpx_file_id: str):
-    """Recalculate RouteStatistics for an existing GPX file."""
+    """Recalculate RouteStatistics for an existing GPX file.
+
+    Args:
+        gpx_file_id: UUID of GPX file to recalculate statistics for
+    """
     engine = create_async_engine(settings.database_url, echo=False)
     async_session_factory = sessionmaker(
         engine, class_=AsyncSession, expire_on_commit=False
@@ -206,11 +230,19 @@ async def recalculate_stats(gpx_file_id: str):
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    if len(sys.argv) < 2:
-        print("Usage: poetry run python scripts/recalculate_route_stats.py <gpx_file_id>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Recalculate RouteStatistics for an existing GPX file without re-uploading.",
+        epilog="Example:\n"
+               "  %(prog)s 13e24f2f-f792-4873-b636-ad3568861514",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "gpx_file_id",
+        help="UUID of GPX file to recalculate statistics for"
+    )
 
-    gpx_file_id = sys.argv[1]
-    asyncio.run(recalculate_stats(gpx_file_id))
+    args = parser.parse_args()
+
+    asyncio.run(recalculate_stats(args.gpx_file_id))

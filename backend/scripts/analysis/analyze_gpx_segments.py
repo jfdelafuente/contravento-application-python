@@ -11,8 +11,16 @@ from src.models.gpx import GPXFile
 from src.services.gpx_service import GPXService
 
 
-async def analyze_segments(gpx_file_id: str):
-    """Analyze segment speeds to understand stop detection."""
+async def analyze_segments(gpx_file_id: str = None, file_path: str = None):
+    """Analyze segment speeds to understand stop detection.
+
+    Args:
+        gpx_file_id: UUID of GPX file (required if file_path not provided)
+        file_path: Path to GPX file (required if gpx_file_id not provided)
+    """
+    if not gpx_file_id and not file_path:
+        raise ValueError("Either gpx_file_id or file_path must be provided")
+
     engine = create_async_engine(settings.database_url, echo=False)
     async_session_factory = sessionmaker(
         engine, class_=AsyncSession, expire_on_commit=False
@@ -20,20 +28,31 @@ async def analyze_segments(gpx_file_id: str):
 
     async with async_session_factory() as db:
         try:
-            # Get GPX file
-            result = await db.execute(
-                select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id)
-            )
-            gpx_file = result.scalar_one_or_none()
+            # Read GPX file from custom path or database
+            if file_path:
+                print(f"[INFO] Using custom file path: {file_path}")
+                custom_path = Path(file_path)
+                if not custom_path.exists():
+                    print(f"[ERROR] File not found: {file_path}")
+                    return
 
-            if not gpx_file:
-                print(f"[ERROR] GPX file not found")
-                return
+                with open(custom_path, "rb") as f:
+                    gpx_content = f.read()
+            else:
+                # Get GPX file from database
+                result = await db.execute(
+                    select(GPXFile).where(GPXFile.gpx_file_id == gpx_file_id)
+                )
+                gpx_file = result.scalar_one_or_none()
 
-            # Read GPX file
-            storage_path = Path(settings.storage_path) / gpx_file.file_url
-            with open(storage_path, "rb") as f:
-                gpx_content = f.read()
+                if not gpx_file:
+                    print(f"[ERROR] GPX file not found in database")
+                    return
+
+                # Read GPX file from storage
+                storage_path = Path(settings.storage_path) / gpx_file.file_url
+                with open(storage_path, "rb") as f:
+                    gpx_content = f.read()
 
             # Parse GPX
             gpx_service = GPXService(db)
@@ -133,11 +152,31 @@ async def analyze_segments(gpx_file_id: str):
 
 
 if __name__ == "__main__":
+    import argparse
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: poetry run python scripts/analyze_gpx_segments.py <gpx_file_id>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Analyze segment speeds to understand stop detection in GPX files.",
+        epilog="Examples:\n"
+               "  %(prog)s 13e24f2f-f792-4873-b636-ad3568861514\n"
+               "  %(prog)s --file-path /tmp/my-route.gpx",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "gpx_file_id",
+        nargs='?',
+        help="UUID of GPX file (required if --file-path not provided)"
+    )
+    parser.add_argument(
+        "--file-path",
+        help="Path to GPX file (required if gpx_file_id not provided)",
+        default=None
+    )
 
-    gpx_file_id = sys.argv[1]
-    asyncio.run(analyze_segments(gpx_file_id))
+    args = parser.parse_args()
+
+    # Validate that at least one argument is provided
+    if not args.gpx_file_id and not args.file_path:
+        parser.error("Either gpx_file_id or --file-path must be provided")
+
+    asyncio.run(analyze_segments(args.gpx_file_id, args.file_path))

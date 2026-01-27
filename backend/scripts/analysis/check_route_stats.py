@@ -1,12 +1,19 @@
-"""
-Check if RouteStatistics record exists for a GPX file.
+"""Check if RouteStatistics record exists for a GPX file.
+
+This script queries the RouteStatistics table in the database to verify if
+statistics have been calculated for a given GPX file.
 
 Usage:
-    poetry run python scripts/check_route_stats.py <gpx_file_id>
+    poetry run python scripts/analysis/check_route_stats.py <gpx_file_id>
+
+Args:
+    gpx_file_id: UUID of the GPX file to check
+
+Examples:
+    poetry run python scripts/analysis/check_route_stats.py 13e24f2f-f792-4873-b636-ad3568861514
 """
 
 import asyncio
-import sys
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -16,7 +23,11 @@ from src.models.route_statistics import RouteStatistics
 
 
 async def check_stats(gpx_file_id: str):
-    """Check if RouteStatistics exists for given GPX file ID."""
+    """Check if RouteStatistics exists for given GPX file ID.
+
+    Args:
+        gpx_file_id: UUID of GPX file to check
+    """
     engine = create_async_engine(settings.database_url, echo=False)
     async_session_factory = sessionmaker(
         engine, class_=AsyncSession, expire_on_commit=False
@@ -82,9 +93,19 @@ async def check_stats(gpx_file_id: str):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: poetry run python scripts/check_route_stats.py <gpx_file_id>")
-        sys.exit(1)
+    import argparse
 
-    gpx_file_id = sys.argv[1]
-    asyncio.run(check_stats(gpx_file_id))
+    parser = argparse.ArgumentParser(
+        description="Check if RouteStatistics record exists for a GPX file in the database.",
+        epilog="Example:\n"
+               "  %(prog)s 13e24f2f-f792-4873-b636-ad3568861514",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "gpx_file_id",
+        help="UUID of GPX file to check"
+    )
+
+    args = parser.parse_args()
+
+    asyncio.run(check_stats(args.gpx_file_id))

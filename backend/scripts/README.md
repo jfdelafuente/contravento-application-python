@@ -264,8 +264,185 @@ if __name__ == "__main__":
 
 ---
 
+---
+
+## Análisis GPS y RouteStatistics
+
+Scripts para analizar archivos GPX y estadísticas de rutas. Organizados en dos carpetas:
+
+- **`analysis/`**: Scripts Python con la lógica de análisis
+- **`wrappers/`**: Scripts Bash para ejecutar los scripts Python de forma sencilla
+
+### Scripts Migrados
+
+| # | Script Python | Bash Wrapper | Dual Mode | Funcionalidad |
+|---|--------------|--------------|-----------|---------------|
+| 1 | `analyze_gpx_segments.py` | `analyze-segments.sh` | ✅ Sí | Analiza segmentos (slow, long, STOP) para detectar patrones de paradas |
+| 2 | `analyze_slow_segments.py` | `analyze-slow-segments.sh` | ✅ Sí | Genera histograma de duración de segmentos lentos (<3 km/h) |
+| 3 | `analyze_gpx_timing.py` | `analyze-timing.sh` | ✅ Sí | Analiza espaciado entre puntos GPS (distance gaps) |
+| 4 | `check_route_stats.py` | `check-stats.sh` | ❌ DB-only | Verifica existencia de RouteStatistics en la base de datos |
+| 5 | `recalculate_route_stats.py` | `recalculate-stats.sh` | ❌ DB-only | Recalcula RouteStatistics para un GPX existente |
+| 6 | `delete_corrupt_stats.py` | `delete-stats.sh` | ❌ DB-only | Elimina RouteStatistics corruptas o no deseadas |
+
+**Leyenda de Modos:**
+- **✅ Dual Mode**: Soporta modo database (GPX en DB) y modo file path (GPX local)
+- **❌ DB-only**: Solo opera con base de datos (requiere GPX en DB)
+
+### Ejemplos de Uso Completo
+
+#### 1. Análisis de Segmentos GPS
+
+Analiza segmentos para detectar paradas (velocidad < 3 km/h Y duración > 2 min):
+
+```bash
+# Modo Database (desde GPX en DB)
+./scripts/wrappers/analyze-segments.sh 13e24f2f-f792-4873-b636-ad3568861514
+
+# Modo File Path (desde archivo local)
+./scripts/wrappers/analyze-segments.sh --file-path /tmp/my-route.gpx
+```
+
+#### 2. Histograma de Segmentos Lentos
+
+Genera histograma de duración de segmentos lentos (<3 km/h):
+
+```bash
+# Modo Database
+./scripts/wrappers/analyze-slow-segments.sh 13e24f2f-f792-4873-b636-ad3568861514
+
+# Modo File Path
+./scripts/wrappers/analyze-slow-segments.sh --file-path /tmp/route.gpx
+```
+
+#### 3. Análisis de Espaciado GPS
+
+Analiza espaciado entre puntos GPS (detecta gaps >0.5km):
+
+```bash
+# Modo Database
+./scripts/wrappers/analyze-timing.sh 13e24f2f-f792-4873-b636-ad3568861514
+
+# Modo File Path
+./scripts/wrappers/analyze-timing.sh --file-path /home/user/route.gpx
+```
+
+#### 4. Verificar RouteStatistics
+
+Verifica si un GPX tiene estadísticas calculadas:
+
+```bash
+./scripts/wrappers/check-stats.sh 13e24f2f-f792-4873-b636-ad3568861514
+```
+
+**Salida si existe:**
+```
+[OK] RouteStatistics FOUND!
+[SPEED]  Avg Speed: 18.5 km/h, Max Speed: 42.3 km/h
+[TIME]   Total: 120.5 min, Moving: 95.2 min
+[GRADIENT] Avg: 2.3%, Max: 12.5%
+[CLIMBS] 3 climbs found
+```
+
+#### 5. Recalcular RouteStatistics
+
+Recalcula estadísticas (útil después de cambios en algoritmo):
+
+```bash
+./scripts/wrappers/recalculate-stats.sh 13e24f2f-f792-4873-b636-ad3568861514
+```
+
+⚠️ **ADVERTENCIA**: Elimina RouteStatistics existente y crea uno nuevo.
+
+#### 6. Eliminar RouteStatistics
+
+Elimina estadísticas corruptas o no deseadas:
+
+```bash
+./scripts/wrappers/delete-stats.sh 13e24f2f-f792-4873-b636-ad3568861514
+```
+
+⚠️ **ADVERTENCIA**: Operación destructiva sin opción de deshacer.
+
+### Workflows Típicos
+
+#### Workflow 1: Diagnosticar Moving Time ≈ Total Time
+
+```bash
+# 1. Analizar segmentos
+./scripts/wrappers/analyze-segments.sh <gpx_file_id>
+
+# 2. Ver histograma de paradas
+./scripts/wrappers/analyze-slow-segments.sh <gpx_file_id>
+
+# 3. Verificar gaps GPS
+./scripts/wrappers/analyze-timing.sh <gpx_file_id>
+```
+
+#### Workflow 2: Corregir RouteStatistics Corruptas
+
+```bash
+# 1. Verificar estadísticas actuales
+./scripts/wrappers/check-stats.sh <gpx_file_id>
+
+# 2. Eliminar estadísticas corruptas
+./scripts/wrappers/delete-stats.sh <gpx_file_id>
+
+# 3. Recalcular estadísticas correctas
+./scripts/wrappers/recalculate-stats.sh <gpx_file_id>
+
+# 4. Verificar resultados
+./scripts/wrappers/check-stats.sh <gpx_file_id>
+```
+
+#### Workflow 3: Analizar GPX Externo (Sin Subir a DB)
+
+```bash
+# Analizar segmentos
+./scripts/wrappers/analyze-segments.sh --file-path /tmp/route.gpx
+
+# Analizar segmentos lentos
+./scripts/wrappers/analyze-slow-segments.sh --file-path /tmp/route.gpx
+
+# Analizar espaciado GPS
+./scripts/wrappers/analyze-timing.sh --file-path /tmp/route.gpx
+```
+
+#### Workflow 4: Backfill de RouteStatistics (Múltiples GPX)
+
+```bash
+# Recalcular para múltiples GPX
+for id in id1 id2 id3; do
+  echo "Processing $id..."
+  ./scripts/wrappers/recalculate-stats.sh "$id"
+done
+```
+
+### Referencia Rápida
+
+```bash
+# Análisis (dual mode)
+./scripts/wrappers/analyze-segments.sh <gpx_file_id>
+./scripts/wrappers/analyze-segments.sh --file-path <ruta>
+
+./scripts/wrappers/analyze-slow-segments.sh <gpx_file_id>
+./scripts/wrappers/analyze-slow-segments.sh --file-path <ruta>
+
+./scripts/wrappers/analyze-timing.sh <gpx_file_id>
+./scripts/wrappers/analyze-timing.sh --file-path <ruta>
+
+# RouteStatistics (DB-only)
+./scripts/wrappers/check-stats.sh <gpx_file_id>
+./scripts/wrappers/recalculate-stats.sh <gpx_file_id>
+./scripts/wrappers/delete-stats.sh <gpx_file_id>
+```
+
+**Documentación completa**: Ver [GPS_ANALYSIS_SCRIPTS.md](GPS_ANALYSIS_SCRIPTS.md)
+
+---
+
 ## Referencias
 
 - [DEPLOYMENT.md](../docs/DEPLOYMENT.md) - Guía completa de deployment
 - [TESTING_GUIDE.md](../docs/TESTING_GUIDE.md) - Guía de testing
 - [TAGS_TESTING.md](../docs/api/TAGS_TESTING.md) - Testing de tags
+- [GPS_ANALYSIS_SCRIPTS.md](GPS_ANALYSIS_SCRIPTS.md) - Documentación completa de scripts GPS
