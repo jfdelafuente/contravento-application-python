@@ -174,6 +174,10 @@
 - ✅ `backend/scripts/deployment/docker-entrypoint.sh` - Actualizado
 - ✅ `backend/scripts/seeding/init_dev_data.py` - Actualizado con nuevos imports
 - ✅ `backend/scripts/README.md` - Completamente reescrito
+- ✅ `CLAUDE.md` - 11 referencias actualizadas (CRÍTICO)
+- ✅ `QUICK_START.md` - 3 referencias actualizadas (CRÍTICO)
+- ✅ `backend/README.md` - 4 referencias actualizadas (MEDIO)
+- ✅ `backend/config/README.md` - 3 referencias actualizadas (MEDIO)
 - ✅ `run-local-dev.sh` - 8 referencias actualizadas
 - ✅ `run-local-dev.ps1` - 8 referencias actualizadas
 - ✅ `rebuild-backend.sh` - 3 referencias actualizadas
@@ -190,8 +194,8 @@
 2. ✅ `QUICK_START.md` - 3 referencias
 
 ### Prioridad 2: MEDIO (Actualizar pronto)
-3. ⏳ `backend/README.md` - 4 referencias
-4. ⏳ `backend/config/README.md` - 3 referencias
+3. ✅ `backend/README.md` - 4 referencias
+4. ✅ `backend/config/README.md` - 3 referencias
 
 ### Prioridad 3: BAJA (Actualizar cuando sea posible)
 5. ⏳ `scripts/testing/README.md` - 1 referencia
