@@ -10,7 +10,7 @@ import { getGPXTrack, TrackDataResponse } from '../services/gpxService';
 
 interface UseGPXTrackReturn {
   /** Track data with simplified trackpoints */
-  track: TrackDataResponse['data'] | null;
+  track: TrackDataResponse | null;
 
   /** Loading state */
   isLoading: boolean;
@@ -38,7 +38,7 @@ interface UseGPXTrackReturn {
  * ```
  */
 export const useGPXTrack = (gpxFileId: string | null | undefined): UseGPXTrackReturn => {
-  const [track, setTrack] = useState<TrackDataResponse['data'] | null>(null);
+  const [track, setTrack] = useState<TrackDataResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
