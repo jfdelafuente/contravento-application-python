@@ -10,7 +10,7 @@ import {
   POI,
   POICreateInput,
   POIUpdateInput,
-  POIReorderInput,
+  POIReorderInput as _POIReorderInput,
   POIListResponse,
   POIType,
 } from '../types/poi';
@@ -22,7 +22,7 @@ import {
 /**
  * Standard API response wrapper
  */
-interface ApiResponse<T> {
+interface _ApiResponse<T> {
   success: boolean;
   data: T;
   error: null | {

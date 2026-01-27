@@ -46,7 +46,7 @@ interface POIFormProps {
 }
 
 export const POIForm: React.FC<POIFormProps> = ({
-  tripId,
+  tripId: _tripId,
   editingPOI,
   coordinates,
   onCancel,

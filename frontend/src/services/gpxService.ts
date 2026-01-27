@@ -163,7 +163,7 @@ export async function getGPXMetadata(
  */
 export async function getGPXTrack(
   gpxFileId: string
-): Promise<TrackDataResponse> {
+): Promise<TrackDataResponse['data']> {
   const response = await api.get(`/gpx/${gpxFileId}/track`);
   return response.data.data;
 }

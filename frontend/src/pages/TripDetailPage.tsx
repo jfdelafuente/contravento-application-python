@@ -79,7 +79,7 @@ export const TripDetailPage: React.FC = () => {
 
   // POI state (Feature 003 - User Story 4)
   const [pois, setPois] = useState<POI[]>([]);
-  const [isPOIsLoading, setIsPOIsLoading] = useState(false);
+  const [_isPOIsLoading, setIsPOIsLoading] = useState(false);
   const [isAddingPOI, setIsAddingPOI] = useState(false);
   const [editingPOI, setEditingPOI] = useState<POI | null>(null);
   const [poiCoordinates, setPoiCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
