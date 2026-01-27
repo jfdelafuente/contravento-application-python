@@ -29,8 +29,8 @@ def upgrade() -> None:
         op.execute(
             """
             CREATE TABLE route_statistics (
-                stats_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                gpx_file_id UUID UNIQUE NOT NULL,
+                stats_id VARCHAR(36) PRIMARY KEY,
+                gpx_file_id VARCHAR(36) UNIQUE NOT NULL,
                 avg_speed_kmh DOUBLE PRECISION,
                 max_speed_kmh DOUBLE PRECISION,
                 total_time_minutes DOUBLE PRECISION,
