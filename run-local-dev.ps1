@@ -433,19 +433,19 @@ if ($Setup) {
 
         # Create test user
         Write-Host "[INFO] Creating test user..." -ForegroundColor Blue
-        poetry run python scripts/create_verified_user.py
+        poetry run python scripts/user-mgmt/create_verified_user.py
 
         # Create admin user
         Write-Host "[INFO] Creating admin user..." -ForegroundColor Blue
-        poetry run python scripts/create_admin.py --force
+        poetry run python scripts/user-mgmt/create_admin.py --force
 
         # Load achievements
         Write-Host "[INFO] Loading achievements..." -ForegroundColor Blue
-        poetry run python scripts/seed_achievements.py
+        poetry run python scripts/seeding/seed_achievements.py
 
         # Load cycling types
         Write-Host "[INFO] Loading cycling types..." -ForegroundColor Blue
-        poetry run python scripts/seed_cycling_types.py
+        poetry run python scripts/seeding/seed_cycling_types.py
 
         Write-Host "[SUCCESS] Setup complete!" -ForegroundColor Green
         Write-Host ""
@@ -496,19 +496,19 @@ if ($Reset) {
 
         # Create test user
         Write-Host "[INFO] Creating test user..." -ForegroundColor Blue
-        poetry run python scripts/create_verified_user.py
+        poetry run python scripts/user-mgmt/create_verified_user.py
 
         # Create admin user
         Write-Host "[INFO] Creating admin user..." -ForegroundColor Blue
-        poetry run python scripts/create_admin.py --force
+        poetry run python scripts/user-mgmt/create_admin.py --force
 
         # Load achievements
         Write-Host "[INFO] Loading achievements..." -ForegroundColor Blue
-        poetry run python scripts/seed_achievements.py
+        poetry run python scripts/seeding/seed_achievements.py
 
         # Load cycling types
         Write-Host "[INFO] Loading cycling types..." -ForegroundColor Blue
-        poetry run python scripts/seed_cycling_types.py
+        poetry run python scripts/seeding/seed_cycling_types.py
 
         Write-Host "[SUCCESS] Database reset complete!" -ForegroundColor Green
         Write-Host ""

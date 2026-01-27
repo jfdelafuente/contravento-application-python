@@ -60,8 +60,8 @@ Write-Host "   - pgAdmin: http://localhost:5050" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "⚠️  RECORDATORIO: Revertir cambios temporales después de pruebas" -ForegroundColor Yellow
 Write-Host "   - backend/Dockerfile líneas 98-99" -ForegroundColor Gray
-Write-Host "   - backend/scripts/docker-entrypoint.sh línea 18" -ForegroundColor Gray
-Write-Host "   - backend/scripts/init_dev_data.py líneas 37-42" -ForegroundColor Gray
+Write-Host "   - backend/scripts/deployment/docker-entrypoint.sh línea 18" -ForegroundColor Gray
+Write-Host "   - backend/scripts/seeding/init_dev_data.py líneas 37-42" -ForegroundColor Gray
 Write-Host ""
 Write-Host "📝 Comandos útiles:" -ForegroundColor White
 Write-Host "   Ver logs en tiempo real:" -ForegroundColor Gray
@@ -71,5 +71,5 @@ Write-Host "   Reiniciar solo backend:" -ForegroundColor Gray
 Write-Host "     docker compose -f docker-compose.preproduction.yml restart backend" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "   Ejecutar script manualmente dentro del contenedor:" -ForegroundColor Gray
-Write-Host "     docker compose -f docker-compose.preproduction.yml exec backend python scripts/init_dev_data.py" -ForegroundColor DarkGray
+Write-Host "     docker compose -f docker-compose.preproduction.yml exec backend python scripts/seeding/init_dev_data.py" -ForegroundColor DarkGray
 Write-Host ""

@@ -174,6 +174,12 @@
 - ✅ `backend/scripts/deployment/docker-entrypoint.sh` - Actualizado
 - ✅ `backend/scripts/seeding/init_dev_data.py` - Actualizado con nuevos imports
 - ✅ `backend/scripts/README.md` - Completamente reescrito
+- ✅ `run-local-dev.sh` - 8 referencias actualizadas
+- ✅ `run-local-dev.ps1` - 8 referencias actualizadas
+- ✅ `rebuild-backend.sh` - 3 referencias actualizadas
+- ✅ `rebuild-backend.ps1` - 3 referencias actualizadas
+- ✅ `rebuild-backend-preproduction.sh` - 3 referencias actualizadas
+- ✅ `rebuild-backend-preproduction.ps1` - 3 referencias actualizadas
 
 ---
 

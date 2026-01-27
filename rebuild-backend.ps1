@@ -56,6 +56,6 @@ Write-Host "   - API Docs: http://localhost:8000/docs" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "⚠️  RECORDATORIO: Revertir cambios temporales después de pruebas" -ForegroundColor Yellow
 Write-Host "   - backend/Dockerfile líneas 98-99" -ForegroundColor Gray
-Write-Host "   - backend/scripts/docker-entrypoint.sh línea 18" -ForegroundColor Gray
-Write-Host "   - backend/scripts/init_dev_data.py líneas 37-42" -ForegroundColor Gray
+Write-Host "   - backend/scripts/deployment/docker-entrypoint.sh línea 18" -ForegroundColor Gray
+Write-Host "   - backend/scripts/seeding/init_dev_data.py líneas 37-42" -ForegroundColor Gray
 Write-Host ""
