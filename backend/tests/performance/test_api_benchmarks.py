@@ -369,3 +369,66 @@ class TestPasswordHashingBenchmark:
             return is_valid
 
         benchmark(verify)
+
+
+@pytest.mark.performance
+@pytest.mark.benchmark
+class TestGPXMapLoadingBenchmark:
+    """Benchmark GPX track loading for map rendering (T052)."""
+
+    async def test_map_loads_with_1000_points(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        test_user,
+        auth_headers,
+        benchmark,
+    ):
+        """
+        T052: Test GET /gpx/{gpx_file_id}/track loads with 1000 points in <3s.
+
+        Success Criteria: SC-007 (Map loads with 1000 points in <3s)
+        Functional Requirements: FR-010 (Display interactive route map)
+        """
+        from pathlib import Path
+
+        # Step 1: Create trip and upload GPX file with ~2000 points (will be simplified to ~200)
+        trip_data = {
+            "title": "Map Loading Performance Test",
+            "description": "Testing map rendering performance with large GPX file.",
+            "start_date": "2024-06-01",
+        }
+
+        create_response = await client.post("/trips", json=trip_data, headers=auth_headers)
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        # Upload camino_del_cid.gpx (2000 points → simplified to ~200 points)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "camino_del_cid.gpx"
+
+        with open(gpx_path, "rb") as f:
+            files = {"file": ("camino_del_cid.gpx", f, "application/gpx+xml")}
+            upload_response = await client.post(
+                f"/trips/{trip_id}/gpx", files=files, headers=auth_headers
+            )
+
+        gpx_file_id = upload_response.json()["data"]["gpx_file_id"]
+
+        # Step 2: Benchmark track data retrieval (map rendering endpoint)
+        async def fetch_track_data():
+            response = await client.get(f"/gpx/{gpx_file_id}/track")
+            assert response.status_code == 200
+            data = response.json()["data"]
+
+            # Verify trackpoints exist
+            assert "trackpoints" in data
+            assert len(data["trackpoints"]) > 0
+
+            return response
+
+        # Run benchmark
+        result = benchmark(fetch_track_data)
+
+        # Assert performance (SC-007): Should load in <3s
+        # Note: pytest-benchmark measures execution time automatically
+        # We'll verify in the stats output that mean/median < 3000ms

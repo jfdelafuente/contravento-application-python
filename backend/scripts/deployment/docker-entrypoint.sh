@@ -17,7 +17,7 @@ echo ""
 # TEMPORAL: Permitir ejecución en production para pruebas
 if [ "$APP_ENV" = "development" ] || [ "$APP_ENV" = "testing" ] || [ "$APP_ENV" = "ci" ] || [ "$APP_ENV" = "production" ]; then
     echo "🌱 Initializing development data..."
-    python scripts/init_dev_data.py
+    python scripts/seeding/init_dev_data.py
     echo ""
 fi
 

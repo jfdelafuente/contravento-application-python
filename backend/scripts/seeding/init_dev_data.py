@@ -21,8 +21,8 @@ import os
 import sys
 from pathlib import Path
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add backend to path (now in scripts/seeding/, need to go up 2 levels)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.config import settings
 
@@ -45,10 +45,10 @@ async def main():
     print()
 
     # Import here to avoid circular imports
-    from scripts.seed_achievements import seed_achievements
-    from scripts.seed_cycling_types import seed_cycling_types
-    from scripts.create_admin import create_admin_user
-    from scripts.create_verified_user import create_verified_user
+    from scripts.seeding.seed_achievements import seed_achievements
+    from scripts.seeding.seed_cycling_types import seed_cycling_types
+    from scripts.user_mgmt.create_admin import create_admin_user
+    from scripts.user_mgmt.create_verified_user import create_verified_user
 
     # Step 1: Seed achievements
     print("📋 Paso 1/4: Cargando achievements predefinidos")

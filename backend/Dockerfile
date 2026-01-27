@@ -59,7 +59,7 @@ COPY scripts/ ./scripts/
 COPY config/ ./config/
 
 # Make entrypoint script executable
-RUN chmod +x scripts/docker-entrypoint.sh
+RUN chmod +x scripts/deployment/docker-entrypoint.sh
 
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
@@ -68,7 +68,7 @@ RUN mkdir -p storage/profile_photos storage/trip_photos
 EXPOSE 8000
 
 # Use entrypoint script to run migrations and seed data
-ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+ENTRYPOINT ["./scripts/deployment/docker-entrypoint.sh"]
 
 # Development server with hot reload
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -99,7 +99,7 @@ COPY config/ ./config/
 COPY pyproject.toml poetry.lock ./
 
 # Make entrypoint script executable
-RUN chmod +x scripts/docker-entrypoint.sh
+RUN chmod +x scripts/deployment/docker-entrypoint.sh
 
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
@@ -116,7 +116,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 # Use entrypoint script to run migrations (no seed data in production)
-ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+ENTRYPOINT ["./scripts/deployment/docker-entrypoint.sh"]
 
 # Production server (no reload)
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
