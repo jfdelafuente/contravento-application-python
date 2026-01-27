@@ -16,7 +16,7 @@
  * - SC-016: Click-to-map sync <300ms (handled by parent)
  */
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import {
   Line,
   XAxis,
@@ -27,6 +27,7 @@ import {
   Area,
   ComposedChart,
 } from 'recharts';
+import { interpolateTrackPoint } from '../../utils/trackpointInterpolation';
 import './ElevationProfile.css';
 
 export interface TrackPoint {
@@ -125,6 +126,15 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
   onPointHover,
   height = 300,
 }) => {
+  // Ref to track chart container for native mouse position capture
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Track chart rendering dimensions (calculated from margins)
+  const [chartDimensions, setChartDimensions] = useState<{
+    width: number;
+    leftMargin: number;
+  } | null>(null);
+
   // Check if we have elevation data (FR-021)
   const hasValidElevation = useMemo(() => {
     return hasElevation && trackpoints.some((p) => p.elevation !== null);
@@ -157,6 +167,33 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
     };
   }, [chartData]);
 
+  // Update chart dimensions when container resizes
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateDimensions = () => {
+      if (!containerRef.current) return;
+
+      const containerWidth = containerRef.current.offsetWidth;
+      // Recharts margins: { top: 10, right: 30, left: 0, bottom: 0 }
+      // Left margin is 0, but Y-axis takes ~50px, right margin is 30px
+      const leftMargin = 50; // Approximate Y-axis width
+      const rightMargin = 30;
+      const plotWidth = containerWidth - leftMargin - rightMargin;
+
+      setChartDimensions({
+        width: plotWidth,
+        leftMargin: leftMargin,
+      });
+    };
+
+    updateDimensions();
+
+    // Update on window resize
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
   // Handle click on chart point (FR-019)
   const handleClick = (data: any) => {
     // Recharts 3.x uses activeIndex instead of activePayload
@@ -170,8 +207,43 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
     }
   };
 
-  // Handle mouse move over chart (hover) - immediate response
+  // Handle native mouse move for smooth interpolation
+  const handleNativeMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!chartDimensions || chartData.length === 0 || !containerRef.current) {
+      return;
+    }
+
+    // Get mouse X position relative to container
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+
+    // Calculate mouse X position relative to plot area (excluding margins)
+    const plotX = mouseX - chartDimensions.leftMargin;
+
+    // Check if mouse is within plot area
+    if (plotX < 0 || plotX > chartDimensions.width) {
+      onPointHover?.(null);
+      return;
+    }
+
+    // Convert mouse X position to distance (km)
+    // plotX / chartDimensions.width = targetDistance / distanceKm
+    const targetDistance = (plotX / chartDimensions.width) * distanceKm;
+
+    // Interpolate trackpoint at target distance
+    const interpolatedPoint = interpolateTrackPoint(chartData as TrackPoint[], targetDistance);
+
+    if (interpolatedPoint) {
+      onPointHover?.(interpolatedPoint);
+    }
+  }, [chartDimensions, chartData, distanceKm, onPointHover]);
+
+  // Handle mouse move over chart (fallback for Recharts event)
+  // This provides discrete point tracking if native events don't fire
   const handleMouseMove = useCallback((data: any) => {
+    // Only use Recharts event if we don't have chart dimensions yet
+    if (chartDimensions) return; // Prefer native mouse events
+
     if (data && typeof data.activeIndex !== 'undefined' && chartData.length > 0) {
       const index = parseInt(data.activeIndex as string, 10);
 
@@ -180,7 +252,7 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
         onPointHover?.(point);
       }
     }
-  }, [chartData, onPointHover]);
+  }, [chartData, onPointHover, chartDimensions]);
 
   // Handle mouse leave from chart
   const handleMouseLeave = useCallback(() => {
@@ -213,7 +285,12 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
   }
 
   return (
-    <div className="elevation-profile">
+    <div
+      className="elevation-profile"
+      ref={containerRef}
+      onMouseMove={handleNativeMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="profile-header">
         <h3 className="profile-title">Perfil de Elevación</h3>
         <div className="profile-legend">
@@ -238,7 +315,6 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
           data={chartData}
           onClick={handleClick}
           onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
         >
           <defs>

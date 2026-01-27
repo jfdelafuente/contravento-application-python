@@ -243,11 +243,22 @@
 **Bonus Features**
 
 - [x] T082b [US3] Add hover marker on map following cursor over elevation profile ✅ Implemented with pulsating CircleMarker (orange/gold)
-  - ⚠️ **Known Limitation**: Marker jumps between simplified trackpoints (~200-500 points) instead of smooth continuous movement
-  - **Future Enhancement (Deferred)**:
-    - Option 1: Increase trackpoint density in backend (more data, better precision)
-    - Option 2: Add frontend interpolation between points
-    - Option 3: Implement dual dataset (full for hover, simplified for display)
+  - ✅ **Limitation RESOLVED** (2026-01-27): Smooth interpolation implemented
+  - **Implementation**: Option 2 (frontend interpolation) - See T082c below
+
+- [x] T082c [US3] Implement smooth hover marker interpolation (2026-01-27) ✅ COMPLETED
+  - **Files Created**:
+    - `frontend/src/utils/trackpointInterpolation.ts` - Linear interpolation utilities
+  - **Files Modified**:
+    - `frontend/src/components/trips/ElevationProfile.tsx` - Native mouse event capture + interpolation
+  - **Algorithm**:
+    1. Capture native mouse position (bypassing Recharts discrete activeIndex)
+    2. Calculate chart plot area dimensions (excluding Y-axis and margins)
+    3. Convert mouse X position (pixels) → distance (km) using proportional scaling
+    4. Interpolate trackpoint at exact distance: latitude, longitude, elevation, gradient
+    5. Pass interpolated trackpoint to map for smooth marker movement
+  - **Result**: Marker now moves smoothly across entire route instead of jumping between ~200-500 simplified points
+  - **Performance**: O(log n) interpolation, negligible CPU impact, no additional data transfer
 
 **Verification**
 
@@ -264,13 +275,18 @@
 - [x] T089 [US3] Manual test: View elevation profile on mobile, verify responsive layout (FR-022) ✅ PASSED
 
 **Manual Testing Results** (2026-01-25):
-- T085-T089: All core features working correctly
-- T087b (Bonus hover marker): UX not optimal - marker jumps between discrete trackpoints instead of smoothly following GPX line
-  - Decision: Accept limitation, feature remains functional but with documented UX issue
-  - Rationale: Bonus feature (not in original requirements FR-017 to FR-022), core functionality complete
-  - Future improvement: Implement interpolation or increase trackpoint density (deferred to future iteration)
 
-**Checkpoint**: User Story 3 fully functional - Elevation profile with map sync working independently
+- T085-T089: All core features working correctly ✅
+
+**Manual Testing Results - Interpolation Enhancement** (2026-01-27):
+
+- T082c: Smooth hover marker interpolation ✅ IMPROVED
+  - Marker now moves smoothly across entire route (previously jumped between discrete points)
+  - Interpolation works correctly with ~200-500 simplified trackpoints
+  - No performance degradation observed
+  - No additional data transfer required
+
+**Checkpoint**: ✅ User Story 3 fully functional with smooth hover marker - Elevation profile with map sync working independently
 
 ---
 
