@@ -52,7 +52,7 @@ function findSurroundingPoints(
   }
 
   // Find the first trackpoint after target distance
-  let afterIndex = trackpoints.findIndex((p) => p.distance_km >= targetDistance);
+  const afterIndex = trackpoints.findIndex((p) => p.distance_km >= targetDistance);
 
   // Edge case: target is before all trackpoints (return first point)
   if (afterIndex === 0) {
