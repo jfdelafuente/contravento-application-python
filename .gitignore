@@ -40,6 +40,9 @@ venv.bak/
 .vscode/
 *.code-workspace
 
+# Claude Code
+.claude/
+
 # mypy
 .mypy_cache/
 .dmypy.json
