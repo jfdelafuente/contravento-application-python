@@ -198,11 +198,11 @@
 4. ✅ `backend/config/README.md` - 3 referencias
 
 ### Prioridad 3: BAJA (Actualizar cuando sea posible)
-5. ⏳ `scripts/testing/README.md` - 1 referencia
-6. ⏳ `scripts/testing/gps/README.md` - 2 referencias
-7. ⏳ `scripts/seed/README.md` - 3 referencias
-8. ⏳ `scripts/README.md` - 1 referencia
-9. ⏳ `backend/docs/api/README.md` - 1 referencia
+5. ✅ `scripts/testing/README.md` - 1 referencia
+6. ✅ `scripts/testing/gps/README.md` - 2 referencias
+7. ✅ `scripts/seed/README.md` - 3 referencias
+8. ✅ `scripts/README.md` - 1 referencia
+9. ✅ `backend/docs/api/README.md` - 1 referencia
 
 ---
 

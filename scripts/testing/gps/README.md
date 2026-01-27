@@ -195,7 +195,7 @@ Scripts use default test user:
 Create if missing:
 ```bash
 cd backend
-poetry run python scripts/create_verified_user.py
+poetry run python scripts/user-mgmt/create_verified_user.py
 ```
 
 ---
@@ -242,7 +242,7 @@ cd backend
 poetry run python -c "from database import get_sync_db; from models import User; db = next(get_sync_db()); print(db.query(User).filter(User.username=='testuser').first())"
 
 # If user doesn't exist, create it
-poetry run python scripts/create_verified_user.py
+poetry run python scripts/user-mgmt/create_verified_user.py
 ```
 
 ### Error: "Permission denied: ./get-token.sh"
