@@ -39,7 +39,7 @@ class TestGPXServiceParsing:
 
         # Assert - Route statistics
         assert result["distance_km"] > 0
-        assert result["total_points"] == 20  # short_route.gpx has 20 points
+        assert result["total_points"] == 10  # short_route.gpx has 10 points
         assert result["has_elevation"] is True
         assert result["has_timestamps"] is True
 
