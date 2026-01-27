@@ -175,10 +175,22 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
       if (!containerRef.current) return;
 
       const containerWidth = containerRef.current.offsetWidth;
-      // Recharts margins: { top: 10, right: 30, left: 0, bottom: 0 }
-      // Left margin is 0, but Y-axis takes ~50px, right margin is 30px
-      const leftMargin = 50; // Approximate Y-axis width
-      const rightMargin = 30;
+
+      // Try to find the actual SVG element rendered by Recharts to measure Y-axis
+      const svgElement = containerRef.current.querySelector('svg');
+      let leftMargin = 50; // Default fallback
+
+      if (svgElement) {
+        // Look for the Y-axis group element (g.recharts-yAxis)
+        const yAxisGroup = svgElement.querySelector('.recharts-yAxis');
+        if (yAxisGroup) {
+          const bbox = (yAxisGroup as SVGGraphicsElement).getBBox();
+          // Y-axis width + some padding
+          leftMargin = Math.max(bbox.width + 10, 40); // Min 40px, add 10px padding
+        }
+      }
+
+      const rightMargin = 30; // From Recharts margins
       const plotWidth = containerWidth - leftMargin - rightMargin;
 
       setChartDimensions({
@@ -187,12 +199,27 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
       });
     };
 
-    updateDimensions();
+    // Initial measurement with delay to let Recharts render
+    const initialTimer = setTimeout(updateDimensions, 100);
 
     // Update on window resize
     window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
+
+    // Watch for changes in chart data that might affect Y-axis width
+    const observer = new MutationObserver(updateDimensions);
+    observer.observe(containerRef.current, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['transform', 'width']
+    });
+
+    return () => {
+      clearTimeout(initialTimer);
+      window.removeEventListener('resize', updateDimensions);
+      observer.disconnect();
+    };
+  }, [chartData]);
 
   // Handle click on chart point (FR-019)
   const handleClick = (data: any) => {
