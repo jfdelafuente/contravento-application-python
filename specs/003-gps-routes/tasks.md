@@ -532,6 +532,24 @@
 - [ ] T158 Validate quickstart.md guide by following it step-by-step (see [quickstart.md:495-506](quickstart.md#L495-L506)) - DEFERRED
 - [X] T159 Create pull request from `003-gps-routes` to `develop` with comprehensive description - ✅ DONE (merged)
 - [X] T160 Update project roadmap with completed Feature 003 - ✅ DONE
+- [X] T161 [P] Router refactoring: Split monolithic trips.py (1,080 lines) into modular routers - ✅ DONE (2026-01-28)
+  - Created `backend/src/api/trip_crud_router.py` (CRUD operations and public feed)
+  - Created `backend/src/api/trip_photos_router.py` (photo management)
+  - Created `backend/src/api/trip_user_router.py` (user trips and tags)
+  - Note: GPX endpoints already extracted to `gpx_routes.py` in previous refactoring
+  - Maintainability improvement: Better code organization, easier to locate features
+- [X] T162 [P] CI/CD fixes: Resolve Docker build blockers preventing production deployment - ✅ DONE (2026-01-28)
+  - Fix 1: Migration duplicate enum - Added `create_type=False` to POI enum column definition
+  - Fix 2: Missing poetry.lock - Committed lock file to version control (385KB)
+  - Fix 3: TypeScript type mismatches - Aligned all frontend types with backend schemas
+  - Commits: cc863f8 (migration), b0965c7 (poetry.lock), ac49966 + ca87720 (TypeScript)
+- [X] T163 [US5] Enhancement: Add distance_km field to TopClimb for better UX - ✅ DONE (2026-01-28)
+  - Backend: Added distance_km calculation to route_statistics_service.py (line 327)
+  - Backend: Updated TopClimbResponse schema with distance_km field
+  - Frontend: Added distance_km to TopClimb interface in types/gpx.ts and gpxService.ts
+  - Frontend: Added distance column to AdvancedStats table with purple styling
+  - Backward compatibility: Fallback calculation for old data without distance_km
+  - Commits: 65d2a8b (backend), 401d9fa (frontend table), a7d94a8 (backward compatibility)
 
 ---
 
@@ -694,6 +712,7 @@ With 3 developers:
 - **Performance targets**: Verify all SC-### success criteria during verification tasks
 - **Each user story is independently testable**: Complete checkpoint validation before moving to next priority
 
-**Total Tasks**: 160 tasks across 8 phases
+**Total Tasks**: 163 tasks across 8 phases
 **MVP Tasks**: 68 tasks (Phases 1-4)
-**Full Feature Tasks**: 160 tasks (all phases)
+**Full Feature Tasks**: 163 tasks (all phases)
+**Status**: ✅ FEATURE COMPLETE (2026-01-28) - All 5 user stories implemented, tested, and merged to develop
