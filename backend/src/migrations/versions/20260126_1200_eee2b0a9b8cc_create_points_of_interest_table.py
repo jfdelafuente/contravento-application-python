@@ -73,6 +73,7 @@ def upgrade() -> None:
                 "restaurant",
                 "other",
                 name="poi_type_enum",
+                create_type=False,  # Don't auto-create, we handle it manually above
             )
             if is_postgresql
             else sa.String(50),
