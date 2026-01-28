@@ -2298,11 +2298,9 @@ async def get_track_data(
         # Calculate gradient distribution (FR-032) if statistics exist
         gradient_distribution = None
         if route_statistics and gpx_file.has_elevation:
-            from src.services.gpx_service import GPXService
             from src.services.route_stats_service import RouteStatsService
 
             # Convert trackpoints to dict format for stats service
-            gpx_service = GPXService(db)
             trackpoints_for_stats = []
             for tp in trackpoints:
                 trackpoints_for_stats.append(

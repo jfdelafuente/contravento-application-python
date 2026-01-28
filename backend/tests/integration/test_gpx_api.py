@@ -475,7 +475,7 @@ class TestGPXTrackEndpoint:
 
         # Verify elevation data exists (short_route.gpx has elevation)
         assert first_point["elevation"] is not None
-        assert isinstance(first_point["elevation"], (int, float))
+        assert isinstance(first_point["elevation"], int | float)
 
         # Verify metadata fields
         assert data["gpx_file_id"] == gpx_file_id

@@ -16,7 +16,6 @@ Success Criteria:
 """
 
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -201,7 +200,7 @@ class TestClimbDetection:
         elevation = 100.0  # Start elevation
 
         # Flat start (5 points, 2km)
-        for i in range(5):
+        for _ in range(5):
             trackpoints.append(
                 {
                     "latitude": 40.0 + (sequence * 0.009),
@@ -215,7 +214,7 @@ class TestClimbDetection:
             distance_km += 0.4
 
         # Climb 1: 200m gain over 4km (5% avg gradient) - moderate
-        for i in range(10):
+        for _ in range(10):
             elevation += 20.0  # Total 200m gain
             trackpoints.append(
                 {
@@ -230,7 +229,7 @@ class TestClimbDetection:
             distance_km += 0.4
 
         # Flat section (3 points, 1.2km)
-        for i in range(3):
+        for _ in range(3):
             trackpoints.append(
                 {
                     "latitude": 40.0 + (sequence * 0.009),
@@ -244,7 +243,7 @@ class TestClimbDetection:
             distance_km += 0.4
 
         # Climb 2: 400m gain over 5km (8% avg gradient) - hardest climb
-        for i in range(12):
+        for _ in range(12):
             elevation += 33.3  # Total ~400m gain
             trackpoints.append(
                 {
@@ -259,7 +258,7 @@ class TestClimbDetection:
             distance_km += 0.42
 
         # Flat section
-        for i in range(3):
+        for _ in range(3):
             trackpoints.append(
                 {
                     "latitude": 40.0 + (sequence * 0.009),
@@ -273,7 +272,7 @@ class TestClimbDetection:
             distance_km += 0.4
 
         # Climb 3: 100m gain over 0.8km (12.5% avg gradient) - steepest but short
-        for i in range(5):
+        for _ in range(5):
             elevation += 20.0  # Total 100m gain
             trackpoints.append(
                 {
@@ -288,7 +287,7 @@ class TestClimbDetection:
             distance_km += 0.16
 
         # Flat section
-        for i in range(3):
+        for _ in range(3):
             trackpoints.append(
                 {
                     "latitude": 40.0 + (sequence * 0.009),
@@ -302,7 +301,7 @@ class TestClimbDetection:
             distance_km += 0.4
 
         # Climb 4: 300m gain over 5km (6% avg gradient) - moderate-hard
-        for i in range(10):
+        for _ in range(10):
             elevation += 30.0  # Total 300m gain
             trackpoints.append(
                 {
@@ -383,7 +382,7 @@ class TestGradientClassification:
         elevation = 100.0
 
         # Llano: 0-3% gradient (10km, 200m gain = 2% avg)
-        for i in range(25):
+        for _ in range(25):
             elevation += 8.0  # Total 200m
             trackpoints.append(
                 {
@@ -398,7 +397,7 @@ class TestGradientClassification:
             distance_km += 0.4
 
         # Moderado: 3-6% gradient (10km, 450m gain = 4.5% avg)
-        for i in range(25):
+        for _ in range(25):
             elevation += 18.0  # Total 450m
             trackpoints.append(
                 {
@@ -413,7 +412,7 @@ class TestGradientClassification:
             distance_km += 0.4
 
         # Empinado: 6-10% gradient (5km, 400m gain = 8% avg)
-        for i in range(12):
+        for _ in range(12):
             elevation += 33.3  # Total ~400m
             trackpoints.append(
                 {
@@ -428,7 +427,7 @@ class TestGradientClassification:
             distance_km += 0.42
 
         # Muy empinado: >10% gradient (5km, 600m gain = 12% avg)
-        for i in range(12):
+        for _ in range(12):
             elevation += 50.0  # Total 600m
             trackpoints.append(
                 {

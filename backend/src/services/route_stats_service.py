@@ -12,7 +12,7 @@ Success Criteria: SC-021 to SC-024
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,8 +32,8 @@ class RouteStatsService:
         self.db = db
 
     async def calculate_speed_metrics(
-        self, trackpoints: List[Dict[str, Any]]
-    ) -> Dict[str, float | None]:
+        self, trackpoints: list[dict[str, Any]]
+    ) -> dict[str, float | None]:
         """
         Calculate speed and time metrics from GPS trackpoints with timestamps.
 
@@ -123,7 +123,7 @@ class RouteStatsService:
             "moving_time_minutes": moving_time_minutes,
         }
 
-    async def detect_climbs(self, trackpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def detect_climbs(self, trackpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Detect and rank the top 3 hardest climbs on the route.
 
@@ -160,9 +160,9 @@ class RouteStatsService:
             return []
 
         # Segment route into continuous climbs
-        climbs: List[Dict[str, Any]] = []
+        climbs: list[dict[str, Any]] = []
         DESCENT_THRESHOLD_M = 10.0  # If elevation drops >10m from max, climb ends
-        FLAT_THRESHOLD_M = 2.0  # Elevation change <2m is considered flat
+        _FLAT_THRESHOLD_M = 2.0  # Elevation change <2m is considered flat (reserved for future use)
         FLAT_SECTION_COUNT = 3  # If 3+ flat points in a row, climb ends
         MIN_CLIMB_GAIN_M = 50.0  # Minimum gain to qualify as a climb
 
@@ -279,8 +279,8 @@ class RouteStatsService:
         return top_climbs
 
     async def classify_gradients(
-        self, trackpoints: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, float]]:
+        self, trackpoints: list[dict[str, Any]]
+    ) -> dict[str, dict[str, float]]:
         """
         Classify route segments by gradient category.
 
@@ -364,7 +364,7 @@ class RouteStatsService:
 
         return result
 
-    def _empty_gradient_distribution(self) -> Dict[str, Dict[str, float]]:
+    def _empty_gradient_distribution(self) -> dict[str, dict[str, float]]:
         """Return empty gradient distribution (all zeros)."""
         return {
             "llano": {"distance_km": 0.0, "percentage": 0.0},

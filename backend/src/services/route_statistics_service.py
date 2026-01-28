@@ -9,7 +9,6 @@ Calculates advanced route statistics from GPX files with timestamps:
 """
 
 import logging
-from datetime import datetime
 from typing import Any
 
 import gpxpy.gpx
@@ -263,7 +262,7 @@ class RouteStatisticsService:
         # Detect climb segments
         climbs = []
         in_climb = False
-        climb_start_idx = 0
+        _climb_start_idx = 0  # Reserved for future use: tracking climb start position
         climb_start_elevation = 0.0
         climb_start_distance_km = 0.0
 
@@ -287,7 +286,7 @@ class RouteStatisticsService:
             # Detect climb start (uphill)
             if not in_climb and elevation_diff > 0:
                 in_climb = True
-                climb_start_idx = i - 1
+                _climb_start_idx = i - 1  # Unused: for future reference tracking
                 climb_start_elevation = prev_point.elevation
                 climb_start_distance_km = cumulative_distance_km - (distance_m / 1000)
 

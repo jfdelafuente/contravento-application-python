@@ -9,7 +9,6 @@ Success Criteria: SC-029, SC-030, SC-031
 """
 
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession

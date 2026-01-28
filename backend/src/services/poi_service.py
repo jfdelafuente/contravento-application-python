@@ -9,7 +9,6 @@ Success Criteria: SC-029, SC-030, SC-031
 """
 
 import logging
-from typing import List
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -129,7 +128,7 @@ class POIService:
         self,
         trip_id: str,
         poi_type: POITypeEnum | None = None,
-    ) -> List[PointOfInterest]:
+    ) -> list[PointOfInterest]:
         """
         Get all POIs for a trip, optionally filtered by type.
 
@@ -239,8 +238,8 @@ class POIService:
         self,
         trip_id: str,
         user_id: str,
-        poi_ids: List[str],
-    ) -> List[PointOfInterest]:
+        poi_ids: list[str],
+    ) -> list[PointOfInterest]:
         """
         Reorder POIs for a trip.
 

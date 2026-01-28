@@ -8,19 +8,19 @@ water sources, accommodation, restaurants).
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum as PyEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    TIMESTAMP,
     CheckConstraint,
     Column,
+    Enum,
     Float,
     ForeignKey,
     Integer,
     String,
-    TIMESTAMP,
-    Enum,
 )
 from sqlalchemy.orm import Mapped, relationship
 
@@ -96,7 +96,7 @@ class PointOfInterest(Base):
     created_at = Column(
         TIMESTAMP(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     # Relationships
