@@ -87,6 +87,35 @@ export interface Coordinate {
 }
 
 /**
+ * Gradient category for distribution breakdown
+ */
+export interface GradientCategory {
+  distance_km: number;
+  percentage: number;
+}
+
+/**
+ * Gradient distribution breakdown
+ */
+export interface GradientDistribution {
+  llano: GradientCategory;
+  moderado: GradientCategory;
+  empinado: GradientCategory;
+  muy_empinado: GradientCategory;
+}
+
+/**
+ * Top climb segment
+ */
+export interface TopClimb {
+  start_km: number;
+  end_km: number;
+  elevation_gain_m: number;
+  avg_gradient: number;
+  description: string;
+}
+
+/**
  * Route Statistics (User Story 5)
  */
 export interface RouteStatistics {
@@ -98,7 +127,9 @@ export interface RouteStatistics {
   moving_time_minutes: number | null;
   avg_gradient: number | null;
   max_gradient: number | null;
-  calculated_at: string;
+  top_climbs: TopClimb[] | null;
+  created_at: string;
+  gradient_distribution?: GradientDistribution;
 }
 
 /**
