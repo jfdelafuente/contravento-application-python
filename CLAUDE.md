@@ -797,6 +797,8 @@ See `.specify/` directory for templates and workflows.
 - Python 3.12 (backend tests), TypeScript 5.x (frontend E2E tests) (001-testing-qa)
 - [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION] (develop)
 - [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (develop)
+- Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend) | React 18, React Hook Form 7.70, react-leaflet 4.2.1 (frontend) (017-gps-trip-wizard)
+- PostgreSQL (production), SQLite (development) - existing Trip, GPXFile, POI models (017-gps-trip-wizard)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
@@ -1788,6 +1790,7 @@ gradient: float | None = Field(
 7. **Don't skip gradient color coding**: Visual distinction between uphill/downhill is key UX feature
 
 ## Recent Changes
+- 017-gps-trip-wizard: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend) | React 18, React Hook Form 7.70, react-leaflet 4.2.1 (frontend)
 
 - **003-gps-routes** (2026-01-25): Implemented User Story 3 - Interactive Elevation Profile
   - Added Recharts 3.7.0 for elevation visualization
@@ -1797,7 +1800,5 @@ gradient: float | None = Field(
   - Fixed Recharts 3.x API compatibility (activeIndex vs activePayload)
   - Known limitation: Hover marker precision limited by simplified trackpoints (~200-500 points)
 - **010-reverse-geocoding** (2026-01-21): Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x
-- **013-public-trips-feed** (2026-01-21): Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend), React 18, React Router 6, Axios (frontend)
-- **001-testing-qa** (2026-01-21): Added Python 3.12 (backend tests), TypeScript 5.x (frontend E2E tests)
 
-**Last updated**: 2026-01-25
+**Last updated**: 2026-01-28
