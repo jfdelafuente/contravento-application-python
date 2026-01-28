@@ -292,30 +292,35 @@ export const AdvancedStats: React.FC<AdvancedStatsProps> = ({ statistics }) => {
                 </tr>
               </thead>
               <tbody>
-                {statistics.top_climbs.map((climb, index) => (
-                  <tr key={index}>
-                    <td className="advanced-stats__climbs-rank">{index + 1}</td>
-                    <td>{climb.start_km.toFixed(1)} km</td>
-                    <td>{climb.end_km.toFixed(1)} km</td>
-                    <td className="advanced-stats__climbs-distance">
-                      {climb.distance_km.toFixed(1)} km
-                    </td>
-                    <td className="advanced-stats__climbs-elevation">
-                      {climb.elevation_gain_m.toFixed(0)}m
-                    </td>
-                    <td
-                      className={`advanced-stats__climbs-gradient ${
-                        climb.avg_gradient > 10
-                          ? 'advanced-stats__climbs-gradient--steep'
-                          : climb.avg_gradient > 6
-                          ? 'advanced-stats__climbs-gradient--moderate'
-                          : ''
-                      }`}
-                    >
-                      {formatGradient(climb.avg_gradient)}
-                    </td>
-                  </tr>
-                ))}
+                {statistics.top_climbs.map((climb, index) => {
+                  // Fallback: calculate distance if not provided by backend (backward compatibility)
+                  const distance = climb.distance_km ?? (climb.end_km - climb.start_km);
+
+                  return (
+                    <tr key={index}>
+                      <td className="advanced-stats__climbs-rank">{index + 1}</td>
+                      <td>{climb.start_km.toFixed(1)} km</td>
+                      <td>{climb.end_km.toFixed(1)} km</td>
+                      <td className="advanced-stats__climbs-distance">
+                        {distance.toFixed(1)} km
+                      </td>
+                      <td className="advanced-stats__climbs-elevation">
+                        {climb.elevation_gain_m.toFixed(0)}m
+                      </td>
+                      <td
+                        className={`advanced-stats__climbs-gradient ${
+                          climb.avg_gradient > 10
+                            ? 'advanced-stats__climbs-gradient--steep'
+                            : climb.avg_gradient > 6
+                            ? 'advanced-stats__climbs-gradient--moderate'
+                            : ''
+                        }`}
+                      >
+                        {formatGradient(climb.avg_gradient)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
