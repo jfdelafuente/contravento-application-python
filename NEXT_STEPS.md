@@ -10,7 +10,7 @@
 | Feature | Prioridad | Estado | Tareas Pendientes | Tiempo Estimado | Bloqueadores |
 | ------- | --------- | ------ | ----------------- | --------------- | ------------ |
 | ~~**012-typescript-code-quality**~~ | ✅ Completada | 100% | 0 errores | ✅ ~1 hora | Ninguno |
-| **011-frontend-deployment** | 🔴 Alta | 96% (67/70) | 3 tareas | ~30 min | ~~Feature 012~~ ✅ |
+| **011-frontend-deployment** | 🔴 Alta | 98% (69/70) | 1 tarea manual | ~15 min | Ninguno |
 | **015-gpx-wizard-integration** | 🔴 Alta | 0% | 50 tareas | 4-8 horas | Ninguno |
 | **016-deployment-docs** | 🟡 Media | 31% (9/29) | 20 tareas | 5-8 días | Ninguno |
 | **014-landing-page** | 🟡 Media | 62% (44/71) | 27 tareas | 1-2 días | Ninguno |
@@ -59,26 +59,32 @@
 
 **Branch**: `011-frontend-deployment` (merged a develop)
 
-**Estado**: 🔄 **96% completo** (67/70 tareas)
+**Estado**: 🔄 **98% completo** (69/70 tareas)
 
 **Prioridad**: 🔴 **Alta** (~~bloqueado por Feature 012~~ ✅ DESBLOQUEADO)
 
-**Tiempo restante**: ~30 minutos
+**Tiempo restante**: ~15 minutos (validación manual)
 
 **Bloqueadores**: ~~Feature 012~~ ✅ Ninguno
 
 #### Tareas Pendientes Feature 011
 
-**T063**: Validar los 4 modos de deployment ✅
+**T063**: ⏳ **PENDIENTE - VALIDACIÓN MANUAL** - Validar los 4 modos de deployment end-to-end
 
 ```bash
-# Ejecutar quickstart.md
+# Requiere prueba manual del usuario siguiendo quickstart.md
 cd specs/011-frontend-deployment/
-# Validar SQLite Local, Docker Minimal, Docker Full, Production
+# Validar:
+# 1. SQLite Local (No Docker)
+# 2. Docker Minimal (PostgreSQL)
+# 3. Docker Full (PostgreSQL + MailHog + pgAdmin)
+# 4. Production Builds (staging/prod)
 # Tiempo: ~15 minutos
 ```
 
-**T067**: ✅ **DESBLOQUEADO** - Validar build de producción reduce tamaño ≥60%
+**Nota**: Esta es una tarea de validación manual que no puede automatizarse. El usuario debe probar cada modo de deployment para confirmar que funcionan correctamente.
+
+**T067**: ✅ **COMPLETADO** - Validar build de producción reduce tamaño ≥60%
 
 ```bash
 # ✅ Feature 012 completo - 0 errores TypeScript
@@ -89,20 +95,21 @@ npm run build:prod  # ✅ PASA - 37.53s build time
 # ✅ Assets gzipped = ~360 KB (~400KB target)
 # ✅ Build time = 37.53s (< 60s target)
 # ✅ 0 TypeScript errors
+# ✅ 66% size reduction (>60% target)
 ```
 
-**T068-T070**: Documentación final
+**T068-T070**: ✅ **COMPLETADOS** - Documentación final
 
-- [ ] T068: Actualizar CLAUDE.md con comandos de deployment
-- [ ] T069: Crear deployment troubleshooting guide
-- [ ] T070: Update NEXT_STEPS.md
+- [x] T068: Actualizar CLAUDE.md con comandos de deployment
+- [x] T069: Crear deployment troubleshooting guide
+- [x] T070: Update NEXT_STEPS.md
 
 #### Criterios de Aceptación Feature 011
 
-- [ ] Build de producción completa sin errores
-- [ ] Build size reducido ≥60% (target: ~400KB gzipped)
-- [ ] Los 4 modos de deployment validados
-- [ ] Documentación actualizada
+- [x] Build de producción completa sin errores (✅ 0 TypeScript errors)
+- [x] Build size reducido ≥60% (✅ 66% reduction - ~360KB gzipped)
+- [ ] Los 4 modos de deployment validados (⏳ T063 - requiere validación manual del usuario)
+- [x] Documentación actualizada (✅ T068-T070 completados)
 
 ---
 
