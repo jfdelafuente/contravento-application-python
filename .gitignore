@@ -143,4 +143,4 @@ celerybeat.pid
 
 # Cython debug symbols
 cython_debug/
-poetry.lock
+# poetry.lock is now tracked for reproducible builds (application, not library)
