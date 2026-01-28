@@ -45,6 +45,7 @@ class TripDifficulty(str, enum.Enum):
     MODERATE = "moderate"  # Moderada
     DIFFICULT = "difficult"  # Difícil
     VERY_DIFFICULT = "very_difficult"  # Muy Difícil
+    EXTREME = "extreme"  # Extrema
 
 
 class Trip(Base):

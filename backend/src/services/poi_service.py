@@ -20,8 +20,8 @@ from src.schemas.poi import POICreateInput, POITypeEnum, POIUpdateInput
 
 logger = logging.getLogger(__name__)
 
-# Business rule: Maximum POIs per trip (SC-029)
-MAX_POIS_PER_TRIP = 20
+# Business rule: Maximum POIs per trip (FR-011 from Feature 017)
+MAX_POIS_PER_TRIP = 6
 
 
 class POIService:

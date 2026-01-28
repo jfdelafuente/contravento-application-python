@@ -79,14 +79,14 @@ US5 (P5) ← [OPTIONAL] ← US2, US4
 
 ### Tasks
 
-- [ ] T001 Verify Feature 003 (GPS Routes) implemented and working
-- [ ] T002 Verify Feature 008 (Travel Diary Frontend) wizard pattern exists in frontend/src/components/trips/TripFormWizard.tsx
-- [ ] T003 [P] Create feature branch 017-gps-trip-wizard from develop
-- [ ] T004 [P] Verify backend dependencies: gpxpy==1.6.2, rdp==0.8 in backend/pyproject.toml
-- [ ] T005 [P] Verify frontend dependencies: react-hook-form@7.70, react-dropzone@14.3, react-leaflet@4.2 in frontend/package.json
-- [ ] T006 Create database migration for EXTREME difficulty level in backend/migrations/versions/XXX_add_extreme_difficulty.py
-- [ ] T007 Apply migration: poetry run alembic upgrade head
-- [ ] T008 Update MAX_POIS_PER_TRIP from 20 to 6 in backend/src/services/poi_service.py (line 24)
+- [X] T001 Verify Feature 003 (GPS Routes) implemented and working
+- [X] T002 Verify Feature 008 (Travel Diary Frontend) wizard pattern exists in frontend/src/components/trips/TripFormWizard.tsx
+- [X] T003 [P] Create feature branch 017-gps-trip-wizard from develop
+- [X] T004 [P] Verify backend dependencies: gpxpy==1.6.2, rdp==0.8 in backend/pyproject.toml
+- [X] T005 [P] Verify frontend dependencies: react-hook-form@7.70, react-dropzone@14.3, react-leaflet@4.2 in frontend/package.json
+- [X] T006 Create database migration for EXTREME difficulty level in backend/migrations/versions/XXX_add_extreme_difficulty.py
+- [X] T007 Apply migration: poetry run alembic upgrade head
+- [X] T008 Update MAX_POIS_PER_TRIP from 20 to 6 in backend/src/services/poi_service.py (line 24)
 
 **Verification**:
 ```bash
