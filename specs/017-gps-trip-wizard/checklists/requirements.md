@@ -31,10 +31,11 @@
 
 ## Notes
 
-**Clarifications Resolved (3)**:
+**Clarifications Resolved (4)**:
 
-1. POI description character limit: **500 characters** (allows concise but informative descriptions)
-2. Auto-save wizard state: **No auto-save for MVP** (simplifies implementation, can be added later based on feedback)
-3. GPX processing timeout: **60 seconds** (tolerant of large files and slow connections)
+1. **Difficulty calculation method**: **Calculated exclusively from telemetry data** (distance + elevation gain from GPX, not user-editable)
+2. POI description character limit: **500 characters** (allows concise but informative descriptions)
+3. Auto-save wizard state: **No auto-save for MVP** (simplifies implementation, can be added later based on feedback)
+4. GPX processing timeout: **60 seconds** (tolerant of large files and slow connections)
 
 ✅ All checklist items pass. Specification is complete and ready for `/speckit.plan` (implementation planning).

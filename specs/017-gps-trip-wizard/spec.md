@@ -163,15 +163,30 @@ Como ciclista que ha completado todos los pasos del wizard GPS, quiero poder pub
 - **SC-008**: Los usuarios que completan el wizard reportan satisfacción alta (≥4/5) con la claridad del flujo paso a paso
 - **SC-009**: El tiempo de carga de la página de detalle del viaje después de publicar es menor a 3 segundos (incluyendo renderizado del mapa con el track)
 
+## Clarifications
+
+1. **Cálculo de dificultad basado en telemetría**: La dificultad del viaje se calcula **exclusivamente** a partir de los datos de telemetría extraídos del archivo GPX. No es un campo editable por el usuario ni una estimación manual. El sistema utiliza dos métricas principales de telemetría:
+   - **Distancia total (km)**: Extraída sumando las distancias entre puntos consecutivos del track GPS
+   - **Desnivel positivo acumulado (m)**: Calculado sumando todas las ganancias de altitud a lo largo del track
+
+   El algoritmo combina estas dos métricas para determinar la clasificación de dificultad automáticamente. El usuario solo puede visualizar esta clasificación como un badge informativo, no puede modificarla.
+
+2. **Límite de descripción de POI**: Cada POI puede tener una descripción de texto opcional con un máximo de 500 caracteres, suficiente para descripciones concisas pero informativas.
+
+3. **No auto-guardado en wizard**: En el MVP, el estado del wizard no se guarda automáticamente. Si el usuario cierra el navegador o abandona el flujo, los datos se pierden y debe reiniciar desde el modal de selección.
+
+4. **Timeout de procesamiento GPX**: El procesamiento de archivos GPX tiene un límite de tiempo de 60 segundos para tolerar archivos grandes y conexiones lentas sin bloquear indefinidamente la interfaz.
+
 ## Assumptions
 
-1. **Algoritmo de dificultad**: Se asume que la dificultad se calcula usando una fórmula estándar basada en distancia y desnivel. Ejemplo:
-   - Fácil: <30km y <500m desnivel positivo
-   - Moderada: 30-60km o 500-1000m desnivel
-   - Difícil: 60-100km o 1000-1500m desnivel
-   - Muy difícil: 100-150km o 1500-2500m desnivel
-   - Extrema: >150km o >2500m desnivel
-   (Estos umbrales pueden ajustarse basándose en feedback de usuarios expertos)
+1. **Algoritmo de dificultad**: La dificultad se calcula usando la siguiente fórmula basada en telemetría (distancia + desnivel):
+   - **Fácil**: <30km y <500m desnivel positivo
+   - **Moderada**: 30-60km o 500-1000m desnivel
+   - **Difícil**: 60-100km o 1000-1500m desnivel
+   - **Muy difícil**: 100-150km o 1500-2500m desnivel
+   - **Extrema**: >150km o >2500m desnivel
+
+   Estos umbrales pueden ajustarse basándose en feedback de usuarios expertos, pero siempre calculados automáticamente a partir de telemetría, nunca ingresados manualmente
 
 2. **Integración con flujo existente**: Se asume que el flujo actual de creación de viaje sin GPS (wizard de 4 pasos existente) se mantiene intacto y el nuevo flujo GPS es una alternativa paralela, no un reemplazo
 
