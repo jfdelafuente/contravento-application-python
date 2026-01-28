@@ -274,7 +274,9 @@ from src.api import (
     profile,
     social,
     stats,
-    trips,
+    trip_crud_router,
+    trip_photos_router,
+    trip_user_router,
 )
 
 app.include_router(auth.router)
@@ -285,8 +287,9 @@ app.include_router(social.router)
 app.include_router(feed.router)  # Feature 004: Personalized feed
 app.include_router(likes.router)  # Feature 004: Likes/Me Gusta
 app.include_router(comments.router)  # Feature 004: Comments
-app.include_router(trips.router)
-app.include_router(trips.user_router)  # Phase 6: User-facing trip endpoints
+app.include_router(trip_crud_router.router)  # Trips: CRUD operations and public feed
+app.include_router(trip_photos_router.router)  # Trips: Photo management
+app.include_router(trip_user_router.router)  # Trips: User trips and tags
 app.include_router(gpx_routes.trip_gpx_router)  # Feature 003: GPX upload/metadata/delete
 app.include_router(gpx_routes.gpx_router)  # Feature 003: GPX status/track/download
 app.include_router(pois.router)  # Feature 003: Points of Interest (US4)

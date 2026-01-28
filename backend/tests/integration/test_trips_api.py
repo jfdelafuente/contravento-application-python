@@ -78,7 +78,7 @@ class TestPhotoUploadWorkflow:
         # Step 3: Verify database persistence
         from src.models.trip import TripPhoto
 
-        result = await db_session.execute(select(TripPhoto).where(TripPhoto.id == photo_id))
+        result = await db_session.execute(select(TripPhoto).where(TripPhoto.photo_id == photo_id))
         db_photo = result.scalar_one_or_none()
 
         assert db_photo is not None
@@ -255,7 +255,7 @@ class TestPhotoDeleteWorkflow:
         # Step 3: Verify database removal
         from src.models.trip import TripPhoto
 
-        result = await db_session.execute(select(TripPhoto).where(TripPhoto.id == photo_id))
+        result = await db_session.execute(select(TripPhoto).where(TripPhoto.photo_id == photo_id))
         db_photo = result.scalar_one_or_none()
         assert db_photo is None
 
@@ -518,7 +518,7 @@ class TestTagFilteringWorkflow:
             response = await client.post(f"/trips/{trip_id}/publish", headers=auth_headers)
             assert response.status_code == 200
 
-        username = "test_user"
+        username = "admin_user"  # auth_headers creates admin_user
 
         # Step 3: Filter by "bikepacking" tag
         response = await client.get(
@@ -585,7 +585,7 @@ class TestTagFilteringWorkflow:
             }
             await client.post("/trips", json=payload, headers=auth_headers)
 
-        username = "test_user"
+        username = "admin_user"  # auth_headers creates admin_user
 
         # Test pagination with limit=2
         response_page1 = await client.get(
