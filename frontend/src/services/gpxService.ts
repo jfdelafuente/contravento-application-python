@@ -110,6 +110,7 @@ export interface GradientDistribution {
 export interface TopClimb {
   start_km: number;
   end_km: number;
+  distance_km: number;
   elevation_gain_m: number;
   avg_gradient: number;
   description: string;

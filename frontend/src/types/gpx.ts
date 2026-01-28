@@ -236,6 +236,9 @@ export interface TopClimb {
   /** Distance from start where climb ends (km) */
   end_km: number;
 
+  /** Length of climb (km) - calculated as end_km - start_km */
+  distance_km: number;
+
   /** Total elevation gain in climb (meters) */
   elevation_gain_m: number;
 

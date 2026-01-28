@@ -324,9 +324,11 @@ class RouteStatisticsService:
         top_climbs = []
         for i, climb in enumerate(climbs[:max_climbs]):
             # Remove difficulty_score from output (internal use only)
+            distance_km = round(climb["end_km"] - climb["start_km"], 2)
             climb_output = {
                 "start_km": climb["start_km"],
                 "end_km": climb["end_km"],
+                "distance_km": distance_km,
                 "elevation_gain_m": climb["elevation_gain_m"],
                 "avg_gradient": climb["avg_gradient"],
                 "description": f"Subida {i + 1}: {climb['elevation_gain_m']:.0f}m de desnivel con {climb['avg_gradient']:.1f}% de pendiente media",

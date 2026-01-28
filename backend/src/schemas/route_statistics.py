@@ -25,6 +25,7 @@ class TopClimbResponse(BaseModel):
 
     start_km: float = Field(..., ge=0.0, description="Distance where climb starts (km from start)")
     end_km: float = Field(..., ge=0.0, description="Distance where climb ends (km from start)")
+    distance_km: float = Field(..., ge=0.0, description="Length of climb (end_km - start_km)")
     elevation_gain_m: float = Field(
         ..., ge=0.0, description="Total elevation gain during climb (meters)"
     )
