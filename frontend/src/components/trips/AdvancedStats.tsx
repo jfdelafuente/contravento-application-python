@@ -286,6 +286,7 @@ export const AdvancedStats: React.FC<AdvancedStatsProps> = ({ statistics }) => {
                   <th>#</th>
                   <th>Inicio</th>
                   <th>Fin</th>
+                  <th>Distancia</th>
                   <th>Desnivel</th>
                   <th>Pendiente</th>
                 </tr>
@@ -296,6 +297,9 @@ export const AdvancedStats: React.FC<AdvancedStatsProps> = ({ statistics }) => {
                     <td className="advanced-stats__climbs-rank">{index + 1}</td>
                     <td>{climb.start_km.toFixed(1)} km</td>
                     <td>{climb.end_km.toFixed(1)} km</td>
+                    <td className="advanced-stats__climbs-distance">
+                      {climb.distance_km.toFixed(1)} km
+                    </td>
                     <td className="advanced-stats__climbs-elevation">
                       {climb.elevation_gain_m.toFixed(0)}m
                     </td>

@@ -212,6 +212,11 @@
   font-size: 1.125rem;
 }
 
+.advanced-stats__climbs-distance {
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
 .advanced-stats__climbs-elevation {
   font-weight: 600;
   color: #059669;
