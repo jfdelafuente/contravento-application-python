@@ -8,7 +8,7 @@
  * Success Criteria: SC-005 (>90% elevation accuracy)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { GPXStatsProps } from '../../types/gpx';
 import { downloadGPX } from '../../services/gpxService';
 import toast from 'react-hot-toast';
@@ -23,10 +23,18 @@ import './GPXStats.css';
  * - Elevation Loss (meters, if available)
  * - Max/Min Altitude (meters, if available)
  * - Download button (owner-only)
+ * - Delete button (owner-only)
  *
  * Design pattern: Similar to StatsCard from dashboard
  */
-export const GPXStats: React.FC<GPXStatsProps> = ({ metadata, gpxFileId, isOwner = false }) => {
+export const GPXStats: React.FC<GPXStatsProps> = ({
+  metadata,
+  gpxFileId,
+  isOwner = false,
+  onDelete,
+}) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Safety check: metadata should always be provided by parent
   if (!metadata) {
     console.error('GPXStats: metadata is required');
@@ -59,6 +67,30 @@ export const GPXStats: React.FC<GPXStatsProps> = ({ metadata, gpxFileId, isOwner
       console.error('Download error:', error);
       toast.error('Error al descargar archivo GPX');
     }
+  };
+
+  /**
+   * Handle delete button click - show confirmation modal
+   */
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  /**
+   * Handle delete confirmation
+   */
+  const handleConfirmDelete = () => {
+    setShowDeleteConfirm(false);
+    if (onDelete) {
+      onDelete();
+    }
+  };
+
+  /**
+   * Handle delete cancellation
+   */
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -190,7 +222,7 @@ export const GPXStats: React.FC<GPXStatsProps> = ({ metadata, gpxFileId, isOwner
         )}
       </div>
 
-      {/* Download Button (Owner-only) */}
+      {/* Action Buttons (Owner-only) */}
       {isOwner && gpxFileId && (
         <div className="gpx-stats__actions">
           <button
@@ -212,6 +244,27 @@ export const GPXStats: React.FC<GPXStatsProps> = ({ metadata, gpxFileId, isOwner
             </svg>
             <span>Descargar GPX Original</span>
           </button>
+
+          <button
+            onClick={handleDeleteClick}
+            className="gpx-stats__delete-btn"
+            aria-label="Eliminar archivo GPX"
+          >
+            <svg
+              className="gpx-stats__delete-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+            <span>Eliminar GPX</span>
+          </button>
         </div>
       )}
 
@@ -231,6 +284,58 @@ export const GPXStats: React.FC<GPXStatsProps> = ({ metadata, gpxFileId, isOwner
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <p>Este archivo GPX no contiene datos de elevación.</p>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          className="gpx-delete-modal-overlay"
+          onClick={handleCancelDelete}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gpx-delete-title"
+          aria-describedby="gpx-delete-description"
+        >
+          <div
+            className="gpx-delete-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="gpx-delete-modal__icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 id="gpx-delete-title" className="gpx-delete-modal__title">
+              ¿Eliminar archivo GPX?
+            </h3>
+            <p id="gpx-delete-description" className="gpx-delete-modal__description">
+              Esta acción eliminará permanentemente el archivo GPX y todos los datos asociados
+              (ruta GPS, perfil de elevación, estadísticas). No se puede deshacer.
+            </p>
+            <div className="gpx-delete-modal__actions">
+              <button
+                onClick={handleCancelDelete}
+                className="gpx-delete-modal__button gpx-delete-modal__button--cancel"
+                aria-label="Cancelar eliminación"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="gpx-delete-modal__button gpx-delete-modal__button--confirm"
+                aria-label="Confirmar eliminación del archivo GPX"
+              >
+                Eliminar GPX
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

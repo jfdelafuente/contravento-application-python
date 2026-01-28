@@ -1,50 +1,57 @@
 # ============================================================================
-# ContraVento - Jenkins CI/CD Environment
+# ContraVento - Preproduction Environment (Jenkins)
 # ============================================================================
-# Standalone Docker Compose file for CI/CD pipelines (Jenkins, GitHub Actions)
-# Uses pre-built images from Docker Hub (built by docker-build-push.yml workflow)
+# Docker Compose file for deploying pre-built images from Docker Hub
 #
-# Includes all services needed for testing and validation:
+# Includes all services needed for preproduction validation:
 #   - PostgreSQL (database)
-#   - Backend API (FastAPI) - FROM jfdelafuente/contravento-backend:latest
-#   - Frontend (Nginx/React) - FROM jfdelafuente/contravento-frontend:latest
+#   - Backend API (FastAPI) - FROM Docker Hub: jfdelafuente/contravento-backend:latest
+#   - Frontend (Nginx/React) - FROM Docker Hub: jfdelafuente/contravento-frontend:latest
 #   - pgAdmin (database UI for debugging)
 #
-# This is a self-contained file (no overlays needed) optimized for:
-#   - Jenkins pipelines
-#   - GitHub Actions workflows
-#   - CI/CD automated testing
-#   - Quick spin-up/teardown cycles
-#   - NO BUILD REQUIRED - Uses pre-built Docker Hub images
+# Images are built and pushed to Docker Hub by:
+#   - PRIMARY: GitHub Actions workflow (.github/workflows/docker-build-push.yml)
+#   - BACKUP: Jenkins pipeline (Jenkinsfile) - if GitHub Actions fails
+#
+# This compose file is used for:
+#   - Local preproduction environment
+#   - Validating images before production deployment
+#   - Manual testing by Jenkins/QA team
+#   - NO BUILD REQUIRED - Downloads pre-built images from Docker Hub
+#
+# Key features:
+#   - Uses pre-built production images from Docker Hub (not local builds)
+#   - Frontend is Dockerfile.prod (optimized) not Dockerfile.dev (dev server)
+#   - VITE_* variables hardcoded at build-time (immutable)
+#   - Validates production-ready images before deployment
 #
 # Usage:
-#   docker-compose -f docker-compose-jenkins.yml up -d
-#   docker-compose -f docker-compose-jenkins.yml down
+#   docker-compose -f docker-compose.preproduction.yml up -d
+#   docker-compose -f docker-compose.preproduction.yml down
 #
-# Environment variables (auto-generated if not provided):
+# Environment variables (optional):
 #   SECRET_KEY:           Auto-generated if missing
 #   POSTGRES_PASSWORD:    Defaults to 'jenkins_test_password'
-#   TURNSTILE_SITE_KEY:   Defaults to test key (1x00000000000000000000AA)
+#   BACKEND_IMAGE:        Docker Hub image tag (default: jfdelafuente/contravento-backend:latest)
+#   FRONTEND_IMAGE:       Docker Hub image tag (default: jfdelafuente/contravento-frontend:latest)
 #
 # Access:
-#   Frontend:           http://localhost:80
+#   Frontend:           http://localhost:5173  (Preproduction port)
 #   Backend API:        http://localhost:8000
 #   API Docs:           http://localhost:8000/docs
 #   pgAdmin:            http://localhost:5050 (admin@example.com / jenkins)
-#   PostgreSQL:         localhost:5432 (contravento_ci / postgres / jenkins_test_password)
+#   PostgreSQL:         localhost:5432 (contravento_jenkins / postgres / jenkins_test_password)
 # ============================================================================
-
-version: '3.8'
 
 services:
   # ==========================================================================
-  # PostgreSQL - CI/CD Database
+  # PostgreSQL - Preproduction Database
   # ==========================================================================
   postgres:
     image: postgres:16-alpine
     container_name: contravento-db-jenkins
     environment:
-      POSTGRES_DB: contravento_ci
+      POSTGRES_DB: contravento_jenkins
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jenkins_test_password}
       POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=en_US.UTF-8
@@ -53,7 +60,7 @@ services:
     volumes:
       - postgres_data_jenkins:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d contravento_ci"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d contravento_jenkins"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -66,38 +73,38 @@ services:
   # Backend API - FastAPI
   # ==========================================================================
   backend:
-    image: jfdelafuente/contravento-backend:latest
+    image: ${BACKEND_IMAGE:-jfdelafuente/contravento-backend:latest}
     container_name: contravento-api-jenkins
     environment:
       # Application
       APP_NAME: ContraVento
-      APP_ENV: ci
+      APP_ENV: production
       DEBUG: "true"
 
       # Database
-      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-jenkins_test_password}@postgres:5432/contravento_ci
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-jenkins_test_password}@postgres:5432/contravento_jenkins
 
       # Security (auto-generate SECRET_KEY if not provided)
       SECRET_KEY: ${SECRET_KEY:-jenkins_default_secret_key_for_testing_only_do_not_use_in_production}
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 15
       REFRESH_TOKEN_EXPIRE_DAYS: 30
-      BCRYPT_ROUNDS: 4  # Fast hashing for CI/CD
+      BCRYPT_ROUNDS: 4  # Fast hashing for preproduction
 
-      # SMTP (disabled for CI/CD)
+      # SMTP (disabled for preproduction)
       SMTP_HOST: ""
       SMTP_PORT: "1025"
-      SMTP_FROM: noreply@contravento.local
+      SMTP_FROM: noreply@contravento.com
 
       # CORS
-      CORS_ORIGINS: http://localhost:5173,http://localhost:8000
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8000  # Preproduction ports
 
       # Storage
       STORAGE_PATH: /app/storage
 
       # Logging
       LOG_LEVEL: INFO
-      LOG_FORMAT: text  # Human-readable for CI logs
+      LOG_FORMAT: text  # Human-readable for preproduction logs
 
     ports:
       - "8000:8000"
@@ -118,31 +125,27 @@ services:
       - jenkins-network
 
   # ==========================================================================
-  # Frontend - React/Vite Production Build
+  # Frontend - React/Vite Production Build (from Docker Hub)
   # ==========================================================================
   frontend:
-    image: jfdelafuente/contravento-frontend:latest
+    image: ${FRONTEND_IMAGE:-jfdelafuente/contravento-frontend:latest}
     container_name: contravento-frontend-jenkins
-    # NOTE: Frontend image is production build (Nginx serving static files)
-    # VITE_* variables were embedded at build-time in docker-build-push.yml
-    # No environment variables needed at runtime for static content
+    # NOTE: Frontend image uses pre-built production bundle from Docker Hub
+    # Built by GitHub Actions (docker-build-push.yml) or Jenkins (Jenkinsfile)
+    # VITE_* variables were embedded at build-time, cannot be changed at runtime
     ports:
-      - "80:80"  # Nginx serves on port 80
+      - "5173:80"  # Map host port 5173 to container Nginx port 80
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
+    # No healthcheck - nginx:alpine doesn't include curl by default
+    # depends_on with service_healthy ensures correct startup order
     restart: unless-stopped
     networks:
       - jenkins-network
 
   # ==========================================================================
-  # pgAdmin - Database UI (for debugging CI failures)
+  # pgAdmin - Database UI (for debugging and inspection)
   # ==========================================================================
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -191,11 +194,11 @@ configs:
       {
         "Servers": {
           "1": {
-            "Name": "ContraVento CI Database",
+            "Name": "ContraVento Preproduction Database",
             "Group": "Jenkins",
             "Host": "postgres",
             "Port": 5432,
-            "MaintenanceDB": "contravento_ci",
+            "MaintenanceDB": "contravento_jenkins",
             "Username": "postgres",
             "SSLMode": "prefer",
             "PassFile": "/tmp/pgpass"
@@ -207,58 +210,52 @@ configs:
 # Usage Examples
 # ============================================================================
 # 1. Start all services:
-#    docker-compose -f docker-compose-jenkins.yml up -d
+#    docker-compose -f docker-compose.preproduction.yml up -d
 #
 # 2. View logs:
-#    docker-compose -f docker-compose-jenkins.yml logs -f backend
-#    docker-compose -f docker-compose-jenkins.yml logs -f frontend
+#    docker-compose -f docker-compose.preproduction.yml logs -f backend
+#    docker-compose -f docker-compose.preproduction.yml logs -f frontend
 #
-# 3. Run backend tests:
-#    docker-compose -f docker-compose-jenkins.yml exec backend pytest
+# 3. Pull latest images from Docker Hub:
+#    docker-compose -f docker-compose.preproduction.yml pull
 #
-# 4. Run frontend tests:
-#    docker-compose -f docker-compose-jenkins.yml exec frontend npm test
+# 4. Restart with updated images:
+#    docker-compose -f docker-compose.preproduction.yml up -d --force-recreate
 #
-# 5. Stop all services:
-#    docker-compose -f docker-compose-jenkins.yml down
+# 5. Run backend tests (inside container):
+#    docker-compose -f docker-compose.preproduction.yml exec backend pytest
 #
-# 6. Clean up everything (including volumes):
-#    docker-compose -f docker-compose-jenkins.yml down -v
+# 6. Stop all services:
+#    docker-compose -f docker-compose.preproduction.yml down
+#
+# 7. Clean up everything (including volumes):
+#    docker-compose -f docker-compose.preproduction.yml down -v
 #
 # ============================================================================
-# Jenkins Pipeline Integration
+# Preproduction Pipeline Notes
 # ============================================================================
-# Jenkinsfile example:
+# This file is NOT used for building images. It deploys pre-built images.
 #
-#   pipeline {
-#     agent any
-#     stages {
-#       stage('Setup') {
-#         steps {
-#           sh 'docker-compose -f docker-compose-jenkins.yml up -d'
-#           sh 'sleep 30'  // Wait for services to be healthy
-#         }
-#       }
-#       stage('Test Backend') {
-#         steps {
-#           sh 'docker-compose -f docker-compose-jenkins.yml exec -T backend pytest --cov=src'
-#         }
-#       }
-#       stage('Test Frontend') {
-#         steps {
-#           sh 'docker-compose -f docker-compose-jenkins.yml exec -T frontend npm test'
-#         }
-#       }
-#       stage('E2E Tests') {
-#         steps {
-#           sh 'docker-compose -f docker-compose-jenkins.yml exec -T frontend npm run test:e2e'
-#         }
-#       }
-#     }
-#     post {
-#       always {
-#         sh 'docker-compose -f docker-compose-jenkins.yml down -v'
-#       }
-#     }
-#   }
+# Images are built and pushed by:
+#
+# 1. PRIMARY METHOD - GitHub Actions (.github/workflows/docker-build-push.yml):
+#    - Triggers on push to develop/main branches
+#    - Builds both backend and frontend images
+#    - Pushes to Docker Hub with appropriate tags
+#    - See: .github/workflows/docker-build-push.yml
+#
+# 2. BACKUP METHOD - Jenkins (Jenkinsfile):
+#    - Used if GitHub Actions fails or is unavailable
+#    - Builds and pushes same images to Docker Hub
+#    - See: Jenkinsfile in project root
+#
+# Testing is handled by GitHub Actions workflows:
+#    - backend-tests.yml: Backend unit/integration tests
+#    - frontend-tests.yml: Frontend unit/E2E tests
+#    - Combined CI checks
+#
+# This compose file is only for:
+#    - Deploying pre-built images to local preproduction environment
+#    - Validating images before production deployment
+#    - Manual testing and QA validation
 # ============================================================================

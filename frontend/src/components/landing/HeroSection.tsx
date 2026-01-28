@@ -4,6 +4,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './HeroSection.css';
 
+// Import images as modules for Vite to process them during build
+// This enables cache busting with hashes (e.g., hero.abc123.jpg)
+import heroDesktopJpg from '../../assets/images/landing/hero.jpg';
+import heroDesktopWebP from '../../assets/images/landing/hero.webp';
+import heroMobileJpg from '../../assets/images/landing/hero-mobile.jpg';
+import heroMobileWebP from '../../assets/images/landing/hero-mobile.webp';
+
 /**
  * HeroSection Component (Feature 014 - User Story 1)
  *
@@ -25,23 +32,23 @@ export const HeroSection: React.FC = () => {
         {/* Mobile WebP (< 768px) */}
         <source
           media="(max-width: 768px)"
-          srcSet="/src/assets/images/landing/hero-mobile.webp"
+          srcSet={heroMobileWebP}
           type="image/webp"
         />
         {/* Mobile JPG Fallback (< 768px) */}
         <source
           media="(max-width: 768px)"
-          srcSet="/src/assets/images/landing/hero-mobile.jpg"
+          srcSet={heroMobileJpg}
           type="image/jpeg"
         />
         {/* Desktop WebP */}
         <source
-          srcSet="/src/assets/images/landing/hero.webp"
+          srcSet={heroDesktopWebP}
           type="image/webp"
         />
         {/* Desktop JPG Fallback */}
         <img
-          src="/src/assets/images/landing/hero.jpg"
+          src={heroDesktopJpg}
           alt="Ciclista en entorno rural durante la hora dorada"
           className="hero-image"
           loading="eager"

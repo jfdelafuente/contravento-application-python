@@ -6,7 +6,6 @@
 #   pytest tests/integration/ --postgresql
 #   docker-compose -f docker-compose.test.yml down
 
-version: '3.8'
 
 services:
   # PostgreSQL test database

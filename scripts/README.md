@@ -241,7 +241,7 @@ All scripts require:
 2. **Test user exists**:
    ```bash
    cd backend
-   poetry run python scripts/create_verified_user.py
+   poetry run python scripts/user-mgmt/create_verified_user.py
    ```
 
 3. **Bash or PowerShell** (depending on script extension)

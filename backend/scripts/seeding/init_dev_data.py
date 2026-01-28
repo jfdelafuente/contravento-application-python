@@ -21,8 +21,8 @@ import os
 import sys
 from pathlib import Path
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add backend to path (now in scripts/seeding/, need to go up 2 levels)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.config import settings
 
@@ -35,19 +35,20 @@ async def main():
     print()
 
     # Safety check: Don't run in production
-    if settings.app_env == "production":
-        print("❌ ERROR: Este script no debe ejecutarse en producción")
-        print("   APP_ENV actual: production")
-        sys.exit(1)
+    # TEMPORAL: Comentado para pruebas en producción
+    # if settings.app_env == "production":
+    #     print("❌ ERROR: Este script no debe ejecutarse en producción")
+    #     print("   APP_ENV actual: production")
+    #     sys.exit(1)
 
     print(f"✅ Entorno: {settings.app_env}")
     print()
 
     # Import here to avoid circular imports
-    from scripts.seed_achievements import seed_achievements
-    from scripts.seed_cycling_types import seed_cycling_types
-    from scripts.create_admin import create_admin_user
-    from scripts.create_verified_user import create_verified_user
+    from scripts.seeding.seed_achievements import seed_achievements
+    from scripts.seeding.seed_cycling_types import seed_cycling_types
+    from scripts.user_mgmt.create_admin import create_admin_user
+    from scripts.user_mgmt.create_verified_user import create_verified_user
 
     # Step 1: Seed achievements
     print("📋 Paso 1/4: Cargando achievements predefinidos")

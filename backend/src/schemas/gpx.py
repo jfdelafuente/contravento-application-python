@@ -7,7 +7,7 @@ Functional Requirements: FR-001 to FR-008, FR-036, FR-039
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ============================================================================
 # Response Schemas (Output)
@@ -151,11 +151,126 @@ class GPXStatusResponse(BaseModel):
         from_attributes = True
 
 
+class TopClimbResponse(BaseModel):
+    """
+    Individual climb data in top climbs list.
+
+    Represents a single climb segment with elevation and gradient details.
+    Used in RouteStatisticsResponse.
+    """
+
+    start_km: float = Field(..., ge=0.0, description="Distance from start where climb begins (km)")
+    end_km: float = Field(..., ge=0.0, description="Distance from start where climb ends (km)")
+    elevation_gain_m: float = Field(
+        ..., ge=0.0, description="Total elevation gain in climb (meters)"
+    )
+    avg_gradient: float = Field(
+        ..., description="Average gradient of climb (percentage, e.g., 8.5 = 8.5% slope)"
+    )
+    description: str = Field(..., description="Human-readable climb description")
+
+    @field_validator("end_km")
+    @classmethod
+    def end_km_must_be_greater_than_start(cls, v, info):
+        """Validate that end_km > start_km."""
+        if "start_km" in info.data and v <= info.data["start_km"]:
+            raise ValueError("end_km must be greater than start_km")
+        return v
+
+
+class GradientCategoryResponse(BaseModel):
+    """
+    Statistics for one gradient category (FR-032).
+
+    Used in gradient distribution visualization.
+    """
+
+    distance_km: float = Field(..., ge=0.0, description="Total distance in this category (km)")
+    percentage: float = Field(
+        ..., ge=0.0, le=100.0, description="Percentage of total route distance"
+    )
+
+
+class GradientDistributionResponse(BaseModel):
+    """
+    Complete gradient distribution breakdown (FR-032).
+
+    Classifies route segments into gradient categories:
+    - Llano (flat): 0-3%
+    - Moderado (moderate): 3-6%
+    - Empinado (steep): 6-10%
+    - Muy empinado (very steep): >10%
+    """
+
+    llano: GradientCategoryResponse = Field(..., description="Flat terrain: 0-3% gradient")
+    moderado: GradientCategoryResponse = Field(..., description="Moderate terrain: 3-6% gradient")
+    empinado: GradientCategoryResponse = Field(..., description="Steep terrain: 6-10% gradient")
+    muy_empinado: GradientCategoryResponse = Field(
+        ..., description="Very steep terrain: >10% gradient"
+    )
+
+
+class RouteStatisticsResponse(BaseModel):
+    """
+    Advanced route statistics calculated from GPX data.
+
+    Only present if GPX file has timestamps (has_timestamps=True).
+    Includes speed metrics, time analysis, gradient analysis, and top climbs.
+    """
+
+    stats_id: str = Field(..., description="Unique statistics record ID (UUID)")
+    gpx_file_id: str = Field(..., description="Associated GPX file ID (UUID)")
+    avg_speed_kmh: float | None = Field(None, ge=0.0, lt=100.0, description="Average speed (km/h)")
+    max_speed_kmh: float | None = Field(None, ge=0.0, lt=100.0, description="Maximum speed (km/h)")
+    total_time_minutes: float | None = Field(
+        None, ge=0.0, description="Total elapsed time (minutes)"
+    )
+    moving_time_minutes: float | None = Field(
+        None, ge=0.0, description="Time in motion, excludes stops (minutes)"
+    )
+    avg_gradient: float | None = Field(None, description="Average gradient over route (%)")
+    max_gradient: float | None = Field(None, description="Maximum gradient (steepest uphill) (%)")
+    top_climbs: list[TopClimbResponse] | None = Field(
+        None, max_length=3, description="Top 3 hardest climbs (max 3 items)"
+    )
+    created_at: datetime = Field(..., description="When statistics were calculated (ISO 8601)")
+
+    @field_validator("moving_time_minutes")
+    @classmethod
+    def moving_time_must_be_less_than_total(cls, v, info):
+        """Validate that moving_time <= total_time."""
+        if (
+            v is not None
+            and "total_time_minutes" in info.data
+            and info.data["total_time_minutes"] is not None
+        ):
+            if v > info.data["total_time_minutes"]:
+                raise ValueError("moving_time_minutes must be <= total_time_minutes")
+        return v
+
+    class Config:
+        from_attributes = True
+
+
+class RouteStatisticsWithDistributionResponse(RouteStatisticsResponse):
+    """
+    Extended route statistics with gradient distribution (FR-032).
+
+    Includes all RouteStatisticsResponse fields plus detailed gradient breakdown.
+    Used in frontend visualization for gradient distribution charts.
+    """
+
+    gradient_distribution: GradientDistributionResponse | None = Field(
+        None, description="Gradient distribution breakdown (NULL if no elevation)"
+    )
+
+
 class TrackDataResponse(BaseModel):
     """
     Response from track data endpoint with simplified trackpoints.
 
     Used for map rendering and elevation profiles.
+    Optionally includes advanced route statistics if timestamps are available.
     """
 
     gpx_file_id: str = Field(..., description="Unique GPX file identifier (UUID)")
@@ -170,6 +285,9 @@ class TrackDataResponse(BaseModel):
     end_point: CoordinateResponse = Field(..., description="Route end coordinate")
     trackpoints: list[TrackPointResponse] = Field(
         ..., description="Simplified trackpoints ordered by sequence"
+    )
+    route_statistics: RouteStatisticsResponse | None = Field(
+        None, description="Advanced route statistics (only if GPX has timestamps)"
     )
 
     class Config:

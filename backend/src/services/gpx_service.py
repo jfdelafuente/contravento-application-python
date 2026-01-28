@@ -166,6 +166,7 @@ class GPXService:
                 "has_elevation": has_elevation,
                 "has_timestamps": has_timestamps,
                 "trackpoints": simplified_points,
+                "original_points": points,  # Include original points for statistics calculation
             }
 
         except gpxpy.gpx.GPXException as e:
@@ -313,6 +314,60 @@ class GPXService:
             "gradient": round(gradient, 2) if gradient is not None else None,
         }
 
+    def convert_points_for_stats(
+        self, points: list[gpxpy.gpx.GPXTrackPoint]
+    ) -> list[dict[str, Any]]:
+        """
+        Convert GPX trackpoints to dictionary format for RouteStatsService.
+
+        This method converts original GPX trackpoints (gpxpy objects) to the
+        dictionary format expected by RouteStatsService for statistics calculation.
+
+        Args:
+            points: List of original GPX trackpoint objects
+
+        Returns:
+            List of trackpoint dictionaries with fields:
+            - latitude, longitude: GPS coordinates
+            - elevation: Elevation in meters (None if missing)
+            - distance_km: Cumulative distance from start
+            - timestamp: Timestamp (datetime object, None if missing)
+            - sequence: Point order in sequence
+
+        Note:
+            Distance is calculated cumulatively using Haversine formula.
+        """
+        if not points:
+            return []
+
+        trackpoints = []
+        cumulative_distance_km = 0.0
+
+        for i, point in enumerate(points):
+            # Calculate cumulative distance (Haversine formula)
+            if i > 0:
+                prev_point = points[i - 1]
+                segment_distance = self._calculate_distance(
+                    prev_point.latitude,
+                    prev_point.longitude,
+                    point.latitude,
+                    point.longitude,
+                )
+                cumulative_distance_km += segment_distance
+
+            trackpoints.append(
+                {
+                    "latitude": point.latitude,
+                    "longitude": point.longitude,
+                    "elevation": point.elevation if point.elevation is not None else None,
+                    "distance_km": round(cumulative_distance_km, 3),
+                    "timestamp": point.time if point.time is not None else None,
+                    "sequence": i,
+                }
+            )
+
+        return trackpoints
+
     def _calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """
         Calculate distance between two GPS coordinates using Haversine formula.
@@ -346,13 +401,25 @@ class GPXService:
         Args:
             trip_id: Trip ID for organizing storage
             file_content: Raw GPX file bytes
-            filename: Original filename
+            filename: Original filename (IGNORED for security - prevents path traversal attacks)
 
         Returns:
             Absolute file path (e.g., "/path/to/storage/gpx_files/2024/06/trip_id/original.gpx")
 
         File structure: storage/gpx_files/{year}/{month}/{trip_id}/original.gpx
+
+        Security:
+            Always saves as 'original.gpx' to prevent malicious filenames like
+            '../../etc/passwd' or '../../../root/.ssh/id_rsa' from escaping the
+            storage directory. The original filename is logged for auditing but
+            never used in the file path construction.
         """
+        # Log original filename for auditing (but don't use in path)
+        logger.info(
+            f"Saving GPX file for trip {trip_id} "
+            f"(original filename: {filename}, size: {len(file_content)} bytes)"
+        )
+
         # Get current date for organizing files
         now = datetime.now(UTC)
         year = now.strftime("%Y")
@@ -362,9 +429,11 @@ class GPXService:
         storage_root = Path.cwd() / "storage" / "gpx_files" / year / month / trip_id
         storage_root.mkdir(parents=True, exist_ok=True)
 
-        # Save file with standardized name
+        # Save file with standardized name (SECURITY: fixed name prevents path traversal)
         file_path = storage_root / "original.gpx"
         file_path.write_bytes(file_content)
+
+        logger.debug(f"GPX file saved successfully at: {file_path}")
 
         # Return absolute path for database storage
         return str(file_path)

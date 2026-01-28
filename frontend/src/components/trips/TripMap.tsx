@@ -9,13 +9,15 @@
  */
 
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMapEvents, useMap, LayersControl } from 'react-leaflet';
 import { LatLngExpression, Icon, LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TripLocation } from '../../types/trip';
 import { TrackPoint, Coordinate } from '../../types/gpx';
+import { POI } from '../../types/poi';
 import { createNumberedMarkerIcon } from '../../utils/mapHelpers';
 import { MapClickHandler } from './MapClickHandler';
+import { POIMarker } from './POIMarker';
 import './TripMap.css';
 
 interface TripMapProps {
@@ -34,6 +36,9 @@ interface TripMapProps {
   /** Callback when user drags a marker in edit mode (Feature 010 - User Story 2) */
   onMarkerDrag?: (locationId: string, newLat: number, newLng: number) => void;
 
+  /** Whether trip has a GPX file (even if trackpoints are still loading) (Feature 003) */
+  hasGPX?: boolean;
+
   /** GPX trackpoints for route visualization (Feature 003 - User Story 2) */
   gpxTrackPoints?: TrackPoint[];
 
@@ -42,6 +47,24 @@ interface TripMapProps {
 
   /** GPX route end point (Feature 003 - User Story 2) */
   gpxEndPoint?: Coordinate;
+
+  /** Ref to expose Leaflet map instance for programmatic control (Feature 003 - User Story 3) */
+  mapRef?: React.MutableRefObject<any>;
+
+  /** Active point from elevation profile hover (Feature 003 - User Story 3) */
+  activeProfilePoint?: TrackPoint | null;
+
+  /** Array of POIs for this trip (Feature 003 - User Story 4) */
+  pois?: POI[];
+
+  /** Whether the current user is the owner of the trip (Feature 003 - User Story 4) */
+  isOwner?: boolean;
+
+  /** Callback when user clicks Edit on a POI (Feature 003 - User Story 4) */
+  onPOIEdit?: (poi: POI) => void;
+
+  /** Callback when user clicks Delete on a POI (Feature 003 - User Story 4) */
+  onPOIDelete?: (poiId: string) => void;
 }
 
 // Custom icons for GPX route start/end markers
@@ -100,15 +123,45 @@ const AutoFitBounds: React.FC<AutoFitBoundsProps> = ({ bounds }) => {
   return null;
 };
 
+/**
+ * MapRefExposer Component
+ * Exposes the Leaflet map instance to parent component via ref (Feature 003 - User Story 3)
+ */
+interface MapRefExposerProps {
+  mapRef: React.MutableRefObject<any>;
+}
+
+const MapRefExposer: React.FC<MapRefExposerProps> = ({ mapRef }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    mapRef.current = map;
+
+    // Cleanup on unmount
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+
+  return null;
+};
+
 export const TripMap: React.FC<TripMapProps> = ({
   locations,
   tripTitle,
   isEditMode = false,
   onMapClick,
   onMarkerDrag,
+  hasGPX = false,
   gpxTrackPoints,
   gpxStartPoint,
   gpxEndPoint,
+  mapRef,
+  activeProfilePoint,
+  pois = [],
+  isOwner = false,
+  onPOIEdit,
+  onPOIDelete,
 }) => {
   // Error state for map tile loading failures
   const [hasMapError, setHasMapError] = useState(false);
@@ -117,6 +170,9 @@ export const TripMap: React.FC<TripMapProps> = ({
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  // Clicked point on GPX route (T060 - Feature 003 - User Story 2 - FR-013)
+  const [clickedRoutePoint, setClickedRoutePoint] = useState<TrackPoint | null>(null);
 
   // Filter locations that have coordinates
   const validLocations = useMemo(
@@ -162,10 +218,47 @@ export const TripMap: React.FC<TripMapProps> = ({
     }
   }, []);
 
+  /**
+   * Handle click on GPX route polyline (T060 - FR-013)
+   * Finds the nearest trackpoint to the clicked location and displays its information
+   */
+  const handlePolylineClick = useCallback(
+    (e: any) => {
+      if (!gpxTrackPoints || gpxTrackPoints.length === 0) return;
+
+      const clickedLat = e.latlng.lat;
+      const clickedLng = e.latlng.lng;
+
+      // Find nearest trackpoint to clicked location
+      let nearestPoint = gpxTrackPoints[0];
+      let minDistance = Infinity;
+
+      gpxTrackPoints.forEach((point) => {
+        // Calculate Euclidean distance (simple approximation)
+        const distance = Math.sqrt(
+          Math.pow(point.latitude - clickedLat, 2) +
+          Math.pow(point.longitude - clickedLng, 2)
+        );
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestPoint = point;
+        }
+      });
+
+      setClickedRoutePoint(nearestPoint);
+    },
+    [gpxTrackPoints]
+  );
+
   // Calculate map center (average of all coordinates)
   const center: LatLngExpression = useMemo(() => {
     if (validLocations.length === 0) {
-      // Default to Spain center if no valid locations
+      // Feature 003: Use GPX start point if available when no text locations with coords
+      if (gpxStartPoint) {
+        return [gpxStartPoint.latitude, gpxStartPoint.longitude];
+      }
+      // Default to Spain center if no valid locations and no GPX
       return [40.4168, -3.7038]; // Madrid
     }
 
@@ -179,11 +272,14 @@ export const TripMap: React.FC<TripMapProps> = ({
       validLocations.reduce((sum, loc) => sum + loc.longitude!, 0) / validLocations.length;
 
     return [avgLat, avgLng];
-  }, [validLocations]);
+  }, [validLocations, gpxStartPoint]);
 
   // Calculate zoom level based on location spread
   const zoom = useMemo(() => {
-    if (validLocations.length === 0) return 6; // Spain overview
+    if (validLocations.length === 0) {
+      // Feature 003: Use higher zoom if GPX exists (will be auto-adjusted by AutoFitBounds)
+      return gpxTrackPoints && gpxTrackPoints.length > 0 ? 10 : 6; // GPX or Spain overview
+    }
     if (validLocations.length === 1) return 12; // City level
 
     // Calculate bounding box
@@ -202,7 +298,7 @@ export const TripMap: React.FC<TripMapProps> = ({
     if (maxDiff > 0.5) return 9; // City
     if (maxDiff > 0.1) return 11; // District
     return 12; // Neighborhood
-  }, [validLocations]);
+  }, [validLocations, gpxTrackPoints]);
 
   // Create polyline for route (connects locations in sequence order)
   const routePath: LatLngExpression[] = useMemo(
@@ -234,8 +330,12 @@ export const TripMap: React.FC<TripMapProps> = ({
     return bounds;
   }, [gpxRoutePath]);
 
-  // No valid locations (all have null coordinates) and NOT in edit mode - show empty state
-  if (validLocations.length === 0 && !isEditMode) {
+  // Show empty state ONLY if:
+  // - No locations with coordinates (validLocations empty)
+  // - NOT in edit mode (edit mode needs map for clicking)
+  // - NO GPX file exists (hasGPX false)
+  // Feature 003: If hasGPX=true, always render map even if trackpoints are still loading
+  if (validLocations.length === 0 && !isEditMode && !hasGPX) {
     return (
       <div className="trip-map trip-map--empty">
         <div className="trip-map__empty-icon">
@@ -296,17 +396,22 @@ export const TripMap: React.FC<TripMapProps> = ({
         </div>
       )}
 
-      {/* Map Container - Show if there are valid GPS coordinates OR in edit mode */}
-      {!hasMapError && (validLocations.length > 0 || isEditMode) && (
-        <MapContainer
-          key={mapKey}
-          center={center}
-          zoom={zoom}
-          scrollWheelZoom={true}
-          className="trip-map__container"
-        >
+      {/* Map Container - Show if there are valid GPS coordinates OR GPX track OR in edit mode */}
+      {/* Feature 003: Show map if there's GPX track even without text locations */}
+      {!hasMapError && (validLocations.length > 0 || hasGPX || isEditMode) && (
+        <div className="trip-map__map-wrapper">
+          <MapContainer
+            key={mapKey}
+            center={center}
+            zoom={zoom}
+            scrollWheelZoom={true}
+            className="trip-map__container"
+          >
           {/* Tile Error Listener */}
           <TileErrorListener onError={handleTileError} />
+
+          {/* Expose map instance to parent via ref (Feature 003 - User Story 3) */}
+          {mapRef && <MapRefExposer mapRef={mapRef} />}
 
           {/* Auto-fit bounds for GPX route */}
           {gpxBounds && <AutoFitBounds bounds={gpxBounds} />}
@@ -316,11 +421,40 @@ export const TripMap: React.FC<TripMapProps> = ({
             <MapClickHandler enabled={isEditMode} onMapClick={onMapClick} />
           )}
 
-          {/* OpenStreetMap Tiles */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          {/* Map Layer Selector (T061 - Feature 003 - User Story 2 - FR-010) */}
+          <LayersControl position="topright">
+            {/* Base Maps */}
+            <LayersControl.BaseLayer checked name="OpenStreetMap">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Topográfico">
+              <TileLayer
+                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                maxZoom={17}
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Satélite">
+              <TileLayer
+                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Ciclismo">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &amp; <a href="https://www.cyclosm.org">CyclOSM</a>'
+                url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
+                maxZoom={20}
+              />
+            </LayersControl.BaseLayer>
+          </LayersControl>
 
         {/* GPX Route Polyline (Feature 003 - User Story 2) */}
         {gpxRoutePath.length > 1 && (
@@ -330,6 +464,9 @@ export const TripMap: React.FC<TripMapProps> = ({
               color: '#dc2626',
               weight: 3,
               opacity: 0.8,
+            }}
+            eventHandlers={{
+              click: handlePolylineClick,
             }}
           />
         )}
@@ -366,6 +503,76 @@ export const TripMap: React.FC<TripMapProps> = ({
               </div>
             </Popup>
           </Marker>
+        )}
+
+        {/* Active Profile Point Marker (Feature 003 - User Story 3) */}
+        {activeProfilePoint && (
+          <CircleMarker
+            center={[activeProfilePoint.latitude, activeProfilePoint.longitude]}
+            radius={8}
+            pathOptions={{
+              color: '#f59e0b',
+              fillColor: '#fbbf24',
+              fillOpacity: 0.8,
+              weight: 3,
+            }}
+          >
+            <Popup>
+              <div className="trip-map__popup">
+                <strong className="trip-map__popup-title">Punto activo</strong>
+                <p className="trip-map__popup-subtitle">
+                  Elevación: {activeProfilePoint.elevation?.toFixed(0)}m
+                </p>
+                <p className="trip-map__popup-subtitle">
+                  Distancia: {activeProfilePoint.distance_km.toFixed(2)}km
+                </p>
+                {activeProfilePoint.gradient !== null && (
+                  <p className="trip-map__popup-subtitle">
+                    Pendiente: {activeProfilePoint.gradient > 0 ? '+' : ''}
+                    {activeProfilePoint.gradient.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </CircleMarker>
+        )}
+
+        {/* Clicked Route Point Marker (T060 - Feature 003 - User Story 2 - FR-013) */}
+        {clickedRoutePoint && (
+          <CircleMarker
+            center={[clickedRoutePoint.latitude, clickedRoutePoint.longitude]}
+            radius={6}
+            pathOptions={{
+              color: '#3b82f6',
+              fillColor: '#60a5fa',
+              fillOpacity: 0.9,
+              weight: 2,
+            }}
+          >
+            <Popup>
+              <div className="trip-map__popup">
+                <strong className="trip-map__popup-title">Información del punto</strong>
+                <p className="trip-map__popup-subtitle">
+                  <strong>Coordenadas:</strong><br />
+                  {clickedRoutePoint.latitude.toFixed(5)}, {clickedRoutePoint.longitude.toFixed(5)}
+                </p>
+                {clickedRoutePoint.elevation !== null && (
+                  <p className="trip-map__popup-subtitle">
+                    <strong>Elevación:</strong> {clickedRoutePoint.elevation.toFixed(0)}m
+                  </p>
+                )}
+                <p className="trip-map__popup-subtitle">
+                  <strong>Distancia desde inicio:</strong> {clickedRoutePoint.distance_km.toFixed(2)}km
+                </p>
+                {clickedRoutePoint.gradient !== null && (
+                  <p className="trip-map__popup-subtitle">
+                    <strong>Pendiente:</strong> {clickedRoutePoint.gradient > 0 ? '+' : ''}
+                    {clickedRoutePoint.gradient.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </CircleMarker>
         )}
 
         {/* Route Polyline (if multiple locations) */}
@@ -418,50 +625,60 @@ export const TripMap: React.FC<TripMapProps> = ({
               </Marker>
             );
           })}
-        </MapContainer>
-      )}
 
-      {/* Fullscreen Toggle Button - Only show if map is visible */}
-      {!hasMapError && (validLocations.length > 0 || isEditMode) && (
-        <button
-          type="button"
-          className="trip-map__fullscreen-button"
-          onClick={toggleFullscreen}
-          aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-          title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa'}
-        >
-          {isFullscreen ? (
-            // Exit fullscreen icon
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          ) : (
-            // Enter fullscreen icon
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-              />
-            </svg>
-          )}
-        </button>
+        {/* POI Markers (Feature 003 - User Story 4) */}
+        {pois.map((poi) => (
+          <POIMarker
+            key={poi.poi_id}
+            poi={poi}
+            isOwner={isOwner}
+            onEdit={onPOIEdit}
+            onDelete={onPOIDelete}
+          />
+        ))}
+        </MapContainer>
+
+          {/* Fullscreen Toggle Button - Only show if map is visible */}
+          <button
+            type="button"
+            className="trip-map__fullscreen-button"
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+            title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa'}
+          >
+            {isFullscreen ? (
+              // Exit fullscreen icon
+              <svg
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ) : (
+              // Enter fullscreen icon
+              <svg
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Location List - Show only valid locations (with GPS coordinates) */}

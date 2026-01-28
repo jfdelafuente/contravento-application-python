@@ -1,0 +1,121 @@
+# ============================================================================
+# ContraVento - Local Production Build Testing
+# ============================================================================
+# Este archivo permite probar el build de producción del frontend localmente
+# con Nginx y archivos estáticos optimizados, conectado a backend local.
+#
+# Diferencias con docker-compose.local.yml:
+#   - Frontend usa Dockerfile.prod (Nginx + build optimizado)
+#   - Backend en modo development (sin cambios)
+#   - PostgreSQL, Redis, MailHog igual que local
+#
+# Uso:
+#   docker-compose -f docker-compose.yml -f docker-compose.local-prod.yml --env-file .env.local up
+#
+# O con script:
+#   ./deploy-local-prod.sh
+#
+# Acceso:
+#   Frontend (Nginx):   http://localhost:8080
+#   Backend API:         http://localhost:8000
+#   API Docs:            http://localhost:8000/docs
+#   MailHog UI:          http://localhost:8025
+#   pgAdmin:             http://localhost:5050
+#
+# IMPORTANTE:
+#   - Frontend sirve archivos estáticos (NO hot reload)
+#   - Proxy Nginx /api/* → http://backend:8000/*
+#   - Para cambios en frontend: rebuild (no hay HMR)
+# ============================================================================
+
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Local Development (mismo que local)
+  # ==========================================================================
+  postgres:
+    ports:
+      - "5432:5432"
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Redis - Local Development (mismo que local)
+  # ==========================================================================
+  redis:
+    ports:
+      - "6379:6379"
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Backend API - Development Mode (mismo que local)
+  # ==========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reload (backend sigue con hot reload)
+      - ./backend/src:/app/src:ro
+      - ./backend/storage:/app/storage
+    environment:
+      DEBUG: "true"
+      LOG_LEVEL: DEBUG
+      LOG_FORMAT: text
+      BCRYPT_ROUNDS: "4"
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Frontend - PRODUCTION BUILD con Nginx (DIFERENTE a local)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod  # ← USA DOCKERFILE DE PRODUCCIÓN
+      args:
+        # NO especificamos VITE_API_URL, usa proxy de Nginx
+        VITE_USE_PROXY: "true"  # Nginx proxy /api/* → backend:8000/*
+        VITE_ENV: development    # Marca como development para debugging
+        VITE_DEBUG: "true"       # Habilita logs de debug en consola
+        # Turnstile test key para desarrollo
+        VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+    ports:
+      - "8080:80"  # ← Puerto 8080 en host (Nginx corre en puerto 80)
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # MailHog - Email Testing (mismo que local)
+  # ==========================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: contravento-mailhog-local-prod
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # pgAdmin - Database UI (mismo que local)
+  # ==========================================================================
+  pgadmin:
+    ports:
+      - "5050:80"
+    networks:
+      - contravento-network

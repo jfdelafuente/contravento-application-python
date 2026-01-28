@@ -94,7 +94,7 @@ Las migraciones de Alembic se ejecutan desde el directorio `backend/`:
 poetry run alembic upgrade head
 
 # Seedear achievements (logros predefinidos)
-poetry run python scripts/seed_achievements.py
+poetry run python scripts/seeding/seed_achievements.py
 ```
 
 > **Nota**: El archivo `alembic.ini` en la raíz de `backend/` apunta automáticamente a `src/migrations/`. No es necesario cambiar de directorio.
@@ -117,13 +117,13 @@ Para desarrollo, puedes crear usuarios verificados automáticamente:
 
 ```bash
 # Crear usuarios por defecto (testuser y maria_garcia)
-poetry run python scripts/create_verified_user.py
+poetry run python scripts/user-mgmt/create_verified_user.py
 
 # Crear usuario personalizado
-poetry run python scripts/create_verified_user.py --username carlos --email carlos@example.com --password "Carlos2024!"
+poetry run python scripts/user-mgmt/create_verified_user.py --username carlos --email carlos@example.com --password "Carlos2024!"
 
 # Verificar usuario existente por email
-poetry run python scripts/create_verified_user.py --verify-email test@example.com
+poetry run python scripts/user-mgmt/create_verified_user.py --verify-email test@example.com
 ```
 
 **Usuarios por defecto**:

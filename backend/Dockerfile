@@ -2,7 +2,7 @@
 # Multi-stage build for optimized image size
 
 # Stage 1: Builder
-FROM python:3.11-slim as builder
+FROM python:3.12-slim as builder
 
 # Set working directory
 WORKDIR /app
@@ -26,7 +26,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry lock --no-update && poetry install --no-dev --no-interaction --no-ansi
 
 # Stage 2: Development (with hot reload)
-FROM python:3.11-slim AS development
+FROM python:3.12-slim AS development
 
 # Set working directory
 WORKDIR /app
@@ -59,7 +59,7 @@ COPY scripts/ ./scripts/
 COPY config/ ./config/
 
 # Make entrypoint script executable
-RUN chmod +x scripts/docker-entrypoint.sh
+RUN chmod +x scripts/deployment/docker-entrypoint.sh
 
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
@@ -68,13 +68,13 @@ RUN mkdir -p storage/profile_photos storage/trip_photos
 EXPOSE 8000
 
 # Use entrypoint script to run migrations and seed data
-ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+ENTRYPOINT ["./scripts/deployment/docker-entrypoint.sh"]
 
 # Development server with hot reload
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # Stage 3: Production Runtime
-FROM python:3.11-slim AS production
+FROM python:3.12-slim AS production
 
 # Set working directory
 WORKDIR /app
@@ -87,7 +87,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
@@ -95,9 +95,11 @@ COPY src/ ./src/
 COPY alembic.ini ./
 COPY scripts/ ./scripts/
 COPY config/ ./config/
+# TEMPORAL: Copiar pyproject.toml y poetry.lock para poder usar Poetry en producción
+COPY pyproject.toml poetry.lock ./
 
 # Make entrypoint script executable
-RUN chmod +x scripts/docker-entrypoint.sh
+RUN chmod +x scripts/deployment/docker-entrypoint.sh
 
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
@@ -114,7 +116,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 # Use entrypoint script to run migrations (no seed data in production)
-ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+ENTRYPOINT ["./scripts/deployment/docker-entrypoint.sh"]
 
 # Production server (no reload)
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

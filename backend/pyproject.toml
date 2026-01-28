@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 # Core framework
 fastapi = "^0.115.0"
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
@@ -135,7 +135,7 @@ exclude = [
 "tests/**/*.py" = ["F811"]  # redefinition of unused names in tests
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 # Relaxed strict mode for pragmatic type checking
 strict = false
 warn_return_any = false

@@ -1,0 +1,127 @@
+/**
+ * POI Marker Styles
+ *
+ * Styles for POI popup and markers on the map.
+ */
+
+/* POI Popup Container */
+.poi-popup {
+  min-width: 200px;
+  max-width: 300px;
+  padding: 0;
+}
+
+/* POI Type Badge */
+.poi-popup-header {
+  margin-bottom: 10px;
+}
+
+.poi-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  /* Background gradient applied via inline style */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.poi-badge-icon {
+  font-size: 1rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+/* POI Title */
+.poi-popup-title {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* POI Description */
+.poi-popup-description {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* POI Distance */
+.poi-popup-distance {
+  margin: 0 0 12px 0;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Owner Actions */
+.poi-popup-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 2px solid #f3f4f6;
+}
+
+.poi-popup-button {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.poi-popup-button-edit {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.poi-popup-button-edit:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.poi-popup-button-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.poi-popup-button-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 3px 6px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.poi-popup-button:active {
+  transform: translateY(0);
+}
+
+/* Leaflet Popup Customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}

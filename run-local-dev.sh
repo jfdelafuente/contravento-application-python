@@ -5,6 +5,9 @@
 # Quick start development server with SQLite database
 # No Docker required - instant startup!
 #
+# 📖 Documentation: docs/deployment/modes/local-dev.md
+#    For complete guide with troubleshooting and configuration details
+#
 # Usage:
 #   ./run-local-dev.sh                    # Start backend only
 #   ./run-local-dev.sh --with-frontend    # Start backend + frontend
@@ -110,19 +113,19 @@ setup() {
 
     # Create test user
     print_info "Creating test user..."
-    poetry run python scripts/create_verified_user.py || true
+    poetry run python scripts/user-mgmt/create_verified_user.py || true
 
     # Create admin user
     print_info "Creating admin user..."
-    poetry run python scripts/create_admin.py --force || true
+    poetry run python scripts/user-mgmt/create_admin.py --force || true
 
     # Load achievements
     print_info "Loading achievements..."
-    poetry run python scripts/seed_achievements.py || true
+    poetry run python scripts/seeding/seed_achievements.py || true
 
     # Load cycling types
     print_info "Loading cycling types..."
-    poetry run python scripts/seed_cycling_types.py || true
+    poetry run python scripts/seeding/seed_cycling_types.py || true
 
     cd ..
 
@@ -163,19 +166,19 @@ reset_db() {
 
     # Create test user
     print_info "Creating test user..."
-    poetry run python scripts/create_verified_user.py || true
+    poetry run python scripts/user-mgmt/create_verified_user.py || true
 
     # Create admin user
     print_info "Creating admin user..."
-    poetry run python scripts/create_admin.py --force || true
+    poetry run python scripts/user-mgmt/create_admin.py --force || true
 
     # Load achievements
     print_info "Loading achievements..."
-    poetry run python scripts/seed_achievements.py || true
+    poetry run python scripts/seeding/seed_achievements.py || true
 
     # Load cycling types
     print_info "Loading cycling types..."
-    poetry run python scripts/seed_cycling_types.py || true
+    poetry run python scripts/seeding/seed_cycling_types.py || true
 
     cd ..
 

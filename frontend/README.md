@@ -206,6 +206,15 @@ VITE_ENV=production
 VITE_DEBUG=false
 ```
 
+### Deployment a Diferentes Entornos
+
+Para información completa sobre cómo desplegar el frontend en diferentes entornos (local, staging, producción), consulta la **[Guía de Deployment](../docs/deployment/README.md)**:
+
+- **[Local Development](../docs/deployment/modes/local-dev.md)** - Desarrollo diario con SQLite
+- **[Local Full Stack](../docs/deployment/modes/local-full.md)** - Docker con todos los servicios
+- **[Production Build Testing](../docs/deployment/modes/local-prod.md)** - Probar build de producción localmente
+- **[Frontend Deployment Guide](../docs/deployment/guides/frontend-deployment.md)** - Guía específica de frontend *(próximamente)*
+
 ## 🌐 Internacionalización
 
 - **Idioma Principal**: Español (es-ES)

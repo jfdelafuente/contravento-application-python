@@ -121,7 +121,7 @@ cd backend
 poetry run uvicorn src.main:app --reload
 
 # Crear usuarios de prueba
-poetry run python scripts/create_verified_user.py
+poetry run python scripts/user-mgmt/create_verified_user.py
 ```
 
 ### 2. Login

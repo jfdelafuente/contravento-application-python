@@ -925,9 +925,9 @@ poetry run ruff check src/ tests/       # Linter
 poetry run mypy src/                    # Type checking
 
 # Gestión de usuarios
-poetry run python scripts/create_admin.py                    # Crear admin
-poetry run python scripts/create_verified_user.py            # Crear usuario test
-poetry run python scripts/promote_to_admin.py --username X   # Promover a admin
+poetry run python scripts/user-mgmt/create_admin.py                    # Crear admin
+poetry run python scripts/user-mgmt/create_verified_user.py            # Crear usuario test
+poetry run python scripts/user-mgmt/promote_to_admin.py --username X   # Promover a admin
 ```
 
 ### Frontend Commands

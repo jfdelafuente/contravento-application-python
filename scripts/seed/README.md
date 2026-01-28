@@ -45,7 +45,7 @@ Scripts to populate the database with sample data for development and testing.
 2. **Test user exists** (`testuser` / `TestPass123!`):
    ```bash
    cd backend
-   poetry run python scripts/create_verified_user.py
+   poetry run python scripts/user-mgmt/create_verified_user.py
    ```
 
 ### Run Seed Script
@@ -179,8 +179,8 @@ For automated testing (not seed data):
 
 ### Backend Scripts
 For user/admin creation:
-- [backend/scripts/create_admin.py](../../backend/scripts/create_admin.py) - Create admin user
-- [backend/scripts/create_verified_user.py](../../backend/scripts/create_verified_user.py) - Create test users
+- [backend/scripts/user-mgmt/create_admin.py](../../backend/scripts/user-mgmt/create_admin.py) - Create admin user
+- [backend/scripts/user-mgmt/create_verified_user.py](../../backend/scripts/user-mgmt/create_verified_user.py) - Create test users
 
 ### API Documentation
 For manual API operations:

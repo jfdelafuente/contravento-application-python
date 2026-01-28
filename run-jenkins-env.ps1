@@ -1,7 +1,7 @@
 # ============================================================================
-# ContraVento - Jenkins CI/CD Environment Helper Script (PowerShell)
+# ContraVento - Preproduction Environment Helper Script (PowerShell)
 # ============================================================================
-# Quick commands for managing the Jenkins CI/CD environment
+# Quick commands for managing the preproduction/Jenkins environment
 #
 # Usage:
 #   .\run-jenkins-env.ps1 [command]
@@ -12,21 +12,21 @@
 #   restart   - Restart all services
 #   logs      - View all logs
 #   status    - Check services status
-#   test      - Run all tests (backend + frontend)
+#   pull      - Pull latest images from Docker Hub
 #   clean     - Stop and remove volumes
 #   help      - Show this help message
 # ============================================================================
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet('start', 'stop', 'restart', 'logs', 'status', 'test', 'clean', 'help', '')]
+    [ValidateSet('start', 'stop', 'restart', 'logs', 'status', 'pull', 'clean', 'help', '')]
     [string]$Command = 'help'
 )
 
 $ErrorActionPreference = "Stop"
 
 # Constants
-$COMPOSE_FILE = "docker-compose-jenkins.yml"
+$COMPOSE_FILE = "docker-compose.preproduction.yml"
 
 # Helper Functions
 function Write-Header {
@@ -54,9 +54,21 @@ function Write-Info {
     Write-Host $Message
 }
 
+function Write-Warning-Msg {
+    param([string]$Message)
+    Write-Host "⚠ " -ForegroundColor Yellow -NoNewline
+    Write-Host $Message
+}
+
 # Command Implementations
 function Start-Environment {
-    Write-Header "Starting Jenkins CI/CD Environment"
+    Write-Header "Starting Preproduction Environment"
+
+    # Check if compose file exists
+    if (-not (Test-Path $COMPOSE_FILE)) {
+        Write-Error-Msg "Compose file not found: $COMPOSE_FILE"
+        exit 1
+    }
 
     Write-Info "Starting services..."
     docker-compose -f $COMPOSE_FILE up -d
@@ -70,30 +82,35 @@ function Start-Environment {
     Write-Host "  - Frontend:  http://localhost:5173"
     Write-Host "  - Backend:   http://localhost:8000"
     Write-Host "  - API Docs:  http://localhost:8000/docs"
-    Write-Host "  - pgAdmin:   http://localhost:5050 (admin@jenkins.local / jenkins)"
+    Write-Host "  - pgAdmin:   http://localhost:5050 (admin@example.com / jenkins)"
     Write-Host ""
     Write-Info "Database:"
     Write-Host "  - Host:      localhost:5432"
-    Write-Host "  - Database:  contravento_ci"
+    Write-Host "  - Database:  contravento_jenkins"
     Write-Host "  - User:      postgres"
     Write-Host "  - Password:  jenkins_test_password"
+    Write-Host ""
+    Write-Warning-Msg "This environment uses PRE-BUILT images from Docker Hub"
+    Write-Info "To update images, run: .\run-jenkins-env.ps1 pull"
 }
 
 function Stop-Environment {
-    Write-Header "Stopping Jenkins CI/CD Environment"
+    Write-Header "Stopping Preproduction Environment"
     docker-compose -f $COMPOSE_FILE down
     Write-Success "Services stopped"
 }
 
 function Restart-Environment {
-    Write-Header "Restarting Jenkins CI/CD Environment"
+    Write-Header "Restarting Preproduction Environment"
     Stop-Environment
+    Write-Host ""
     Start-Environment
 }
 
 function Show-Logs {
     Write-Header "Viewing Service Logs"
     Write-Info "Press Ctrl+C to exit"
+    Write-Host ""
     docker-compose -f $COMPOSE_FILE logs -f
 }
 
@@ -103,6 +120,7 @@ function Show-Status {
     Write-Host ""
     Write-Info "Health checks:"
 
+    # Backend health check
     try {
         docker-compose -f $COMPOSE_FILE exec -T backend curl -f http://localhost:8000/health 2>$null | Out-Null
         Write-Success "Backend healthy"
@@ -110,37 +128,57 @@ function Show-Status {
         Write-Error-Msg "Backend unhealthy"
     }
 
+    # Frontend check (nginx doesn't have curl, just check if container is running)
     try {
-        docker-compose -f $COMPOSE_FILE exec -T frontend curl -f http://localhost:5173 2>$null | Out-Null
-        Write-Success "Frontend healthy"
+        $frontendStatus = docker-compose -f $COMPOSE_FILE ps frontend 2>$null | Select-String "Up"
+        if ($frontendStatus) {
+            Write-Success "Frontend running"
+        } else {
+            Write-Error-Msg "Frontend not running"
+        }
     } catch {
-        Write-Error-Msg "Frontend unhealthy"
+        Write-Error-Msg "Frontend not running"
     }
 
+    # Database health check
     try {
-        docker-compose -f $COMPOSE_FILE exec -T postgres pg_isready -U postgres -d contravento_ci 2>$null | Out-Null
+        docker-compose -f $COMPOSE_FILE exec -T postgres pg_isready -U postgres -d contravento_jenkins 2>$null | Out-Null
         Write-Success "Database healthy"
     } catch {
         Write-Error-Msg "Database unhealthy"
     }
+
+    # pgAdmin check
+    try {
+        $pgadminStatus = docker-compose -f $COMPOSE_FILE ps pgadmin 2>$null | Select-String "Up"
+        if ($pgadminStatus) {
+            Write-Success "pgAdmin running"
+        } else {
+            Write-Error-Msg "pgAdmin not running"
+        }
+    } catch {
+        Write-Error-Msg "pgAdmin not running"
+    }
 }
 
-function Run-Tests {
-    Write-Header "Running All Tests"
+function Pull-Images {
+    Write-Header "Pulling Latest Images from Docker Hub"
 
-    Write-Info "Running backend tests..."
-    docker-compose -f $COMPOSE_FILE exec -T backend pytest --cov=src --cov-report=term
+    Write-Info "Pulling backend image..."
+    docker-compose -f $COMPOSE_FILE pull backend
 
+    Write-Info "Pulling frontend image..."
+    docker-compose -f $COMPOSE_FILE pull frontend
+
+    Write-Success "Images updated successfully!"
     Write-Host ""
-    Write-Info "Running frontend tests..."
-    docker-compose -f $COMPOSE_FILE exec -T frontend npm test
-
-    Write-Success "All tests completed!"
+    Write-Warning-Msg "To apply updates, restart the environment:"
+    Write-Info "  .\run-jenkins-env.ps1 restart"
 }
 
 function Clean-Environment {
-    Write-Header "Cleaning Jenkins CI/CD Environment"
-    Write-Warning "This will remove all containers and volumes"
+    Write-Header "Cleaning Preproduction Environment"
+    Write-Warning-Msg "This will remove all containers and volumes"
 
     $confirmation = Read-Host "Are you sure? (y/N)"
     if ($confirmation -eq 'y' -or $confirmation -eq 'Y') {
@@ -153,7 +191,7 @@ function Clean-Environment {
 
 function Show-Help {
     Write-Host @"
-ContraVento - Jenkins CI/CD Environment Helper
+ContraVento - Preproduction Environment Helper
 
 Usage:
   .\run-jenkins-env.ps1 [command]
@@ -164,32 +202,44 @@ Commands:
   restart   - Restart all services
   logs      - View all logs (follow mode)
   status    - Check services status and health
-  test      - Run all tests (backend + frontend)
+  pull      - Pull latest images from Docker Hub
   clean     - Stop and remove all volumes
   help      - Show this help message
 
 Examples:
   .\run-jenkins-env.ps1 start         # Start environment
   .\run-jenkins-env.ps1 logs          # View logs
-  .\run-jenkins-env.ps1 test          # Run tests
+  .\run-jenkins-env.ps1 pull          # Update images
+  .\run-jenkins-env.ps1 restart       # Restart with new images
   .\run-jenkins-env.ps1 clean         # Clean everything
 
-Quick Testing Workflow:
+Quick Workflow:
   1. .\run-jenkins-env.ps1 start      # Start services
-  2. .\run-jenkins-env.ps1 test       # Run tests
-  3. .\run-jenkins-env.ps1 stop       # Stop services
+  2. Test manually via browser
+  3. .\run-jenkins-env.ps1 logs       # Check logs if needed
+  4. .\run-jenkins-env.ps1 stop       # Stop services
+
+Update Workflow:
+  1. .\run-jenkins-env.ps1 pull       # Pull latest images from Docker Hub
+  2. .\run-jenkins-env.ps1 restart    # Restart with new images
 
 Access URLs:
   - Frontend:  http://localhost:5173
   - Backend:   http://localhost:8000
   - API Docs:  http://localhost:8000/docs
-  - pgAdmin:   http://localhost:5050 (admin@jenkins.local / jenkins)
+  - pgAdmin:   http://localhost:5050 (admin@example.com / jenkins)
 
 Database Connection:
   - Host:      localhost:5432
-  - Database:  contravento_ci
+  - Database:  contravento_jenkins
   - User:      postgres
   - Password:  jenkins_test_password
+
+Notes:
+  - This environment uses PRE-BUILT images from Docker Hub
+  - Images are built by GitHub Actions or Jenkins
+  - VITE_* variables are hardcoded at build-time (immutable)
+  - For local development, use .\deploy.ps1 local instead
 "@
 }
 
@@ -210,8 +260,8 @@ switch ($Command) {
     'status' {
         Show-Status
     }
-    'test' {
-        Run-Tests
+    'pull' {
+        Pull-Images
     }
     'clean' {
         Clean-Environment

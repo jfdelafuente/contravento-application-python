@@ -386,3 +386,113 @@ class TestGPXValidation:
         error_data = second_upload.json()
         assert error_data["success"] is False
         assert "TRIP_ALREADY_HAS_GPX" in error_data["error"]["code"]
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestGPXTrackEndpoint:
+    """
+    T050: Integration test for GET /gpx/{gpx_file_id}/track endpoint.
+
+    Tests retrieving simplified trackpoints for map rendering.
+    Functional Requirement: FR-010 (Display interactive route map)
+    Success Criteria: SC-007 (Map loads with 1000 points in <3s)
+    API Contract: contracts/gpx-api.yaml:319-389
+    """
+
+    async def test_get_track_points(
+        self, client: AsyncClient, auth_headers: dict, db_session: AsyncSession
+    ):
+        """
+        T050: Test GET /gpx/{gpx_file_id}/track returns simplified trackpoints.
+
+        Verifies that the endpoint returns trackpoints in the correct format
+        for map rendering with latitude, longitude, elevation, and sequence.
+        """
+        # Step 1: Create trip and upload GPX
+        payload = {
+            "title": "Ruta para Track Points",
+            "description": "Test de obtención de puntos de track",
+            "start_date": "2024-06-01",
+        }
+
+        create_response = await client.post("/trips", json=payload, headers=auth_headers)
+        trip_id = create_response.json()["data"]["trip_id"]
+
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "short_route.gpx"
+
+        with open(gpx_path, "rb") as f:
+            files = {"file": ("short_route.gpx", f, "application/gpx+xml")}
+            upload_response = await client.post(
+                f"/trips/{trip_id}/gpx", files=files, headers=auth_headers
+            )
+
+        gpx_file_id = upload_response.json()["data"]["gpx_file_id"]
+
+        # Step 2: Get track points
+        track_response = await client.get(f"/gpx/{gpx_file_id}/track")
+
+        # Assert response structure
+        assert track_response.status_code == 200
+        track_data = track_response.json()
+        assert track_data["success"] is True
+
+        # Assert trackpoints data
+        data = track_data["data"]
+        assert "trackpoints" in data
+        assert "simplified_points_count" in data
+        assert "gpx_file_id" in data
+        assert "trip_id" in data
+        assert "distance_km" in data
+        assert "elevation_gain" in data
+        assert "has_elevation" in data
+        assert "start_point" in data
+        assert "end_point" in data
+
+        trackpoints = data["trackpoints"]
+        simplified_points_count = data["simplified_points_count"]
+
+        # Should have simplified points
+        assert len(trackpoints) > 0
+        assert len(trackpoints) == simplified_points_count
+
+        # Verify trackpoint structure
+        first_point = trackpoints[0]
+        assert "latitude" in first_point
+        assert "longitude" in first_point
+        assert "elevation" in first_point
+        assert "sequence" in first_point
+
+        # Verify coordinate validity
+        assert -90 <= first_point["latitude"] <= 90
+        assert -180 <= first_point["longitude"] <= 180
+        assert first_point["sequence"] == 0  # First point should be sequence 0
+
+        # Verify sequence ordering
+        for i, point in enumerate(trackpoints):
+            assert point["sequence"] == i
+
+        # Verify elevation data exists (short_route.gpx has elevation)
+        assert first_point["elevation"] is not None
+        assert isinstance(first_point["elevation"], int | float)
+
+        # Verify metadata fields
+        assert data["gpx_file_id"] == gpx_file_id
+        assert data["trip_id"] == trip_id
+        assert data["distance_km"] > 0
+        assert data["has_elevation"] is True  # short_route.gpx has elevation
+        assert data["elevation_gain"] is not None
+        assert data["elevation_gain"] >= 0
+
+        # Verify start/end points
+        start_point = data["start_point"]
+        end_point = data["end_point"]
+        assert "latitude" in start_point
+        assert "longitude" in start_point
+        assert "latitude" in end_point
+        assert "longitude" in end_point
+        assert -90 <= start_point["latitude"] <= 90
+        assert -180 <= start_point["longitude"] <= 180
+        assert -90 <= end_point["latitude"] <= 90
+        assert -180 <= end_point["longitude"] <= 180

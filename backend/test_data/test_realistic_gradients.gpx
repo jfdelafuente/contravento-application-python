@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Puerto de Navacerrada - Gradientes Realistas</name>
+    <desc>Subida clásica del ciclismo español. Gradientes realistas entre 4% y 12% para validar cálculo correcto (sin errores de +100%).</desc>
+    <time>2024-07-20T07:00:00Z</time>
+  </metadata>
+  <trk>
+    <name>Puerto de Navacerrada (Versión Test)</name>
+    <desc>Subida de 10.5 km con ~850m de desnivel positivo. Gradiente medio: 8.1%. Gradiente máximo esperado: ~12%</desc>
+    <trkseg>
+      <!-- INICIO: Collado Villalba (900m) -->
+      <trkpt lat="40.6316" lon="-4.0098">
+        <ele>900</ele>
+        <time>2024-07-20T07:00:00Z</time>
+      </trkpt>
+
+      <!-- Km 0.5 - Pendiente suave 4% -->
+      <trkpt lat="40.6361" lon="-4.0105">
+        <ele>920</ele>
+        <time>2024-07-20T07:02:30Z</time>
+      </trkpt>
+
+      <!-- Km 1.0 - Pendiente aumenta a 6% -->
+      <trkpt lat="40.6406" lon="-4.0112">
+        <ele>950</ele>
+        <time>2024-07-20T07:05:00Z</time>
+      </trkpt>
+
+      <!-- Km 1.5 - Pendiente 7% -->
+      <trkpt lat="40.6451" lon="-4.0119">
+        <ele>985</ele>
+        <time>2024-07-20T07:07:45Z</time>
+      </trkpt>
+
+      <!-- Km 2.0 - Pendiente 8% (medio) -->
+      <trkpt lat="40.6496" lon="-4.0126">
+        <ele>1025</ele>
+        <time>2024-07-20T07:10:30Z</time>
+      </trkpt>
+
+      <!-- Km 2.5 - Pendiente constante 8% -->
+      <trkpt lat="40.6541" lon="-4.0133">
+        <ele>1065</ele>
+        <time>2024-07-20T07:13:15Z</time>
+      </trkpt>
+
+      <!-- Km 3.0 - Pendiente 9% -->
+      <trkpt lat="40.6586" lon="-4.0140">
+        <ele>1110</ele>
+        <time>2024-07-20T07:16:15Z</time>
+      </trkpt>
+
+      <!-- Km 3.5 - TRAMO MÁS DURO: Pendiente 12% -->
+      <trkpt lat="40.6631" lon="-4.0147">
+        <ele>1165</ele>
+        <time>2024-07-20T07:19:45Z</time>
+      </trkpt>
+
+      <!-- Km 4.0 - Sigue duro: Pendiente 11% -->
+      <trkpt lat="40.6676" lon="-4.0154">
+        <ele>1220</ele>
+        <time>2024-07-20T07:23:15Z</time>
+      </trkpt>
+
+      <!-- Km 4.5 - Pendiente 10% -->
+      <trkpt lat="40.6721" lon="-4.0161">
+        <ele>1270</ele>
+        <time>2024-07-20T07:26:30Z</time>
+      </trkpt>
+
+      <!-- Km 5.0 - Pequeño respiro: Pendiente 5% -->
+      <trkpt lat="40.6766" lon="-4.0168">
+        <ele>1295</ele>
+        <time>2024-07-20T07:29:00Z</time>
+      </trkpt>
+
+      <!-- Km 5.5 - Vuelve a subir: Pendiente 8% -->
+      <trkpt lat="40.6811" lon="-4.0175">
+        <ele>1335</ele>
+        <time>2024-07-20T07:32:00Z</time>
+      </trkpt>
+
+      <!-- Km 6.0 - Pendiente 9% -->
+      <trkpt lat="40.6856" lon="-4.0182">
+        <ele>1380</ele>
+        <time>2024-07-20T07:35:15Z</time>
+      </trkpt>
+
+      <!-- Km 6.5 - Pendiente 8% -->
+      <trkpt lat="40.6901" lon="-4.0189">
+        <ele>1420</ele>
+        <time>2024-07-20T07:38:15Z</time>
+      </trkpt>
+
+      <!-- Km 7.0 - Pendiente 7% -->
+      <trkpt lat="40.6946" lon="-4.0196">
+        <ele>1455</ele>
+        <time>2024-07-20T07:41:00Z</time>
+      </trkpt>
+
+      <!-- Km 7.5 - Pendiente 8% -->
+      <trkpt lat="40.6991" lon="-4.0203">
+        <ele>1495</ele>
+        <time>2024-07-20T07:44:00Z</time>
+      </trkpt>
+
+      <!-- Km 8.0 - Pendiente 6% -->
+      <trkpt lat="40.7036" lon="-4.0210">
+        <ele>1525</ele>
+        <time>2024-07-20T07:46:30Z</time>
+      </trkpt>
+
+      <!-- Km 8.5 - Pendiente 7% -->
+      <trkpt lat="40.7081" lon="-4.0217">
+        <ele>1560</ele>
+        <time>2024-07-20T07:49:15Z</time>
+      </trkpt>
+
+      <!-- Km 9.0 - Pendiente 8% -->
+      <trkpt lat="40.7126" lon="-4.0224">
+        <ele>1600</ele>
+        <time>2024-07-20T07:52:15Z</time>
+      </trkpt>
+
+      <!-- Km 9.5 - Pendiente 6% -->
+      <trkpt lat="40.7171" lon="-4.0231">
+        <ele>1630</ele>
+        <time>2024-07-20T07:54:45Z</time>
+      </trkpt>
+
+      <!-- Km 10.0 - Pendiente 5% -->
+      <trkpt lat="40.7216" lon="-4.0238">
+        <ele>1655</ele>
+        <time>2024-07-20T07:57:00Z</time>
+      </trkpt>
+
+      <!-- Km 10.5 - PUERTO (FINAL): Pendiente 4% -->
+      <trkpt lat="40.7261" lon="-4.0245">
+        <ele>1750</ele>
+        <time>2024-07-20T07:59:30Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

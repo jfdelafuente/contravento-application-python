@@ -11,10 +11,10 @@ Define los tipos de ciclismo iniciales que se cargarán en la base de datos.
 **Uso**:
 ```bash
 # Cargar tipos desde este archivo
-poetry run python scripts/seed_cycling_types.py
+poetry run python scripts/seeding/seed_cycling_types.py
 
 # Actualizar tipos existentes desde este archivo
-poetry run python scripts/seed_cycling_types.py --force
+poetry run python scripts/seeding/seed_cycling_types.py --force
 ```
 
 **Formato**:
@@ -28,7 +28,7 @@ cycling_types:
 
 **Añadir nuevos tipos**:
 1. Edita este archivo añadiendo el nuevo tipo
-2. Ejecuta `poetry run python scripts/seed_cycling_types.py --force`
+2. Ejecuta `poetry run python scripts/seeding/seed_cycling_types.py --force`
 3. O usa la API: `POST /admin/cycling-types`
 
 **Documentación completa**: Ver [docs/CYCLING_TYPES.md](../docs/CYCLING_TYPES.md)

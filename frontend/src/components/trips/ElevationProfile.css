@@ -1,0 +1,259 @@
+/**
+ * ElevationProfile Component Styles
+ * Feature 003 - User Story 3: Interactive Elevation Profile
+ */
+
+/* Main container */
+.elevation-profile {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+/* Header with title and legend */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.profile-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Legend (gradient indicators) */
+.profile-legend {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.legend-color {
+  width: 20px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-uphill {
+  background: linear-gradient(to right, #4ade80, #16a34a);
+}
+
+.legend-downhill {
+  background: linear-gradient(to right, #60a5fa, #2563eb);
+}
+
+.legend-flat {
+  background: #94a3b8;
+}
+
+/* Custom tooltip (appears on hover) */
+.elevation-tooltip {
+  background: rgba(30, 41, 59, 0.95);
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tooltip-row:last-child {
+  margin-bottom: 0;
+}
+
+.tooltip-label {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.tooltip-value {
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.tooltip-gradient {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+}
+
+.tooltip-gradient[data-gradient="uphill"] {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.tooltip-gradient[data-gradient="downhill"] {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* Empty state (no elevation data) */
+.elevation-profile-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 3rem 2rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  text-align: center;
+}
+
+.icon-mountain {
+  width: 64px;
+  height: 64px;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+}
+
+.message-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 0.5rem 0;
+}
+
+.message-subtitle {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Responsive: Mobile devices */
+@media (max-width: 768px) {
+  .elevation-profile {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .profile-title {
+    font-size: 1.125rem;
+  }
+
+  .profile-legend {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    font-size: 0.8125rem;
+  }
+
+  .legend-color {
+    width: 16px;
+    height: 10px;
+  }
+
+  .elevation-tooltip {
+    padding: 0.625rem 0.875rem;
+  }
+
+  .tooltip-label,
+  .tooltip-value {
+    font-size: 0.8125rem;
+  }
+
+  .elevation-profile-empty {
+    min-height: 250px;
+    padding: 2rem 1rem;
+  }
+
+  .icon-mountain {
+    width: 48px;
+    height: 48px;
+  }
+
+  .message-title {
+    font-size: 1rem;
+  }
+
+  .message-subtitle {
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive: Small mobile devices */
+@media (max-width: 480px) {
+  .profile-legend {
+    width: 100%;
+  }
+
+  .legend-item {
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .tooltip-row {
+    gap: 1rem;
+  }
+}
+
+/* Chart hover effects */
+.recharts-wrapper {
+  cursor: pointer;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke-opacity: 0.5;
+}
+
+/* Active dot on hover */
+.recharts-active-dot {
+  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.4));
+}
+
+/* Smooth transitions */
+.elevation-profile,
+.elevation-tooltip {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Print styles */
+@media print {
+  .elevation-profile {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+
+  .elevation-tooltip {
+    display: none;
+  }
+}

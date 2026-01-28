@@ -4,7 +4,7 @@
   "type": "module",
   "description": "ContraVento cycling platform - Frontend authentication and user profiles",
   "scripts": {
-    "dev": "vite --open=false",
+    "dev": "npx vite --open=false",
     "build": "tsc && vite build",
     "build:staging": "tsc && vite build --mode staging",
     "build:prod": "tsc && vite build --mode production",
@@ -38,6 +38,7 @@
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.21.0",
+    "recharts": "^3.7.0",
     "yet-another-react-lightbox": "^2.6.2",
     "zod": "^3.25.76"
   },

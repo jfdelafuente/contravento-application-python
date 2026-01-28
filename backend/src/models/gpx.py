@@ -6,9 +6,9 @@ Supports both PostgreSQL (production) and SQLite (development/testing).
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import TIMESTAMP, Boolean, Column, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, relationship
 
 from src.database import Base
@@ -79,11 +79,11 @@ class GPXFile(Base):
 
     # Timestamps
     uploaded_at = Column(
-        TIMESTAMP,
+        DateTime(timezone=True),
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
     )  # When file was uploaded
-    processed_at = Column(TIMESTAMP, nullable=True)  # When processing completed
+    processed_at = Column(DateTime(timezone=True), nullable=True)  # When processing completed
 
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="gpx_file")  # type: ignore
@@ -93,6 +93,12 @@ class GPXFile(Base):
         order_by="TrackPoint.sequence",
         cascade="all, delete-orphan",
     )
+    route_statistics: Mapped["RouteStatistics"] = relationship(
+        "RouteStatistics",
+        back_populates="gpx_file",
+        uselist=False,  # One-to-one relationship
+        cascade="all, delete-orphan",
+    )  # type: ignore
 
     def __repr__(self) -> str:
         return (

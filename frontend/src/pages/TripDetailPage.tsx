@@ -12,17 +12,24 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TripGallery } from '../components/trips/TripGallery';
 import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
+import { POIForm } from '../components/trips/POIForm';
 import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
 import { CommentList } from '../components/comments/CommentList';
 import { GPXUploader } from '../components/trips/GPXUploader';
 import { GPXStats } from '../components/trips/GPXStats';
+import { ElevationProfile } from '../components/trips/ElevationProfile';
+import { AdvancedStats } from '../components/trips/AdvancedStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
+import { deleteGPX } from '../services/gpxService';
+import { getTripPOIs, createPOI, updatePOI, deletePOI } from '../services/poiService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { useGPXTrack } from '../hooks/useGPXTrack';
+import { useMapProfileSync } from '../hooks/useMapProfileSync';
 import type { LocationSelection } from '../types/geocoding';
 import type { LocationInput } from '../types/trip';
+import type { POI, POICreateInput, POIUpdateInput } from '../types/poi';
 import {
   getDifficultyLabel,
   getDifficultyClass,
@@ -61,8 +68,24 @@ export const TripDetailPage: React.FC = () => {
   // GPX track hook (Feature 003: GPS Routes - User Story 2)
   const { track: gpxTrack } = useGPXTrack(trip?.gpx_file?.gpx_file_id);
 
+  // Map-Profile sync hook (Feature 003: GPS Routes - User Story 3)
+  const { mapRef, handleProfilePointClick } = useMapProfileSync();
+
+  // Active point from elevation profile hover (Feature 003: GPS Routes - User Story 3)
+  const [activeProfilePoint, setActiveProfilePoint] = useState<any>(null);
+
   // Likes list modal state (Feature 004 - US2)
   const [showLikesModal, setShowLikesModal] = useState(false);
+
+  // POI state (Feature 003 - User Story 4)
+  const [pois, setPois] = useState<POI[]>([]);
+  const [_isPOIsLoading, setIsPOIsLoading] = useState(false);
+  const [isAddingPOI, setIsAddingPOI] = useState(false);
+  const [editingPOI, setEditingPOI] = useState<POI | null>(null);
+  const [poiCoordinates, setPoiCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [showPOIForm, setShowPOIForm] = useState(false);
+  const [isPOISubmitting, setIsPOISubmitting] = useState(false);
+  const [poiError, setPOIError] = useState<string | null>(null);
 
   // Fetch trip details (extracted for reuse)
   const fetchTrip = async () => {
@@ -116,6 +139,29 @@ export const TripDetailPage: React.FC = () => {
 
   // Check if current user is the trip owner
   const isOwner = !!(user && trip && user.user_id === trip.user_id);
+
+  // Fetch POIs for this trip (Feature 003 - User Story 4)
+  const fetchPOIs = async () => {
+    if (!tripId) return;
+
+    setIsPOIsLoading(true);
+    try {
+      const response = await getTripPOIs(tripId);
+      setPois(response.pois);
+    } catch (err: any) {
+      console.error('Error fetching POIs:', err);
+      // Don't show error toast for POIs (non-critical feature)
+    } finally {
+      setIsPOIsLoading(false);
+    }
+  };
+
+  // Load POIs when trip is loaded
+  useEffect(() => {
+    if (trip) {
+      fetchPOIs();
+    }
+  }, [trip?.trip_id]);
 
   // Auto-refresh: Passive polling to detect GPX completed in background (Layer 3c)
   // If user is owner and trip has no GPX, check every 5s if GPX appeared
@@ -203,6 +249,32 @@ export const TripDetailPage: React.FC = () => {
   // Cancel deletion
   const cancelDelete = () => {
     setShowDeleteConfirm(false);
+  };
+
+  /**
+   * Handle GPX file deletion
+   * Called from GPXStats component after user confirms deletion
+   */
+  const handleDeleteGPX = async () => {
+    if (!trip || !isOwner || !trip.gpx_file) return;
+
+    try {
+      await deleteGPX(trip.trip_id);
+      toast.success('Archivo GPX eliminado correctamente', {
+        duration: 3000,
+        position: 'top-center',
+      });
+      // Refetch trip to update UI (GPX data removed)
+      fetchTrip();
+    } catch (error: any) {
+      console.error('Error deleting GPX:', error);
+      const errorMessage =
+        error.response?.data?.error?.message || 'Error al eliminar archivo GPX';
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-center',
+      });
+    }
   };
 
   // Handle trip publishing
@@ -407,6 +479,106 @@ export const TripDetailPage: React.FC = () => {
     if (isMapEditMode) {
       // Exiting edit mode - cancel any pending location
       setPendingLocation(null);
+    }
+  };
+
+  // POI Handlers (Feature 003 - User Story 4)
+
+  // Toggle POI add mode
+  const handleToggleAddPOI = () => {
+    setIsAddingPOI(!isAddingPOI);
+    if (!isAddingPOI) {
+      // Enable map edit mode when adding POI
+      setIsMapEditMode(true);
+    } else {
+      // Cancel adding POI
+      setIsMapEditMode(false);
+      setPoiCoordinates(null);
+      setShowPOIForm(false);
+    }
+  };
+
+  // Handle POI map click (when in add mode)
+  const handlePOIMapClick = async (lat: number, lng: number) => {
+    if (!isAddingPOI) return;
+
+    // Set coordinates and show POI form
+    setPoiCoordinates({ latitude: lat, longitude: lng });
+    setShowPOIForm(true);
+  };
+
+  // Handle POI form submission
+  const handlePOISubmit = async (data: POICreateInput | POIUpdateInput) => {
+    if (!trip) return;
+
+    setIsPOISubmitting(true);
+    setPOIError(null);
+
+    try {
+      if (editingPOI) {
+        // Update existing POI
+        await updatePOI(editingPOI.poi_id, data as POIUpdateInput);
+        toast.success('POI actualizado correctamente');
+      } else {
+        // Create new POI
+        await createPOI(trip.trip_id, data as POICreateInput);
+        toast.success('POI añadido correctamente');
+      }
+
+      // Refresh POIs
+      await fetchPOIs();
+
+      // Close form and reset state
+      setShowPOIForm(false);
+      setEditingPOI(null);
+      setPoiCoordinates(null);
+      setIsAddingPOI(false);
+      setIsMapEditMode(false);
+    } catch (err: any) {
+      console.error('Error saving POI:', err);
+      const errorMsg = err.response?.data?.detail || 'Error al guardar POI';
+      setPOIError(errorMsg);
+      toast.error(errorMsg);
+      throw err; // Propagate to form
+    } finally {
+      setIsPOISubmitting(false);
+    }
+  };
+
+  // Handle POI edit
+  const handlePOIEdit = (poi: POI) => {
+    setEditingPOI(poi);
+    setShowPOIForm(true);
+  };
+
+  // Handle POI delete
+  const handlePOIDelete = async (poiId: string) => {
+    if (!window.confirm('¿Eliminar este POI? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      await deletePOI(poiId);
+      toast.success('POI eliminado correctamente');
+
+      // Refresh POIs
+      await fetchPOIs();
+    } catch (err: any) {
+      console.error('Error deleting POI:', err);
+      const errorMsg = err.response?.data?.detail || 'Error al eliminar POI';
+      toast.error(errorMsg);
+    }
+  };
+
+  // Cancel POI form
+  const handleCancelPOIForm = () => {
+    setShowPOIForm(false);
+    setEditingPOI(null);
+    setPoiCoordinates(null);
+    setPOIError(null);
+    if (isAddingPOI) {
+      setIsAddingPOI(false);
+      setIsMapEditMode(false);
     }
   };
 
@@ -652,9 +824,26 @@ export const TripDetailPage: React.FC = () => {
                     : 'trip-detail-page__action-button--edit'
                 }`}
                 onClick={handleToggleMapEdit}
+                disabled={isAddingPOI}
               >
                 {isMapEditMode ? 'Cancelar edición' : 'Editar ubicaciones'}
               </button>
+
+              {/* Add POI button (Feature 003 - User Story 4) */}
+              {trip.status === 'published' && (
+                <button
+                  className={`trip-detail-page__action-button ${
+                    isAddingPOI
+                      ? 'trip-detail-page__action-button--cancel'
+                      : 'trip-detail-page__action-button--primary'
+                  }`}
+                  onClick={handleToggleAddPOI}
+                  disabled={pois.length >= 20}
+                  title={pois.length >= 20 ? 'Máximo 20 POIs por viaje' : 'Añadir punto de interés'}
+                >
+                  {isAddingPOI ? 'Cancelar POI' : `Añadir POI (${pois.length}/20)`}
+                </button>
+              )}
 
               {/* Edit button - Phase 7 */}
               <Link
@@ -719,7 +908,40 @@ export const TripDetailPage: React.FC = () => {
               metadata={trip.gpx_file}
               gpxFileId={trip.gpx_file.gpx_file_id}
               isOwner={isOwner}
+              onDelete={handleDeleteGPX}
             />
+
+            {/* Advanced Statistics (User Story 5) */}
+            {gpxTrack?.route_statistics && (
+              <AdvancedStats statistics={gpxTrack.route_statistics} />
+            )}
+
+            {/* No timestamps message (FR-033) - Only show when GPX explicitly lacks timestamps */}
+            {trip.gpx_file && trip.gpx_file.has_timestamps === false && (
+              <div className="trip-detail-page__no-timestamps" role="status">
+                <svg
+                  className="trip-detail-page__no-timestamps-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <div className="trip-detail-page__no-timestamps-content">
+                  <h4 className="trip-detail-page__no-timestamps-title">
+                    Estadísticas Avanzadas No Disponibles
+                  </h4>
+                  <p className="trip-detail-page__no-timestamps-text">
+                    Este archivo GPX no contiene timestamps (marcas de tiempo). Las estadísticas de
+                    velocidad, tiempo y análisis de subidas requieren datos temporales para
+                    calcularse.
+                  </p>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -741,7 +963,9 @@ export const TripDetailPage: React.FC = () => {
         )}
 
         {/* Map Section - TripMap shows locations list + map (or just list if no GPS) */}
-        {trip.locations && trip.locations.length > 0 && (
+        {/* Show map if there are locations OR if there's a GPX file (Feature 003) */}
+        {/* Use trip.gpx_file (metadata) instead of gpxTrack (hook result) to avoid loading state issues */}
+        {((trip.locations && trip.locations.length > 0) || trip.gpx_file) && (
           <section className="trip-detail-page__section">
             <Suspense
               fallback={
@@ -749,16 +973,37 @@ export const TripDetailPage: React.FC = () => {
               }
             >
               <TripMap
-                locations={trip.locations}
+                locations={trip.locations || []}
                 tripTitle={trip.title}
                 isEditMode={isMapEditMode}
-                onMapClick={handleMapClick}
+                onMapClick={isAddingPOI ? handlePOIMapClick : handleMapClick}
                 onMarkerDrag={handleMarkerDrag}
+                hasGPX={!!trip.gpx_file}
                 gpxTrackPoints={gpxTrack?.trackpoints}
                 gpxStartPoint={gpxTrack?.start_point}
                 gpxEndPoint={gpxTrack?.end_point}
+                mapRef={mapRef}
+                activeProfilePoint={activeProfilePoint}
+                pois={pois}
+                isOwner={isOwner}
+                onPOIEdit={handlePOIEdit}
+                onPOIDelete={handlePOIDelete}
               />
             </Suspense>
+          </section>
+        )}
+
+        {/* Elevation Profile (Feature 003 - User Story 3) */}
+        {trip.gpx_file && gpxTrack && gpxTrack.trackpoints && gpxTrack.trackpoints.length > 0 && (
+          <section className="trip-detail-page__section">
+            <ElevationProfile
+              trackpoints={gpxTrack.trackpoints}
+              hasElevation={trip.gpx_file.has_elevation}
+              distanceKm={trip.gpx_file.distance_km}
+              onPointClick={handleProfilePointClick}
+              onPointHover={setActiveProfilePoint}
+              height={300}
+            />
           </section>
         )}
 
@@ -854,6 +1099,19 @@ export const TripDetailPage: React.FC = () => {
           tripTitle={trip.title}
           isOpen={showLikesModal}
           onClose={() => setShowLikesModal(false)}
+        />
+      )}
+
+      {/* POI Form Modal (Feature 003 - User Story 4) */}
+      {showPOIForm && trip && (
+        <POIForm
+          tripId={trip.trip_id}
+          editingPOI={editingPOI}
+          coordinates={poiCoordinates}
+          onCancel={handleCancelPOIForm}
+          onSubmit={handlePOISubmit}
+          isSubmitting={isPOISubmitting}
+          error={poiError}
         />
       )}
     </div>

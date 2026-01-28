@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ContraVento Test Suite"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Ruta de Prueba - Con Timestamps y Elevación</name>
+    <desc>Archivo GPX de prueba con timestamps para validar cálculo de estadísticas avanzadas (velocidad, tiempo, gradientes, subidas)</desc>
+    <time>2024-06-15T08:00:00Z</time>
+  </metadata>
+  <trk>
+    <name>Ruta Ciclista con Estadísticas Completas</name>
+    <desc>Ruta de ~25km con 3 subidas significativas para validar detección de top climbs</desc>
+    <trkseg>
+      <!-- Inicio: Km 0.0 - Flat start -->
+      <trkpt lat="40.4168" lon="-3.7038">
+        <ele>650</ele>
+        <time>2024-06-15T08:00:00Z</time>
+      </trkpt>
+
+      <!-- Km 1.0 - Still flat, cruising speed 20 km/h -->
+      <trkpt lat="40.4258" lon="-3.7045">
+        <ele>652</ele>
+        <time>2024-06-15T08:03:00Z</time>
+      </trkpt>
+
+      <!-- Km 2.0 - Still flat -->
+      <trkpt lat="40.4348" lon="-3.7052">
+        <ele>654</ele>
+        <time>2024-06-15T08:06:00Z</time>
+      </trkpt>
+
+      <!-- CLIMB 1 START: Km 3.0 - Moderate climb begins (8% gradient) -->
+      <trkpt lat="40.4438" lon="-3.7059">
+        <ele>656</ele>
+        <time>2024-06-15T08:09:00Z</time>
+      </trkpt>
+
+      <!-- Km 3.5 - Mid climb, speed drops to 12 km/h -->
+      <trkpt lat="40.4483" lon="-3.7063">
+        <ele>696</ele>
+        <time>2024-06-15T08:11:30Z</time>
+      </trkpt>
+
+      <!-- Km 4.0 - Still climbing -->
+      <trkpt lat="40.4528" lon="-3.7066">
+        <ele>736</ele>
+        <time>2024-06-15T08:14:00Z</time>
+      </trkpt>
+
+      <!-- Km 4.5 - Peak of climb 1 (total: 80m gain over 1.5km = 5.3% avg) -->
+      <trkpt lat="40.4573" lon="-3.7070">
+        <ele>776</ele>
+        <time>2024-06-15T08:16:30Z</time>
+      </trkpt>
+
+      <!-- CLIMB 1 END / DESCENT START: Km 5.0 - Downhill begins -->
+      <trkpt lat="40.4618" lon="-3.7074">
+        <ele>766</ele>
+        <time>2024-06-15T08:18:00Z</time>
+      </trkpt>
+
+      <!-- Km 6.0 - Fast descent, speed 35 km/h -->
+      <trkpt lat="40.4708" lon="-3.7081">
+        <ele>730</ele>
+        <time>2024-06-15T08:19:43Z</time>
+      </trkpt>
+
+      <!-- Km 7.0 - End of descent, back to flat -->
+      <trkpt lat="40.4798" lon="-3.7088">
+        <ele>700</ele>
+        <time>2024-06-15T08:21:26Z</time>
+      </trkpt>
+
+      <!-- Km 8.0 - Flat section, coffee stop (speed drops to 0) -->
+      <trkpt lat="40.4888" lon="-3.7095">
+        <ele>702</ele>
+        <time>2024-06-15T08:24:09Z</time>
+      </trkpt>
+
+      <!-- Km 8.1 - Still stopped (10 min break) -->
+      <trkpt lat="40.4897" lon="-3.7096">
+        <ele>702</ele>
+        <time>2024-06-15T08:34:09Z</time>
+      </trkpt>
+
+      <!-- Km 9.0 - Resume riding, flat section -->
+      <trkpt lat="40.4978" lon="-3.7103">
+        <ele>704</ele>
+        <time>2024-06-15T08:37:00Z</time>
+      </trkpt>
+
+      <!-- CLIMB 2 START: Km 10.0 - Steeper climb begins (10% gradient) -->
+      <trkpt lat="40.5068" lon="-3.7110">
+        <ele>706</ele>
+        <time>2024-06-15T08:40:00Z</time>
+      </trkpt>
+
+      <!-- Km 10.5 - Steep climb, speed drops to 8 km/h -->
+      <trkpt lat="40.5113" lon="-3.7114">
+        <ele>756</ele>
+        <time>2024-06-15T08:43:45Z</time>
+      </trkpt>
+
+      <!-- Km 11.0 - Still steep -->
+      <trkpt lat="40.5158" lon="-3.7117">
+        <ele>806</ele>
+        <time>2024-06-15T08:47:30Z</time>
+      </trkpt>
+
+      <!-- Km 11.5 - Still steep -->
+      <trkpt lat="40.5203" lon="-3.7121">
+        <ele>856</ele>
+        <time>2024-06-15T08:51:15Z</time>
+      </trkpt>
+
+      <!-- Km 12.0 - Peak of climb 2 (total: 150m gain over 2km = 7.5% avg) -->
+      <trkpt lat="40.5248" lon="-3.7125">
+        <ele>906</ele>
+        <time>2024-06-15T08:55:00Z</time>
+      </trkpt>
+
+      <!-- CLIMB 2 END / DESCENT: Km 13.0 - Downhill -->
+      <trkpt lat="40.5338" lon="-3.7132">
+        <ele>876</ele>
+        <time>2024-06-15T08:57:00Z</time>
+      </trkpt>
+
+      <!-- Km 14.0 - Descent continues -->
+      <trkpt lat="40.5428" lon="-3.7139">
+        <ele>820</ele>
+        <time>2024-06-15T08:59:00Z</time>
+      </trkpt>
+
+      <!-- Km 15.0 - Flat valley -->
+      <trkpt lat="40.5518" lon="-3.7146">
+        <ele>780</ele>
+        <time>2024-06-15T09:02:00Z</time>
+      </trkpt>
+
+      <!-- CLIMB 3 START: Km 16.0 - Final big climb (hardest, 12% gradient) -->
+      <trkpt lat="40.5608" lon="-3.7153">
+        <ele>782</ele>
+        <time>2024-06-15T09:05:00Z</time>
+      </trkpt>
+
+      <!-- Km 16.3 - Very steep section (speed 6 km/h) -->
+      <trkpt lat="40.5635" lon="-3.7156">
+        <ele>818</ele>
+        <time>2024-06-15T09:08:00Z</time>
+      </trkpt>
+
+      <!-- Km 16.6 - Still very steep -->
+      <trkpt lat="40.5662" lon="-3.7159">
+        <ele>854</ele>
+        <time>2024-06-15T09:11:00Z</time>
+      </trkpt>
+
+      <!-- Km 17.0 - Gradient eases to 8% -->
+      <trkpt lat="40.5698" lon="-3.7163">
+        <ele>898</ele>
+        <time>2024-06-15T09:14:30Z</time>
+      </trkpt>
+
+      <!-- Km 17.5 - Still climbing -->
+      <trkpt lat="40.5743" lon="-3.7167">
+        <ele>938</ele>
+        <time>2024-06-15T09:18:15Z</time>
+      </trkpt>
+
+      <!-- Km 18.0 - Peak of climb 3 (total: 156m gain over 2km = 7.8% avg, but has 12% section) -->
+      <trkpt lat="40.5788" lon="-3.7170">
+        <ele>978</ele>
+        <time>2024-06-15T09:22:00Z</time>
+      </trkpt>
+
+      <!-- CLIMB 3 END / Final descent: Km 19.0 - Long descent to finish -->
+      <trkpt lat="40.5878" lon="-3.7177">
+        <ele>938</ele>
+        <time>2024-06-15T09:24:00Z</time>
+      </trkpt>
+
+      <!-- Km 20.0 - Fast descent, max speed 45 km/h -->
+      <trkpt lat="40.5968" lon="-3.7184">
+        <ele>880</ele>
+        <time>2024-06-15T09:25:20Z</time>
+      </trkpt>
+
+      <!-- Km 21.0 - Descent continues -->
+      <trkpt lat="40.6058" lon="-3.7191">
+        <ele>820</ele>
+        <time>2024-06-15T09:26:40Z</time>
+      </trkpt>
+
+      <!-- Km 22.0 - Descent easing -->
+      <trkpt lat="40.6148" lon="-3.7198">
+        <ele>770</ele>
+        <time>2024-06-15T09:28:40Z</time>
+      </trkpt>
+
+      <!-- Km 23.0 - Flat to finish -->
+      <trkpt lat="40.6238" lon="-3.7205">
+        <ele>732</ele>
+        <time>2024-06-15T09:31:40Z</time>
+      </trkpt>
+
+      <!-- Km 24.0 - Final flat -->
+      <trkpt lat="40.6328" lon="-3.7212">
+        <ele>728</ele>
+        <time>2024-06-15T09:34:40Z</time>
+      </trkpt>
+
+      <!-- Km 25.0 - Finish -->
+      <trkpt lat="40.6418" lon="-3.7219">
+        <ele>726</ele>
+        <time>2024-06-15T09:37:40Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

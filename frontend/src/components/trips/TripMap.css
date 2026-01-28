@@ -10,10 +10,15 @@
    ============================================================================ */
 
 .trip-map {
-  position: relative; /* Required for absolute positioned fullscreen button */
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Wrapper for map + fullscreen button (required for absolute positioning) */
+.trip-map__map-wrapper {
+  position: relative; /* Required for absolute positioned fullscreen button */
+  width: 100%;
 }
 
 .trip-map__container {
@@ -613,10 +618,10 @@
    Fullscreen Mode (Phase 5.3)
    ============================================================================ */
 
-/* Fullscreen toggle button */
+/* Fullscreen toggle button - positioned at bottom-right to avoid conflict with LayersControl */
 .trip-map__fullscreen-button {
   position: absolute;
-  top: 10px;
+  bottom: 40px;
   right: 10px;
   z-index: 1000;
   display: flex;
@@ -686,7 +691,7 @@
 
 /* Adjust fullscreen button position in fullscreen mode */
 .trip-map--fullscreen .trip-map__fullscreen-button {
-  top: 20px;
+  bottom: 50px;
   right: 20px;
   width: 48px;
   height: 48px;
@@ -750,7 +755,7 @@
   }
 
   .trip-map--fullscreen .trip-map__fullscreen-button {
-    top: 16px;
+    bottom: 40px;
     right: 16px;
     width: 44px;
     height: 44px;
@@ -759,5 +764,132 @@
   .trip-map--fullscreen .trip-map__fullscreen-button svg {
     width: 22px;
     height: 22px;
+  }
+}
+
+/* ============================================================================
+   Active Profile Point Marker Animation (Feature 003 - User Story 3)
+   ============================================================================ */
+
+/* Pulsating animation for the active point marker */
+@keyframes pulse-marker {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* Apply animation to active profile point circle */
+.leaflet-interactive[fill="#fbbf24"] {
+  animation: pulse-marker 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ============================================================================
+   Map Layer Control (T061 - Feature 003 - User Story 2)
+   ============================================================================ */
+
+/**
+ * LayersControl styling and positioning
+ * Positioned at top-right corner (fullscreen button is at bottom-right to avoid overlap)
+ */
+.leaflet-control-layers {
+  z-index: 1000 !important; /* Ensure visibility above map elements */
+}
+
+/* Ensure layers control is visible in fullscreen mode */
+.trip-map--fullscreen .leaflet-control-layers {
+  z-index: 10000 !important; /* Higher than fullscreen container (z-index: 9999) */
+}
+
+/* Style improvements for layer control */
+.leaflet-control-layers {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-control-layers-toggle {
+  width: 40px;
+  height: 40px;
+  background-size: 20px 20px;
+}
+
+/* Fix text alignment in expanded layer control panel */
+.leaflet-control-layers-expanded {
+  padding: 10px 14px !important;
+  min-width: 160px !important;
+  width: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Force horizontal layout for layer selector labels */
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 4px !important;
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  white-space: normal !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Radio button stays inline at center */
+.leaflet-control-layers-base label input,
+.leaflet-control-layers-overlays label input {
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Text wraps if needed, aligned with radio button */
+.leaflet-control-layers-base label span,
+.leaflet-control-layers-overlays label span {
+  flex: 1 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Dark mode for layer control */
+@media (prefers-color-scheme: dark) {
+  .leaflet-control-layers {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .leaflet-control-layers-base label,
+  .leaflet-control-layers-overlays label {
+    color: #f9fafb;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .leaflet-control-layers {
+    margin-right: 8px;
+    margin-top: 8px;
+  }
+
+  .leaflet-control-layers-toggle {
+    width: 36px;
+    height: 36px;
+    background-size: 18px 18px;
   }
 }

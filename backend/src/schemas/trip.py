@@ -333,7 +333,7 @@ class TripPhotoResponse(BaseModel):
         height: Original photo height in pixels
     """
 
-    photo_id: str = Field(..., description="Unique photo identifier")
+    photo_id: str = Field(..., serialization_alias="id", description="Unique photo identifier")
     photo_url: str = Field(..., description="URL to optimized photo")
     thumbnail_url: str = Field(..., description="URL to thumbnail")
     caption: str | None = Field(None, description="Photo caption")
@@ -345,9 +345,10 @@ class TripPhotoResponse(BaseModel):
         """Pydantic config."""
 
         from_attributes = True
+        populate_by_name = True
         json_schema_extra = {
             "example": {
-                "photo_id": "770e8400-e29b-41d4-a716-446655440002",
+                "id": "770e8400-e29b-41d4-a716-446655440002",
                 "photo_url": "/storage/trip_photos/2024/12/550e.../abc123.jpg",
                 "thumbnail_url": "/storage/trip_photos/2024/12/550e.../abc123_thumb.jpg",
                 "caption": "Vista desde el viaducto",

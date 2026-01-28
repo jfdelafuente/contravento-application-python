@@ -40,6 +40,9 @@ venv.bak/
 .vscode/
 *.code-workspace
 
+# Claude Code
+.claude/
+
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -140,4 +143,4 @@ celerybeat.pid
 
 # Cython debug symbols
 cython_debug/
-poetry.lock
+# poetry.lock is now tracked for reproducible builds (application, not library)

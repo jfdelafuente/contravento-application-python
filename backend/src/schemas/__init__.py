@@ -13,6 +13,14 @@ from src.schemas.auth import (
     RegisterResponse,
     TokenResponse,
 )
+from src.schemas.poi import (
+    POICreateInput,
+    POIListResponse,
+    POIReorderInput,
+    POIResponse,
+    POITypeEnum,
+    POIUpdateInput,
+)
 from src.schemas.trip import (
     LocationInput,
     TagResponse,
@@ -44,4 +52,10 @@ __all__ = [
     "TripResponse",
     "TripListItemResponse",
     "TripListResponse",
+    "POICreateInput",
+    "POIUpdateInput",
+    "POIReorderInput",
+    "POIResponse",
+    "POIListResponse",
+    "POITypeEnum",
 ]

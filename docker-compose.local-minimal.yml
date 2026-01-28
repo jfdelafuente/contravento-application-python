@@ -26,7 +26,6 @@
 #   PostgreSQL:         localhost:5432 (use psql, DBeaver, etc.)
 # ============================================================================
 
-version: '3.8'
 
 services:
   # ==========================================================================
@@ -35,6 +34,8 @@ services:
   postgres:
     ports:
       - "5432:5432"  # Expose for local DB clients (DBeaver, psql, etc.)
+    networks:
+      - contravento-network
 
   # ==========================================================================
   # Backend API - Local Development (Minimal)
@@ -63,6 +64,8 @@ services:
       postgres:
         condition: service_healthy
       # NOTE: Redis dependency removed - not needed for basic development
+    networks:
+      - contravento-network
 
   # ==========================================================================
   # Frontend - React Vite Dev Server (Disabled by default)
@@ -87,6 +90,9 @@ services:
       VITE_DEBUG: "true"
       # Use test Turnstile key for development
       VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      # Proxy configuration for Vite dev server running in Docker
+      VITE_PROXY_TARGET: http://backend:8000  # Vite proxy target (Docker service name)
+      VITE_USE_PROXY: "true"  # Enable /api prefix routing
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 10s
@@ -96,6 +102,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - contravento-network
     deploy:
       replicas: 0  # Disabled by default - use --with-frontend flag to enable
 
