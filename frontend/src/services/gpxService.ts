@@ -87,6 +87,21 @@ export interface Coordinate {
 }
 
 /**
+ * Route Statistics (User Story 5)
+ */
+export interface RouteStatistics {
+  stats_id: string;
+  gpx_file_id: string;
+  avg_speed_kmh: number | null;
+  max_speed_kmh: number | null;
+  total_time_minutes: number | null;
+  moving_time_minutes: number | null;
+  avg_gradient: number | null;
+  max_gradient: number | null;
+  calculated_at: string;
+}
+
+/**
  * Track Data Response (for map rendering)
  */
 export interface TrackDataResponse {
@@ -99,6 +114,7 @@ export interface TrackDataResponse {
   start_point: Coordinate;
   end_point: Coordinate;
   trackpoints: TrackPoint[];
+  route_statistics: RouteStatistics | null; // User Story 5
 }
 
 /**
