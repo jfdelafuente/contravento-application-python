@@ -401,13 +401,25 @@ class GPXService:
         Args:
             trip_id: Trip ID for organizing storage
             file_content: Raw GPX file bytes
-            filename: Original filename
+            filename: Original filename (IGNORED for security - prevents path traversal attacks)
 
         Returns:
             Absolute file path (e.g., "/path/to/storage/gpx_files/2024/06/trip_id/original.gpx")
 
         File structure: storage/gpx_files/{year}/{month}/{trip_id}/original.gpx
+
+        Security:
+            Always saves as 'original.gpx' to prevent malicious filenames like
+            '../../etc/passwd' or '../../../root/.ssh/id_rsa' from escaping the
+            storage directory. The original filename is logged for auditing but
+            never used in the file path construction.
         """
+        # Log original filename for auditing (but don't use in path)
+        logger.info(
+            f"Saving GPX file for trip {trip_id} "
+            f"(original filename: {filename}, size: {len(file_content)} bytes)"
+        )
+
         # Get current date for organizing files
         now = datetime.now(UTC)
         year = now.strftime("%Y")
@@ -417,9 +429,11 @@ class GPXService:
         storage_root = Path.cwd() / "storage" / "gpx_files" / year / month / trip_id
         storage_root.mkdir(parents=True, exist_ok=True)
 
-        # Save file with standardized name
+        # Save file with standardized name (SECURITY: fixed name prevents path traversal)
         file_path = storage_root / "original.gpx"
         file_path.write_bytes(file_content)
+
+        logger.debug(f"GPX file saved successfully at: {file_path}")
 
         # Return absolute path for database storage
         return str(file_path)
