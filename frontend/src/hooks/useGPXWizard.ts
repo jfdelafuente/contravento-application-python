@@ -38,15 +38,17 @@
 
 import { useState, useCallback } from 'react';
 import type { GPXTelemetry } from '../services/gpxWizardService';
+import type { POICreateInput } from '../types/poi';
 
 /**
  * Total number of wizard steps
  * Step 0: GPX Upload & Analysis
  * Step 1: Trip Details
  * Step 2: Map Visualization (Phase 7 - US4)
- * Step 3: Review & Publish
+ * Step 3: POI Management (Phase 8 - US5) - NEW
+ * Step 4: Review & Publish
  */
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 /**
  * Return type for useGPXWizard hook
@@ -63,6 +65,9 @@ export interface UseGPXWizardReturn {
 
   /** Telemetry data from GPX analysis (null if not analyzed) */
   telemetryData: GPXTelemetry | null;
+
+  /** POIs to create with trip (Phase 8 - US5) */
+  pois: POICreateInput[];
 
   /** Whether currently on first step */
   isFirstStep: boolean;
@@ -91,6 +96,9 @@ export interface UseGPXWizardReturn {
   /** Set telemetry data from analysis */
   setTelemetryData: (data: GPXTelemetry | null) => void;
 
+  /** Set POIs from Step 3 (Phase 8 - US5) */
+  setPOIs: (pois: POICreateInput[]) => void;
+
   /** Reset wizard to initial state */
   resetWizard: () => void;
 }
@@ -107,6 +115,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [telemetryData, setTelemetryData] = useState<GPXTelemetry | null>(null);
+  const [pois, setPOIs] = useState<POICreateInput[]>([]);
 
   /**
    * Advance to next step.
@@ -145,6 +154,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
     setCurrentStep(0);
     setSelectedFile(null);
     setTelemetryData(null);
+    setPOIs([]);
   }, []);
 
   // Derived state
@@ -162,6 +172,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
     totalSteps: TOTAL_STEPS,
     selectedFile,
     telemetryData,
+    pois,
     isFirstStep,
     isLastStep,
     progressPercentage,
@@ -171,6 +182,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
     goToStep,
     setSelectedFile,
     setTelemetryData,
+    setPOIs,
     resetWizard,
   };
 }

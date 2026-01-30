@@ -1,6 +1,7 @@
 // src/services/api.ts
 
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axiosRetry from 'axios-retry';
 
 // Extend Axios config to track retry attempts
 declare module 'axios' {
@@ -30,6 +31,36 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 second timeout
+});
+
+// Configure axios-retry for automatic retries on network errors and 5xx server errors
+// Feature 017 - Phase 9 (T096)
+axiosRetry(api, {
+  retries: 3, // Max 3 retry attempts
+  retryDelay: axiosRetry.exponentialDelay, // Exponential backoff (1s, 2s, 4s)
+  retryCondition: (error: AxiosError) => {
+    // Retry on network errors (no response)
+    if (!error.response) {
+      return true;
+    }
+
+    // Retry on 5xx server errors
+    if (error.response.status >= 500 && error.response.status < 600) {
+      return true;
+    }
+
+    // Don't retry on 4xx client errors (bad request, unauthorized, etc.)
+    return false;
+  },
+  onRetry: (retryCount: number, error: AxiosError, requestConfig: AxiosRequestConfig) => {
+    // Log retry attempts in development
+    if (import.meta.env.DEV) {
+      console.log(
+        `[axios-retry] Attempt ${retryCount}/3 for ${requestConfig.method?.toUpperCase()} ${requestConfig.url}`,
+        error.message
+      );
+    }
+  },
 });
 
 // Request interceptor to add access token to headers

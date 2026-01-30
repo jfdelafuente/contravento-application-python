@@ -1,22 +1,24 @@
 /**
- * Step3Review Component Unit Tests
+ * Step4Review Component Unit Tests (formerly Step3Review)
  *
  * Tests for trip details review and publish step.
  * Tests summary display, publish button, loading states, and navigation.
+ * Updated for Phase 8: Now includes POI summary display.
  *
  * Feature: 017-gps-trip-wizard
- * Phase: 6 (US6)
- * Task: T068
+ * Phase: 6 (US6) + Phase 8 (POI display)
+ * Task: T068 + T094
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import { Step3Review } from '../../src/components/wizard/Step3Review';
+import { Step4Review } from '../../src/components/wizard/Step4Review';
 import type { GPXTelemetry } from '../../src/services/gpxWizardService';
 import type { TripDetailsFormData } from '../../src/schemas/tripDetailsSchema';
+import type { POICreateInput } from '../../src/types/poi';
 
-describe('Step3Review (T068)', () => {
+describe('Step4Review (T068 + T094)', () => {
   // Mock data
   const mockFile = new File(['mock gpx content'], 'test-route.gpx', {
     type: 'application/gpx+xml',
@@ -44,6 +46,7 @@ describe('Step3Review (T068)', () => {
     gpxFile: mockFile,
     telemetry: mockTelemetry,
     tripDetails: mockTripDetails,
+    pois: [] as POICreateInput[], // Phase 8: Add POIs prop
     onPublish: vi.fn(),
     onPrevious: vi.fn(),
     onCancel: vi.fn(),
@@ -56,13 +59,13 @@ describe('Step3Review (T068)', () => {
 
   describe('Summary Display (T070)', () => {
     it('should display trip title', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText('Ruta de Prueba')).toBeInTheDocument();
     });
 
     it('should display trip description', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(
         screen.getByText(/Esta es una descripción de prueba/i)
@@ -70,7 +73,7 @@ describe('Step3Review (T068)', () => {
     });
 
     it('should display start date formatted in Spanish', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       // Should show formatted date (e.g., "1 de junio de 2024")
       expect(screen.getByText(/junio/i)).toBeInTheDocument();
@@ -78,7 +81,7 @@ describe('Step3Review (T068)', () => {
     });
 
     it('should display date range when end date is provided', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       // Should show both start and end dates
       expect(screen.getByText(/junio/i)).toBeInTheDocument();
@@ -93,14 +96,14 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsWithoutEndDate} />);
+      render(<Step4Review {...propsWithoutEndDate} />);
 
       // Should only show start date
       expect(screen.getByText(/junio/i)).toBeInTheDocument();
     });
 
     it('should display privacy setting', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText('Público')).toBeInTheDocument();
     });
@@ -114,25 +117,25 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsPrivate} />);
+      render(<Step4Review {...propsPrivate} />);
 
       expect(screen.getByText('Privado')).toBeInTheDocument();
     });
 
     it('should display GPX filename', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText('test-route.gpx')).toBeInTheDocument();
     });
 
     it('should display distance from telemetry', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText(/42\.5 km/i)).toBeInTheDocument();
     });
 
     it('should display elevation gain when available', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText(/850 m/i)).toBeInTheDocument();
     });
@@ -148,14 +151,14 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsNoElevation} />);
+      render(<Step4Review {...propsNoElevation} />);
 
       // Should not show elevation section
       expect(screen.queryByText(/Desnivel/i)).not.toBeInTheDocument();
     });
 
     it('should display difficulty badge', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText('Moderada')).toBeInTheDocument();
     });
@@ -163,14 +166,14 @@ describe('Step3Review (T068)', () => {
 
   describe('Publish Button (T071)', () => {
     it('should display "Publicar Viaje" button', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const publishButton = screen.getByRole('button', { name: /publicar viaje/i });
       expect(publishButton).toBeInTheDocument();
     });
 
     it('should call onPublish when publish button is clicked', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const publishButton = screen.getByRole('button', { name: /publicar viaje/i });
       fireEvent.click(publishButton);
@@ -184,7 +187,7 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      render(<Step3Review {...props} />);
+      render(<Step4Review {...props} />);
 
       const publishButton = screen.getByRole('button', { name: /publicando/i });
       expect(publishButton).toBeDisabled();
@@ -196,7 +199,7 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      render(<Step3Review {...props} />);
+      render(<Step4Review {...props} />);
 
       expect(screen.getByText('Publicando...')).toBeInTheDocument();
     });
@@ -207,7 +210,7 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      const { container } = render(<Step3Review {...props} />);
+      const { container } = render(<Step4Review {...props} />);
 
       // Check for spinner element
       const spinner = container.querySelector('.step3-review__spinner');
@@ -220,7 +223,7 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      render(<Step3Review {...props} />);
+      render(<Step4Review {...props} />);
 
       const publishButton = screen.getByRole('button', { name: /publicando/i });
       fireEvent.click(publishButton);
@@ -231,14 +234,14 @@ describe('Step3Review (T068)', () => {
 
   describe('Navigation Buttons', () => {
     it('should display "Anterior" button', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const previousButton = screen.getByRole('button', { name: /anterior/i });
       expect(previousButton).toBeInTheDocument();
     });
 
     it('should call onPrevious when "Anterior" button is clicked', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const previousButton = screen.getByRole('button', { name: /anterior/i });
       fireEvent.click(previousButton);
@@ -252,21 +255,21 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      render(<Step3Review {...props} />);
+      render(<Step4Review {...props} />);
 
       const previousButton = screen.getByRole('button', { name: /anterior/i });
       expect(previousButton).toBeDisabled();
     });
 
     it('should display "Cancelar" button', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const cancelButton = screen.getByRole('button', { name: /cancelar/i });
       expect(cancelButton).toBeInTheDocument();
     });
 
     it('should call onCancel when "Cancelar" button is clicked', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const cancelButton = screen.getByRole('button', { name: /cancelar/i });
       fireEvent.click(cancelButton);
@@ -280,7 +283,7 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      render(<Step3Review {...props} />);
+      render(<Step4Review {...props} />);
 
       const cancelButton = screen.getByRole('button', { name: /cancelar/i });
       expect(cancelButton).toBeDisabled();
@@ -289,14 +292,14 @@ describe('Step3Review (T068)', () => {
 
   describe('Accessibility', () => {
     it('should have semantic section elements', () => {
-      const { container } = render(<Step3Review {...defaultProps} />);
+      const { container } = render(<Step4Review {...defaultProps} />);
 
       const sections = container.querySelectorAll('section');
       expect(sections.length).toBeGreaterThan(0);
     });
 
     it('should have accessible headings structure', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       // Should have main heading
       const mainHeading = screen.getByRole('heading', { level: 2, name: /revisar/i });
@@ -309,7 +312,7 @@ describe('Step3Review (T068)', () => {
         isPublishing: true,
       };
 
-      const { container } = render(<Step3Review {...props} />);
+      const { container } = render(<Step4Review {...props} />);
 
       // Should have aria-live region for status updates
       const liveRegion = container.querySelector('[aria-live="polite"]');
@@ -317,7 +320,7 @@ describe('Step3Review (T068)', () => {
     });
 
     it('should have proper button labels for screen readers', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       const publishButton = screen.getByRole('button', { name: /publicar viaje/i });
       expect(publishButton).toHaveAttribute('aria-label');
@@ -326,14 +329,14 @@ describe('Step3Review (T068)', () => {
 
   describe('Responsive Layout', () => {
     it('should render without crashing on mobile', () => {
-      const { container } = render(<Step3Review {...defaultProps} />);
+      const { container } = render(<Step4Review {...defaultProps} />);
 
       // Should have responsive class
       expect(container.querySelector('.step3-review')).toBeInTheDocument();
     });
 
     it('should stack summary items vertically on mobile', () => {
-      const { container } = render(<Step3Review {...defaultProps} />);
+      const { container } = render(<Step4Review {...defaultProps} />);
 
       const summaryGrid = container.querySelector('.step3-review__summary');
       expect(summaryGrid).toBeInTheDocument();
@@ -350,7 +353,7 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsLongTitle} />);
+      render(<Step4Review {...propsLongTitle} />);
 
       // Should render without crashing
       expect(screen.getByText('a'.repeat(200))).toBeInTheDocument();
@@ -365,7 +368,7 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsLongDesc} />);
+      render(<Step4Review {...propsLongDesc} />);
 
       // Should render without crashing
       expect(screen.getByText('a'.repeat(500))).toBeInTheDocument();
@@ -380,7 +383,7 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsNullEndDate} />);
+      render(<Step4Review {...propsNullEndDate} />);
 
       // Should render without errors
       expect(screen.getByText(/junio/i)).toBeInTheDocument();
@@ -395,7 +398,7 @@ describe('Step3Review (T068)', () => {
         },
       };
 
-      render(<Step3Review {...propsUndefinedEndDate} />);
+      render(<Step4Review {...propsUndefinedEndDate} />);
 
       // Should render without errors
       expect(screen.getByText(/junio/i)).toBeInTheDocument();
@@ -404,21 +407,21 @@ describe('Step3Review (T068)', () => {
 
   describe('Component Structure', () => {
     it('should render step header with title', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(screen.getByText(/revisar y publicar/i)).toBeInTheDocument();
     });
 
     it('should render step description', () => {
-      render(<Step3Review {...defaultProps} />);
+      render(<Step4Review {...defaultProps} />);
 
       expect(
-        screen.getByText(/revisa los datos antes de publicar/i)
+        screen.getByText(/revisa los datos de tu viaje antes de publicarlo/i)
       ).toBeInTheDocument();
     });
 
     it('should group related information in sections', () => {
-      const { container } = render(<Step3Review {...defaultProps} />);
+      const { container } = render(<Step4Review {...defaultProps} />);
 
       const sections = container.querySelectorAll('.step3-review__section');
       expect(sections.length).toBeGreaterThan(0);

@@ -171,6 +171,64 @@
   }
 }
 
+/* POI Summary Section (Feature 017 - Phase 8) */
+.step3-review__pois {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.step3-review__poi-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.step3-review__poi-item:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.step3-review__poi-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.step3-review__poi-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.step3-review__poi-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.step3-review__poi-type {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.step3-review__poi-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.5;
+}
+
 /* Screen Reader Only */
 .sr-only {
   position: absolute;

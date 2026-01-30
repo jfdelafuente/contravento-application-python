@@ -30,10 +30,13 @@ import { useGPXWizard } from '../../hooks/useGPXWizard';
 import { Step1Upload } from './Step1Upload';
 import { Step2Details } from './Step2Details';
 import { Step3Map } from '../trips/GPXWizard/Step3Map';
-import { Step3Review } from './Step3Review';
+import { Step3POIs } from './Step3POIs';
+import { Step4Review } from './Step4Review';
 import { createTripWithGPX } from '../../services/tripService';
+import { createPOI } from '../../services/poiService';
 import type { GPXTelemetry } from '../../services/gpxWizardService';
 import type { TripDetailsFormData } from '../../schemas/tripDetailsSchema';
+import type { POICreateInput } from '../../types/poi';
 import type { Trip } from '../../types/trip';
 import './GPXWizard.css';
 
@@ -69,13 +72,14 @@ export interface GPXWizardProps {
  * GPS Trip Creation Wizard Container
  *
  * Multi-step wizard for creating trips from GPX files.
- * Handles file upload, analysis, trip details, map visualization, and review.
+ * Handles file upload, analysis, trip details, map visualization, POI management, and review.
  *
  * Steps:
  * 0. GPX Upload & Analysis
  * 1. Trip Details
  * 2. Map Visualization (Phase 7 - US4)
- * 3. Review & Publish
+ * 3. POI Management (Phase 8 - US5) - NEW
+ * 4. Review & Publish
  *
  * @param props - Component props
  */
@@ -85,12 +89,14 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     totalSteps,
     selectedFile,
     telemetryData,
+    pois,
     progressPercentage,
     isStep1Complete,
     nextStep,
     prevStep,
     setSelectedFile,
     setTelemetryData,
+    setPOIs,
     resetWizard,
   } = useGPXWizard();
 
@@ -112,7 +118,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
 
   /**
    * Handle Step 2 completion.
-   * Store trip details data and advance to Step 3.
+   * Store trip details data and advance to Step 3 (Map).
    */
   const handleStep2Complete = useCallback(
     (data: TripDetailsFormData) => {
@@ -120,6 +126,18 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
       nextStep();
     },
     [nextStep]
+  );
+
+  /**
+   * Handle Step 3 completion (POI Management).
+   * Store POIs data and advance to Step 4 (Review).
+   */
+  const handleStep3Complete = useCallback(
+    (poisData: POICreateInput[]) => {
+      setPOIs(poisData);
+      nextStep();
+    },
+    [setPOIs, nextStep]
   );
 
   /**
@@ -148,14 +166,14 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
    */
   const handleCancel = useCallback(() => {
     // If no data, cancel immediately
-    if (!selectedFile && !telemetryData && !tripDetails) {
+    if (!selectedFile && !telemetryData && !tripDetails && pois.length === 0) {
       onCancel();
       return;
     }
 
     // Show confirmation dialog
     setShowCancelConfirm(true);
-  }, [selectedFile, telemetryData, tripDetails, onCancel]);
+  }, [selectedFile, telemetryData, tripDetails, pois, onCancel]);
 
   /**
    * Confirm cancellation.
@@ -177,7 +195,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
 
   /**
    * Handle wizard completion (Publish button).
-   * Creates trip with GPX file via backend API (T073, T074).
+   * Creates trip with GPX file via backend API, then creates POIs sequentially (T094).
    */
   const handlePublish = useCallback(async () => {
     if (!selectedFile || !telemetryData || !tripDetails) {
@@ -187,7 +205,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     setIsPublishing(true);
 
     try {
-      // Call backend API to create trip with GPX file
+      // Step 1: Create trip with GPX file
       const trip = await createTripWithGPX(selectedFile, {
         title: tripDetails.title,
         description: tripDetails.description,
@@ -196,8 +214,47 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
         privacy: tripDetails.privacy,
       });
 
-      // Success - notify parent component
-      onSuccess(trip);
+      // Step 2: Create POIs sequentially (if any)
+      if (pois.length > 0) {
+        const createdPOIs: string[] = [];
+        const failedPOIs: POICreateInput[] = [];
+
+        for (const poi of pois) {
+          try {
+            await createPOI(trip.trip_id, {
+              name: poi.name,
+              description: poi.description,
+              poi_type: poi.poi_type,
+              latitude: poi.latitude,
+              longitude: poi.longitude,
+              sequence: poi.sequence,
+            });
+            createdPOIs.push(poi.name);
+          } catch (poiError: any) {
+            console.error('Failed to create POI:', poi, poiError);
+            failedPOIs.push(poi);
+          }
+        }
+
+        // Handle partial success scenarios
+        if (failedPOIs.length === 0) {
+          // All POIs created successfully
+          onSuccess(trip);
+        } else if (createdPOIs.length > 0) {
+          // Partial success - some POIs created, some failed
+          console.warn(`Partial POI creation: ${createdPOIs.length}/${pois.length} created`);
+          onSuccess(trip);
+          // Note: Parent component should show toast for partial success
+        } else {
+          // No POIs created (all failed)
+          console.error('All POIs failed to create');
+          onSuccess(trip);
+          // Note: Parent component should show warning that POIs weren't added
+        }
+      } else {
+        // No POIs to create - success
+        onSuccess(trip);
+      }
     } catch (error: any) {
       // Error handling with Spanish messages (T074)
       let errorData = {
@@ -251,7 +308,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     } finally {
       setIsPublishing(false);
     }
-  }, [selectedFile, telemetryData, tripDetails, onSuccess, onError]);
+  }, [selectedFile, telemetryData, tripDetails, pois, onSuccess, onError]);
 
   return (
     <div className="gpx-wizard">
@@ -347,9 +404,36 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
             <div className="wizard-step__label">Mapa</div>
           </div>
 
-          {/* Step 4: Review */}
-          <div className={`wizard-step ${currentStep === 3 ? 'wizard-step--active' : ''}`}>
-            <div className="wizard-step__number">4</div>
+          {/* Step 4: POI Management */}
+          <div
+            className={`wizard-step ${currentStep === 3 ? 'wizard-step--active' : ''} ${
+              currentStep > 3 ? 'wizard-step--completed' : ''
+            }`}
+          >
+            <div className="wizard-step__number">
+              {currentStep > 3 ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                '4'
+              )}
+            </div>
+            <div className="wizard-step__label">Puntos de Interés</div>
+          </div>
+
+          {/* Step 5: Review */}
+          <div className={`wizard-step ${currentStep === 4 ? 'wizard-step--active' : ''}`}>
+            <div className="wizard-step__number">5</div>
             <div className="wizard-step__label">Revisar y Publicar</div>
           </div>
         </div>
@@ -398,12 +482,25 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
           />
         )}
 
-        {/* Step 4: Review */}
+        {/* Step 4: POI Management */}
         {currentStep === 3 && selectedFile && telemetryData && tripDetails && (
-          <Step3Review
+          <Step3POIs
+            telemetry={telemetryData}
+            tripDetails={tripDetails}
+            initialPOIs={pois}
+            onNext={handleStep3Complete}
+            onPrevious={prevStep}
+            onCancel={handleCancel}
+          />
+        )}
+
+        {/* Step 5: Review */}
+        {currentStep === 4 && selectedFile && telemetryData && tripDetails && (
+          <Step4Review
             gpxFile={selectedFile}
             telemetry={telemetryData}
             tripDetails={tripDetails}
+            pois={pois}
             onPublish={handlePublish}
             onPrevious={prevStep}
             onCancel={handleCancel}
