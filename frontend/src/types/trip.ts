@@ -424,7 +424,7 @@ export type TripStatus = 'draft' | 'published';
 /**
  * Trip difficulty levels
  */
-export type TripDifficulty = 'easy' | 'moderate' | 'difficult' | 'very_difficult';
+export type TripDifficulty = 'easy' | 'moderate' | 'difficult' | 'very_difficult' | 'extreme';
 
 /**
  * Difficulty labels in Spanish
@@ -434,6 +434,7 @@ export const DIFFICULTY_LABELS: Record<TripDifficulty, string> = {
   moderate: 'Moderada',
   difficult: 'Difícil',
   very_difficult: 'Muy Difícil',
+  extreme: 'Extrema',
 };
 
 /**
@@ -444,6 +445,7 @@ export const DIFFICULTY_CLASSES: Record<TripDifficulty, string> = {
   moderate: 'difficulty-badge--moderate',
   difficult: 'difficulty-badge--difficult',
   very_difficult: 'difficulty-badge--very-difficult',
+  extreme: 'difficulty-badge--extreme',
 };
 
 // ============================================================================

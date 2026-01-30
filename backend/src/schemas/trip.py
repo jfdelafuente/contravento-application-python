@@ -95,7 +95,7 @@ class TripCreateRequest(BaseModel):
         start_date: Start date (cannot be in future)
         end_date: End date (optional, must be >= start_date)
         distance_km: Distance in kilometers (0.1-10000)
-        difficulty: Difficulty level (easy, moderate, difficult, very_difficult)
+        difficulty: Difficulty level (easy, moderate, difficult, very_difficult, extreme)
         locations: List of locations visited
         tags: List of tag names (max 10 tags, max 50 chars each)
     """
@@ -114,7 +114,7 @@ class TripCreateRequest(BaseModel):
     )
     difficulty: str | None = Field(
         None,
-        description="Difficulty level: easy, moderate, difficult, very_difficult",
+        description="Difficulty level: easy, moderate, difficult, very_difficult, extreme",
     )
     locations: list[LocationInput] = Field(
         default_factory=list,
@@ -133,7 +133,7 @@ class TripCreateRequest(BaseModel):
         """Validate difficulty is one of allowed values."""
         if v is None:
             return None
-        allowed = ["easy", "moderate", "difficult", "very_difficult"]
+        allowed = ["easy", "moderate", "difficult", "very_difficult", "extreme"]
         if v not in allowed:
             raise ValueError(f"La dificultad debe ser una de: {', '.join(allowed)}")
         return v
@@ -220,7 +220,7 @@ class TripUpdateRequest(BaseModel):
         """Validate difficulty is one of allowed values."""
         if v is None:
             return None
-        allowed = ["easy", "moderate", "difficult", "very_difficult"]
+        allowed = ["easy", "moderate", "difficult", "very_difficult", "extreme"]
         if v not in allowed:
             raise ValueError(f"La dificultad debe ser una de: {', '.join(allowed)}")
         return v

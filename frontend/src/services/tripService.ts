@@ -321,3 +321,71 @@ export const canEditTrip = (trip: Trip, currentUserId: string): boolean => {
 export const canPublishTripData = (trip: Trip): boolean => {
   return trip.status === 'draft' && trip.description.length >= 50;
 };
+
+// ============================================================================
+// GPS Trip Creation Wizard (Feature 017)
+// ============================================================================
+
+/**
+ * Create trip with GPX file in atomic transaction (T073)
+ *
+ * Creates a trip and uploads GPX file in a single atomic operation.
+ * If any step fails, the entire operation is rolled back.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 6 (US6 - Publish Trip)
+ * Contract: specs/017-gps-trip-wizard/contracts/gpx-wizard.yaml
+ *
+ * @param gpxFile - GPX file to upload (max 10MB)
+ * @param tripDetails - Trip metadata (title, description, dates, privacy)
+ * @returns Created trip with GPX metadata
+ *
+ * @throws 400 if validation fails (title too long, description too short, invalid GPX)
+ * @throws 413 if GPX file exceeds 10MB size limit
+ * @throws 401 if not authenticated
+ *
+ * @example
+ * const formData = {
+ *   title: 'Ruta Bikepacking Pirineos',
+ *   description: 'Descripción detallada con más de 50 caracteres...',
+ *   start_date: '2024-06-01',
+ *   end_date: '2024-06-05',
+ *   privacy: 'public',
+ * };
+ *
+ * const trip = await createTripWithGPX(gpxFile, formData);
+ * console.log(`Trip created: ${trip.trip_id} with ${trip.gpx_file.total_distance_km} km`);
+ */
+export const createTripWithGPX = async (
+  gpxFile: File,
+  tripDetails: {
+    title: string;
+    description: string;
+    start_date: string;
+    end_date?: string;
+    privacy: 'public' | 'private';
+  }
+): Promise<Trip> => {
+  const formData = new FormData();
+
+  // Add GPX file
+  formData.append('gpx_file', gpxFile);
+
+  // Add trip details
+  formData.append('title', tripDetails.title);
+  formData.append('description', tripDetails.description);
+  formData.append('start_date', tripDetails.start_date);
+  if (tripDetails.end_date) {
+    formData.append('end_date', tripDetails.end_date);
+  }
+  formData.append('privacy', tripDetails.privacy);
+
+  const response = await api.post<ApiResponse<Trip>>('/trips/gpx-wizard', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 60000, // 60 seconds for large GPX files
+  });
+
+  return response.data.data;
+};

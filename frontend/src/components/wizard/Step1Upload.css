@@ -1,0 +1,347 @@
+/**
+ * Step1Upload Component Styles
+ *
+ * Styling for wizard Step 1 (GPX Upload & Analysis).
+ * Includes telemetry preview, error states, and responsive design.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 4 (US2)
+ * Task: T045
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.step1-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   Header
+   ========================================================================= */
+
+.step1-upload__header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.step1-upload__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.step1-upload__description {
+  font-size: 1rem;
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Error Actions
+   ========================================================================= */
+
+.step1-upload__error-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.step1-upload__retry-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #d35400;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.step1-upload__retry-button:hover {
+  background-color: #e67e22;
+  transform: translateY(-1px);
+}
+
+.step1-upload__retry-button:active {
+  transform: translateY(0);
+}
+
+.step1-upload__retry-button:focus {
+  outline: 2px solid #d35400;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Telemetry Preview
+   ========================================================================= */
+
+.step1-upload__telemetry {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 1.5rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step1-upload__telemetry-title {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.step1-upload__telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+/* Force single row on larger screens (≥768px) */
+@media (min-width: 768px) {
+  .step1-upload__telemetry-grid {
+    grid-auto-flow: column;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+/* Ensure all items fit in one row on desktop (≥1024px) */
+@media (min-width: 1024px) {
+  .step1-upload__telemetry-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================================================
+   Telemetry Items
+   ========================================================================= */
+
+.step1-upload__telemetry-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.step1-upload__telemetry-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.step1-upload__telemetry-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #667eea;
+}
+
+.step1-upload__telemetry-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.step1-upload__telemetry-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.step1-upload__telemetry-label {
+  font-size: 0.875rem;
+  color: #4a5568;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.step1-upload__telemetry-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  word-break: break-word;
+}
+
+.step1-upload__telemetry-difficulty {
+  font-weight: 700;
+}
+
+/* ============================================================================
+   Accessibility
+   ========================================================================= */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible styles for keyboard navigation */
+.step1-upload__retry-button:focus-visible {
+  outline: 3px solid #d35400;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .step1-upload {
+    gap: 1rem;
+  }
+
+  .step1-upload__title {
+    font-size: 1.5rem;
+  }
+
+  .step1-upload__description {
+    font-size: 0.9375rem;
+  }
+
+  .step1-upload__telemetry {
+    padding: 1.5rem;
+  }
+
+  .step1-upload__telemetry-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .step1-upload__telemetry-item {
+    padding: 0.875rem;
+  }
+
+  .step1-upload__telemetry-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .step1-upload__telemetry-value {
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .step1-upload__title {
+    font-size: 1.25rem;
+  }
+
+  .step1-upload__description {
+    font-size: 0.875rem;
+  }
+
+  .step1-upload__telemetry {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .step1-upload__retry-button {
+    width: 100%;
+    padding: 0.875rem;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (Future Enhancement)
+   ========================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .step1-upload__title {
+    color: #f7fafc;
+  }
+
+  .step1-upload__description {
+    color: #cbd5e0;
+  }
+
+  .step1-upload__telemetry-item {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  .step1-upload__telemetry-label {
+    color: #2d3748;
+  }
+
+  .step1-upload__telemetry-value {
+    color: #1a202c;
+  }
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .step1-upload__telemetry {
+    animation: none;
+  }
+
+  .step1-upload__telemetry-item {
+    transition: none;
+  }
+
+  .step1-upload__telemetry-item:hover {
+    transform: none;
+  }
+
+  .step1-upload__retry-button {
+    transition: none;
+  }
+
+  .step1-upload__retry-button:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .step1-upload__retry-button {
+    display: none;
+  }
+
+  .step1-upload__telemetry {
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+  }
+
+  .step1-upload__telemetry-title,
+  .step1-upload__telemetry-label,
+  .step1-upload__telemetry-value {
+    color: black;
+  }
+}

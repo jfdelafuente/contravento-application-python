@@ -392,6 +392,163 @@ class GPXService:
 
         return R * c
 
+    async def extract_telemetry_quick(self, file_content: bytes) -> dict[str, Any]:
+        """
+        Extract lightweight telemetry data from GPX file for wizard preview.
+
+        This method provides QUICK GPX analysis for the wizard's upload step.
+        Unlike parse_gpx_file(), this method does NOT:
+        - Simplify tracks using Douglas-Peucker (expensive operation)
+        - Save data to database
+        - Return trackpoints
+
+        It only extracts essential telemetry for difficulty preview:
+        - Distance (using Haversine formula)
+        - Elevation gain/loss (if elevation data exists)
+        - Auto-calculated difficulty level
+
+        Feature: 017-gps-trip-wizard
+        Endpoint: POST /gpx/analyze
+        Performance Goal: <2s for files up to 10MB (SC-002)
+
+        Args:
+            file_content: Raw GPX file bytes
+
+        Returns:
+            Dict with telemetry data:
+            - distance_km: Total distance in kilometers
+            - elevation_gain: Cumulative uphill in meters (None if no elevation)
+            - elevation_loss: Cumulative downhill in meters (None if no elevation)
+            - max_elevation: Maximum altitude in meters (None if no elevation)
+            - min_elevation: Minimum altitude in meters (None if no elevation)
+            - has_elevation: Whether GPX contains elevation data
+            - has_timestamps: Whether GPX contains timestamp data
+            - start_date: Start date from GPS timestamps (YYYY-MM-DD, None if no timestamps)
+            - end_date: End date from GPS timestamps (YYYY-MM-DD, None if same day or no timestamps)
+            - difficulty: TripDifficulty enum value (auto-calculated)
+
+        Raises:
+            ValueError: If GPX is invalid or corrupted
+
+        Examples:
+            >>> result = await service.extract_telemetry_quick(gpx_content)
+            >>> result["distance_km"]
+            42.5
+            >>> result["elevation_gain"]
+            1250.0
+            >>> result["difficulty"]
+            TripDifficulty.DIFFICULT
+        """
+        try:
+            # Parse GPX XML
+            gpx = gpxpy.parse(file_content)
+
+            # Extract all trackpoints
+            points = []
+            for track in gpx.tracks:
+                for segment in track.segments:
+                    points.extend(segment.points)
+
+            if not points:
+                raise ValueError("El archivo GPX no contiene puntos de track")
+
+            # Calculate total distance using Haversine formula
+            total_distance_km = 0.0
+            for i in range(1, len(points)):
+                prev_point = points[i - 1]
+                curr_point = points[i]
+                segment_distance = self._calculate_distance(
+                    prev_point.latitude,
+                    prev_point.longitude,
+                    curr_point.latitude,
+                    curr_point.longitude,
+                )
+                total_distance_km += segment_distance
+
+            # Check for elevation data
+            has_elevation = any(p.elevation is not None for p in points)
+
+            # Check for timestamps and extract dates if available
+            has_timestamps = any(p.time is not None for p in points)
+            start_date = None
+            end_date = None
+
+            if has_timestamps:
+                # Extract timestamps from points that have them
+                timestamps = [p.time for p in points if p.time is not None]
+                if timestamps:
+                    # Get earliest and latest timestamps
+                    min_time = min(timestamps)
+                    max_time = max(timestamps)
+                    # Convert to date-only format (YYYY-MM-DD)
+                    start_date = min_time.date().isoformat()
+                    end_date = max_time.date().isoformat()
+
+            # Calculate elevation statistics if data exists
+            elevation_gain = None
+            elevation_loss = None
+            max_elevation = None
+            min_elevation = None
+
+            if has_elevation:
+                elevations = [p.elevation for p in points if p.elevation is not None]
+
+                # Detect anomalous elevations (FR-034)
+                for ele in elevations:
+                    if ele < MIN_ELEVATION or ele > MAX_ELEVATION:
+                        raise ValueError(
+                            f"Elevación anómala detectada: {ele}m. "
+                            f"Los valores deben estar entre {MIN_ELEVATION}m y {MAX_ELEVATION}m"
+                        )
+
+                max_elevation = max(elevations)
+                min_elevation = min(elevations)
+
+                # Calculate cumulative elevation gain/loss
+                gain = 0.0
+                loss = 0.0
+                for i in range(1, len(points)):
+                    prev_ele = points[i - 1].elevation
+                    curr_ele = points[i].elevation
+                    if prev_ele is not None and curr_ele is not None:
+                        diff = curr_ele - prev_ele
+                        if diff > 0:
+                            gain += diff
+                        else:
+                            loss += abs(diff)
+
+                elevation_gain = round(gain, 1)
+                elevation_loss = round(loss, 1)
+
+            # Calculate difficulty using DifficultyCalculator
+            from src.services.difficulty_calculator import DifficultyCalculator
+
+            difficulty = DifficultyCalculator.calculate(total_distance_km, elevation_gain)
+
+            return {
+                "distance_km": round(total_distance_km, 2),
+                "elevation_gain": elevation_gain,
+                "elevation_loss": elevation_loss,
+                "max_elevation": max_elevation,
+                "min_elevation": min_elevation,
+                "has_elevation": has_elevation,
+                "has_timestamps": has_timestamps,
+                "start_date": start_date,
+                "end_date": end_date,
+                "difficulty": difficulty,
+            }
+
+        except Exception as e:
+            if isinstance(e, ValueError):
+                # Re-raise ValueError with original message
+                raise
+            # Wrap other exceptions with Spanish error message
+            logger.error(f"Error al procesar archivo GPX: {e}")
+            raise ValueError(
+                "No se pudo procesar el archivo GPX. "
+                "Verifica que sea un archivo válido con datos de ruta."
+            )
+
     async def save_gpx_to_storage(self, trip_id: str, file_content: bytes, filename: str) -> str:
         """
         Save original GPX file to filesystem storage.

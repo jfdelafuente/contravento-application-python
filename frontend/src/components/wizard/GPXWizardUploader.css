@@ -1,0 +1,311 @@
+/**
+ * GPXWizardUploader Styles
+ *
+ * Styling for drag-and-drop GPX file upload component.
+ *
+ * Features:
+ * - Visual feedback during drag operations
+ * - Different states (default, active, error, loading)
+ * - File preview display
+ * - Responsive design
+ * - Accessibility features
+ *
+ * Feature: 017-gps-trip-wizard
+ * Task: T039
+ */
+
+.gpx-wizard-uploader {
+  width: 100%;
+}
+
+/* Dropzone Styles */
+.gpx-wizard-uploader__dropzone {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.gpx-wizard-uploader__dropzone:hover {
+  border-color: #d35400;
+  background-color: #fff5ed;
+}
+
+.gpx-wizard-uploader__dropzone:focus {
+  outline: 2px solid #d35400;
+  outline-offset: 2px;
+}
+
+/* Active State (File Being Dragged Over) */
+.gpx-wizard-uploader--active {
+  border-color: #d35400;
+  background-color: #fff5ed;
+  border-style: solid;
+}
+
+.gpx-wizard-uploader--active .gpx-wizard-uploader__icon {
+  color: #d35400;
+  transform: scale(1.1);
+}
+
+/* Error State */
+.gpx-wizard-uploader--error {
+  border-color: #e74c3c;
+  background-color: #fef2f2;
+}
+
+.gpx-wizard-uploader--error:hover {
+  border-color: #c0392b;
+  background-color: #fee;
+}
+
+/* Loading State */
+.gpx-wizard-uploader--loading {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.gpx-wizard-uploader--loading:hover {
+  border-color: #ccc;
+  background-color: #fafafa;
+}
+
+/* Icon */
+.gpx-wizard-uploader__icon {
+  color: #999;
+  transition: all 0.2s ease;
+}
+
+.gpx-wizard-uploader__dropzone:hover .gpx-wizard-uploader__icon {
+  color: #d35400;
+}
+
+/* Text */
+.gpx-wizard-uploader__text {
+  margin: 0;
+}
+
+.gpx-wizard-uploader__primary {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.25rem;
+}
+
+.gpx-wizard-uploader__secondary {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Constraints */
+.gpx-wizard-uploader__constraints {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+.gpx-wizard-uploader__constraints p {
+  margin: 0.25rem 0;
+}
+
+/* Loading Spinner */
+.gpx-wizard-uploader__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gpx-wizard-uploader__spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #d35400;
+  border-radius: 50%;
+  animation: gpx-wizard-uploader-spin 1s linear infinite;
+}
+
+@keyframes gpx-wizard-uploader-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.gpx-wizard-uploader__loading p {
+  color: #666;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* File Preview */
+.gpx-wizard-uploader__preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.gpx-wizard-uploader__file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.gpx-wizard-uploader__file-icon {
+  color: #d35400;
+  flex-shrink: 0;
+}
+
+.gpx-wizard-uploader__file-details {
+  min-width: 0; /* Allow text truncation */
+}
+
+.gpx-wizard-uploader__file-name {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpx-wizard-uploader__file-size {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Remove Button */
+.gpx-wizard-uploader__remove-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  color: #999;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gpx-wizard-uploader__remove-button:hover {
+  background-color: #f5f5f5;
+  color: #e74c3c;
+}
+
+.gpx-wizard-uploader__remove-button:focus {
+  outline: 2px solid #d35400;
+  outline-offset: 2px;
+}
+
+.gpx-wizard-uploader__remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Error Message */
+.gpx-wizard-uploader__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  color: #991b1b;
+  font-size: 0.875rem;
+}
+
+.gpx-wizard-uploader__error svg {
+  flex-shrink: 0;
+  stroke: #dc2626;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .gpx-wizard-uploader__dropzone {
+    padding: 1.5rem;
+    min-height: 180px;
+  }
+
+  .gpx-wizard-uploader__icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .gpx-wizard-uploader__primary {
+    font-size: 1rem;
+  }
+
+  .gpx-wizard-uploader__secondary {
+    font-size: 0.8125rem;
+  }
+
+  .gpx-wizard-uploader__preview {
+    padding: 0.875rem;
+  }
+
+  .gpx-wizard-uploader__file-name {
+    font-size: 0.875rem;
+  }
+
+  .gpx-wizard-uploader__file-size {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .gpx-wizard-uploader__dropzone {
+    min-height: 220px; /* Larger touch target */
+  }
+
+  .gpx-wizard-uploader__remove-button {
+    padding: 0.625rem; /* Larger touch target */
+    min-width: 44px; /* iOS minimum */
+    min-height: 44px;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .gpx-wizard-uploader__dropzone {
+    border-width: 3px;
+  }
+
+  .gpx-wizard-uploader--active {
+    border-width: 3px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .gpx-wizard-uploader__dropzone,
+  .gpx-wizard-uploader__icon,
+  .gpx-wizard-uploader__remove-button {
+    transition: none;
+  }
+
+  .gpx-wizard-uploader__spinner {
+    animation: none;
+    border-top-color: transparent;
+  }
+}

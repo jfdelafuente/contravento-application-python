@@ -1,0 +1,521 @@
+/**
+ * GPXWizard Container Component Styles
+ *
+ * Styling for GPS Trip Creation Wizard container.
+ * Includes step indicator, navigation, dialogs, and responsive design.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 4 (US2)
+ * Task: T042
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.gpx-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+/* ============================================================================
+   Header
+   ========================================================================= */
+
+.gpx-wizard__header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.gpx-wizard__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.gpx-wizard__subtitle {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* ============================================================================
+   Step Indicator
+   ========================================================================= */
+
+.gpx-wizard__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.gpx-wizard__step-list {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+/* Step connector line */
+.gpx-wizard__step-list::before {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e2e8f0;
+  z-index: 0;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.wizard-step__number {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #718096;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.125rem;
+  transition: all 0.2s ease;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wizard-step__number svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.wizard-step__label {
+  font-size: 0.875rem;
+  color: #718096;
+  font-weight: 500;
+  text-align: center;
+  max-width: 120px;
+}
+
+/* Active step */
+.wizard-step--active .wizard-step__number {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: scale(1.1);
+}
+
+.wizard-step--active .wizard-step__label {
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Completed step */
+.wizard-step--completed .wizard-step__number {
+  background-color: #48bb78;
+  color: white;
+}
+
+.wizard-step--completed .wizard-step__label {
+  color: #48bb78;
+}
+
+/* ============================================================================
+   Progress Bar
+   ========================================================================= */
+
+.gpx-wizard__progress {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gpx-wizard__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.gpx-wizard__progress-text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #718096;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================================
+   Content Area
+   ========================================================================= */
+
+.gpx-wizard__content {
+  min-height: 400px;
+  padding: 1rem 0;
+}
+
+.gpx-wizard__placeholder {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #718096;
+}
+
+.gpx-wizard__placeholder h2 {
+  font-size: 1.5rem;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+/* ============================================================================
+   Navigation Actions
+   ========================================================================= */
+
+.gpx-wizard__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.gpx-wizard__actions-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.gpx-wizard__button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gpx-wizard__button--primary {
+  background-color: #d35400;
+  color: white;
+}
+
+.gpx-wizard__button--primary:hover:not(:disabled) {
+  background-color: #e67e22;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(211, 84, 0, 0.2);
+}
+
+.gpx-wizard__button--primary:disabled {
+  background-color: #cbd5e0;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.gpx-wizard__button--secondary {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+}
+
+.gpx-wizard__button--secondary:hover {
+  background-color: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.gpx-wizard__button--danger {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.gpx-wizard__button--danger:hover {
+  background-color: #c53030;
+}
+
+.gpx-wizard__button:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.gpx-wizard__button:active {
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   Confirmation Dialog
+   ========================================================================= */
+
+.gpx-wizard__dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.gpx-wizard__dialog {
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gpx-wizard__dialog-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 1rem 0;
+}
+
+.gpx-wizard__dialog-text {
+  font-size: 1rem;
+  color: #4a5568;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.gpx-wizard__dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* ============================================================================
+   Accessibility
+   ========================================================================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible styles */
+.gpx-wizard__button:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .gpx-wizard {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .gpx-wizard__title {
+    font-size: 1.5rem;
+  }
+
+  .gpx-wizard__subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .wizard-step__label {
+    font-size: 0.75rem;
+    max-width: 80px;
+  }
+
+  .wizard-step__number {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+
+  .wizard-step__number svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .gpx-wizard__actions {
+    flex-direction: column;
+  }
+
+  .gpx-wizard__actions-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .gpx-wizard__button {
+    flex: 1;
+  }
+
+  .gpx-wizard__dialog {
+    padding: 1.5rem;
+  }
+
+  .gpx-wizard__dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .gpx-wizard__dialog-actions .gpx-wizard__button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .gpx-wizard {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .gpx-wizard__title {
+    font-size: 1.25rem;
+  }
+
+  .gpx-wizard__step-list::before {
+    display: none;
+  }
+
+  .wizard-step {
+    gap: 0.25rem;
+  }
+
+  .wizard-step__label {
+    font-size: 0.625rem;
+    max-width: 60px;
+  }
+
+  .wizard-step__number {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+
+  .gpx-wizard__content {
+    min-height: 300px;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (Future Enhancement)
+   ========================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .gpx-wizard {
+    background-color: #2d3748;
+  }
+
+  .gpx-wizard__title {
+    color: #f7fafc;
+  }
+
+  .gpx-wizard__subtitle {
+    color: #cbd5e0;
+  }
+
+  .wizard-step__label {
+    color: #a0aec0;
+  }
+
+  .wizard-step--active .wizard-step__label {
+    color: #a0d8f1;
+  }
+
+  .gpx-wizard__dialog {
+    background-color: #2d3748;
+  }
+
+  .gpx-wizard__dialog-title {
+    color: #f7fafc;
+  }
+
+  .gpx-wizard__dialog-text {
+    color: #cbd5e0;
+  }
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .gpx-wizard__dialog-overlay,
+  .gpx-wizard__dialog {
+    animation: none;
+  }
+
+  .wizard-step__number,
+  .gpx-wizard__progress-bar,
+  .gpx-wizard__button {
+    transition: none;
+  }
+
+  .wizard-step--active .wizard-step__number {
+    transform: none;
+  }
+
+  .gpx-wizard__button--primary:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .gpx-wizard__actions,
+  .gpx-wizard__dialog-overlay {
+    display: none;
+  }
+
+  .gpx-wizard {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+}

@@ -193,33 +193,30 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
       const rightMargin = 30; // From Recharts margins
       const plotWidth = containerWidth - leftMargin - rightMargin;
 
-      setChartDimensions({
-        width: plotWidth,
-        leftMargin: leftMargin,
+      // Only update if dimensions actually changed (prevent infinite loop)
+      setChartDimensions((prev) => {
+        if (prev && prev.width === plotWidth && prev.leftMargin === leftMargin) {
+          return prev; // No change, return same object to prevent re-render
+        }
+        return {
+          width: plotWidth,
+          leftMargin: leftMargin,
+        };
       });
     };
 
     // Initial measurement with delay to let Recharts render
     const initialTimer = setTimeout(updateDimensions, 100);
 
-    // Update on window resize
-    window.addEventListener('resize', updateDimensions);
-
-    // Watch for changes in chart data that might affect Y-axis width
-    const observer = new MutationObserver(updateDimensions);
-    observer.observe(containerRef.current, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['transform', 'width']
-    });
+    // Use ResizeObserver for container size changes (more efficient than window resize)
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(containerRef.current);
 
     return () => {
       clearTimeout(initialTimer);
-      window.removeEventListener('resize', updateDimensions);
-      observer.disconnect();
+      resizeObserver.disconnect();
     };
-  }, [chartData]);
+  }, []); // Empty deps - only set up observers once
 
   // Handle click on chart point (FR-019)
   const handleClick = (data: any) => {

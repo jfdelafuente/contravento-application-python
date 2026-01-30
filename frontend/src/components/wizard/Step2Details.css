@@ -1,0 +1,547 @@
+/**
+ * Step2Details Component Styles
+ *
+ * Styling for trip details form in GPS Trip Creation Wizard Step 2.
+ * Includes form fields, validation, telemetry summary, and dialogs.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 5 (US3)
+ * Task: T060
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.step2-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+/* ============================================================================
+   Header
+   ========================================================================= */
+
+.step2-details__header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.step2-details__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.step2-details__description {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* ============================================================================
+   Telemetry Summary
+   ========================================================================= */
+
+.step2-details__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: #f7fafc;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+}
+
+.step2-details__summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step2-details__summary-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.step2-details__summary-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+/* ============================================================================
+   Form
+   ========================================================================= */
+
+.step2-details__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.step2-details__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.step2-details__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.step2-details__required {
+  color: #ef4444;
+}
+
+/* ============================================================================
+   Form Inputs
+   ========================================================================= */
+
+.step2-details__input,
+.step2-details__textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #1a202c;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.step2-details__input:focus,
+.step2-details__textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.step2-details__input--error,
+.step2-details__textarea--error {
+  border-color: #ef4444;
+}
+
+.step2-details__input--error:focus,
+.step2-details__textarea--error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.step2-details__textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.step2-details__input::placeholder,
+.step2-details__textarea::placeholder {
+  color: #a0aec0;
+}
+
+/* ============================================================================
+   Validation Messages
+   ========================================================================= */
+
+.step2-details__error {
+  font-size: 0.875rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.step2-details__hint {
+  font-size: 0.8125rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.step2-details__hint--warn {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Date Group
+   ========================================================================= */
+
+.step2-details__date-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ============================================================================
+   Radio Buttons
+   ========================================================================= */
+
+.step2-details__radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.step2-details__radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.step2-details__radio-label:hover {
+  border-color: #cbd5e0;
+  background-color: #f7fafc;
+}
+
+.step2-details__radio-label:has(.step2-details__radio:checked) {
+  border-color: #667eea;
+  background-color: #eef2ff;
+}
+
+.step2-details__radio {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.step2-details__radio-label > span:first-of-type {
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.step2-details__radio-description {
+  font-size: 0.875rem;
+  color: #718096;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* ============================================================================
+   Action Buttons
+   ========================================================================= */
+
+.step2-details__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.step2-details__actions-left,
+.step2-details__actions-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.step2-details__button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.step2-details__button--primary {
+  background-color: #d35400;
+  color: white;
+}
+
+.step2-details__button--primary:hover:not(:disabled) {
+  background-color: #e67e22;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(211, 84, 0, 0.2);
+}
+
+.step2-details__button--primary:disabled {
+  background-color: #cbd5e0;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.step2-details__button--secondary {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+}
+
+.step2-details__button--secondary:hover {
+  background-color: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.step2-details__button--danger {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.step2-details__button--danger:hover {
+  background-color: #c53030;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(229, 62, 62, 0.2);
+}
+
+.step2-details__button:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.step2-details__button:active {
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   Confirmation Dialogs
+   ========================================================================= */
+
+.step2-details__dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.step2-details__dialog {
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step2-details__dialog-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 1rem 0;
+}
+
+.step2-details__dialog-text {
+  font-size: 1rem;
+  color: #4a5568;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.step2-details__dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* ============================================================================
+   Accessibility
+   ========================================================================= */
+
+.step2-details__button:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ========================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .step2-details__title {
+    color: #f7fafc;
+  }
+
+  .step2-details__description {
+    color: #cbd5e0;
+  }
+
+  .step2-details__summary {
+    background-color: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .step2-details__summary-label {
+    color: #cbd5e0;
+  }
+
+  .step2-details__summary-value {
+    color: #f7fafc;
+  }
+
+  .step2-details__label {
+    color: #f7fafc;
+  }
+
+  .step2-details__input,
+  .step2-details__textarea {
+    background-color: #2d3748;
+    color: #f7fafc;
+    border-color: #4a5568;
+  }
+
+  .step2-details__input:focus,
+  .step2-details__textarea:focus {
+    border-color: #a0d8f1;
+  }
+
+  .step2-details__radio-label {
+    border-color: #4a5568;
+  }
+
+  .step2-details__radio-label:hover {
+    background-color: #2d3748;
+    border-color: #718096;
+  }
+
+  .step2-details__radio-label:has(.step2-details__radio:checked) {
+    background-color: #3730a3;
+    border-color: #a0d8f1;
+  }
+
+  .step2-details__dialog {
+    background-color: #2d3748;
+  }
+
+  .step2-details__dialog-title {
+    color: #f7fafc;
+  }
+
+  .step2-details__dialog-text {
+    color: #cbd5e0;
+  }
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .step2-details__summary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .step2-details__date-group {
+    grid-template-columns: 1fr;
+  }
+
+  .step2-details__actions {
+    flex-direction: column;
+  }
+
+  .step2-details__actions-left,
+  .step2-details__actions-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .step2-details__button {
+    flex: 1;
+  }
+
+  .step2-details__dialog {
+    padding: 1.5rem;
+  }
+
+  .step2-details__dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .step2-details__dialog-actions .step2-details__button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .step2-details {
+    gap: 1.5rem;
+  }
+
+  .step2-details__title {
+    font-size: 1.25rem;
+  }
+
+  .step2-details__summary {
+    padding: 1rem;
+  }
+
+  .step2-details__button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .step2-details__actions,
+  .step2-details__dialog-overlay {
+    display: none;
+  }
+
+  .step2-details {
+    padding: 0;
+  }
+
+  .step2-details__summary {
+    border: 1px solid #e2e8f0;
+    break-inside: avoid;
+  }
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .step2-details__dialog-overlay,
+  .step2-details__dialog,
+  .step2-details__button {
+    animation: none;
+    transition: none;
+  }
+
+  .step2-details__button--primary:hover:not(:disabled),
+  .step2-details__button--danger:hover {
+    transform: none;
+  }
+}
