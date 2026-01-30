@@ -85,8 +85,6 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     totalSteps,
     selectedFile,
     telemetryData,
-    isFirstStep,
-    isLastStep,
     progressPercentage,
     isStep1Complete,
     nextStep,
@@ -230,18 +228,21 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
         errorData = {
           code: 'UNAUTHORIZED',
           message: 'Debes iniciar sesión para crear un viaje',
+          field: undefined,
         };
       } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         // Timeout
         errorData = {
           code: 'TIMEOUT',
           message: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
+          field: undefined,
         };
       } else if (!error.response) {
         // Network error
         errorData = {
           code: 'NETWORK_ERROR',
           message: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+          field: undefined,
         };
       }
 
@@ -251,25 +252,6 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
       setIsPublishing(false);
     }
   }, [selectedFile, telemetryData, tripDetails, onSuccess, onError]);
-
-  /**
-   * Check if current step is complete.
-   * Used to enable/disable Next button.
-   */
-  const isCurrentStepComplete = useCallback((): boolean => {
-    switch (currentStep) {
-      case 0:
-        return isStep1Complete;
-      case 1:
-        return tripDetails !== null; // Step 2 complete when form data saved
-      case 2:
-        return true; // Step 3 (Map) - always complete (just visualization)
-      case 3:
-        return true; // Step 4 (Review) - placeholder
-      default:
-        return false;
-    }
-  }, [currentStep, isStep1Complete, tripDetails]);
 
   return (
     <div className="gpx-wizard">
@@ -403,7 +385,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
             onPrevious={prevStep}
             onCancel={handleCancel}
             onRemoveGPX={handleRemoveGPX}
-            initialData={tripDetails}
+            initialData={tripDetails || undefined}
           />
         )}
 
@@ -411,7 +393,6 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
         {currentStep === 2 && selectedFile && telemetryData && (
           <Step3Map
             telemetry={telemetryData}
-            trackPoints={undefined} // Trackpoints not available in wizard (would need API call)
             onBack={prevStep}
             onNext={nextStep}
           />

@@ -152,8 +152,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
   const isLastStep = currentStep === TOTAL_STEPS - 1;
 
   // Calculate progress percentage (0% at step 0, 100% at last step)
-  const progressPercentage =
-    TOTAL_STEPS === 1 ? 100 : Math.round((currentStep / (TOTAL_STEPS - 1)) * 100);
+  const progressPercentage = Math.round((currentStep / (TOTAL_STEPS - 1)) * 100);
 
   // Step 1 is complete when both file and telemetry are available
   const isStep1Complete = selectedFile !== null && telemetryData !== null;

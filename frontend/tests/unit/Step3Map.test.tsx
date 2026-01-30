@@ -17,17 +17,6 @@ import { Step3Map } from '../../src/components/trips/GPXWizard/Step3Map';
 import type { GPXTelemetry } from '../../src/types/gpxWizard';
 import { TripDifficulty } from '../../src/types/trip';
 
-// Mock TripMap component (already tested in Feature 003)
-vi.mock('../../src/components/trips/TripMap', () => ({
-  TripMap: ({ gpxTrackPoints, gpxStartPoint, gpxEndPoint }: any) => (
-    <div data-testid="trip-map-mock">
-      <div>Track points: {gpxTrackPoints?.length || 0}</div>
-      {gpxStartPoint && <div>Start: {gpxStartPoint.latitude},{gpxStartPoint.longitude}</div>}
-      {gpxEndPoint && <div>End: {gpxEndPoint.latitude},{gpxEndPoint.longitude}</div>}
-    </div>
-  ),
-}));
-
 describe('Step3Map Component', () => {
   const mockTelemetry: GPXTelemetry = {
     distance_km: 42.5,
@@ -39,15 +28,8 @@ describe('Step3Map Component', () => {
     difficulty: TripDifficulty.ADVANCED,
   };
 
-  const mockTrackPoints = [
-    { point_id: '1', latitude: 40.4165, longitude: -3.7026, elevation: 650, distance_km: 0, sequence: 0, gradient: null },
-    { point_id: '2', latitude: 40.4175, longitude: -3.7036, elevation: 655, distance_km: 1.2, sequence: 1, gradient: 0.5 },
-    { point_id: '3', latitude: 40.4185, longitude: -3.7046, elevation: 660, distance_km: 2.4, sequence: 2, gradient: 0.4 },
-  ];
-
   const defaultProps = {
     telemetry: mockTelemetry,
-    trackPoints: mockTrackPoints,
     onBack: vi.fn(),
     onNext: vi.fn(),
   };
@@ -100,48 +82,6 @@ describe('Step3Map Component', () => {
     });
   });
 
-  describe('TripMap Integration (T077, T079)', () => {
-    it('should render TripMap component with GPX trackpoints', () => {
-      render(<Step3Map {...defaultProps} />);
-
-      const tripMap = screen.getByTestId('trip-map-mock');
-      expect(tripMap).toBeInTheDocument();
-
-      // Verify trackpoints count
-      expect(tripMap).toHaveTextContent('Track points: 3');
-    });
-
-    it('should pass start point to TripMap', () => {
-      render(<Step3Map {...defaultProps} />);
-
-      const tripMap = screen.getByTestId('trip-map-mock');
-
-      // Start point should be the first trackpoint
-      expect(tripMap).toHaveTextContent('Start: 40.4165,-3.7026');
-    });
-
-    it('should pass end point to TripMap', () => {
-      render(<Step3Map {...defaultProps} />);
-
-      const tripMap = screen.getByTestId('trip-map-mock');
-
-      // End point should be the last trackpoint
-      expect(tripMap).toHaveTextContent('End: 40.4185,-3.7046');
-    });
-
-    it('should show empty state if no trackpoints', () => {
-      render(<Step3Map {...defaultProps} trackPoints={[]} />);
-
-      expect(screen.getByText(/No hay datos de ruta disponibles/i)).toBeInTheDocument();
-    });
-
-    it('should show empty state if trackpoints is undefined', () => {
-      render(<Step3Map {...defaultProps} trackPoints={undefined} />);
-
-      expect(screen.getByText(/No hay datos de ruta disponibles/i)).toBeInTheDocument();
-    });
-  });
-
   describe('Navigation Buttons (T077, T084)', () => {
     it('should render "Atrás" button', () => {
       render(<Step3Map {...defaultProps} />);
@@ -180,50 +120,26 @@ describe('Step3Map Component', () => {
 
       expect(onNext).toHaveBeenCalledOnce();
     });
-
-    it('should disable "Siguiente" button if no trackpoints', () => {
-      render(<Step3Map {...defaultProps} trackPoints={[]} />);
-
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
-      expect(nextButton).toBeDisabled();
-    });
-
-    it('should enable "Siguiente" button if trackpoints exist', () => {
-      render(<Step3Map {...defaultProps} />);
-
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
-      expect(nextButton).toBeEnabled();
-    });
   });
 
   describe('Layout and Structure (T077)', () => {
     it('should render step title', () => {
       render(<Step3Map {...defaultProps} />);
 
-      expect(screen.getByText(/Visualiza tu ruta/i)).toBeInTheDocument();
+      expect(screen.getByText(/Resumen de tu ruta/i)).toBeInTheDocument();
     });
 
     it('should render step description', () => {
       render(<Step3Map {...defaultProps} />);
 
-      expect(screen.getByText(/Verifica que el mapa muestre correctamente tu ruta/i)).toBeInTheDocument();
+      expect(screen.getByText(/Revisa los datos de telemetría extraídos de tu archivo GPX/i)).toBeInTheDocument();
     });
 
-    it('should render map section before telemetry panel', () => {
-      const { container } = render(<Step3Map {...defaultProps} />);
+    it('should render info card about map preview', () => {
+      render(<Step3Map {...defaultProps} />);
 
-      const sections = container.querySelectorAll('section, div[class*="section"]');
-      const mapSection = screen.getByTestId('trip-map-mock').closest('section, div[class*="section"]');
-      const telemetrySection = screen.getByText(/Datos de telemetría/i).closest('section, div[class*="section"]');
-
-      expect(mapSection).toBeTruthy();
-      expect(telemetrySection).toBeTruthy();
-
-      // Map should appear before telemetry in the DOM
-      const mapIndex = Array.from(sections).indexOf(mapSection!);
-      const telemetryIndex = Array.from(sections).indexOf(telemetrySection!);
-
-      expect(mapIndex).toBeLessThan(telemetryIndex);
+      expect(screen.getByText(/Vista previa del mapa/i)).toBeInTheDocument();
+      expect(screen.getByText(/El mapa interactivo con tu ruta completa estará disponible después de publicar el viaje/i)).toBeInTheDocument();
     });
   });
 
@@ -231,7 +147,7 @@ describe('Step3Map Component', () => {
     it('should have proper heading hierarchy', () => {
       render(<Step3Map {...defaultProps} />);
 
-      const h2 = screen.getByRole('heading', { level: 2, name: /Visualiza tu ruta/i });
+      const h2 = screen.getByRole('heading', { level: 2, name: /Resumen de tu ruta/i });
       expect(h2).toBeInTheDocument();
 
       const h3 = screen.getByRole('heading', { level: 3, name: /Datos de telemetría/i });
@@ -302,19 +218,6 @@ describe('Step3Map Component', () => {
       // Should display with 1 decimal place
       expect(screen.getByText(/1234\.6\s*km/i)).toBeInTheDocument();
     });
-
-    it('should handle single trackpoint', () => {
-      const singlePoint = [mockTrackPoints[0]];
-
-      render(<Step3Map {...defaultProps} trackPoints={singlePoint} />);
-
-      // Should still render map (TripMap handles single point)
-      expect(screen.getByTestId('trip-map-mock')).toBeInTheDocument();
-
-      // Navigation should be enabled (can proceed with single point)
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
-      expect(nextButton).toBeEnabled();
-    });
   });
 
   describe('Responsive Design (T077)', () => {
@@ -325,8 +228,8 @@ describe('Step3Map Component', () => {
 
       render(<Step3Map {...defaultProps} />);
 
-      expect(screen.getByText(/Visualiza tu ruta/i)).toBeInTheDocument();
-      expect(screen.getByTestId('trip-map-mock')).toBeInTheDocument();
+      expect(screen.getByText(/Resumen de tu ruta/i)).toBeInTheDocument();
+      expect(screen.getByText(/Datos de telemetría/i)).toBeInTheDocument();
     });
 
     it('should render without errors on desktop viewport', () => {
@@ -336,8 +239,8 @@ describe('Step3Map Component', () => {
 
       render(<Step3Map {...defaultProps} />);
 
-      expect(screen.getByText(/Visualiza tu ruta/i)).toBeInTheDocument();
-      expect(screen.getByTestId('trip-map-mock')).toBeInTheDocument();
+      expect(screen.getByText(/Resumen de tu ruta/i)).toBeInTheDocument();
+      expect(screen.getByText(/Datos de telemetría/i)).toBeInTheDocument();
     });
   });
 });

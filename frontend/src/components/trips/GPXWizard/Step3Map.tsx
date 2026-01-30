@@ -14,17 +14,12 @@
  */
 
 import React from 'react';
-import { TripMap } from '../TripMap';
 import type { GPXTelemetry } from '../../../types/gpxWizard';
-import type { TrackPoint } from '../../../types/gpx';
 import './Step3Map.css';
 
 interface Step3MapProps {
   /** GPX telemetry metrics from wizard analysis */
   telemetry: GPXTelemetry;
-
-  /** GPX trackpoints for map display (optional, fetched separately) */
-  trackPoints?: TrackPoint[];
 
   /** Callback to go back to previous step */
   onBack: () => void;
@@ -33,32 +28,11 @@ interface Step3MapProps {
   onNext: () => void;
 }
 
-/**
- * Format time in seconds to "Xh Ym" format
- */
-function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.ceil((seconds % 3600) / 60);
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  return `${Math.max(1, minutes)}m`; // Minimum 1 minute
-}
-
 export const Step3Map: React.FC<Step3MapProps> = ({
   telemetry,
-  trackPoints,
   onBack,
   onNext,
 }) => {
-  // Extract start and end points from trackpoints
-  const startPoint = trackPoints && trackPoints.length > 0 ? trackPoints[0] : undefined;
-  const endPoint = trackPoints && trackPoints.length > 0 ? trackPoints[trackPoints.length - 1] : undefined;
-
-  // Check if we have valid trackpoints
-  const hasTrackPoints = trackPoints && trackPoints.length > 0;
 
   return (
     <div className="step3-map">

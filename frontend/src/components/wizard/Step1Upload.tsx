@@ -99,7 +99,7 @@ export const Step1Upload: React.FC<Step1UploadProps> = ({ onComplete, onFileRemo
       <GPXWizardUploader
         onFileSelect={handleFileSelect}
         onFileRemove={handleFileRemove}
-        selectedFile={currentFile}
+        selectedFile={currentFile || undefined}
         isLoading={isLoading}
         error={error || undefined}
       />

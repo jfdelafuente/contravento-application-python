@@ -21,7 +21,7 @@
  * ```
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DifficultyBadge } from '../trips/DifficultyBadge';
@@ -87,7 +87,6 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
     handleSubmit,
     watch,
     formState: { errors, isValid },
-    setValue,
   } = useForm<TripDetailsFormData>({
     resolver: zodResolver(tripDetailsSchema),
     mode: 'onChange',
