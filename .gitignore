@@ -83,6 +83,9 @@ backend/storage/
 test_storage/
 temp_photos/
 
+# Scripts data (local testing data)
+backend/scripts/datos/
+
 # Logs
 *.log
 logs/

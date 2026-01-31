@@ -1,0 +1,139 @@
+# Blocked Words List for ContraVento Content Moderation
+# This file contains keywords blocked from trip titles, descriptions, and comments
+# Format: One word/phrase per line, case-insensitive matching
+# Lines starting with # are comments and ignored
+
+# === SPAM KEYWORDS (Spanish) ===
+viagra
+cialis
+casino
+apuesta
+apuestas
+loteria
+premio
+ganador
+descuento
+gratis
+oferta
+promocion
+dinero
+facil
+rapido
+click
+aqui
+enlace
+link
+comprar
+vender
+barato
+oferton
+
+# === SPAM KEYWORDS (English) ===
+free
+winner
+prize
+discount
+lottery
+bet
+betting
+viagra
+cialis
+pharmacy
+casino
+click
+here
+cheap
+buy
+sell
+offer
+promotion
+money
+fast
+easy
+link
+
+# === INAPPROPRIATE CONTENT (Spanish) ===
+puto
+puta
+mierda
+joder
+cabron
+gilipollas
+idiota
+imbecil
+estupido
+
+# === INAPPROPRIATE CONTENT (English) ===
+fuck
+shit
+damn
+asshole
+idiot
+stupid
+moron
+
+# === CRYPTO/MLM SPAM ===
+bitcoin
+crypto
+forex
+trading
+inversion
+inverti
+mlm
+multinivel
+negocio
+oportunidad
+
+# === PHARMACEUTICAL SPAM ===
+farmacia
+medicamento
+pastilla
+receta
+prescription
+pharmacy
+pill
+medication
+
+# === ADULT CONTENT ===
+xxx
+porn
+porno
+sex
+sexo
+adult
+adulto
+escort
+
+# === SCAM PATTERNS ===
+garantizado
+garantia
+100%
+gratis
+free
+winner
+ganador
+premio
+prize
+urgente
+urgent
+ahora
+now
+limitado
+limited
+
+# === GENERIC SPAM ===
+spam
+test
+prueba
+demo
+ejemplo
+sample
+fake
+falso
+scam
+estafa
+
+# Note: This is a basic starter list
+# Administrators should customize based on actual abuse patterns
+# Review logs regularly to identify new spam keywords
+# Balance blocking spam vs. legitimate content (avoid false positives)
