@@ -121,16 +121,16 @@ services:
   # ==========================================================================
   # pgAdmin is disabled by default but can be enabled by uncommenting below
   # Uncomment the lines below to access pgAdmin UI at http://localhost:5050
-  # pgadmin:
-  #   deploy:
-  #     replicas: 1
-  #   ports:
-  #     - "5050:80"  # Web UI at http://localhost:5050
-
-  # By default, pgAdmin is disabled to keep minimal setup lightweight
   pgadmin:
     deploy:
-      replicas: 0
+      replicas: 1
+    ports:
+      - "5050:80"  # Web UI at http://localhost:5050
+
+  # By default, pgAdmin is disabled to keep minimal setup lightweight
+  # pgadmin:
+  #   deploy:
+  #     replicas: 0
 
 # ============================================================================
 # Notes
