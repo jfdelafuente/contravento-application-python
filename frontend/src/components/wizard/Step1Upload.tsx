@@ -24,6 +24,7 @@
 
 import React, { useCallback, useEffect } from 'react';
 import { GPXWizardUploader } from './GPXWizardUploader';
+import { TelemetrySkeleton } from './TelemetrySkeleton';
 import { useGPXAnalysis } from '../../hooks/useGPXAnalysis';
 import { formatDifficulty, getDifficultyColor } from '../../services/gpxWizardService';
 import type { GPXTelemetry } from '../../services/gpxWizardService';
@@ -117,6 +118,9 @@ export const Step1Upload: React.FC<Step1UploadProps> = ({ onComplete, onFileRemo
           </button>
         </div>
       )}
+
+      {/* Loading Skeleton (T098) */}
+      {isLoading && <TelemetrySkeleton />}
 
       {/* Telemetry Preview */}
       {telemetry && !isLoading && !error && (

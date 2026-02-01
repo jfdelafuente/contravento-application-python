@@ -16,6 +16,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { GPXWizard } from '../components/wizard/GPXWizard';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import type { Trip } from '../types/trip';
 
 export const GPXTripCreatePage: React.FC = () => {
@@ -67,7 +68,14 @@ export const GPXTripCreatePage: React.FC = () => {
 
   return (
     <div style={{ padding: '2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <GPXWizard onSuccess={handleSuccess} onError={handleError} onCancel={handleCancel} />
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('🔴 [GPXTripCreatePage] Error boundary caught:', error);
+          console.error('📍 [GPXTripCreatePage] Component stack:', errorInfo.componentStack);
+        }}
+      >
+        <GPXWizard onSuccess={handleSuccess} onError={handleError} onCancel={handleCancel} />
+      </ErrorBoundary>
     </div>
   );
 };

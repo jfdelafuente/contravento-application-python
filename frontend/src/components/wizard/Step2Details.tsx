@@ -21,7 +21,7 @@
  * ```
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DifficultyBadge } from '../trips/DifficultyBadge';
@@ -102,6 +102,29 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
   // Watch description for character count
   const description = watch('description');
   const descriptionLength = description?.length || 0;
+
+  /**
+   * Handle ESC key to close dialogs (T100)
+   */
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showCancelDialog) {
+          setShowCancelDialog(false);
+        } else if (showRemoveDialog) {
+          setShowRemoveDialog(false);
+        }
+      }
+    };
+
+    // Only add listener if a dialog is open
+    if (showCancelDialog || showRemoveDialog) {
+      document.addEventListener('keydown', handleEscKey);
+      return () => {
+        document.removeEventListener('keydown', handleEscKey);
+      };
+    }
+  }, [showCancelDialog, showRemoveDialog]);
 
   /**
    * Handle form submission (Next button).
@@ -309,6 +332,7 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
               type="button"
               onClick={handleRemoveClick}
               className="step2-details__button step2-details__button--danger"
+              aria-label="Eliminar archivo GPX y volver al paso anterior"
             >
               Eliminar archivo GPX
             </button>
@@ -319,6 +343,7 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
               type="button"
               onClick={onPrevious}
               className="step2-details__button step2-details__button--secondary"
+              aria-label="Volver al paso anterior de carga de archivo"
             >
               Anterior
             </button>
@@ -327,6 +352,7 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
               type="submit"
               disabled={!isValid}
               className="step2-details__button step2-details__button--primary"
+              aria-label={isValid ? "Continuar al siguiente paso" : "Completar el formulario para continuar"}
             >
               Siguiente
             </button>
@@ -335,6 +361,7 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
               type="button"
               onClick={handleCancelClick}
               className="step2-details__button step2-details__button--secondary"
+              aria-label="Cancelar creación de viaje"
             >
               Cancelar
             </button>
