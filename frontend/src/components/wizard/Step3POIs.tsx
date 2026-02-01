@@ -12,11 +12,12 @@
  * - T092: Disable button at 6 POIs
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import type { GPXTelemetry } from '../../types/gpxWizard';
 import type { TripDetailsFormData } from '../../schemas/tripDetailsSchema';
 import type { POICreateInput, POIUpdateInput } from '../../types/poi';
-import { POIType, POI_TYPE_EMOJI, POI_TYPE_LABELS } from '../../types/poi';
+import type { TrackPoint } from '../../types/gpx';
+import { POI_TYPE_EMOJI, POI_TYPE_LABELS } from '../../types/poi';
 import { TripMap } from '../trips/TripMap';
 import { POIForm } from '../trips/POIForm';
 import SkeletonLoader from '../common/SkeletonLoader';
@@ -30,6 +31,9 @@ const MAX_POIS = 6;
 interface Step3POIsProps {
   /** GPX telemetry metrics from wizard analysis */
   telemetry: GPXTelemetry;
+
+  /** GPX trackpoints for map visualization (simplified) */
+  gpxTrackpoints: Array<{ latitude: number; longitude: number; elevation: number | null; distance_km: number }> | null;
 
   /** Trip details from Step 2 */
   tripDetails: TripDetailsFormData;
@@ -48,12 +52,13 @@ interface Step3POIsProps {
 }
 
 export const Step3POIs: React.FC<Step3POIsProps> = ({
-  telemetry,
+  telemetry: _telemetry,
+  gpxTrackpoints,
   tripDetails,
   initialPOIs = [],
   onNext,
   onPrevious,
-  onCancel,
+  onCancel: _onCancel,
 }) => {
   // POI state management
   const [pois, setPOIs] = useState<POICreateInput[]>(initialPOIs);
@@ -72,6 +77,36 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
 
   // Map loading state (T098 - Phase 9)
   const [isMapLoading, setIsMapLoading] = useState(true);
+
+  /**
+   * Convert simplified trackpoints from wizard analysis to TrackPoint format.
+   * TripMap expects TrackPoint interface, but we only need lat/lng for visualization.
+   */
+  const convertedTrackpoints = useMemo((): TrackPoint[] | undefined => {
+    console.log('🗺️ [Step3POIs] Converting trackpoints');
+    console.log('📊 [Step3POIs] Input trackpoints:', gpxTrackpoints ? gpxTrackpoints.length : 'null');
+
+    if (!gpxTrackpoints || gpxTrackpoints.length === 0) {
+      console.log('⚠️ [Step3POIs] No trackpoints to convert');
+      return undefined;
+    }
+
+    const converted = gpxTrackpoints.map((point, index) => ({
+      point_id: `wizard-${index}`, // Temporary ID for wizard context
+      latitude: point.latitude,
+      longitude: point.longitude,
+      elevation: point.elevation,
+      distance_km: point.distance_km,
+      sequence: index,
+      gradient: null, // Not needed for map visualization
+    }));
+
+    console.log('✅ [Step3POIs] Converted trackpoints:', converted.length);
+    console.log('📍 [Step3POIs] First point:', converted[0]);
+    console.log('📍 [Step3POIs] Last point:', converted[converted.length - 1]);
+
+    return converted;
+  }, [gpxTrackpoints]);
 
   /**
    * Hide map skeleton after brief delay for map initialization (T098)
@@ -303,13 +338,17 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
           />
         )}
 
-        {/* TODO: Full GPX route visualization will be added in future phase */}
-        {/* For now, map shows POI markers only (GPX trackpoints not available in wizard telemetry) */}
-        {!isMapLoading && (
+        {!isMapLoading && (() => {
+          console.log('🗺️ [Step3POIs] Rendering TripMap');
+          console.log('   hasGPX:', !!convertedTrackpoints);
+          console.log('   gpxTrackPoints:', convertedTrackpoints ? `${convertedTrackpoints.length} points` : 'undefined');
+          return true;
+        })() && (
           <TripMap
           locations={[]}  // No text locations in wizard
           tripTitle={tripDetails.title}
-          hasGPX={false}  // GPX route not displayed in POI step (shown in Step 2)
+          hasGPX={!!convertedTrackpoints}  // Show GPX route when trackpoints available
+          gpxTrackPoints={convertedTrackpoints}
           isEditMode={isAddingPOI}
           onMapClick={handleMapClick}
           pois={pois.map((poi, index) => ({

@@ -39,6 +39,7 @@
 import { useState, useCallback } from 'react';
 import type { GPXTelemetry } from '../services/gpxWizardService';
 import type { POICreateInput } from '../types/poi';
+import type { TrackPoint } from '../types/gpx';
 
 /**
  * Total number of wizard steps
@@ -65,6 +66,9 @@ export interface UseGPXWizardReturn {
 
   /** Telemetry data from GPX analysis (null if not analyzed) */
   telemetryData: GPXTelemetry | null;
+
+  /** GPX track points for map visualization (null if not analyzed) */
+  gpxTrackpoints: TrackPoint[] | null;
 
   /** POIs to create with trip (Phase 8 - US5) */
   pois: POICreateInput[];
@@ -96,6 +100,9 @@ export interface UseGPXWizardReturn {
   /** Set telemetry data from analysis */
   setTelemetryData: (data: GPXTelemetry | null) => void;
 
+  /** Set GPX trackpoints for map visualization */
+  setGPXTrackpoints: (trackpoints: TrackPoint[] | null) => void;
+
   /** Set POIs from Step 3 (Phase 8 - US5) */
   setPOIs: (pois: POICreateInput[]) => void;
 
@@ -115,6 +122,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [telemetryData, setTelemetryData] = useState<GPXTelemetry | null>(null);
+  const [gpxTrackpoints, setGPXTrackpoints] = useState<TrackPoint[] | null>(null);
   const [pois, setPOIs] = useState<POICreateInput[]>([]);
 
   /**
@@ -154,6 +162,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
     setCurrentStep(0);
     setSelectedFile(null);
     setTelemetryData(null);
+    setGPXTrackpoints(null);
     setPOIs([]);
   }, []);
 
@@ -172,6 +181,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
     totalSteps: TOTAL_STEPS,
     selectedFile,
     telemetryData,
+    gpxTrackpoints,
     pois,
     isFirstStep,
     isLastStep,
@@ -182,6 +192,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
     goToStep,
     setSelectedFile,
     setTelemetryData,
+    setGPXTrackpoints,
     setPOIs,
     resetWizard,
   };

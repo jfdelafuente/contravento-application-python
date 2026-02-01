@@ -144,12 +144,14 @@ export const TripDetailPage: React.FC = () => {
   const fetchPOIs = async () => {
     if (!tripId) return;
 
+    console.log(`🔍 [TripDetailPage] Fetching POIs for trip ${tripId}...`);
     setIsPOIsLoading(true);
     try {
       const response = await getTripPOIs(tripId);
+      console.log(`✅ [TripDetailPage] Loaded ${response.pois.length} POIs:`, response.pois.map(p => p.name));
       setPois(response.pois);
     } catch (err: any) {
-      console.error('Error fetching POIs:', err);
+      console.error('❌ [TripDetailPage] Error fetching POIs:', err);
       // Don't show error toast for POIs (non-critical feature)
     } finally {
       setIsPOIsLoading(false);

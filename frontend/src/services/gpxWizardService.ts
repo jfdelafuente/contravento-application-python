@@ -14,6 +14,16 @@ import { api } from './api';
 export type TripDifficulty = 'easy' | 'moderate' | 'difficult' | 'very_difficult';
 
 /**
+ * Simplified trackpoint for map visualization in wizard
+ */
+export interface TrackPointSimple {
+  latitude: number;
+  longitude: number;
+  elevation: number | null;
+  distance_km: number;
+}
+
+/**
  * GPX Telemetry Data (matches backend GPXTelemetry schema)
  */
 export interface GPXTelemetry {
@@ -27,6 +37,7 @@ export interface GPXTelemetry {
   start_date: string | null;
   end_date: string | null;
   difficulty: TripDifficulty;
+  trackpoints: TrackPointSimple[] | null;
 }
 
 /**
@@ -157,6 +168,9 @@ export async function analyzeGPXFile(file: File): Promise<GPXTelemetry> {
 
     // Check if response indicates success
     if (response.data.success && response.data.data) {
+      console.log('✅ [Frontend] GPX analysis successful');
+      console.log('📊 [Frontend] Telemetry data:', response.data.data);
+      console.log('🗺️ [Frontend] Trackpoints received:', response.data.data.trackpoints ? response.data.data.trackpoints.length : 'null');
       return response.data.data;
     }
 

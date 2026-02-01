@@ -33,7 +33,7 @@ import { Step3Map } from '../trips/GPXWizard/Step3Map';
 import { Step3POIs } from './Step3POIs';
 import { Step4Review } from './Step4Review';
 import { createTripWithGPX } from '../../services/tripService';
-import { createPOI } from '../../services/poiService';
+import { createPOI, uploadPOIPhoto } from '../../services/poiService';
 import type { GPXTelemetry } from '../../services/gpxWizardService';
 import type { TripDetailsFormData } from '../../schemas/tripDetailsSchema';
 import type { POICreateInput } from '../../types/poi';
@@ -89,6 +89,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     totalSteps,
     selectedFile,
     telemetryData,
+    gpxTrackpoints,
     pois,
     progressPercentage,
     isStep1Complete,
@@ -96,6 +97,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     prevStep,
     setSelectedFile,
     setTelemetryData,
+    setGPXTrackpoints,
     setPOIs,
     resetWizard,
   } = useGPXWizard();
@@ -106,14 +108,23 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
 
   /**
    * Handle Step 1 completion.
-   * Store file and telemetry data.
+   * Store file, telemetry data, and trackpoints for map visualization.
    */
   const handleStep1Complete = useCallback(
     (file: File, telemetry: GPXTelemetry) => {
+      console.log('🎯 [GPXWizard] handleStep1Complete called');
+      console.log('📄 [GPXWizard] File:', file.name);
+      console.log('📊 [GPXWizard] Telemetry:', telemetry);
+      console.log('🗺️ [GPXWizard] Trackpoints to store:', telemetry.trackpoints ? telemetry.trackpoints.length : 'null');
+
       setSelectedFile(file);
       setTelemetryData(telemetry);
+      // Store trackpoints for map visualization in POI step
+      setGPXTrackpoints(telemetry.trackpoints || null);
+
+      console.log('✅ [GPXWizard] State updated');
     },
-    [setSelectedFile, setTelemetryData]
+    [setSelectedFile, setTelemetryData, setGPXTrackpoints]
   );
 
   /**
@@ -142,23 +153,25 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
 
   /**
    * Handle Remove GPX action from Step 2.
-   * Removes uploaded file, telemetry, and trip details.
+   * Removes uploaded file, telemetry, trackpoints, and trip details.
    * Returns to Step 1.
    */
   const handleRemoveGPX = useCallback(() => {
     setSelectedFile(null);
     setTelemetryData(null);
+    setGPXTrackpoints(null);
     setTripDetails(null);
-  }, [setSelectedFile, setTelemetryData]);
+  }, [setSelectedFile, setTelemetryData, setGPXTrackpoints]);
 
   /**
    * Handle file removal.
-   * Clear file and telemetry data.
+   * Clear file, telemetry data, and trackpoints.
    */
   const handleFileRemove = useCallback(() => {
     setSelectedFile(null);
     setTelemetryData(null);
-  }, [setSelectedFile, setTelemetryData]);
+    setGPXTrackpoints(null);
+  }, [setSelectedFile, setTelemetryData, setGPXTrackpoints]);
 
   /**
    * Handle cancel button click.
@@ -166,14 +179,14 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
    */
   const handleCancel = useCallback(() => {
     // If no data, cancel immediately
-    if (!selectedFile && !telemetryData && !tripDetails && pois.length === 0) {
+    if (!selectedFile && !telemetryData && !gpxTrackpoints && !tripDetails && pois.length === 0) {
       onCancel();
       return;
     }
 
     // Show confirmation dialog
     setShowCancelConfirm(true);
-  }, [selectedFile, telemetryData, tripDetails, pois, onCancel]);
+  }, [selectedFile, telemetryData, gpxTrackpoints, tripDetails, pois, onCancel]);
 
   /**
    * Confirm cancellation.
@@ -216,12 +229,14 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
 
       // Step 2: Create POIs sequentially (if any)
       if (pois.length > 0) {
+        console.log(`🔄 [GPXWizard] Creating ${pois.length} POIs for trip ${trip.trip_id}...`);
         const createdPOIs: string[] = [];
         const failedPOIs: POICreateInput[] = [];
 
         for (const poi of pois) {
           try {
-            await createPOI(trip.trip_id, {
+            console.log(`  📍 [GPXWizard] Creating POI: ${poi.name}`);
+            const createdPOI = await createPOI(trip.trip_id, {
               name: poi.name,
               description: poi.description,
               poi_type: poi.poi_type,
@@ -229,30 +244,48 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
               longitude: poi.longitude,
               sequence: poi.sequence,
             });
+            console.log(`  ✅ [GPXWizard] POI created successfully: ${poi.name}`);
+
+            // Upload photo if present (Feature 017 - FR-010)
+            console.log(`  🔍 [GPXWizard] Checking photo for POI ${poi.name}:`, poi.photo ? `Has photo (${poi.photo.name}, ${poi.photo.size} bytes)` : 'No photo');
+            if (poi.photo) {
+              try {
+                console.log(`  📷 [GPXWizard] Uploading photo for POI: ${poi.name}`);
+                console.log(`  📷 [GPXWizard] POI ID: ${createdPOI.poi_id}`);
+                console.log(`  📷 [GPXWizard] Photo file:`, poi.photo.name, poi.photo.size, 'bytes');
+                await uploadPOIPhoto(createdPOI.poi_id, poi.photo);
+                console.log(`  ✅ [GPXWizard] Photo uploaded successfully for POI: ${poi.name}`);
+              } catch (photoError: any) {
+                console.error(`  ⚠️ [GPXWizard] Failed to upload photo for POI ${poi.name}:`, photoError);
+                console.error(`  ⚠️ [GPXWizard] Error details:`, photoError.response?.data || photoError.message);
+                // Don't fail the whole POI creation if photo upload fails
+                // POI is created, just without the photo
+              }
+            }
+
             createdPOIs.push(poi.name);
           } catch (poiError: any) {
-            console.error('Failed to create POI:', poi, poiError);
+            console.error(`  ❌ [GPXWizard] Failed to create POI:`, poi, poiError);
             failedPOIs.push(poi);
           }
         }
 
-        // Handle partial success scenarios
-        if (failedPOIs.length === 0) {
-          // All POIs created successfully
-          onSuccess(trip);
-        } else if (createdPOIs.length > 0) {
-          // Partial success - some POIs created, some failed
-          console.warn(`Partial POI creation: ${createdPOIs.length}/${pois.length} created`);
-          onSuccess(trip);
-          // Note: Parent component should show toast for partial success
-        } else {
-          // No POIs created (all failed)
-          console.error('All POIs failed to create');
-          onSuccess(trip);
-          // Note: Parent component should show warning that POIs weren't added
+        // Log summary
+        console.log(`📊 [GPXWizard] POI creation complete: ${createdPOIs.length}/${pois.length} successful`);
+        if (failedPOIs.length > 0) {
+          console.warn(`⚠️ [GPXWizard] ${failedPOIs.length} POIs failed:`, failedPOIs.map(p => p.name));
         }
+
+        // Wait for DB consistency (ensure POIs are fully persisted before navigation)
+        console.log('⏳ [GPXWizard] Waiting 500ms for DB consistency...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Navigate to trip detail page (POIs should be available now)
+        console.log('✅ [GPXWizard] Navigating to trip detail page');
+        onSuccess(trip);
       } else {
         // No POIs to create - success
+        console.log('ℹ️ [GPXWizard] No POIs to create, navigating to trip detail');
         onSuccess(trip);
       }
     } catch (error: any) {
@@ -486,6 +519,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
         {currentStep === 3 && selectedFile && telemetryData && tripDetails && (
           <Step3POIs
             telemetry={telemetryData}
+            gpxTrackpoints={gpxTrackpoints}
             tripDetails={tripDetails}
             initialPOIs={pois}
             onNext={handleStep3Complete}

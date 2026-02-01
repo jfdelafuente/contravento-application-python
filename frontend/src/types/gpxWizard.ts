@@ -13,6 +13,27 @@ import { TripDifficulty } from './trip';
 // ============================================================================
 
 /**
+ * Simplified trackpoint for map visualization in wizard.
+ *
+ * Used in:
+ * - Step3POIs (displaying GPX route on map)
+ * - GPXTelemetry (trackpoints array)
+ */
+export interface TrackPointSimple {
+  /** Latitude coordinate (-90 to 90) */
+  latitude: number;
+
+  /** Longitude coordinate (-180 to 180) */
+  longitude: number;
+
+  /** Elevation in meters (null if no elevation data) */
+  elevation: number | null;
+
+  /** Cumulative distance from start in kilometers */
+  distance_km: number;
+}
+
+/**
  * Telemetry data extracted from GPX file for wizard preview.
  *
  * Returned by POST /gpx/analyze endpoint after quick GPX analysis.
@@ -45,6 +66,14 @@ export interface GPXTelemetry {
 
   /** Auto-calculated trip difficulty from distance and elevation */
   difficulty: TripDifficulty;
+
+  /**
+   * Simplified trackpoints for map visualization (null if not requested).
+   *
+   * Trackpoints are simplified using Douglas-Peucker algorithm (~200-500 points).
+   * Used in wizard to display the GPX route on the map for POI placement.
+   */
+  trackpoints: TrackPointSimple[] | null;
 }
 
 /**
