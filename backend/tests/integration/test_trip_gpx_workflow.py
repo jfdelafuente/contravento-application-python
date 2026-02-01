@@ -14,7 +14,6 @@ Contract: specs/017-gps-trip-wizard/contracts/gpx-wizard.yaml
 """
 
 import io
-import json
 from pathlib import Path
 
 import pytest
@@ -121,9 +120,7 @@ class TestGPXWizardPublishWorkflow:
         assert trip.difficulty == gpx_metadata["difficulty"]
 
         # Verify GPX file was created and linked
-        result = await db_session.execute(
-            select(GPXFile).where(GPXFile.trip_id == trip_id)
-        )
+        result = await db_session.execute(select(GPXFile).where(GPXFile.trip_id == trip_id))
         gpx_file = result.scalar_one_or_none()
 
         assert gpx_file is not None
@@ -181,9 +178,7 @@ class TestGPXWizardPublishWorkflow:
 
         # Verify in database
         trip_id = trip_data["trip_id"]
-        result = await db_session.execute(
-            select(GPXFile).where(GPXFile.trip_id == trip_id)
-        )
+        result = await db_session.execute(select(GPXFile).where(GPXFile.trip_id == trip_id))
         gpx_file = result.scalar_one_or_none()
 
         assert gpx_file is not None
@@ -268,9 +263,7 @@ class TestGPXWizardPublishWorkflow:
         assert "description" in error["message"].lower() or "50" in error["message"]
         assert error["field"] == "description"
 
-    async def test_create_trip_invalid_gpx_file(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_trip_invalid_gpx_file(self, client: AsyncClient, auth_headers: dict):
         """
         Test error when GPX file is corrupted or invalid.
 
@@ -305,9 +298,7 @@ class TestGPXWizardPublishWorkflow:
         assert "gpx" in error["message"].lower()
         assert error["field"] == "gpx_file"
 
-    async def test_create_trip_missing_gpx_file(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_trip_missing_gpx_file(self, client: AsyncClient, auth_headers: dict):
         """
         Test error when GPX file is not provided.
 
@@ -324,9 +315,7 @@ class TestGPXWizardPublishWorkflow:
             "privacy": "public",
         }
 
-        response = await client.post(
-            "/trips/gpx-wizard", headers=auth_headers, data=form_data
-        )
+        response = await client.post("/trips/gpx-wizard", headers=auth_headers, data=form_data)
 
         assert response.status_code == 400
         data = response.json()
@@ -337,9 +326,7 @@ class TestGPXWizardPublishWorkflow:
         assert "gpx" in error["message"].lower() or "archivo" in error["message"].lower()
         assert error["field"] == "gpx_file"
 
-    async def test_create_trip_file_too_large(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_trip_file_too_large(self, client: AsyncClient, auth_headers: dict):
         """
         Test error when GPX file exceeds 10MB size limit.
 
@@ -373,9 +360,7 @@ class TestGPXWizardPublishWorkflow:
         assert error["code"] == "FILE_TOO_LARGE"
         assert "10" in error["message"] or "MB" in error["message"]
 
-    async def test_create_trip_unauthorized(
-        self, client: AsyncClient, gpx_fixtures_dir: Path
-    ):
+    async def test_create_trip_unauthorized(self, client: AsyncClient, gpx_fixtures_dir: Path):
         """
         Test that endpoint requires authentication.
 

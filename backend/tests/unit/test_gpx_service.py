@@ -488,32 +488,32 @@ class TestGPXServiceGradientCalculation:
 class TestGPXServiceTelemetryQuick:
     """
     T012: Unit tests for extract_telemetry_quick() method.
-    
+
     Tests lightweight telemetry extraction for wizard preview (POST /gpx/analyze).
     This method extracts distance and elevation WITHOUT expensive track simplification.
-    
+
     Feature: 017-gps-trip-wizard
     Functional Requirements: FR-002 (Quick GPX analysis <2s)
     Success Criteria: SC-002 (Process 10MB GPX in <30s for telemetry extraction)
     """
-    
+
     async def test_extract_telemetry_quick_with_elevation(self, db_session: AsyncSession):
         """Test quick telemetry extraction from GPX with elevation data."""
         # Arrange
         service = GPXService(db_session)
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
         gpx_path = fixtures_dir / "short_route.gpx"
-        
+
         with open(gpx_path, "rb") as f:
             gpx_content = f.read()
-        
+
         # Act
         result = await service.extract_telemetry_quick(gpx_content)
-        
+
         # Assert - Basic telemetry
         assert result["distance_km"] > 0, "Distance should be positive"
         assert result["has_elevation"] is True
-        
+
         # Assert - Elevation data
         assert result["elevation_gain"] is not None
         assert result["elevation_loss"] is not None
@@ -521,96 +521,98 @@ class TestGPXServiceTelemetryQuick:
         assert result["min_elevation"] is not None
         assert result["elevation_gain"] >= 0, "Elevation gain should be non-negative"
         assert result["elevation_loss"] >= 0, "Elevation loss should be non-negative"
-        
+
         # Assert - Difficulty should be calculated
         assert result["difficulty"] is not None
         from src.models.trip import TripDifficulty
+
         assert isinstance(result["difficulty"], TripDifficulty)
-        
+
     async def test_extract_telemetry_quick_without_elevation(self, db_session: AsyncSession):
         """Test quick telemetry extraction from GPX without elevation data."""
         # Arrange
         service = GPXService(db_session)
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
         gpx_path = fixtures_dir / "no_elevation.gpx"
-        
+
         with open(gpx_path, "rb") as f:
             gpx_content = f.read()
-        
+
         # Act
         result = await service.extract_telemetry_quick(gpx_content)
-        
+
         # Assert - Basic telemetry
         assert result["distance_km"] > 0, "Distance should still be calculated"
         assert result["has_elevation"] is False
-        
+
         # Assert - Elevation data should be None
         assert result["elevation_gain"] is None
         assert result["elevation_loss"] is None
         assert result["max_elevation"] is None
         assert result["min_elevation"] is None
-        
+
         # Assert - Difficulty should still be calculated (distance-only)
         assert result["difficulty"] is not None
         from src.models.trip import TripDifficulty
+
         assert isinstance(result["difficulty"], TripDifficulty)
-        
+
     async def test_extract_telemetry_quick_performance(self, db_session: AsyncSession):
         """Test that quick extraction is fast (<2s for small files)."""
         import time
-        
+
         # Arrange
         service = GPXService(db_session)
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
         gpx_path = fixtures_dir / "short_route.gpx"
-        
+
         with open(gpx_path, "rb") as f:
             gpx_content = f.read()
-        
+
         # Act
         start_time = time.perf_counter()
         result = await service.extract_telemetry_quick(gpx_content)
         elapsed_time = time.perf_counter() - start_time
-        
+
         # Assert - Performance (small files should be < 1s)
         assert elapsed_time < 1.0, f"Extraction took {elapsed_time:.3f}s, expected <1s"
-        
+
         # Assert - Result is valid
         assert result["distance_km"] > 0
-        
+
     async def test_extract_telemetry_quick_no_track_simplification(self, db_session: AsyncSession):
         """Test that quick extraction does NOT include trackpoints (no simplification)."""
         # Arrange
         service = GPXService(db_session)
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
         gpx_path = fixtures_dir / "camino_del_cid.gpx"  # Large file with ~2000 points
-        
+
         with open(gpx_path, "rb") as f:
             gpx_content = f.read()
-        
+
         # Act
         result = await service.extract_telemetry_quick(gpx_content)
-        
+
         # Assert - Should NOT include trackpoints (that's the expensive part)
         assert "trackpoints" not in result, "Quick extraction should not include trackpoints"
         assert "simplified_points_count" not in result, "Quick extraction should not simplify"
-        
+
         # Assert - Should include only telemetry
         assert "distance_km" in result
         assert "elevation_gain" in result
         assert "difficulty" in result
         assert "has_elevation" in result
-        
+
     async def test_extract_telemetry_quick_invalid_gpx(self, db_session: AsyncSession):
         """Test that invalid GPX is rejected with Spanish error."""
         # Arrange
         service = GPXService(db_session)
         invalid_gpx = b"Not valid XML content"
-        
+
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
             await service.extract_telemetry_quick(invalid_gpx)
-        
+
         error_message = str(exc_info.value)
         assert len(error_message) > 0
         # Should have Spanish error message

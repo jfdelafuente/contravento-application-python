@@ -17,9 +17,6 @@ from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.models.trip import TripDifficulty
 
 
 @pytest.mark.integration
@@ -57,9 +54,7 @@ class TestGPXAnalyzeEndpoint:
         with open(gpx_file_path, "rb") as f:
             files = {"file": ("short_route.gpx", f, "application/gpx+xml")}
 
-            response = await client.post(
-                "/gpx/analyze", headers=auth_headers, files=files
-            )
+            response = await client.post("/gpx/analyze", headers=auth_headers, files=files)
 
         # Assert response structure
         assert response.status_code == 200
@@ -120,9 +115,7 @@ class TestGPXAnalyzeEndpoint:
         with open(gpx_file_path, "rb") as f:
             files = {"file": ("no_elevation.gpx", f, "application/gpx+xml")}
 
-            response = await client.post(
-                "/gpx/analyze", headers=auth_headers, files=files
-            )
+            response = await client.post("/gpx/analyze", headers=auth_headers, files=files)
 
         assert response.status_code == 200
         data = response.json()
@@ -151,9 +144,7 @@ class TestGPXAnalyzeEndpoint:
             "extreme",
         ]
 
-    async def test_analyze_gpx_invalid_file_type(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_analyze_gpx_invalid_file_type(self, client: AsyncClient, auth_headers: dict):
         """
         Test error handling for non-GPX file upload.
 
@@ -181,9 +172,7 @@ class TestGPXAnalyzeEndpoint:
         assert "formato no válido" in error["message"].lower()
         assert error["field"] == "file"
 
-    async def test_analyze_gpx_corrupted_file(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_analyze_gpx_corrupted_file(self, client: AsyncClient, auth_headers: dict):
         """
         Test error handling for corrupted GPX file.
 
@@ -218,9 +207,7 @@ class TestGPXAnalyzeEndpoint:
         assert "no se pudo procesar" in error["message"].lower()
         assert error["field"] == "file"
 
-    async def test_analyze_gpx_file_too_large(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_analyze_gpx_file_too_large(self, client: AsyncClient, auth_headers: dict):
         """
         Test error handling for file size exceeding 10MB limit.
 
@@ -261,9 +248,7 @@ class TestGPXAnalyzeEndpoint:
         assert "10mb" in error["message"].lower()
         assert error["field"] == "file"
 
-    async def test_analyze_gpx_no_file_uploaded(
-        self, client: AsyncClient, auth_headers: dict
-    ):
+    async def test_analyze_gpx_no_file_uploaded(self, client: AsyncClient, auth_headers: dict):
         """
         Test error handling when no file is uploaded.
 
@@ -339,9 +324,7 @@ class TestGPXAnalyzeEndpoint:
             files = {"file": ("long_route.gpx", f, "application/gpx+xml")}
 
             start_time = time.perf_counter()
-            response = await client.post(
-                "/gpx/analyze", headers=auth_headers, files=files
-            )
+            response = await client.post("/gpx/analyze", headers=auth_headers, files=files)
             elapsed_time = time.perf_counter() - start_time
 
         assert response.status_code == 200
@@ -349,6 +332,4 @@ class TestGPXAnalyzeEndpoint:
         assert data["success"] is True
 
         # Performance assertion: <2 seconds
-        assert (
-            elapsed_time < 2.0
-        ), f"Performance requirement failed: {elapsed_time:.2f}s (max 2s)"
+        assert elapsed_time < 2.0, f"Performance requirement failed: {elapsed_time:.2f}s (max 2s)"

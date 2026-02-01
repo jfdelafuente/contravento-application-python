@@ -8,14 +8,15 @@ Coverage:
 - T086: PUBLISHED trip requirement
 """
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services.poi_service import POIService, MAX_POIS_PER_TRIP
-from src.models.trip import Trip, TripStatus, TripDifficulty
-from src.models.poi import PointOfInterest, POIType
+from src.models.poi import POIType
+from src.models.trip import Trip, TripDifficulty, TripStatus
 from src.schemas.poi import POICreateInput
+from src.services.poi_service import MAX_POIS_PER_TRIP, POIService
 
 
 @pytest.fixture
@@ -107,18 +108,14 @@ class TestPOILimitEnforcement:
                     assert result is not None
 
     @pytest.mark.asyncio
-    async def test_create_poi_fails_at_limit(
-        self, poi_service, published_trip, poi_create_input
-    ):
+    async def test_create_poi_fails_at_limit(self, poi_service, published_trip, poi_create_input):
         """T085: POI creation fails when MAX_POIS_PER_TRIP limit reached."""
         # Mock trip retrieval (owner check)
         with patch.object(
             poi_service, "_get_trip_with_ownership_check", return_value=published_trip
         ):
             # Mock current POI count = 6 (at limit)
-            with patch.object(
-                poi_service, "_get_trip_poi_count", return_value=MAX_POIS_PER_TRIP
-            ):
+            with patch.object(poi_service, "_get_trip_poi_count", return_value=MAX_POIS_PER_TRIP):
                 # Should raise ValueError
                 with pytest.raises(ValueError) as exc_info:
                     await poi_service.create_poi(
@@ -128,9 +125,7 @@ class TestPOILimitEnforcement:
                     )
 
                 # Verify error message in Spanish
-                assert f"Máximo {MAX_POIS_PER_TRIP} POIs permitidos" in str(
-                    exc_info.value
-                )
+                assert f"Máximo {MAX_POIS_PER_TRIP} POIs permitidos" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_create_poi_fails_above_limit(
@@ -151,14 +146,10 @@ class TestPOILimitEnforcement:
                         data=poi_create_input,
                     )
 
-                assert f"Máximo {MAX_POIS_PER_TRIP} POIs permitidos" in str(
-                    exc_info.value
-                )
+                assert f"Máximo {MAX_POIS_PER_TRIP} POIs permitidos" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_create_sixth_poi_succeeds(
-        self, poi_service, published_trip, poi_create_input
-    ):
+    async def test_create_sixth_poi_succeeds(self, poi_service, published_trip, poi_create_input):
         """T085: Creating the 6th POI (exactly at limit) succeeds."""
         # Mock trip retrieval
         with patch.object(
@@ -208,14 +199,10 @@ class TestPublishedTripRequirement:
                     assert result is not None
 
     @pytest.mark.asyncio
-    async def test_create_poi_fails_on_draft_trip(
-        self, poi_service, draft_trip, poi_create_input
-    ):
+    async def test_create_poi_fails_on_draft_trip(self, poi_service, draft_trip, poi_create_input):
         """T086: POI creation fails when trip status is DRAFT."""
         # Mock trip retrieval with DRAFT trip
-        with patch.object(
-            poi_service, "_get_trip_with_ownership_check", return_value=draft_trip
-        ):
+        with patch.object(poi_service, "_get_trip_with_ownership_check", return_value=draft_trip):
             # Should raise ValueError before checking POI count
             with pytest.raises(ValueError) as exc_info:
                 await poi_service.create_poi(
@@ -225,9 +212,7 @@ class TestPublishedTripRequirement:
                 )
 
             # Verify error message in Spanish
-            assert "Solo se pueden añadir POIs a viajes publicados" in str(
-                exc_info.value
-            )
+            assert "Solo se pueden añadir POIs a viajes publicados" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_published_check_before_limit_check(
@@ -235,9 +220,7 @@ class TestPublishedTripRequirement:
     ):
         """T086: PUBLISHED status check occurs before POI limit check."""
         # Mock trip retrieval with DRAFT trip
-        with patch.object(
-            poi_service, "_get_trip_with_ownership_check", return_value=draft_trip
-        ):
+        with patch.object(poi_service, "_get_trip_with_ownership_check", return_value=draft_trip):
             # Mock POI count would be at limit, but should fail on status first
             with patch.object(
                 poi_service, "_get_trip_poi_count", return_value=MAX_POIS_PER_TRIP
@@ -251,9 +234,7 @@ class TestPublishedTripRequirement:
                     )
 
                 # Verify status error, not limit error
-                assert "Solo se pueden añadir POIs a viajes publicados" in str(
-                    exc_info.value
-                )
+                assert "Solo se pueden añadir POIs a viajes publicados" in str(exc_info.value)
                 # Verify POI count was not called (status check failed first)
                 mock_count.assert_not_called()
 
@@ -262,18 +243,12 @@ class TestPOIServiceIntegration:
     """Integration tests for POI service validations."""
 
     @pytest.mark.asyncio
-    async def test_validation_order(
-        self, poi_service, draft_trip, poi_create_input
-    ):
+    async def test_validation_order(self, poi_service, draft_trip, poi_create_input):
         """Verify validation order: ownership → status → limit."""
         # Mock trip retrieval with DRAFT trip (fails status check)
-        with patch.object(
-            poi_service, "_get_trip_with_ownership_check", return_value=draft_trip
-        ):
+        with patch.object(poi_service, "_get_trip_with_ownership_check", return_value=draft_trip):
             # Mock POI count (should not be called)
-            with patch.object(
-                poi_service, "_get_trip_poi_count"
-            ) as mock_count:
+            with patch.object(poi_service, "_get_trip_poi_count") as mock_count:
                 with pytest.raises(ValueError) as exc_info:
                     await poi_service.create_poi(
                         trip_id=draft_trip.trip_id,
@@ -294,9 +269,7 @@ class TestPOIServiceIntegration:
         with patch.object(
             poi_service, "_get_trip_with_ownership_check", return_value=published_trip
         ):
-            with patch.object(
-                poi_service, "_get_trip_poi_count", return_value=MAX_POIS_PER_TRIP
-            ):
+            with patch.object(poi_service, "_get_trip_poi_count", return_value=MAX_POIS_PER_TRIP):
                 with pytest.raises(ValueError) as exc_info:
                     await poi_service.create_poi(
                         trip_id=published_trip.trip_id,
