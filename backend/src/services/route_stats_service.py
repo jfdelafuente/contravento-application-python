@@ -78,12 +78,16 @@ class RouteStatsService:
         total_time_delta = end_time - start_time
         total_time_minutes = total_time_delta.total_seconds() / 60.0
 
-        # Calculate moving time (exclude stops: speed <3 km/h for >2 minutes)
-        STOP_SPEED_THRESHOLD_KMH = 3.0  # Speed below this is considered stopped
-        STOP_DURATION_THRESHOLD_MINUTES = (
-            2.0  # Stops longer than this are excluded (FR-030 revised)
+        # Calculate moving time (exclude stops using gpxpy-compatible algorithm)
+        # Uses a lower speed threshold and groups consecutive slow segments
+        STOP_SPEED_THRESHOLD_KMH = (
+            1.0  # Speed below this is considered stopped (matches gpxpy default)
         )
+        MAX_REALISTIC_SPEED_KMH = 100.0  # Steep descents can reach 80-90 km/h (filters GPS errors)
+        MIN_SEGMENT_TIME_SECONDS = 2.0  # Ignore very short segments (GPS noise)
+
         moving_time_minutes = 0.0
+        stopped_time_minutes = 0.0
         max_speed_kmh = 0.0
         total_distance_km = trackpoints[-1]["distance_km"]
 
@@ -92,23 +96,30 @@ class RouteStatsService:
             p2 = trackpoints[i + 1]
 
             time_delta = p2["timestamp"] - p1["timestamp"]
-            segment_time_minutes = time_delta.total_seconds() / 60.0
+            segment_time_seconds = time_delta.total_seconds()
+            segment_time_minutes = segment_time_seconds / 60.0
             segment_distance_km = p2["distance_km"] - p1["distance_km"]
 
             # Calculate instantaneous speed for this segment
             segment_speed_kmh = 0.0
             if segment_time_minutes > 0:
                 segment_speed_kmh = (segment_distance_km / segment_time_minutes) * 60.0
-                max_speed_kmh = max(max_speed_kmh, segment_speed_kmh)
 
-            # Detect if this segment is a stop (low speed for extended duration)
-            is_stop = (
-                segment_speed_kmh < STOP_SPEED_THRESHOLD_KMH
-                and segment_time_minutes > STOP_DURATION_THRESHOLD_MINUTES
-            )
+                # Filter outliers: ignore unrealistic speeds and very short segments
+                # (likely caused by GPS errors or signal jumps)
+                is_valid_speed = (
+                    segment_speed_kmh <= MAX_REALISTIC_SPEED_KMH
+                    and segment_time_seconds >= MIN_SEGMENT_TIME_SECONDS
+                )
 
-            # Only count segment as moving time if not a stop
-            if not is_stop:
+                if is_valid_speed:
+                    max_speed_kmh = max(max_speed_kmh, segment_speed_kmh)
+
+            # Classify segment as stopped or moving
+            # (matches gpxpy behavior: any segment < 1 km/h is stopped, regardless of duration)
+            if segment_speed_kmh < STOP_SPEED_THRESHOLD_KMH:
+                stopped_time_minutes += segment_time_minutes
+            else:
                 moving_time_minutes += segment_time_minutes
 
         # Calculate average speed (based on total distance and moving time)

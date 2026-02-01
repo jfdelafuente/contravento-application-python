@@ -100,7 +100,7 @@ class RouteStatisticsResponse(BaseModel):
     max_speed_kmh: float | None = Field(
         None,
         ge=0.0,
-        le=100.0,
+        le=200.0,
         description="Maximum speed reached (km/h, NULL if no timestamps)",
     )
 

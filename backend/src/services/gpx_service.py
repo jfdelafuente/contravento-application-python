@@ -392,20 +392,21 @@ class GPXService:
 
         return R * c
 
-    async def extract_telemetry_quick(self, file_content: bytes) -> dict[str, Any]:
+    async def extract_telemetry_quick(
+        self, file_content: bytes, include_trackpoints: bool = False
+    ) -> dict[str, Any]:
         """
         Extract lightweight telemetry data from GPX file for wizard preview.
 
         This method provides QUICK GPX analysis for the wizard's upload step.
         Unlike parse_gpx_file(), this method does NOT:
-        - Simplify tracks using Douglas-Peucker (expensive operation)
         - Save data to database
-        - Return trackpoints
 
-        It only extracts essential telemetry for difficulty preview:
+        It extracts essential telemetry for difficulty preview:
         - Distance (using Haversine formula)
         - Elevation gain/loss (if elevation data exists)
         - Auto-calculated difficulty level
+        - Optionally, simplified trackpoints for map visualization
 
         Feature: 017-gps-trip-wizard
         Endpoint: POST /gpx/analyze
@@ -413,6 +414,7 @@ class GPXService:
 
         Args:
             file_content: Raw GPX file bytes
+            include_trackpoints: If True, include simplified trackpoints for map visualization
 
         Returns:
             Dict with telemetry data:
@@ -426,6 +428,7 @@ class GPXService:
             - start_date: Start date from GPS timestamps (YYYY-MM-DD, None if no timestamps)
             - end_date: End date from GPS timestamps (YYYY-MM-DD, None if same day or no timestamps)
             - difficulty: TripDifficulty enum value (auto-calculated)
+            - trackpoints: Simplified trackpoints (only if include_trackpoints=True)
 
         Raises:
             ValueError: If GPX is invalid or corrupted
@@ -438,6 +441,9 @@ class GPXService:
             1250.0
             >>> result["difficulty"]
             TripDifficulty.DIFFICULT
+            >>> result = await service.extract_telemetry_quick(gpx_content, include_trackpoints=True)
+            >>> len(result["trackpoints"])
+            250
         """
         try:
             # Parse GPX XML
@@ -525,7 +531,8 @@ class GPXService:
 
             difficulty = DifficultyCalculator.calculate(total_distance_km, elevation_gain)
 
-            return {
+            # Build base result
+            result = {
                 "distance_km": round(total_distance_km, 2),
                 "elevation_gain": elevation_gain,
                 "elevation_loss": elevation_loss,
@@ -537,6 +544,24 @@ class GPXService:
                 "end_date": end_date,
                 "difficulty": difficulty,
             }
+
+            # Optionally include simplified trackpoints for wizard map visualization
+            if include_trackpoints:
+                simplified_trackpoints = self._simplify_track_optimized(points, epsilon=0.0001)
+                # Convert to simple dict format for JSON serialization
+                result["trackpoints"] = [
+                    {
+                        "latitude": tp["latitude"],
+                        "longitude": tp["longitude"],
+                        "elevation": tp.get("elevation"),
+                        "distance_km": tp["distance_km"],
+                    }
+                    for tp in simplified_trackpoints
+                ]
+            else:
+                result["trackpoints"] = None
+
+            return result
 
         except Exception as e:
             if isinstance(e, ValueError):

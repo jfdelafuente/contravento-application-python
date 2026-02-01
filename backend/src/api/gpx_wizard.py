@@ -10,19 +10,17 @@ Contract: specs/017-gps-trip-wizard/contracts/gpx-wizard.yaml
 """
 
 import logging
-from datetime import datetime, UTC
-from typing import Any
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db
 from src.models.gpx import GPXFile, TrackPoint
 from src.models.trip import TripStatus
 from src.models.user import User
-from src.schemas.gpx_wizard import GPXAnalysisResponse, GPXTelemetry, GPXTripCreateInput
-from src.schemas.trip import TripCreateRequest, TripResponse
+from src.schemas.gpx_wizard import GPXAnalysisResponse, GPXTelemetry
+from src.schemas.trip import TripCreateRequest
 from src.services.gpx_service import GPXService
 from src.services.trip_service import TripService
 
@@ -174,11 +172,13 @@ async def analyze_gpx_file(
             },
         )
 
-    # Extract telemetry using GPXService
+    # Extract telemetry using GPXService (include trackpoints for wizard map visualization)
     gpx_service = GPXService(db)
 
     try:
-        telemetry_data = await gpx_service.extract_telemetry_quick(file_content)
+        telemetry_data = await gpx_service.extract_telemetry_quick(
+            file_content, include_trackpoints=True
+        )
 
         # Convert to GPXTelemetry schema
         telemetry = GPXTelemetry(
@@ -192,6 +192,7 @@ async def analyze_gpx_file(
             start_date=telemetry_data["start_date"],
             end_date=telemetry_data["end_date"],
             difficulty=telemetry_data["difficulty"],
+            trackpoints=telemetry_data["trackpoints"],
         )
 
         return GPXAnalysisResponse(success=True, data=telemetry, error=None)
@@ -549,7 +550,9 @@ async def create_trip_with_gpx(
                 from src.models.route_statistics import RouteStatistics
                 from src.services.route_stats_service import RouteStatsService
 
-                logger.info(f"Calculating route statistics for GPX file {gpx_file_record.gpx_file_id}...")
+                logger.info(
+                    f"Calculating route statistics for GPX file {gpx_file_record.gpx_file_id}..."
+                )
 
                 # Convert original points to format expected by RouteStatsService
                 trackpoints_for_stats = gpx_service.convert_points_for_stats(
@@ -563,7 +566,9 @@ async def create_trip_with_gpx(
                 gradient_dist = await stats_service.classify_gradients(trackpoints_for_stats)
 
                 # Fix floating-point precision issue: ensure moving_time <= total_time
-                if speed_metrics.get("moving_time_minutes") and speed_metrics.get("total_time_minutes"):
+                if speed_metrics.get("moving_time_minutes") and speed_metrics.get(
+                    "total_time_minutes"
+                ):
                     if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
                         speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
 

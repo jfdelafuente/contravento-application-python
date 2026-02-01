@@ -82,6 +82,17 @@ class GPXTelemetry(BaseModel):
         json_schema_extra={"example": "difficult"},
     )
 
+    trackpoints: list[dict] | None = Field(
+        None,
+        description="Simplified trackpoints for map visualization in wizard (null for lightweight telemetry)",
+        json_schema_extra={
+            "example": [
+                {"latitude": 40.7128, "longitude": -74.0060, "elevation": 10.0, "distance_km": 0.0},
+                {"latitude": 40.7129, "longitude": -74.0061, "elevation": 11.0, "distance_km": 0.1},
+            ]
+        },
+    )
+
     class Config:
         """Pydantic config."""
 
@@ -97,6 +108,20 @@ class GPXTelemetry(BaseModel):
                 "start_date": "2024-06-01",
                 "end_date": "2024-06-05",
                 "difficulty": "difficult",
+                "trackpoints": [
+                    {
+                        "latitude": 40.7128,
+                        "longitude": -74.0060,
+                        "elevation": 10.0,
+                        "distance_km": 0.0,
+                    },
+                    {
+                        "latitude": 40.7129,
+                        "longitude": -74.0061,
+                        "elevation": 11.0,
+                        "distance_km": 0.1,
+                    },
+                ],
             }
         }
 
@@ -140,6 +165,20 @@ class GPXAnalysisResponse(BaseModel):
                     "min_elevation": 450.0,
                     "has_elevation": True,
                     "difficulty": "difficult",
+                    "trackpoints": [
+                        {
+                            "latitude": 40.7128,
+                            "longitude": -74.0060,
+                            "elevation": 10.0,
+                            "distance_km": 0.0,
+                        },
+                        {
+                            "latitude": 40.7129,
+                            "longitude": -74.0061,
+                            "elevation": 11.0,
+                            "distance_km": 0.1,
+                        },
+                    ],
                 },
                 "error": None,
             },
