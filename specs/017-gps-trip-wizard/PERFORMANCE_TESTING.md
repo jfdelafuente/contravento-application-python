@@ -63,8 +63,8 @@ ls -lh long_route_10mb.gpx
 # 2. Get authentication token
 TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"AdminPass123!"}' \
-  | jq -r '.access_token')
+  -d '{"login":"testuser","password":"TestPass123!"}' \
+  | jq -r '.data.access_token')
 
 echo "Token obtained: ${TOKEN:0:20}..."
 
