@@ -8,7 +8,7 @@ Los scripts están organizados por función en carpetas temáticas:
 
 ```
 scripts/
-├── analysis/        # Análisis GPS y RouteStatistics (8 scripts Python)
+├── analysis/        # Análisis GPS, RouteStatistics y Performance Testing (10 scripts Python)
 ├── wrappers/        # Bash wrappers para scripts de análisis (7 scripts)
 ├── testing/         # Tests de integración y manuales (4 scripts)
 ├── seeding/         # Carga de datos iniciales (5 scripts)
@@ -22,7 +22,7 @@ scripts/
 
 | Categoría | Scripts | Uso Principal |
 |-----------|---------|---------------|
-| **analysis/** | 8 scripts | Análisis de GPX, detección de stops, RouteStatistics, comparación de algoritmos |
+| **analysis/** | 10 scripts | Análisis de GPX, detección de stops, RouteStatistics, comparación de algoritmos, performance testing |
 | **wrappers/** | 7 scripts | Ejecutores bash para scripts de análisis |
 | **testing/** | 4 scripts | Tests de integración API, User Stories |
 | **seeding/** | 5 scripts | Carga de datos iniciales (achievements, trips, users) |
@@ -623,6 +623,85 @@ poetry run python scripts/analysis/app_gpx_stats.py <ruta>
 ```
 
 **Documentación completa**: Ver [GPS_ANALYSIS_SCRIPTS.md](GPS_ANALYSIS_SCRIPTS.md)
+
+---
+
+## 🚀 Performance Testing (Feature 017)
+
+Scripts para validar el performance del GPS Trip Creation Wizard y diagnosticar cuellos de botella.
+
+### analysis/test_gpx_analyze.py
+
+Prueba el endpoint `/gpx/analyze` con medición de tiempo para validar SC-002.
+
+**Uso:**
+
+```bash
+cd backend
+
+# Test con archivo pequeño (default)
+poetry run python scripts/analysis/test_gpx_analyze.py
+
+# Test con archivo 10MB (SC-002 validation)
+poetry run python scripts/analysis/test_gpx_analyze.py tests/fixtures/gpx/long_route_10mb.gpx
+```
+
+**Valida:**
+- ✅ **SC-002**: GPX processing <2s for 10MB files
+- Evita problemas de autenticación con curl (workaround para shell escaping)
+
+**Salida:**
+```
+✓ Token obtained: eyJhbGci...
+✓ Reading GPX file: tests/fixtures/gpx/long_route_10mb.gpx
+  File size: 10,886,608 bytes (10.38 MB)
+⏱  Processing time: 4.929 seconds
+✗ SC-002 FAIL: 10MB+ file processed in 4.929s (>2s target)
+```
+
+---
+
+### analysis/diagnose_gpx_performance.py
+
+Diagnóstico detallado paso a paso para identificar cuellos de botella.
+
+**Uso:**
+
+```bash
+cd backend
+poetry run python scripts/analysis/diagnose_gpx_performance.py
+```
+
+**Analiza:**
+- XML parsing time (gpxpy)
+- RDP simplification time (Douglas-Peucker)
+- Service layer overhead
+- Bottleneck distribution
+
+**Salida:**
+```
+BOTTLENECK ANALYSIS
+────────────────────────────────────────
+XML parsing:        2.229s (44.9%)
+RDP algorithm:      2.269s (45.7%)
+Other operations:   0.462s (9.3%)
+```
+
+### Limitaciones Conocidas
+
+⚠️ **Ver [analysis/README.md](analysis/README.md) para documentación completa de limitaciones**
+
+**Resumen:**
+
+1. **Autenticación con curl**: Falla con caracteres especiales en password
+   - Workaround: Usar `test_gpx_analyze.py`
+
+2. **Performance SC-002 FAIL**: 4.96s vs objetivo 2s
+   - Bottleneck: gpxpy parsing (45%) + RDP algorithm (46%)
+   - Requiere optimización (cambiar parser, optimizar RDP)
+
+3. **Simplificación extrema**: Archivo de prueba genera ruta recta
+   - 85,000 → 2 trackpoints (no representativo de rutas reales)
 
 ---
 

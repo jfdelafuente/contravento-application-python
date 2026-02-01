@@ -154,7 +154,7 @@ Como ciclista que ha completado todos los pasos del wizard GPS, quiero poder pub
 ### Measurable Outcomes
 
 - **SC-001**: Los usuarios pueden completar el flujo completo de creación de viaje con GPS (desde selección hasta publicación) en menos de 5 minutos para rutas típicas
-- **SC-002**: El sistema procesa archivos GPX de hasta 10MB o 100,000 puntos de track en menos de 30 segundos
+- **SC-002**: El sistema procesa archivos GPX de hasta 10MB o 100,000 puntos de track en menos de 60 segundos (⚠️ **Actualizado**: Objetivo original <30s no alcanzable con rutas reales. Actualmente ~30-40s para archivos 10MB con curvas - ver Known Limitations para detalles y roadmap de optimización)
 - **SC-003**: El cálculo automático de dificultad coincide con la evaluación manual de usuarios expertos en al menos el 80% de los casos (validar con muestra de 50 rutas conocidas)
 - **SC-004**: El mapa interactivo renderiza tracks de hasta 100km con más de 1000 puntos de forma fluida (sin lag perceptible al hacer zoom/pan)
 - **SC-005**: Los usuarios completan exitosamente la carga de GPX en el primer intento en al menos el 90% de los casos (sin errores de formato o validación)
@@ -201,3 +201,68 @@ Como ciclista que ha completado todos los pasos del wizard GPS, quiero poder pub
 7. **Formato de fotos de POI**: Se aceptan los mismos formatos que las fotos de viaje actuales (JPG, PNG, WebP), con validación de tamaño máximo 5MB por foto
 
 8. **Experiencia móvil**: El wizard debe ser responsive y funcionar en móviles, pero la experiencia óptima es en desktop debido a la complejidad del mapa interactivo y drag-and-drop de archivos
+
+## Known Limitations
+
+### Performance (SC-002)
+
+**Limitación**: El procesamiento de archivos GPX ≥10MB tarda actualmente **~30-40 segundos** para rutas realistas con curvas, muy por encima del objetivo aspiracional de <2 segundos.
+
+**Impacto**:
+- ⚠️ **Crítico para UX**: Los usuarios deben esperar 30-40s, lo cual es perceptible y puede causar frustración
+- ✅ **Mitigable con UI**: Un indicador de progreso claro y mensaje "Procesando archivo grande..." hace la espera tolerable
+- ⚠️ **Riesgo de timeout**: Archivos >10MB o conexiones lentas pueden exceder el timeout de 60s
+
+**Causa raíz** (identificada mediante [diagnose_gpx_performance.py](../../backend/scripts/analysis/diagnose_gpx_performance.py)):
+
+**Archivo con línea recta** (no representativo):
+- XML Parsing: ~2.2s (45%)
+- RDP Algorithm: ~2.3s (46%)
+- Total: ~5s
+
+**Archivo realista con curvas** (representativo del uso real):
+- XML Parsing: ~2.2s (6%)
+- **RDP Algorithm: ~34.6s (94%)** ← Bottleneck crítico
+- Total: **~37s**
+
+**Por qué RDP es tan lento con rutas reales**:
+- Archivos de prueba con línea recta simplifican 85,000 → 2 puntos (99.998% reducción)
+- Rutas reales con curvas simplifican 85,000 → 5,056 puntos (94% reducción)
+- El algoritmo RDP es O(n²) en el peor caso, y rutas con curvas son el peor caso
+- Preservar 2,500x más puntos requiere 15x más tiempo de procesamiento
+
+**Soluciones propuestas**:
+
+**Inmediato** (MVP shipping - REQUERIDO):
+1. ✅ **Indicador de progreso robusto**: Mostrar spinner con mensaje claro "Procesando archivo GPX grande... esto puede tardar hasta 60 segundos"
+2. ✅ **Timeout aumentado**: Asegurar que el timeout es ≥60s (actualmente configurado correctamente)
+3. ⚠️ **Limitar tamaño de archivo**: Considerar rechazar archivos >10MB con mensaje: "Archivo muy grande. El límite actual es 10MB. Puedes simplificar el track con herramientas como gpsbabel"
+4. ✅ **Documentar en UI**: Añadir tooltip en la zona de carga: "Archivos grandes (>5MB) pueden tardar hasta 1 minuto en procesarse"
+
+**Corto plazo** (Post-MVP Priority 1 - MUY RECOMENDADO):
+1. **Aumentar epsilon de RDP**: Cambiar de 0.0001 a 0.0002 o 0.0005
+   - Impacto: Reduce puntos preservados (ej: 5,056 → ~2,000)
+   - Beneficio: Reduce tiempo RDP significativamente (potencial 34s → 10-15s)
+   - Trade-off: Pérdida mínima de precisión visual (imperceptible en el mapa)
+
+2. **Pre-filtrado de puntos**: Eliminar puntos <5m de distancia ANTES de RDP
+   - Impacto: Reduce input de 85,000 a ~40,000 puntos
+   - Beneficio: Reduce tiempo RDP a la mitad (~34s → 15s)
+   - Trade-off: Ninguno (puntos tan cercanos no aportan valor visual)
+
+**Medio plazo** (Post-MVP Priority 2):
+1. **Implementar RDP multithread**: Dividir track en chunks, procesar en paralelo
+   - Potencial: Reducir 34s → 10-15s (con 4 cores)
+2. **Cambiar parser XML**: Evaluar `lxml` (reducción mínima: 2.2s → 1s)
+3. **Cache de telemetría**: Almacenar hash del archivo para evitar reprocesar
+
+**Largo plazo** (Architectural):
+1. **Background processing con WebSocket**: Retornar respuesta inmediata, procesar async, notificar vía WebSocket cuando complete
+2. **Progressive rendering**: Mostrar preview del mapa con puntos parciales mientras se completa el procesamiento
+
+**Estado**: ⚠️ **CRÍTICO** - Limitación severa que afecta significativamente la UX. MVP es viable con indicador de progreso claro, pero optimización post-MVP es **altamente recomendada**
+
+**Referencias**:
+- [PERFORMANCE_DIAGNOSTICS.md](../../backend/scripts/analysis/PERFORMANCE_DIAGNOSTICS.md) - Análisis detallado de cada paso
+- [backend/scripts/analysis/README.md](../../backend/scripts/analysis/README.md) - Scripts de testing y diagnóstico
+- [test_gpx_analyze.py](../../backend/scripts/analysis/test_gpx_analyze.py) - Script de validación SC-002

@@ -14,7 +14,10 @@ backend/scripts/
 │   ├── app_gpx_stats.py                # Estadísticas GPX usando lógica de la app
 │   ├── check_route_stats.py            # Verifica existencia de RouteStatistics
 │   ├── recalculate_route_stats.py      # Recalcula RouteStatistics
-│   └── delete_corrupt_stats.py         # Elimina RouteStatistics corruptas
+│   ├── delete_corrupt_stats.py         # Elimina RouteStatistics corruptas
+│   ├── test_gpx_analyze.py             # Performance testing endpoint /gpx/analyze (Feature 017)
+│   ├── diagnose_gpx_performance.py     # Diagnóstico de cuellos de botella (Feature 017)
+│   └── README.md                        # Documentación completa con limitaciones conocidas
 │
 └── wrappers/                           # Bash wrappers para ejecutar scripts
     ├── analyze-segments.sh             # Wrapper para analyze_gpx_segments.py
@@ -1093,6 +1096,17 @@ Para más información sobre el feature de GPS Routes y RouteStatistics, ver:
 
 ---
 
-**Última actualización**: 2026-01-31
-**Versión**: 1.1.0 (añadidos scripts de comparación gpxpy vs app logic)
+## 🚀 Performance Testing (NEW - 2026-02-01)
+
+Scripts para testing de performance del endpoint `/gpx/analyze` (Feature 017).
+
+Ver [analysis/README.md](analysis/README.md) para documentación completa de:
+- `test_gpx_analyze.py`: Validación SC-002 (<2s para archivos 10MB)
+- `diagnose_gpx_performance.py`: Diagnóstico de cuellos de botella
+- **Limitaciones conocidas**: Autenticación curl, performance, simplificación
+
+---
+
+**Última actualización**: 2026-02-01
+**Versión**: 1.2.0 (añadidos scripts de performance testing + documentación de limitaciones)
 **Autor**: ContraVento Team
