@@ -9,14 +9,24 @@ Success Criteria: SC-029, SC-030, SC-031
 """
 
 import logging
+import uuid
+from datetime import UTC, datetime
+from io import BytesIO
+from pathlib import Path
+from typing import BinaryIO
+
+import aiofiles
+from PIL import Image
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.config import settings
 from src.models.poi import PointOfInterest
-from src.models.trip import Trip, TripStatus
+from src.models.trip import Trip
 from src.schemas.poi import POICreateInput, POITypeEnum, POIUpdateInput
+from src.utils.file_storage import ALLOWED_PHOTO_TYPES, validate_photo
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +77,11 @@ class POIService:
         # Verify trip exists and user is owner
         trip = await self._get_trip_with_ownership_check(trip_id, user_id)
 
-        # FR-029: POIs can only be added to published trips
-        if trip.status != TripStatus.PUBLISHED:
-            raise ValueError("Solo se pueden añadir POIs a viajes publicados")
+        # FR-029: POIs can be added to trips by their owners
+        # - PUBLISHED trips: Normal flow (trip is public)
+        # - DRAFT trips: Wizard flow (owner can add POIs before publishing)
+        # Ownership already verified by _get_trip_with_ownership_check above
+        # Note: Removed status check to support wizard workflow (Feature 017)
 
         # SC-029: Enforce maximum 20 POIs per trip
         current_poi_count = await self._get_trip_poi_count(trip_id)
@@ -200,7 +212,11 @@ class POIService:
         if data.distance_from_start_km is not None:
             poi.distance_from_start_km = data.distance_from_start_km
         if data.photo_url is not None:
-            poi.photo_url = data.photo_url
+            # Ensure photo_url has /storage/ prefix
+            if data.photo_url and not data.photo_url.startswith("/storage/"):
+                poi.photo_url = f"/storage/{data.photo_url.lstrip('/')}"
+            else:
+                poi.photo_url = data.photo_url
         if data.sequence is not None:
             poi.sequence = data.sequence
 
@@ -292,9 +308,98 @@ class POIService:
         logger.info(f"Reordered {len(reordered_pois)} POIs for trip {trip_id} by user {user_id}")
         return reordered_pois
 
+    async def upload_photo(
+        self,
+        poi_id: str,
+        user_id: str,
+        photo_file: BinaryIO,
+        filename: str,
+        content_type: str,
+    ) -> PointOfInterest:
+        """
+        Upload a photo for a POI.
+
+        FR-010 (Feature 017): POIs can have photos (max 5MB per photo)
+
+        Args:
+            poi_id: POI identifier
+            user_id: ID of user uploading the photo (must be trip owner)
+            photo_file: Photo file content
+            filename: Original filename
+            content_type: MIME type of the photo
+
+        Returns:
+            Updated PointOfInterest instance with photo_url
+
+        Raises:
+            ValueError: If validation fails
+            PermissionError: If user is not trip owner
+        """
+        # Get POI with trip for ownership check
+        poi = await self.get_poi(poi_id)
+
+        # Verify user is trip owner
+        await self._get_trip_with_ownership_check(poi.trip_id, user_id)
+
+        # Validate photo (max 5MB for POIs)
+        photo_bytes = BytesIO(photo_file.read())
+        validate_photo(photo_bytes, content_type, max_size_mb=5)
+
+        # Generate storage path
+        storage_path = self._get_poi_photo_storage_path(poi_id, filename)
+        full_path = Path(settings.storage_path) / storage_path
+
+        # Create directories if they don't exist
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Save photo to disk
+        photo_bytes.seek(0)
+        async with aiofiles.open(full_path, "wb") as f:
+            await f.write(photo_bytes.read())
+
+        # Update POI with photo URL (include /storage prefix for static file serving)
+        poi.photo_url = f"/storage/{storage_path}"
+
+        await self.db.commit()
+        await self.db.refresh(poi)
+
+        logger.info(f"Uploaded photo for POI {poi_id} by user {user_id}: {storage_path}")
+        return poi
+
     # ========================================================================
     # Helper methods
     # ========================================================================
+
+    def _get_poi_photo_storage_path(self, poi_id: str, filename: str) -> str:
+        """
+        Generate storage path for a POI's photo.
+
+        Path structure: poi_photos/{year}/{month}/{poi_id}_{uuid}.{ext}
+
+        Args:
+            poi_id: POI identifier
+            filename: Original filename (extension will be extracted)
+
+        Returns:
+            Relative path for storing the file
+
+        Example:
+            >>> _get_poi_photo_storage_path("poi123", "photo.jpg")
+            'poi_photos/2026/01/poi123_a1b2c3d4.jpg'
+        """
+        now = datetime.now(UTC)
+        year = now.strftime("%Y")
+        month = now.strftime("%m")
+
+        # Generate unique filename
+        file_ext = Path(filename).suffix or ".jpg"
+        unique_id = uuid.uuid4().hex[:8]
+        new_filename = f"{poi_id}_{unique_id}{file_ext}"
+
+        # Create path: poi_photos/YYYY/MM/poi_id_uuid.ext
+        relative_path = f"poi_photos/{year}/{month}/{new_filename}"
+
+        return relative_path
 
     async def _get_trip_with_ownership_check(self, trip_id: str, user_id: str) -> Trip:
         """

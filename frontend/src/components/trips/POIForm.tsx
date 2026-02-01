@@ -14,6 +14,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { POI, POIType, POI_TYPE_LABELS, POICreateInput, POIUpdateInput } from '../../types/poi';
+import { uploadPOIPhoto } from '../../services/poiService';
 import './POIForm.css';
 
 interface POIFormProps {
@@ -58,10 +59,14 @@ export const POIForm: React.FC<POIFormProps> = ({
   const [description, setDescription] = useState('');
   const [poiType, setPoiType] = useState<POIType>(POIType.VIEWPOINT);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const isEditMode = !!editingPOI;
   const maxNameLength = 100;
   const maxDescriptionLength = 500;
+  const MAX_PHOTO_SIZE_MB = 5;
 
   // Load editing POI data
   useEffect(() => {
@@ -69,8 +74,70 @@ export const POIForm: React.FC<POIFormProps> = ({
       setName(editingPOI.name);
       setDescription(editingPOI.description || '');
       setPoiType(editingPOI.poi_type);
+      setPhotoPreview(editingPOI.photo_url);
     }
   }, [editingPOI]);
+
+  // Cleanup photo preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
+
+  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setLocalError('Solo se permiten archivos de imagen');
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setLocalError('Solo se permiten archivos JPEG, PNG y WebP');
+      return;
+    }
+
+    // Validate file size
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > MAX_PHOTO_SIZE_MB) {
+      setLocalError(`La foto excede el tamaño máximo de ${MAX_PHOTO_SIZE_MB}MB`);
+      return;
+    }
+
+    // Clear previous error
+    setLocalError(null);
+
+    // Revoke previous preview URL
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
+    }
+
+    // Create preview
+    const preview = URL.createObjectURL(file);
+    setPhotoPreview(preview);
+    setSelectedPhoto(file);
+  };
+
+  const handleRemovePhoto = () => {
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    setPhotoPreview(null);
+    setSelectedPhoto(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSelectPhotoClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +177,11 @@ export const POIForm: React.FC<POIFormProps> = ({
           poi_type: poiType,
         };
         await onSubmit(updateData);
+
+        // Upload new photo if selected
+        if (selectedPhoto && editingPOI) {
+          await uploadPOIPhoto(editingPOI.poi_id, selectedPhoto);
+        }
       } else {
         // Create new POI
         const createData: POICreateInput = {
@@ -119,6 +191,7 @@ export const POIForm: React.FC<POIFormProps> = ({
           latitude: coordinates!.latitude,
           longitude: coordinates!.longitude,
           sequence: 0, // Will be calculated by backend
+          photo: selectedPhoto || undefined, // Include photo file if selected
         };
         await onSubmit(createData);
       }
@@ -132,6 +205,14 @@ export const POIForm: React.FC<POIFormProps> = ({
     setDescription('');
     setPoiType(POIType.VIEWPOINT);
     setLocalError(null);
+
+    // Clean up photo
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    setPhotoPreview(null);
+    setSelectedPhoto(null);
+
     onCancel();
   };
 
@@ -227,6 +308,69 @@ export const POIForm: React.FC<POIFormProps> = ({
             <span className="poi-form-hint">
               {description.length}/{maxDescriptionLength} caracteres
             </span>
+          </div>
+
+          {/* Photo upload field (optional) */}
+          <div className="poi-form-field">
+            <label className="poi-form-label">
+              Foto (opcional)
+            </label>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handlePhotoSelect}
+              style={{ display: 'none' }}
+              disabled={isSubmitting}
+            />
+
+            {/* Photo preview or select button */}
+            {photoPreview ? (
+              <div className="poi-form-photo-preview">
+                <img
+                  src={photoPreview}
+                  alt="Vista previa"
+                  className="poi-form-photo-image"
+                />
+                <button
+                  type="button"
+                  className="poi-form-photo-remove"
+                  onClick={handleRemovePhoto}
+                  disabled={isSubmitting}
+                  aria-label="Eliminar foto"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="poi-form-photo-select"
+                onClick={handleSelectPhotoClick}
+                disabled={isSubmitting}
+              >
+                <svg
+                  className="poi-form-photo-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span>Seleccionar foto</span>
+                <span className="poi-form-photo-hint">
+                  JPEG, PNG, WebP (máx. {MAX_PHOTO_SIZE_MB}MB)
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Error message */}
