@@ -23,7 +23,7 @@ from src.models.stats import Achievement, UserAchievement  # noqa: F401
 
 async def main():
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(User).where(User.username == "testuser"))
+        result = await db.execute(select(User).where(User.username == "maria_garcia"))
         user = result.scalar_one_or_none()
 
         if not user:

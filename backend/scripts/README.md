@@ -8,12 +8,13 @@ Los scripts están organizados por función en carpetas temáticas:
 
 ```
 scripts/
-├── analysis/        # Análisis GPS y RouteStatistics (6 scripts Python)
-├── wrappers/        # Bash wrappers para scripts de análisis (6 scripts)
+├── analysis/        # Análisis GPS y RouteStatistics (8 scripts Python)
+├── wrappers/        # Bash wrappers para scripts de análisis (7 scripts)
 ├── testing/         # Tests de integración y manuales (4 scripts)
 ├── seeding/         # Carga de datos iniciales (5 scripts)
 ├── user-mgmt/       # Gestión de usuarios (4 scripts)
 ├── dev-tools/       # Herramientas de desarrollo (4 scripts)
+├── config/          # Archivos de configuración (2 archivos YAML/TXT)
 └── deployment/      # Scripts de despliegue y CI (2 scripts)
 ```
 
@@ -21,12 +22,13 @@ scripts/
 
 | Categoría | Scripts | Uso Principal |
 |-----------|---------|---------------|
-| **analysis/** | 6 scripts | Análisis de GPX, detección de stops, RouteStatistics |
-| **wrappers/** | 6 scripts | Ejecutores bash para scripts de análisis |
+| **analysis/** | 8 scripts | Análisis de GPX, detección de stops, RouteStatistics, comparación de algoritmos |
+| **wrappers/** | 7 scripts | Ejecutores bash para scripts de análisis |
 | **testing/** | 4 scripts | Tests de integración API, User Stories |
 | **seeding/** | 5 scripts | Carga de datos iniciales (achievements, trips, users) |
 | **user-mgmt/** | 4 scripts | Crear admin, usuarios, promover roles |
 | **dev-tools/** | 4 scripts | Inspeccionar datos, encontrar GPX, limpiar trips |
+| **config/** | 2 archivos | Configuración de tipos de ciclismo y palabras bloqueadas |
 | **deployment/** | 2 scripts | Docker entrypoint, verificación MVP |
 
 ---
@@ -402,16 +404,19 @@ Scripts para analizar archivos GPX y estadísticas de rutas. Organizados en dos 
 - **`analysis/`**: Scripts Python con la lógica de análisis
 - **`wrappers/`**: Scripts Bash para ejecutar los scripts Python de forma sencilla
 
-### Scripts Migrados
+### Scripts de Análisis GPS
 
 | # | Script Python | Bash Wrapper | Dual Mode | Funcionalidad |
 |---|--------------|--------------|-----------|---------------|
 | 1 | `analyze_gpx_segments.py` | `analyze-segments.sh` | ✅ Sí | Analiza segmentos (slow, long, STOP) para detectar patrones de paradas |
-| 2 | `analyze_slow_segments.py` | `analyze-slow-segments.sh` | ✅ Sí | Genera histograma de duración de segmentos lentos (<3 km/h) |
+| 2 | `analyze_slow_segments.py` | `analyze-slow-segments.sh` | ✅ Sí | Genera histograma de duración de segmentos lentos (<1 km/h) |
 | 3 | `analyze_gpx_timing.py` | `analyze-timing.sh` | ✅ Sí | Analiza espaciado entre puntos GPS (distance gaps) |
-| 4 | `check_route_stats.py` | `check-stats.sh` | ❌ DB-only | Verifica existencia de RouteStatistics en la base de datos |
-| 5 | `recalculate_route_stats.py` | `recalculate-stats.sh` | ❌ DB-only | Recalcula RouteStatistics para un GPX existente |
-| 6 | `delete_corrupt_stats.py` | `delete-stats.sh` | ❌ DB-only | Elimina RouteStatistics corruptas o no deseadas |
+| 4 | `gpx_stats.py` | - | ✅ File | Calcula estadísticas usando gpxpy (referencia) |
+| 5 | `app_gpx_stats.py` | - | ✅ File | Calcula estadísticas usando lógica de la app |
+| 6 | - | `compare-gpx-stats.sh` | ✅ File | Compara gpxpy vs lógica de la app lado a lado |
+| 7 | `check_route_stats.py` | `check-stats.sh` | ❌ DB-only | Verifica existencia de RouteStatistics en la base de datos |
+| 8 | `recalculate_route_stats.py` | `recalculate-stats.sh` | ❌ DB-only | Recalcula RouteStatistics para un GPX existente |
+| 9 | `delete_corrupt_stats.py` | `delete-stats.sh` | ❌ DB-only | Elimina RouteStatistics corruptas o no deseadas |
 
 **Leyenda de Modos:**
 - **✅ Dual Mode**: Soporta modo database (GPX en DB) y modo file path (GPX local)
@@ -546,10 +551,57 @@ for id in id1 id2 id3; do
 done
 ```
 
+### Comparación de Estadísticas GPX
+
+**Nuevos scripts (2026-01-31):** Herramientas para validar algoritmos de cálculo de estadísticas.
+
+#### 1. Estadísticas con gpxpy (Referencia)
+
+Usa directamente la librería gpxpy para calcular estadísticas (implementación de referencia):
+
+```bash
+poetry run python scripts/analysis/gpx_stats.py scripts/datos/QH_2013.gpx
+```
+
+#### 2. Estadísticas con Lógica de la App
+
+Usa los mismos servicios que la aplicación (`GPXService` + `RouteStatsService`):
+
+```bash
+poetry run python scripts/analysis/app_gpx_stats.py scripts/datos/QH_2013.gpx
+```
+
+#### 3. Comparación Lado a Lado (RECOMENDADO)
+
+Ejecuta ambos scripts en paralelo para comparación visual:
+
+```bash
+./scripts/wrappers/compare-gpx-stats.sh scripts/datos/QH_2013.gpx
+```
+
+**Útil para:**
+- ✅ Validar que algoritmos de la app coinciden con gpxpy
+- ✅ Verificar corrección de bugs en cálculos de estadísticas
+- ✅ Testing de regresión tras cambios en `RouteStatsService`
+- ✅ Documentar diferencias entre implementaciones
+
+**Métricas clave a comparar:**
+- Tiempo en movimiento: debe ser similar (±5%)
+- Velocidad media: debe ser similar (±5%)
+- Distancia total: debe coincidir exactamente
+
+**Cambios recientes en algoritmos (2026-01-31):**
+- ✅ Umbral de paradas: 3 km/h → **1 km/h** (matches gpxpy)
+- ✅ Eliminado requisito de duración mínima (antes: solo paradas > 2 min)
+- ✅ Filtro de velocidades anómalas: max_speed < 100 km/h
+- ✅ Filtro de segmentos muy cortos: > 2 segundos
+
+---
+
 ### Referencia Rápida
 
 ```bash
-# Análisis (dual mode)
+# Análisis de segmentos (dual mode)
 ./scripts/wrappers/analyze-segments.sh <gpx_file_id>
 ./scripts/wrappers/analyze-segments.sh --file-path <ruta>
 
@@ -558,6 +610,11 @@ done
 
 ./scripts/wrappers/analyze-timing.sh <gpx_file_id>
 ./scripts/wrappers/analyze-timing.sh --file-path <ruta>
+
+# Comparación de estadísticas (file mode)
+poetry run python scripts/analysis/gpx_stats.py <ruta>
+poetry run python scripts/analysis/app_gpx_stats.py <ruta>
+./scripts/wrappers/compare-gpx-stats.sh <ruta>
 
 # RouteStatistics (DB-only)
 ./scripts/wrappers/check-stats.sh <gpx_file_id>

@@ -33,19 +33,19 @@
 | Phase 5 | **US3**: Trip Details + Difficulty | P3 | 14 tasks | 6 hours | ✅ **Complete** |
 | Phase 6 | **US6**: Publish Trip (Atomic) | P2 | 10 tasks | 5 hours | ✅ **Complete** |
 | Phase 7 | **US4**: Map Visualization | P4 | 8 tasks | 4 hours | ✅ **Complete** |
-| Phase 8 | **US5**: POI Management | P5 | 10 tasks | 5 hours | ⏸️ Optional |
+| Phase 8 | **US5**: POI Management | P5 | 10 tasks | 5 hours | ✅ **Complete** |
 | Phase 9 | Polish & Cross-Cutting | - | 7 tasks | 3 hours | ⏸️ Optional |
-| **Total** | | | **97 tasks** | **43 hours** | **80/97 (82%)** |
+| **Total** | | | **97 tasks** | **43 hours** | **90/97 (93%)** |
 
 ---
 
 ## Progress Summary
 
-**Current Status**: 82% Complete (80/97 tasks)
+**Current Status**: 93% Complete (90/97 tasks)
 
-**✅ MVP COMPLETE + Map Visualization** - Enhanced wizard with interactive maps!
+**✅ MVP COMPLETE + Map Visualization + POI Management** - Enhanced wizard with interactive maps and POIs!
 
-**Completed Phases** (7/9):
+**Completed Phases** (8/9):
 
 - ✅ **Phase 1**: Setup & Prerequisites (8/8 tasks) - 100%
 - ✅ **Phase 2**: Foundational Services (12/12 tasks) - 100%
@@ -54,25 +54,26 @@
 - ✅ **Phase 5**: US3 Trip Details + Difficulty (14/14 tasks) - 100%
 - ✅ **Phase 6**: US6 Publish Trip (Atomic Transaction) (10/10 tasks) - 100%
 - ✅ **Phase 7**: US4 Map Visualization (8/8 tasks) - 100%
+- ✅ **Phase 8**: US5 POI Management (10/10 tasks) - 100%
 
 **Feature Delivery**:
 
-**🎉 GPS Trip Creation Wizard with Map Visualization** - Users can now:
+**🎉 GPS Trip Creation Wizard with Map Visualization & POI Management** - Users can now:
 
 - ✅ Select trip creation mode (GPS vs Manual)
 - ✅ Upload GPX files with drag-and-drop
 - ✅ View automatic telemetry extraction (distance, elevation, difficulty)
 - ✅ Fill trip details with validation
-- ✅ **NEW**: Preview route on interactive map with telemetry panel
+- ✅ Preview route on interactive map with telemetry panel
+- ✅ **NEW**: Add up to 6 Points of Interest (POIs) to trips
 - ✅ Publish trips atomically with RouteStatistics
 - ✅ E2E tests covering full wizard flow (26 tests)
 
 **Remaining Optional Enhancements**:
 
-- Phase 8: US5 POI Management (10 tasks, 5 hours) - Optional
 - Phase 9: Polish & Cross-Cutting (7 tasks, 3 hours) - Optional
 
-**MVP Status**: ✅ **COMPLETE** - Ready for production deployment!
+**MVP+ Status**: ✅ **COMPLETE** - Enhanced wizard ready for production deployment!
 
 ---
 
@@ -653,27 +654,27 @@ Success Criteria Met:
 
 ### Backend Tests
 
-- [ ] T085 [US5] Write unit tests for POI batch creation in backend/tests/unit/test_poi_service.py
-- [ ] T086 [US5] Verify MAX_POIS_PER_TRIP = 6 enforced in poi_service.py
+- ✅ T085 [US5] Write unit tests for POI batch creation in backend/tests/unit/test_poi_service.py
+- ✅ T086 [US5] Verify MAX_POIS_PER_TRIP = 6 enforced in poi_service.py
 
 ### Frontend Components (TDD)
 
 #### Step 3.1: POI Management Component
 
-- [ ] T087 [US5] Write tests for Step3POIs in frontend/tests/unit/Step3POIs.test.tsx
-- [ ] T088 [US5] Create Step3POIs component in frontend/src/components/trips/GPXWizard/Step3POIs.tsx
-- [ ] T089 [US5] Add "Añadir POI" button with counter ("X / 6 POIs añadidos")
+- ✅ T087 [US5] Write tests for Step3POIs in frontend/tests/unit/Step3POIs.test.tsx
+- ✅ T088 [US5] Create Step3POIs component in frontend/src/components/trips/GPXWizard/Step3POIs.tsx
+- ✅ T089 [US5] Add "Añadir POI" button with counter ("X / 6 POIs añadidos")
 
 #### Map Click Handler
 
-- [ ] T090 [US5] Implement handleMapClick() in Step3POIs: open POIForm modal with coordinates
-- [ ] T091 [US5] Add POI markers to map (blue pins) with sequence numbers (1-6)
-- [ ] T092 [US5] Disable "Añadir POI" button after 6 POIs, show toast: "Máximo 6 POIs por viaje"
+- ✅ T090 [US5] Implement handleMapClick() in Step3POIs: open POIForm modal with coordinates
+- ✅ T091 [US5] Add POI markers to map (blue pins) with sequence numbers (1-6)
+- ✅ T092 [US5] Disable "Añadir POI" button after 6 POIs, show toast: "Máximo 6 POIs por viaje"
 
 #### POI Form Integration
 
-- [ ] T093 [US5] Integrate existing POIForm component (reuse from Feature 003) in Step3POIs
-- [ ] T094 [US5] Add POI state management: add, edit, delete POI in wizard state
+- ✅ T093 [US5] Integrate existing POIForm component (reuse from Feature 003) in Step3POIs
+- ✅ T094 [US5] Add POI state management: add, edit, delete POI in wizard state
 
 **Verification** (Manual):
 ```

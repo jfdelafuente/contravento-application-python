@@ -10,6 +10,8 @@ backend/scripts/
 │   ├── analyze_gpx_segments.py         # Analiza segmentos (slow, long, STOP)
 │   ├── analyze_slow_segments.py        # Histograma de duración de segmentos lentos
 │   ├── analyze_gpx_timing.py           # Analiza espaciado entre puntos GPS
+│   ├── gpx_stats.py                    # Estadísticas GPX usando gpxpy (referencia)
+│   ├── app_gpx_stats.py                # Estadísticas GPX usando lógica de la app
 │   ├── check_route_stats.py            # Verifica existencia de RouteStatistics
 │   ├── recalculate_route_stats.py      # Recalcula RouteStatistics
 │   └── delete_corrupt_stats.py         # Elimina RouteStatistics corruptas
@@ -18,6 +20,7 @@ backend/scripts/
     ├── analyze-segments.sh             # Wrapper para analyze_gpx_segments.py
     ├── analyze-slow-segments.sh        # Wrapper para analyze_slow_segments.py
     ├── analyze-timing.sh               # Wrapper para analyze_gpx_timing.py
+    ├── compare-gpx-stats.sh            # Compara gpxpy vs lógica de la app
     ├── check-stats.sh                  # Wrapper para check_route_stats.py
     ├── recalculate-stats.sh            # Wrapper para recalculate_route_stats.py
     └── delete-stats.sh                 # Wrapper para delete_corrupt_stats.py
@@ -489,6 +492,177 @@ Next steps:
 
 ---
 
+## 📈 Comparación de Estadísticas GPX
+
+### 7. Estadísticas GPX con gpxpy (Referencia)
+
+Calcula estadísticas GPX usando directamente la librería `gpxpy` (implementación de referencia).
+
+**Uso:**
+
+```bash
+cd backend
+poetry run python scripts/analysis/gpx_stats.py <ruta-al-archivo.gpx>
+```
+
+**Ejemplo:**
+
+```bash
+poetry run python scripts/analysis/gpx_stats.py scripts/datos/QH_2013.gpx
+```
+
+**Salida Esperada:**
+
+```
+═════════════════════════════════════════════
+ 🛰️  ESTADÍSTICAS GPX: QH_2013.gpx
+═════════════════════════════════════════════
+ DISTANCIA Y ALTITUD
+  Distancia Total:      196.78 km
+  Altitud Máxima:       1764.3 m
+  Altitud Mínima:       328.0 m
+  Desnivel Positivo:    3641.1 m
+  Desnivel Negativo:    3640.2 m
+─────────────────────────────────────────────
+ TIEMPOS
+  Tiempo Total:         08:17:09
+  Tiempo en Movimiento: 08:02:27
+  Tiempo Detenido:      00:13:54
+─────────────────────────────────────────────
+ RENDIMIENTO
+  Velocidad Media Mov.: 24.46 km/h
+  Ritmo Medio Mov.:     2:27 min/km
+═════════════════════════════════════════════
+```
+
+**Útil para:**
+- Validar resultados de la aplicación contra implementación de referencia
+- Verificar que gpxpy y nuestra lógica dan resultados similares
+- Debugging de discrepancias en cálculos
+
+---
+
+### 8. Estadísticas GPX con Lógica de la App
+
+Calcula estadísticas GPX usando la misma lógica que la aplicación (`GPXService` + `RouteStatsService`).
+
+**Uso:**
+
+```bash
+cd backend
+poetry run python scripts/analysis/app_gpx_stats.py <ruta-al-archivo.gpx>
+```
+
+**Ejemplo:**
+
+```bash
+poetry run python scripts/analysis/app_gpx_stats.py scripts/datos/QH_2013.gpx
+```
+
+**Salida Esperada:**
+
+```
+Parseando archivo GPX: scripts/datos/QH_2013.gpx
+Procesados 1197 trackpoints (simplificados de 4471 originales)
+Convertidos 4471 trackpoints para cálculo de estadísticas
+
+═════════════════════════════════════════════
+ 🚴 ESTADÍSTICAS (Lógica App): QH_2013.gpx
+═════════════════════════════════════════════
+ DISTANCIA Y ALTITUD
+  Distancia Total:      196.78 km
+  Altitud Máxima:       1764.3 m
+  Altitud Mínima:       328.0 m
+  Desnivel Positivo:    3641.1 m
+  Desnivel Negativo:    3640.2 m
+─────────────────────────────────────────────
+ TIEMPOS
+  Tiempo Total:         08:17:09
+  Tiempo en Movimiento: 08:03:15
+  Tiempo Detenido:      00:13:54
+─────────────────────────────────────────────
+ RENDIMIENTO
+  Velocidad Media Mov.: 24.43 km/h
+  Velocidad Máxima:     68.50 km/h
+  Ritmo Medio Mov.:     2:27 min/km
+═════════════════════════════════════════════
+```
+
+**Diferencias esperadas con gpxpy:**
+- ✅ Distancia total debe coincidir exactamente
+- ✅ Tiempos deben ser similares (±2% diferencia aceptable)
+- ✅ Velocidad media debe ser similar (±5% diferencia aceptable)
+- ⚠️ Velocidad máxima puede diferir (nuestra app filtra outliers > 100 km/h)
+
+**Útil para:**
+- Validar que la lógica de la aplicación funciona correctamente
+- Verificar impacto de cambios en algoritmos
+- Debugging de problemas específicos de la aplicación
+
+---
+
+### 9. Comparación Lado a Lado (RECOMENDADO)
+
+Ejecuta ambos scripts en paralelo para comparación visual directa.
+
+**Uso:**
+
+```bash
+cd backend
+./scripts/wrappers/compare-gpx-stats.sh <ruta-al-archivo.gpx>
+```
+
+**Ejemplo:**
+
+```bash
+./scripts/wrappers/compare-gpx-stats.sh scripts/datos/QH_2013.gpx
+```
+
+**Salida Esperada:**
+
+```
+========================================
+GPX Statistics Comparison
+========================================
+
+File: scripts/datos/QH_2013.gpx
+Timestamp: 2026-01-31 15:30:45
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. gpxpy Library (Reference)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[... salida de gpx_stats.py ...]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Application Logic (Our Implementation)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[... salida de app_gpx_stats.py ...]
+
+========================================
+✓ Comparison completed
+========================================
+
+Note: Small differences are expected due to:
+  - Trackpoint simplification (Douglas-Peucker algorithm)
+  - Different rounding/precision in calculations
+  - GPS error filtering (our app filters outliers)
+
+Key metrics to compare:
+  - Moving time should be similar (±5%)
+  - Average speed should be similar (±5%)
+  - Total distance should match exactly
+```
+
+**Útil para:**
+- Validación rápida de algoritmos tras cambios
+- Verificar corrección de bugs en cálculos
+- Documentar diferencias entre implementaciones
+- Testing de regresión
+
+---
+
 ## 🔄 Workflows Típicos
 
 ### Workflow 1: Diagnosticar Por Qué Moving Time ≈ Total Time
@@ -779,14 +953,15 @@ chmod +r /path/to/file.gpx
 
 ### No se detectan paradas (STOP segments = 0)
 
-**Causa posible 1**: Thresholds muy estrictos (velocidad < 3 km/h Y duración > 2 min)
+**ACTUALIZADO (2026-01-31)**: El algoritmo de detección de paradas ha sido mejorado para coincidir con gpxpy:
 
-**Solución**: Revisa output de `analyze-slow-segments.sh`:
+**Cambios aplicados:**
+- ✅ Umbral de velocidad reducido: 3 km/h → **1 km/h** (matches gpxpy default)
+- ✅ Eliminado requisito de duración mínima (antes: solo paradas > 2 min)
+- ✅ Ahora cuenta CUALQUIER segmento < 1 km/h como tiempo detenido
+- ✅ Resultados similares a gpxpy (±5% diferencia esperada)
 
-- Si hay muchos segmentos 0-30 sec, el threshold de 2 min puede ser muy alto
-- Considera ajustar threshold en `src/services/route_stats_service.py`
-
-**Causa posible 2**: GPX tiene gaps grandes (puntos espaciados > 0.5km)
+**Causa posible (si aún hay problemas)**: GPX tiene gaps grandes (puntos espaciados > 0.5km)
 
 **Solución**: Revisa output de `analyze-timing.sh`:
 
@@ -918,6 +1093,6 @@ Para más información sobre el feature de GPS Routes y RouteStatistics, ver:
 
 ---
 
-**Última actualización**: 2026-01-27
-**Versión**: 1.0.0
+**Última actualización**: 2026-01-31
+**Versión**: 1.1.0 (añadidos scripts de comparación gpxpy vs app logic)
 **Autor**: ContraVento Team
