@@ -14,6 +14,11 @@ This guide provides instructions for validating the performance requirements of 
 - **SC-002**: GPX processing completes in <2s for 10MB files
 - **SC-001**: Full wizard completion takes <5 minutes
 
+**Tools Provided**:
+- ✅ `generate_xlarge_gpx.py` - Script to generate 10MB+ GPX files
+- ✅ `long_route_10mb.gpx` - Pre-generated 10.4MB test file (85,000 trackpoints)
+- ✅ Automated test commands with timing measurement
+
 ---
 
 ## T101: GPX Processing Performance Test
@@ -26,62 +31,61 @@ This guide provides instructions for validating the performance requirements of 
 2. Valid authentication token
 3. Test GPX file (10MB+)
 
-### Generate Large GPX File (Optional)
+### Generate Large GPX File
 
-If you don't have a 10MB GPX file, you can create one:
+Use the provided generator script to create a 10MB+ GPX file:
 
 ```bash
-cd backend/tests/fixtures
+cd backend/tests/fixtures/gpx
 
-# Option 1: Duplicate trackpoints in existing GPX
-python3 << 'PYTHON'
-import xml.etree.ElementTree as ET
+# Generate 10MB GPX file (85,000 trackpoints)
+python3 generate_xlarge_gpx.py
 
-# Read existing GPX
-tree = ET.parse('test-route.gpx')
-root = tree.getroot()
+# Output:
+# ✓ Generated long_route_10mb.gpx
+#   Size: 10,886,608 bytes (10.38 MB)
+#   Trackpoints: 85,000
+#   ✓ SUCCESS: File size ≥10 MB (required for T101)
 
-# Find trackpoints
-ns = {'gpx': 'http://www.topografix.com/GPX/1/1'}
-trkseg = root.find('.//gpx:trkseg', ns)
-trackpoints = list(trkseg.findall('gpx:trkpt', ns))
-
-# Duplicate trackpoints to reach 10MB (~50,000 points)
-target_points = 50000
-while len(list(trkseg)) < target_points:
-    for trkpt in trackpoints:
-        trkseg.append(trkpt)
-        if len(list(trkseg)) >= target_points:
-            break
-
-# Save
-tree.write('large-route.gpx', encoding='utf-8', xml_declaration=True)
-print(f"Created large-route.gpx with {len(list(trkseg))} trackpoints")
-PYTHON
-
-# Check file size
-ls -lh large-route.gpx
+# Verify file size
+ls -lh long_route_10mb.gpx
 ```
+
+**Note**: The file `long_route_10mb.gpx` is already included in the repository, but you can regenerate it if needed.
 
 ### Test Procedure
 
 ```bash
-# 1. Start backend
+# 1. Ensure backend is running
 ./run_backend.sh
+# Wait for "Application startup complete" message
 
 # 2. Get authentication token
-TOKEN=$(curl -X POST http://localhost:8000/auth/login \
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"AdminPass123!"}' \
   | jq -r '.access_token')
 
-# 3. Test GPX analysis with time measurement
+echo "Token obtained: ${TOKEN:0:20}..."
+
+# 3. Test GPX analysis with time measurement (10MB+ file)
+echo "Testing GPX analysis with 10.4MB file (85,000 trackpoints)..."
 time curl -X POST http://localhost:8000/gpx/analyze \
   -H "Authorization: Bearer $TOKEN" \
-  -F "file=@backend/tests/fixtures/large-route.gpx" \
-  -o /dev/null -s -w "%{time_total}s\n"
+  -F "file=@backend/tests/fixtures/gpx/long_route_10mb.gpx" \
+  -o /dev/null -s -w "Response time: %{time_total}s\n"
 
-# Expected: <2.000s
+# Expected: <2.000s for SC-002 compliance
+```
+
+**Alternative**: Use the convenience script included in the GPX file generator output:
+
+```bash
+# After running generate_xlarge_gpx.py, copy the test command from output:
+time curl -X POST http://localhost:8000/gpx/analyze \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@backend/tests/fixtures/gpx/long_route_10mb.gpx" \
+  -o /dev/null -s -w '%{time_total}s\n'
 ```
 
 ### Validation
@@ -98,17 +102,23 @@ time curl -X POST http://localhost:8000/gpx/analyze \
 
 If test fails (>2s), check:
 
-1. **File size**: Ensure file is actually 10MB+
+1. **File size**: Verify you're using the correct 10MB+ file
    ```bash
-   ls -lh backend/tests/fixtures/large-route.gpx
+   ls -lh backend/tests/fixtures/gpx/long_route_10mb.gpx
+   # Expected: ~10.4 MB (10,886,608 bytes)
+
+   # If file is missing or incorrect size, regenerate:
+   cd backend/tests/fixtures/gpx
+   python3 generate_xlarge_gpx.py
    ```
 
 2. **Server load**: Run test with no other processes
    ```bash
    top | grep python
+   # Should show only uvicorn/FastAPI process
    ```
 
-3. **RDP algorithm**: Check if RDP is being used for simplification
+3. **RDP algorithm**: Verify RDP simplification is enabled
    ```python
    # In backend/src/services/gpx_service.py
    from rdp import rdp
@@ -119,6 +129,15 @@ If test fails (>2s), check:
    ```bash
    # Enable SQL logging in backend/.env
    LOG_SQL=true
+
+   # Check for slow queries in logs
+   tail -f logs/app.log | grep "slow"
+   ```
+
+5. **Python version**: Ensure using Python 3.12+
+   ```bash
+   python3 --version
+   # Expected: Python 3.12.x
    ```
 
 ---
@@ -300,6 +319,76 @@ jobs:
 
 ---
 
+## GPX Generator Script Reference
+
+### generate_xlarge_gpx.py
+
+**Location**: `backend/tests/fixtures/gpx/generate_xlarge_gpx.py`
+
+**Features**:
+- Generates GPX files with configurable number of trackpoints
+- Creates realistic elevation profiles (8 mountain passes)
+- Simulates Trans Pyrenees route (Atlantic to Mediterranean)
+- Progress indicators during generation
+- Automatic file size validation
+- Interactive overwrite prompt
+
+**Default Configuration**:
+```python
+num_points = 85000      # 85,000 trackpoints
+file_size = ~10.4 MB    # Final size
+route = "Trans Pyrenees" # Simulated route
+elevation_range = 200m - 2800m
+```
+
+**Basic Usage**:
+```bash
+cd backend/tests/fixtures/gpx
+python3 generate_xlarge_gpx.py
+
+# Output will be: long_route_10mb.gpx
+```
+
+**Programmatic Usage** (custom point count):
+```python
+from pathlib import Path
+from generate_xlarge_gpx import generate_xlarge_gpx
+
+# Generate file with custom size
+output = Path("custom_route_15mb.gpx")
+generate_xlarge_gpx(output, num_points=120000)  # ~15 MB
+```
+
+**Comparison of Available Generators**:
+
+| Script | Points | Size | Use Case |
+|--------|--------|------|----------|
+| `generate_medium_gpx.py` | ~10,000 | ~1 MB | Basic functional tests |
+| `generate_large_gpx.py` | 40,000 | ~5 MB | Integration tests |
+| **`generate_xlarge_gpx.py`** | **85,000** | **~10.4 MB** | **Performance testing (SC-002)** |
+
+**Performance Data**:
+
+| Trackpoints | File Size | Generation Time | Analysis Time (target) |
+|-------------|-----------|-----------------|------------------------|
+| 10,000 | ~1 MB | <1s | <0.5s |
+| 40,000 | ~5 MB | ~3s | <1.0s |
+| 85,000 | ~10.4 MB | ~7s | <2.0s ✓ |
+| 120,000 | ~15 MB | ~12s | <3.0s |
+
+**Regeneration**:
+```bash
+# If file already exists, you'll be prompted:
+# ⚠ File already exists: long_route_10mb.gpx (10.38 MB)
+# Overwrite? (y/N): y
+
+# Or use non-interactive mode:
+yes y | python3 generate_xlarge_gpx.py
+```
+
+---
+
 **Date**: 2026-02-01
 **Feature**: 017-gps-trip-wizard
-**Status**: Performance tests documented
+**Status**: Performance tests documented with automated tooling
+**Last Updated**: 2026-02-01
