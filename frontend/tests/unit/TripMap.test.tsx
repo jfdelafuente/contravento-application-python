@@ -63,6 +63,16 @@ vi.mock('react-leaflet', () => ({
     (global as any).__mapEvents = events;
     return null;
   }),
+  LayersControl: Object.assign(
+    vi.fn(({ children }: any) => <div data-testid="layers-control">{children}</div>),
+    {
+      BaseLayer: vi.fn(({ children, checked, name }: any) => (
+        <div data-testid="base-layer" data-name={name} data-checked={checked}>
+          {children}
+        </div>
+      )),
+    }
+  ),
 }));
 
 // Mock Leaflet CSS import
