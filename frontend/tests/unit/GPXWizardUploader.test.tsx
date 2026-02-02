@@ -20,6 +20,37 @@ import { GPXWizardUploader } from '../../src/components/wizard/GPXWizardUploader
 // Mock CSS imports
 vi.mock('../../src/components/wizard/GPXWizardUploader.css', () => ({}));
 
+// Mock react-dropzone to make testing easier
+vi.mock('react-dropzone', () => ({
+  useDropzone: ({ onDrop, disabled }: any) => {
+    const [isDragActive, setIsDragActive] = React.useState(false);
+
+    return {
+      getRootProps: () => ({
+        onDragEnter: () => setIsDragActive(true),
+        onDragLeave: () => setIsDragActive(false),
+        onDrop: (e: any) => {
+          setIsDragActive(false);
+          const files = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : [];
+          onDrop(files);
+        },
+      }),
+      getInputProps: () => ({
+        type: 'file',
+        onChange: (e: any) => {
+          const files = e.target.files ? Array.from(e.target.files) : [];
+          onDrop(files);
+        },
+        disabled,
+      }),
+      isDragActive,
+    };
+  },
+}));
+
+// Import React after mock
+import React from 'react';
+
 describe('GPXWizardUploader (T037)', () => {
   const mockOnFileSelect = vi.fn();
   const mockOnFileRemove = vi.fn();
@@ -61,9 +92,9 @@ describe('GPXWizardUploader (T037)', () => {
         type: 'application/gpx+xml',
       });
 
-      render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       expect(mockOnFileSelect).toHaveBeenCalledWith(mockFile);
@@ -129,9 +160,9 @@ describe('GPXWizardUploader (T037)', () => {
         type: 'application/gpx+xml',
       });
 
-      render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [largeFile] } });
 
       // Should not call onFileSelect
@@ -146,9 +177,9 @@ describe('GPXWizardUploader (T037)', () => {
         type: 'application/pdf',
       });
 
-      render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [pdfFile] } });
 
       // Should not call onFileSelect
@@ -163,16 +194,16 @@ describe('GPXWizardUploader (T037)', () => {
         type: 'application/gpx+xml',
       });
 
-      render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />);
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       expect(mockOnFileSelect).toHaveBeenCalledWith(mockFile);
     });
 
     it('should clear previous error when valid file is selected', () => {
-      const { rerender } = render(
+      const { container } = render(
         <GPXWizardUploader onFileSelect={mockOnFileSelect} onFileRemove={mockOnFileRemove} />
       );
 
@@ -180,7 +211,7 @@ describe('GPXWizardUploader (T037)', () => {
       const invalidFile = new File(['content'], 'document.txt', {
         type: 'text/plain',
       });
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [invalidFile] } });
 
       expect(screen.getByText(/solo se aceptan archivos \.gpx/i)).toBeInTheDocument();
@@ -231,14 +262,13 @@ describe('GPXWizardUploader (T037)', () => {
 
       const dropzone = screen.getByLabelText(/arrastra tu archivo gpx/i);
 
-      // Simulate file drop
-      const dropEvent = new Event('drop', { bubbles: true });
-      Object.defineProperty(dropEvent, 'dataTransfer', {
-        value: {
+      // Simulate file drop with proper dataTransfer object for react-dropzone
+      fireEvent.drop(dropzone, {
+        dataTransfer: {
           files: [mockFile],
+          types: ['Files'],
         },
       });
-      fireEvent(dropzone, dropEvent);
 
       expect(mockOnFileSelect).toHaveBeenCalledWith(mockFile);
     });
@@ -258,7 +288,7 @@ describe('GPXWizardUploader (T037)', () => {
     });
 
     it('should disable file input when loading', () => {
-      render(
+      const { container } = render(
         <GPXWizardUploader
           onFileSelect={mockOnFileSelect}
           onFileRemove={mockOnFileRemove}
@@ -266,7 +296,7 @@ describe('GPXWizardUploader (T037)', () => {
         />
       );
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       expect(input).toBeDisabled();
     });
 
@@ -367,8 +397,9 @@ describe('GPXWizardUploader (T037)', () => {
         />
       );
 
-      const errorMessage = screen.getByText(/error al procesar el archivo gpx/i);
-      expect(errorMessage).toHaveAttribute('role', 'alert');
+      const errorContainer = screen.getByRole('alert');
+      expect(errorContainer).toBeInTheDocument();
+      expect(errorContainer).toHaveTextContent(/error al procesar el archivo gpx/i);
     });
 
     it('should support keyboard navigation for file selection', () => {
