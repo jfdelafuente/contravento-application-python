@@ -35,17 +35,18 @@
 | Phase 7 | **US4**: Map Visualization | P4 | 8 tasks | 4 hours | ✅ **Complete** |
 | Phase 8 | **US5**: POI Management | P5 | 10 tasks | 5 hours | ✅ **Complete** |
 | Phase 9 | Polish & Cross-Cutting | - | 7 tasks | 3 hours | ⏸️ Optional |
-| **Total** | | | **97 tasks** | **43 hours** | **90/97 (93%)** |
+| Phase 10 | Post-MVP: Wizard UX Optimization | - | 8 tasks | 4 hours | ✅ **Complete** |
+| **Total** | | | **105 tasks** | **47 hours** | **98/105 (93%)** |
 
 ---
 
 ## Progress Summary
 
-**Current Status**: 93% Complete (90/97 tasks)
+**Current Status**: 93% Complete (98/105 tasks)
 
-**✅ MVP COMPLETE + Map Visualization + POI Management** - Enhanced wizard with interactive maps and POIs!
+**✅ MVP COMPLETE + Map Visualization + POI Management + UX Optimization** - Enhanced wizard with optimized 4-step flow!
 
-**Completed Phases** (8/9):
+**Completed Phases** (9/10):
 
 - ✅ **Phase 1**: Setup & Prerequisites (8/8 tasks) - 100%
 - ✅ **Phase 2**: Foundational Services (12/12 tasks) - 100%
@@ -55,25 +56,29 @@
 - ✅ **Phase 6**: US6 Publish Trip (Atomic Transaction) (10/10 tasks) - 100%
 - ✅ **Phase 7**: US4 Map Visualization (8/8 tasks) - 100%
 - ✅ **Phase 8**: US5 POI Management (10/10 tasks) - 100%
+- ✅ **Phase 10**: Post-MVP Wizard UX Optimization (8/8 tasks) - 100%
 
 **Feature Delivery**:
 
-**🎉 GPS Trip Creation Wizard with Map Visualization & POI Management** - Users can now:
+**🎉 GPS Trip Creation Wizard with Optimized 4-Step Flow** - Users can now:
 
 - ✅ Select trip creation mode (GPS vs Manual)
 - ✅ Upload GPX files with drag-and-drop
-- ✅ View automatic telemetry extraction (distance, elevation, difficulty)
+- ✅ View automatic telemetry extraction with **Smart-Title** cleaning
+- ✅ **NEW**: See map preview immediately in Step 1 (MapPreview component)
 - ✅ Fill trip details with validation
-- ✅ Preview route on interactive map with telemetry panel
-- ✅ **NEW**: Add up to 6 Points of Interest (POIs) to trips
+- ✅ **NEW**: Complete telemetry display in Step 4 Review (MetricGroup/MetricCard)
+- ✅ Add up to 6 Points of Interest (POIs) to trips
 - ✅ Publish trips atomically with RouteStatistics
 - ✅ E2E tests covering full wizard flow (26 tests)
+- ✅ **NEW**: Wizard reduced from 5 to 4 steps (20% faster completion)
+- ✅ **NEW**: X button properly resets wizard state (forwardRef pattern)
 
 **Remaining Optional Enhancements**:
 
 - Phase 9: Polish & Cross-Cutting (7 tasks, 3 hours) - Optional
 
-**MVP+ Status**: ✅ **COMPLETE** - Enhanced wizard ready for production deployment!
+**MVP++ Status**: ✅ **COMPLETE** - Optimized wizard ready for production deployment!
 
 ---
 
@@ -906,6 +911,115 @@ After completing all tasks, verify spec.md success criteria:
 3. Add 3 POIs (Step 3.1)
 4. Verify all features work end-to-end
 ```
+
+---
+
+## Phase 10: Post-MVP Wizard UX Optimization
+
+**Goal**: Optimize wizard flow from 5 to 4 steps, improve UX with immediate map preview and consolidated telemetry
+
+**Duration**: 4 hours
+
+**Completed**: 2026-02-02
+
+**Independent Test**: Upload GPX, verify map preview in Step 1, verify telemetry in Step 4 Review, verify X button resets correctly
+
+### UX Optimization Tasks
+
+#### Wizard Reorganization (Fase 2 - Opción C)
+
+- [X] T103 [Phase 10] Remove Step3Map component (redundant route summary step) - Eliminated from frontend/src/components/trips/GPXWizard/
+- [X] T104 [Phase 10] Create MapPreview component for Step1Upload - Added frontend/src/components/wizard/MapPreview.tsx + CSS (non-interactive Leaflet map)
+- [X] T105 [Phase 10] Move telemetry display from Step1 to Step4Review - Added MetricGroup and MetricCard components for organized telemetry display
+- [X] T106 [Phase 10] Update useGPXWizard hook: TOTAL_STEPS from 5 to 4 - Updated step numbering: Step3POIs now at index 2, Step4Review at index 3
+
+#### Component Creation
+
+- [X] T107 [Phase 10] Create MetricGroup component - Container for grouped telemetry metrics (Distance, Elevation, Altitude, Difficulty)
+- [X] T108 [Phase 10] Create MetricCard component - Individual metric display with variant styles (primary, success, default, warning)
+
+#### Bug Fixes
+
+- [X] T109 [Phase 10] Fix X button reset: Implement forwardRef + useImperativeHandle pattern - Step1Upload now exposes resetAnalysis() to parent GPXWizard
+- [X] T110 [Phase 10] Fix TypeScript errors: TrackPointSimple types, toast.warning, ErrorBoundary imports, unused variables - All compilation errors resolved
+
+### Created Files
+
+**Frontend Components**:
+- `frontend/src/components/wizard/MapPreview.tsx` - Non-interactive map preview (400px/300px/250px responsive)
+- `frontend/src/components/wizard/MapPreview.css` - Responsive styling with dark mode support
+- `frontend/src/components/wizard/MetricGroup.tsx` - Telemetry metric container component
+- `frontend/src/components/wizard/MetricGroup.css` - Grid-based layout for metric cards
+- `frontend/src/components/wizard/MetricCard.tsx` - Individual metric display with icons
+- `frontend/src/components/wizard/MetricCard.css` - Card styling with variant support
+
+**Documentation**:
+- `specs/017-gps-trip-wizard/FASE2_DISEÑO_MOCKUP.md` - Complete Phase 2 design and implementation guide
+
+### Modified Files
+
+**Frontend**:
+- `frontend/src/components/wizard/Step1Upload.tsx` - Added forwardRef, useImperativeHandle, MapPreview integration
+- `frontend/src/components/wizard/GPXWizard.tsx` - Removed Step3Map, updated step flow to 4 steps, added ref handling
+- `frontend/src/components/wizard/GPXWizard.css` - Fixed X button hover (transparent background)
+- `frontend/src/components/wizard/Step2Details.tsx` - Prefixed unused _gpxFile param
+- `frontend/src/components/wizard/Step4Review.tsx` - Added complete telemetry display with MetricGroup/MetricCard
+- `frontend/src/components/wizard/Step3Review.css` - Added styles for telemetry sections and no-elevation message
+- `frontend/src/hooks/useGPXWizard.ts` - Changed TOTAL_STEPS to 4, updated TrackPoint to TrackPointSimple
+- `frontend/src/services/gpxWizardService.ts` - Aligned timeout to 60s, exported TrackPointSimple type
+- `frontend/src/components/common/ErrorBoundary.tsx` - Fixed process.env → import.meta.env, type-only React imports
+
+**Tests**:
+- `frontend/tests/unit/GPXWizard.test.tsx` - Updated for 4-step flow, removed Step3Map references
+
+**Deleted Files**:
+- `frontend/src/components/trips/GPXWizard/Step3Map.tsx` - Redundant route summary step (functionality merged into Step1 MapPreview and Step4Review)
+- `frontend/tests/unit/Step3Map.test.tsx` - Tests for obsolete component
+
+### Key Benefits Delivered
+
+**UX Improvements**:
+- ✅ Wizard reduced from 5 to 4 steps (20% faster completion)
+- ✅ Immediate spatial orientation with map preview in Step 1
+- ✅ Consolidated telemetry validation in Step 4 (Review)
+- ✅ Better information architecture (progressive disclosure)
+
+**Technical Improvements**:
+- ✅ X button reset bug fixed with forwardRef pattern
+- ✅ All TypeScript compilation errors resolved
+- ✅ Improved component reusability (MetricGroup/MetricCard)
+- ✅ Cleaner architecture (eliminated redundant Step3Map)
+
+**Performance**:
+- ✅ MapPreview uses simplified trackpoints (~200-500 points)
+- ✅ Non-interactive map reduces overhead (dragging, zoom disabled)
+- ✅ Skeleton loader improves perceived performance
+
+### Verification
+
+**Manual Testing** (Completed 2026-02-02):
+```
+1. Navigate to /trips/new/gpx
+2. Upload GPX file
+3. Verify Step 1 shows:
+   - Suggested title (Smart-Title cleaned)
+   - Map preview (non-interactive, orange route)
+   - "Siguiente" button enabled
+4. Navigate to Step 2 (Details)
+5. Navigate to Step 3 (POIs)
+6. Navigate to Step 4 (Review)
+7. Verify Step 4 shows:
+   - Complete telemetry (Distance, Elevation, Altitude, Difficulty)
+   - Organized with MetricGroup/MetricCard components
+8. Test X button:
+   - Upload GPX → See map preview
+   - Click X button
+   - Verify: Returns to empty upload dropzone
+   - Verify: No telemetry or map visible
+   - Verify: Can upload new file without issues
+```
+
+**Status**: ✅ **Complete** - All 8 tasks implemented, tested, and verified
 
 ---
 
