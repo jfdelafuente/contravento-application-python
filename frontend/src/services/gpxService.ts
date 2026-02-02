@@ -167,7 +167,7 @@ export async function uploadGPX(
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    timeout: 30000, // 30 seconds for GPX processing (files up to 10MB)
+    timeout: 60000, // 60 seconds for GPX processing (aligned with backend timeout)
   });
 
   return response.data.data;
@@ -185,7 +185,7 @@ export async function getGPXStatus(
   gpxFileId: string
 ): Promise<GPXStatusResponse> {
   const response = await api.get(`/gpx/${gpxFileId}/status`, {
-    timeout: 30000, // 30 seconds for status polling
+    timeout: 60000, // 60 seconds for status polling (aligned with backend timeout)
   });
   return response.data.data;
 }

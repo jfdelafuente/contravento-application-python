@@ -94,7 +94,7 @@ export const getPublicTrips = async (
  */
 export const getTripById = async (tripId: string): Promise<Trip> => {
   const response = await api.get<ApiResponse<Trip>>(`/trips/${tripId}`, {
-    timeout: 30000, // 30 seconds for trips with large GPX files and many trackpoints
+    timeout: 60000, // 60 seconds for trips with large GPX files and many trackpoints (aligned with backend)
   });
   return response.data.data;
 };
