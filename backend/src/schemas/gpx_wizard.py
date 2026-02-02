@@ -82,6 +82,13 @@ class GPXTelemetry(BaseModel):
         json_schema_extra={"example": "difficult"},
     )
 
+    suggested_title: str = Field(
+        ...,
+        max_length=200,
+        description="Auto-generated title from GPX filename (cleaned and formatted)",
+        json_schema_extra={"example": "Ruta Pirineos"},
+    )
+
     trackpoints: list[dict] | None = Field(
         None,
         description="Simplified trackpoints for map visualization in wizard (null for lightweight telemetry)",
@@ -108,6 +115,7 @@ class GPXTelemetry(BaseModel):
                 "start_date": "2024-06-01",
                 "end_date": "2024-06-05",
                 "difficulty": "difficult",
+                "suggested_title": "Ruta Pirineos",
                 "trackpoints": [
                     {
                         "latitude": 40.7128,
@@ -165,6 +173,7 @@ class GPXAnalysisResponse(BaseModel):
                     "min_elevation": 450.0,
                     "has_elevation": True,
                     "difficulty": "difficult",
+                    "suggested_title": "Ruta Pirineos",
                     "trackpoints": [
                         {
                             "latitude": 40.7128,

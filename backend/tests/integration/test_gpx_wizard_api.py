@@ -75,7 +75,7 @@ class TestGPXAnalyzeEndpoint:
         assert "difficulty" in telemetry
 
         # Assert data types and constraints
-        assert isinstance(telemetry["distance_km"], (int, float))
+        assert isinstance(telemetry["distance_km"], int | float)
         assert telemetry["distance_km"] >= 0
 
         assert isinstance(telemetry["has_elevation"], bool)
@@ -83,8 +83,8 @@ class TestGPXAnalyzeEndpoint:
         if telemetry["has_elevation"]:
             assert telemetry["elevation_gain"] is not None
             assert telemetry["elevation_loss"] is not None
-            assert isinstance(telemetry["elevation_gain"], (int, float))
-            assert isinstance(telemetry["elevation_loss"], (int, float))
+            assert isinstance(telemetry["elevation_gain"], int | float)
+            assert isinstance(telemetry["elevation_loss"], int | float)
             assert telemetry["elevation_gain"] >= 0
             assert telemetry["elevation_loss"] >= 0
 

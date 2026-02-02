@@ -16,8 +16,6 @@ from pathlib import Path
 from typing import BinaryIO
 
 import aiofiles
-from PIL import Image
-
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -26,7 +24,7 @@ from src.config import settings
 from src.models.poi import PointOfInterest
 from src.models.trip import Trip
 from src.schemas.poi import POICreateInput, POITypeEnum, POIUpdateInput
-from src.utils.file_storage import ALLOWED_PHOTO_TYPES, validate_photo
+from src.utils.file_storage import validate_photo
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +73,7 @@ class POIService:
             PermissionError: If user is not trip owner
         """
         # Verify trip exists and user is owner
-        trip = await self._get_trip_with_ownership_check(trip_id, user_id)
+        await self._get_trip_with_ownership_check(trip_id, user_id)
 
         # FR-029: POIs can be added to trips by their owners
         # - PUBLISHED trips: Normal flow (trip is public)

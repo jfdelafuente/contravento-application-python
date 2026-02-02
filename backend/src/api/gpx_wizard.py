@@ -21,7 +21,7 @@ from src.models.trip import TripStatus
 from src.models.user import User
 from src.schemas.gpx_wizard import GPXAnalysisResponse, GPXTelemetry
 from src.schemas.trip import TripCreateRequest
-from src.services.gpx_service import GPXService
+from src.services.gpx_service import GPXService, clean_filename_for_title
 from src.services.trip_service import TripService
 
 logger = logging.getLogger(__name__)
@@ -180,6 +180,9 @@ async def analyze_gpx_file(
             file_content, include_trackpoints=True
         )
 
+        # Generate suggested title from filename using smart cleaning
+        suggested_title = clean_filename_for_title(file.filename or "nueva_ruta.gpx")
+
         # Convert to GPXTelemetry schema
         telemetry = GPXTelemetry(
             distance_km=telemetry_data["distance_km"],
@@ -192,6 +195,7 @@ async def analyze_gpx_file(
             start_date=telemetry_data["start_date"],
             end_date=telemetry_data["end_date"],
             difficulty=telemetry_data["difficulty"],
+            suggested_title=suggested_title,
             trackpoints=telemetry_data["trackpoints"],
         )
 

@@ -39,7 +39,9 @@ def generate_xlarge_gpx(output_path: Path, num_points: int = 80000):
         )
         f.write("  <metadata>\n")
         f.write("    <name>Extra Large Test Route - 10MB+</name>\n")
-        f.write(f"    <desc>Performance test file with {num_points:,} trackpoints for SC-002 validation</desc>\n")
+        f.write(
+            f"    <desc>Performance test file with {num_points:,} trackpoints for SC-002 validation</desc>\n"
+        )
         f.write("    <author>\n")
         f.write("      <name>ContraVento Test Suite</name>\n")
         f.write("    </author>\n")
@@ -127,9 +129,9 @@ def generate_xlarge_gpx(output_path: Path, num_points: int = 80000):
     print(f"  Trackpoints: {num_points:,}")
 
     if size_mb >= 10.0:
-        print(f"  ✓ SUCCESS: File size ≥10 MB (required for T101)")
+        print("  ✓ SUCCESS: File size ≥10 MB (required for T101)")
     else:
-        print(f"  ⚠ WARNING: File size <10 MB (may need more trackpoints)")
+        print("  ⚠ WARNING: File size <10 MB (may need more trackpoints)")
 
     return file_size
 
@@ -162,10 +164,10 @@ if __name__ == "__main__":
     print("=" * 60)
     print("Next Steps:")
     print("  1. Test GPX processing time:")
-    print(f"     time curl -X POST http://localhost:8000/gpx/analyze \\")
-    print(f"       -H 'Authorization: Bearer $TOKEN' \\")
+    print("     time curl -X POST http://localhost:8000/gpx/analyze \\")
+    print("       -H 'Authorization: Bearer $TOKEN' \\")
     print(f"       -F 'file=@{output_file}' \\")
-    print(f"       -o /dev/null -s -w '%{{time_total}}s\\n'")
+    print("       -o /dev/null -s -w '%{time_total}s\\n'")
     print()
     print("  2. Expected result: <2.000s (SC-002)")
     print("=" * 60)

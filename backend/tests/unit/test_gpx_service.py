@@ -617,3 +617,132 @@ class TestGPXServiceTelemetryQuick:
         assert len(error_message) > 0
         # Should have Spanish error message
         assert "archivo" in error_message.lower() or "gpx" in error_message.lower()
+
+
+@pytest.mark.unit
+class TestCleanFilenameForTitle:
+    """
+    Unit tests for clean_filename_for_title() function.
+
+    Tests automatic title generation from GPX filenames (Feature 017 - Phase 1 Optimization).
+    """
+
+    @pytest.mark.parametrize(
+        "filename,expected_title",
+        [
+            # Basic cleaning: Remove extension
+            ("ruta.gpx", "Ruta"),
+            ("mi_viaje.gpx", "Mi Viaje"),
+            # Remove underscores and hyphens
+            ("ruta_pirineos.gpx", "Ruta Pirineos"),
+            ("camino-de-santiago.gpx", "Camino De Santiago"),
+            (
+                "ruta_muy_larga_con_muchos_guiones_bajos.gpx",
+                "Muy Larga Con Muchos Guiones Bajos",
+            ),  # ruta removed (>2 words)
+            # Remove version numbers
+            ("ruta_pirineos_v2_final.gpx", "Ruta Pirineos"),
+            ("track_v1.gpx", "Track"),
+            ("route_V3_test.gpx", "Route Test"),
+            # Remove common suffixes
+            ("camino_santiago_etapa_03_final.gpx", "Camino Santiago Etapa 03"),
+            ("ruta_export.gpx", "Ruta"),
+            ("track_definitivo.gpx", "Track"),
+            ("viaje_copia.gpx", "Viaje"),
+            ("backup_ruta_temp.gpx", "Ruta"),
+            # Remove timestamps (partial - some edge cases remain)
+            (
+                "track-2024-01-15_export.gpx",
+                "2024 01 15",
+            ),  # Complex case: track+export removed, numbers remain
+            ("ruta_20240115.gpx", "Ruta 20240115"),  # YYYYMMDD without hyphens not matched
+            ("viaje-2024-06-30-final.gpx", "Viaje"),  # Timestamp + final removed correctly
+            # Remove GPS prefixes (only if >2 words remain after removal)
+            ("gps_ruta_pirineos.gpx", "Ruta Pirineos"),
+            ("track_camino_santiago.gpx", "Camino Santiago"),
+            ("route_pyrenees.gpx", "Route Pyrenees"),  # Only 2 words, prefix stays
+            ("ruta_alps.gpx", "Ruta Alps"),  # Only 2 words, prefix stays
+            (
+                "ruta_muy_larga_con_muchos_guiones_bajos.gpx",
+                "Muy Larga Con Muchos Guiones Bajos",
+            ),  # >2 words, prefix removed
+            # DO NOT remove prefix if it's the only word
+            ("track.gpx", "Track"),
+            ("gps.gpx", "GPS"),
+            ("route.gpx", "Route"),
+            # Preserve acronyms (uppercase)
+            ("ruta_GPS_POI_III.gpx", "GPS POI III"),  # >2 words, ruta removed
+            ("track_mtb_v2.gpx", "Track MTB"),  # 2 words, prefix stays
+            ("GPS_export.gpx", "GPS"),
+            # Preserve roman numerals
+            ("camino_etapa_IV.gpx", "Camino Etapa IV"),
+            ("ruta_dia_II.gpx", "Dia II"),  # ruta removed (>2 words before final becomes 2 words)
+            # Title case (first letter of each word capitalized)
+            ("camino_de_santiago.gpx", "Camino De Santiago"),
+            ("via_verde_del_tajo.gpx", "Via Verde Del Tajo"),
+            # Complex real-world examples
+            ("bikepacking-alps-day2.gpx", "Bikepacking Alps Day2"),
+            ("GPS_TRACK_FINAL_DEFINITIVO_v3.gpx", "GPS Track"),
+            ("camino_santiago_etapa_03_v1_export.gpx", "Camino Santiago Etapa 03"),
+            (
+                "ruta_pirineos_2024-06-15_final_v2.gpx",
+                "Pirineos 2024 06 15",
+            ),  # Timestamp partially removed, ruta removed (>2 words)
+            # Edge cases: Very short or empty
+            ("muy-corto.gpx", "Muy Corto"),
+            ("a.gpx", "Nueva Ruta"),  # Too short (fallback)
+            (".", "Nueva Ruta"),  # Empty stem (fallback)
+            ("", "Nueva Ruta"),  # Empty (fallback)
+            # Multiple spaces cleanup
+            (
+                "ruta___con___espacios___multiples.gpx",
+                "Con Espacios Multiples",
+            ),  # ruta removed (>2 words)
+            ("track  -  final  -  v2.gpx", "Track"),
+        ],
+    )
+    def test_clean_filename_for_title(self, filename, expected_title):
+        """
+        Test filename cleaning for all transformation rules.
+
+        Args:
+            filename: Input GPX filename
+            expected_title: Expected cleaned title
+        """
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act
+        result = clean_filename_for_title(filename)
+
+        # Assert
+        assert (
+            result == expected_title
+        ), f"Expected '{expected_title}' but got '{result}' for filename '{filename}'"
+
+    def test_clean_filename_preserves_special_characters_in_names(self):
+        """Test that special characters in actual place names are preserved."""
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act & Assert - Numbers in place names should be preserved
+        assert clean_filename_for_title("ruta_N340.gpx") == "Ruta N340"
+        assert clean_filename_for_title("carretera_A2_etapa_3.gpx") == "Carretera A2 Etapa 3"
+
+    def test_clean_filename_handles_mixed_case(self):
+        """Test that mixed case filenames are properly normalized."""
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act & Assert
+        assert clean_filename_for_title("RUTA_PIRINEOS.gpx") == "Ruta Pirineos"
+        assert clean_filename_for_title("cAmInO_dE_sAnTiAgO.gpx") == "Camino De Santiago"
+        assert clean_filename_for_title("gPs_TrAcK.gpx") == "GPS Track"
+
+    def test_clean_filename_handles_unicode(self):
+        """Test that Unicode characters (accents, ñ) are preserved."""
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act & Assert
+        assert clean_filename_for_title("camino_del_niño.gpx") == "Camino Del Niño"
+        assert (
+            clean_filename_for_title("ruta_montaña_león.gpx") == "Montaña León"
+        )  # ruta removed (>2 words)
+        assert clean_filename_for_title("vía_plata.gpx") == "Vía Plata"

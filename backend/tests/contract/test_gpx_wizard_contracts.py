@@ -101,18 +101,18 @@ class TestGPXAnalyzeContract:
         assert "difficulty" in telemetry
 
         # Validate field types
-        assert isinstance(telemetry["distance_km"], (int, float))
+        assert isinstance(telemetry["distance_km"], int | float)
         assert telemetry["elevation_gain"] is None or isinstance(
-            telemetry["elevation_gain"], (int, float)
+            telemetry["elevation_gain"], int | float
         )
         assert telemetry["elevation_loss"] is None or isinstance(
-            telemetry["elevation_loss"], (int, float)
+            telemetry["elevation_loss"], int | float
         )
         assert telemetry["max_elevation"] is None or isinstance(
-            telemetry["max_elevation"], (int, float)
+            telemetry["max_elevation"], int | float
         )
         assert telemetry["min_elevation"] is None or isinstance(
-            telemetry["min_elevation"], (int, float)
+            telemetry["min_elevation"], int | float
         )
         assert isinstance(telemetry["has_elevation"], bool)
         assert isinstance(telemetry["difficulty"], str)

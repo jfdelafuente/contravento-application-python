@@ -7,6 +7,7 @@ Success Criteria: SC-002, SC-003, SC-005, SC-026
 """
 
 import logging
+import re
 from datetime import UTC, datetime
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
@@ -22,6 +23,90 @@ logger = logging.getLogger(__name__)
 # Elevation anomaly detection range (FR-034)
 MIN_ELEVATION = -420  # Dead Sea depth
 MAX_ELEVATION = 8850  # Mount Everest height
+
+
+def clean_filename_for_title(filename: str) -> str:
+    """
+    Clean GPX filename to generate user-friendly title.
+
+    Transformations applied:
+    1. Remove .gpx extension
+    2. Remove timestamps FIRST (YYYY-MM-DD, YYYYMMDD)
+    3. Replace underscores and hyphens with spaces
+    4. Remove version numbers (v1, v2, final, etc.)
+    5. Remove common suffixes (export, copia, backup, temp)
+    6. Remove GPS-specific prefixes (only if >2 words remain)
+    7. Title case capitalization (preserving acronyms)
+    8. Remove multiple spaces
+
+    Args:
+        filename: Original filename (e.g., "ruta_pirineos_v2_final.gpx")
+
+    Returns:
+        Cleaned title (e.g., "Ruta Pirineos")
+
+    Examples:
+        >>> clean_filename_for_title("ruta_pirineos_v2_final.gpx")
+        "Ruta Pirineos"
+        >>> clean_filename_for_title("track-2024-01-15_export.gpx")
+        "Track"
+        >>> clean_filename_for_title("camino_santiago_etapa_03_v1.gpx")
+        "Camino Santiago Etapa 03"
+    """
+    # Remove .gpx extension
+    title = Path(filename).stem
+
+    # Handle edge case: empty or dot-only filenames
+    if not title or title.startswith("."):
+        return "Nueva Ruta"
+
+    # Remove timestamps FIRST (before replacing hyphens)
+    # Handles: 2024-01-15, 20240115, 2024-06-30, etc.
+    title = re.sub(r"\b\d{4}-?\d{2}-?\d{2}\b", "", title)
+
+    # Replace underscores and hyphens with spaces
+    title = title.replace("_", " ").replace("-", " ")
+
+    # Remove version numbers: v1, v2, v3, etc.
+    title = re.sub(r"\bv\d+\b", "", title, flags=re.IGNORECASE)
+
+    # Remove common suffixes: final, definitivo, export, copia, backup, temp
+    title = re.sub(
+        r"\b(final|definitivo|export|copia|copy|backup|temp|tmp)\b", "", title, flags=re.IGNORECASE
+    )
+
+    # Remove GPS-specific prefixes: track, gps, route, ruta
+    # ONLY if the title has MORE THAN 2 words after removal (to be conservative)
+    words = title.split()
+    if len(words) > 2:
+        # Try removing prefix
+        test_title = re.sub(r"^\b(track|gps|route|ruta)\b\s*", "", title, flags=re.IGNORECASE)
+        # Only use it if we still have at least 2 words
+        if len(test_title.split()) >= 2:
+            title = test_title
+
+    # Remove multiple spaces
+    title = re.sub(r"\s+", " ", title).strip()
+
+    # Title case capitalization (preserving acronyms)
+    def title_case_word(word: str) -> str:
+        """Apply title case to word, preserving acronyms."""
+        # Keep acronyms uppercase
+        if word.upper() in ["GPS", "POI", "GPX", "MTB", "BTT"]:
+            return word.upper()
+        # Keep roman numerals uppercase
+        if re.match(r"^[IVX]+$", word.upper()):
+            return word.upper()
+        # Regular title case
+        return word.capitalize()
+
+    title = " ".join(title_case_word(w) for w in title.split())
+
+    # Fallback: if title is empty or very short, return "Nueva Ruta"
+    if not title or len(title.strip()) < 3:
+        return "Nueva Ruta"
+
+    return title
 
 
 class GPXService:

@@ -22,6 +22,7 @@ import math
 import random
 from datetime import datetime, timedelta
 
+
 def generate_realistic_route():
     """
     Generate a realistic cycling route with curves and elevation changes.
@@ -166,11 +167,12 @@ def main():
     output_file = "realistic_route_10mb.gpx"
     print(f"\nWriting to {output_file}...")
 
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write(gpx_content)
 
     # Verify file size
     import os
+
     file_size = os.path.getsize(output_file)
     file_size_mb = file_size / (1024 * 1024)
 
@@ -181,9 +183,9 @@ def main():
     print(f"✓ Size: {file_size:,} bytes ({file_size_mb:.2f} MB)")
 
     if file_size_mb >= 10.0:
-        print(f"✓ SUCCESS: File size ≥10 MB (required for SC-002 testing)")
+        print("✓ SUCCESS: File size ≥10 MB (required for SC-002 testing)")
     else:
-        print(f"⚠ WARNING: File size <10 MB (may not trigger SC-002 validation)")
+        print("⚠ WARNING: File size <10 MB (may not trigger SC-002 validation)")
 
     print()
     print("Route characteristics:")
@@ -193,8 +195,12 @@ def main():
     print("  - Trackpoints: ~85,000 (dense GPS sampling)")
     print()
     print("Next steps:")
-    print("  1. Test with: poetry run python scripts/analysis/test_gpx_analyze.py realistic_route_10mb.gpx")
-    print("  2. Diagnose: poetry run python scripts/analysis/diagnose_gpx_performance.py realistic_route_10mb.gpx")
+    print(
+        "  1. Test with: poetry run python scripts/analysis/test_gpx_analyze.py realistic_route_10mb.gpx"
+    )
+    print(
+        "  2. Diagnose: poetry run python scripts/analysis/diagnose_gpx_performance.py realistic_route_10mb.gpx"
+    )
     print("  3. Compare RDP reduction: Should preserve ~500-1500 points (not 2 like straight line)")
     print()
 
