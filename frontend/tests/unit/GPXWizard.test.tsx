@@ -84,16 +84,6 @@ vi.mock('../../src/components/wizard/Step2Details', () => ({
   ),
 }));
 
-vi.mock('../../src/components/trips/GPXWizard/Step3Map', () => ({
-  Step3Map: ({ onBack, onNext }: any) => (
-    <div data-testid="step3-map">
-      <h2>Mapa</h2>
-      <button onClick={onBack}>Anterior</button>
-      <button onClick={onNext}>Siguiente</button>
-    </div>
-  ),
-}));
-
 vi.mock('../../src/components/wizard/Step3POIs', () => ({
   Step3POIs: ({ onNext, onPrevious }: any) => (
     <div data-testid="step3-pois">
@@ -246,15 +236,11 @@ describe('GPXWizard (T040)', () => {
       await waitFor(() => expect(screen.getByTestId('step2-details')).toBeInTheDocument());
       fireEvent.click(screen.getByText('Siguiente'));
 
-      // Step 3: Map
-      await waitFor(() => expect(screen.getByTestId('step3-map')).toBeInTheDocument());
-      fireEvent.click(screen.getByText('Siguiente'));
-
-      // Step 4: POIs
+      // Step 3: POIs
       await waitFor(() => expect(screen.getByTestId('step3-pois')).toBeInTheDocument());
       fireEvent.click(screen.getByText('Siguiente'));
 
-      // Step 5: Review
+      // Step 4: Review
       await waitFor(() => expect(screen.getByTestId('step4-review')).toBeInTheDocument());
     });
 
@@ -323,9 +309,6 @@ describe('GPXWizard (T040)', () => {
       await waitFor(() => expect(screen.getByTestId('step2-details')).toBeInTheDocument());
 
       fireEvent.click(screen.getByText('Siguiente'));
-      await waitFor(() => expect(screen.getByTestId('step3-map')).toBeInTheDocument());
-
-      fireEvent.click(screen.getByText('Siguiente'));
       await waitFor(() => expect(screen.getByTestId('step3-pois')).toBeInTheDocument());
 
       fireEvent.click(screen.getByText('Siguiente'));
@@ -341,9 +324,6 @@ describe('GPXWizard (T040)', () => {
       // Navigate through all steps
       fireEvent.click(screen.getByText('Mock Upload'));
       await waitFor(() => expect(screen.getByTestId('step2-details')).toBeInTheDocument());
-
-      fireEvent.click(screen.getByText('Siguiente'));
-      await waitFor(() => expect(screen.getByTestId('step3-map')).toBeInTheDocument());
 
       fireEvent.click(screen.getByText('Siguiente'));
       await waitFor(() => expect(screen.getByTestId('step3-pois')).toBeInTheDocument());

@@ -37,6 +37,7 @@ export interface GPXTelemetry {
   start_date: string | null;
   end_date: string | null;
   difficulty: TripDifficulty;
+  suggested_title: string;
   trackpoints: TrackPointSimple[] | null;
 }
 
@@ -162,8 +163,8 @@ export async function analyzeGPXFile(file: File): Promise<GPXTelemetry> {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      // Timeout after 30 seconds (backend has 60s timeout)
-      timeout: 30000,
+      // Timeout after 60 seconds (aligned with backend timeout)
+      timeout: 60000,
     });
 
     // Check if response indicates success

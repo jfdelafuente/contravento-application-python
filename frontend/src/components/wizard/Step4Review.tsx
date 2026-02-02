@@ -24,7 +24,9 @@
  */
 
 import React from 'react';
-import { DifficultyBadge } from '../trips/DifficultyBadge';
+import { MetricGroup } from './MetricGroup';
+import { MetricCard } from './MetricCard';
+import { formatDifficulty } from '../../services/gpxWizardService';
 import { POI_TYPE_EMOJI, POI_TYPE_LABELS } from '../../types/poi';
 import type { GPXTelemetry } from '../../services/gpxWizardService';
 import type { TripDetailsFormData } from '../../schemas/tripDetailsSchema';
@@ -168,7 +170,7 @@ export const Step4Review: React.FC<Step4ReviewProps> = ({
           </div>
         </section>
 
-        {/* GPX File Section */}
+        {/* GPX File Info Section */}
         <section className="step3-review__section">
           <h3 className="step3-review__section-title">Archivo GPX</h3>
 
@@ -176,46 +178,76 @@ export const Step4Review: React.FC<Step4ReviewProps> = ({
             <span className="step3-review__label">Archivo:</span>
             <span className="step3-review__value">{gpxFile.name}</span>
           </div>
+        </section>
 
-          <div className="step3-review__field">
-            <span className="step3-review__label">Distancia:</span>
-            <span className="step3-review__value">{telemetry.distance_km} km</span>
-          </div>
+        {/* Telemetry Section - Complete Metrics (Phase 2 - Option C) */}
+        <section className="step3-review__section step3-review__section--full-width">
+          <h3 className="step3-review__section-title">Telemetría del Recorrido</h3>
 
-          {telemetry.has_elevation && telemetry.elevation_gain !== null && (
-            <div className="step3-review__field">
-              <span className="step3-review__label">Desnivel positivo:</span>
-              <span className="step3-review__value">{telemetry.elevation_gain} m</span>
-            </div>
+          {/* Group 1: Distancia */}
+          <MetricGroup title="Distancia">
+            <MetricCard
+              label="Distancia Total"
+              value={`${telemetry.distance_km.toFixed(1)} km`}
+              variant="primary"
+              size="large"
+            />
+          </MetricGroup>
+
+          {/* Group 2: Desnivel (if elevation data available) */}
+          {telemetry.has_elevation && (
+            <MetricGroup title="Desnivel">
+              <MetricCard
+                label="Desnivel Positivo (+)"
+                value={telemetry.elevation_gain !== null ? `${telemetry.elevation_gain} m` : 'N/A'}
+                variant="success"
+              />
+              <MetricCard
+                label="Desnivel Negativo (-)"
+                value={telemetry.elevation_loss !== null ? `${telemetry.elevation_loss} m` : 'N/A'}
+              />
+            </MetricGroup>
           )}
 
-          {telemetry.has_elevation && telemetry.elevation_loss !== null && (
-            <div className="step3-review__field">
-              <span className="step3-review__label">Desnivel negativo:</span>
-              <span className="step3-review__value">{telemetry.elevation_loss} m</span>
-            </div>
+          {/* Group 3: Altitudes (if elevation data available) */}
+          {telemetry.has_elevation && (
+            <MetricGroup title="Altitudes">
+              <MetricCard
+                label="Altitud Máxima"
+                value={telemetry.max_elevation !== null ? `${telemetry.max_elevation} m` : 'N/A'}
+              />
+              <MetricCard
+                label="Altitud Mínima"
+                value={telemetry.min_elevation !== null ? `${telemetry.min_elevation} m` : 'N/A'}
+              />
+            </MetricGroup>
           )}
 
-          {telemetry.has_elevation && telemetry.max_elevation !== null && (
-            <div className="step3-review__field">
-              <span className="step3-review__label">Altitud máxima:</span>
-              <span className="step3-review__value">{telemetry.max_elevation} m</span>
+          {/* Group 4: Dificultad */}
+          <MetricGroup title="Dificultad">
+            <MetricCard
+              label="Nivel de Dificultad"
+              value={formatDifficulty(telemetry.difficulty)}
+              size="large"
+              variant={
+                telemetry.difficulty === 'easy'
+                  ? 'success'
+                  : telemetry.difficulty === 'moderate'
+                  ? 'default'
+                  : 'warning'
+              }
+            />
+          </MetricGroup>
+
+          {/* No elevation data message */}
+          {!telemetry.has_elevation && (
+            <div className="step3-review__no-elevation">
+              <p>
+                ℹ️ Este archivo GPX no contiene datos de elevación. Solo se mostrará la
+                distancia.
+              </p>
             </div>
           )}
-
-          {telemetry.has_elevation && telemetry.min_elevation !== null && (
-            <div className="step3-review__field">
-              <span className="step3-review__label">Altitud mínima:</span>
-              <span className="step3-review__value">{telemetry.min_elevation} m</span>
-            </div>
-          )}
-
-          <div className="step3-review__field">
-            <span className="step3-review__label">Dificultad:</span>
-            <span className="step3-review__value">
-              <DifficultyBadge difficulty={telemetry.difficulty} />
-            </span>
-          </div>
         </section>
 
         {/* POI Section (NEW) */}

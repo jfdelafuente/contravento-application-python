@@ -39,17 +39,16 @@
 import { useState, useCallback } from 'react';
 import type { GPXTelemetry } from '../services/gpxWizardService';
 import type { POICreateInput } from '../types/poi';
-import type { TrackPoint } from '../types/gpx';
+import type { TrackPointSimple } from '../services/gpxWizardService';
 
 /**
- * Total number of wizard steps
- * Step 0: GPX Upload & Analysis
+ * Total number of wizard steps (Phase 2 - Option C)
+ * Step 0: GPX Upload & Analysis + Map Preview
  * Step 1: Trip Details
- * Step 2: Map Visualization (Phase 7 - US4)
- * Step 3: POI Management (Phase 8 - US5) - NEW
- * Step 4: Review & Publish
+ * Step 2: POI Management (Phase 8 - US5)
+ * Step 3: Review & Publish (with complete telemetry)
  */
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 /**
  * Return type for useGPXWizard hook
@@ -68,7 +67,7 @@ export interface UseGPXWizardReturn {
   telemetryData: GPXTelemetry | null;
 
   /** GPX track points for map visualization (null if not analyzed) */
-  gpxTrackpoints: TrackPoint[] | null;
+  gpxTrackpoints: TrackPointSimple[] | null;
 
   /** POIs to create with trip (Phase 8 - US5) */
   pois: POICreateInput[];
@@ -101,7 +100,7 @@ export interface UseGPXWizardReturn {
   setTelemetryData: (data: GPXTelemetry | null) => void;
 
   /** Set GPX trackpoints for map visualization */
-  setGPXTrackpoints: (trackpoints: TrackPoint[] | null) => void;
+  setGPXTrackpoints: (trackpoints: TrackPointSimple[] | null) => void;
 
   /** Set POIs from Step 3 (Phase 8 - US5) */
   setPOIs: (pois: POICreateInput[]) => void;
@@ -122,7 +121,7 @@ export function useGPXWizard(): UseGPXWizardReturn {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [telemetryData, setTelemetryData] = useState<GPXTelemetry | null>(null);
-  const [gpxTrackpoints, setGPXTrackpoints] = useState<TrackPoint[] | null>(null);
+  const [gpxTrackpoints, setGPXTrackpoints] = useState<TrackPointSimple[] | null>(null);
   const [pois, setPOIs] = useState<POICreateInput[]>([]);
 
   /**

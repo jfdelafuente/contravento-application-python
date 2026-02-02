@@ -8,7 +8,7 @@
  * Task: T095
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import './ErrorBoundary.css';
 
 interface ErrorBoundaryProps {
@@ -71,7 +71,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
    */
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       console.error('🔴 [ErrorBoundary] Caught error:', error);
       console.error('📍 [ErrorBoundary] Component stack:', errorInfo.componentStack);
     }
@@ -122,7 +122,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               Ha ocurrido un error inesperado en el asistente de creación de viajes.
             </p>
 
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.MODE === 'development' && (
               <details className="error-boundary__details">
                 <summary>Detalles técnicos</summary>
                 <pre className="error-boundary__error-message">

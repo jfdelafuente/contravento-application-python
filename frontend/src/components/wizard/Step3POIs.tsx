@@ -300,9 +300,14 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
           className={`step3-pois__add-button ${
             pois.length >= MAX_POIS ? 'step3-pois__add-button--disabled' : ''
           }`}
+          title={
+            pois.length >= MAX_POIS
+              ? 'Máximo 6 POIs en el wizard (hasta 20 tras publicar)'
+              : 'Añadir punto de interés'
+          }
           aria-label={
             pois.length >= MAX_POIS
-              ? `Límite alcanzado: ${pois.length} de ${MAX_POIS} POIs`
+              ? `Límite alcanzado: ${pois.length} de ${MAX_POIS} POIs. Podrás añadir hasta 20 tras publicar`
               : `Añadir punto de interés (${pois.length} de ${MAX_POIS})`
           }
         >

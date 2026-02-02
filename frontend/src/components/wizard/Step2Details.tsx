@@ -68,7 +68,7 @@ export interface Step2DetailsProps {
  * @param props - Component props
  */
 export const Step2Details: React.FC<Step2DetailsProps> = ({
-  gpxFile,
+  gpxFile: _gpxFile,
   telemetry,
   onNext,
   onPrevious,
@@ -79,8 +79,8 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
 
-  // Extract title from GPX filename (remove .gpx extension)
-  const defaultTitle = gpxFile.name.replace(/\.gpx$/i, '');
+  // Use Smart-Title from backend (cleaned and formatted)
+  const defaultTitle = telemetry.suggested_title;
 
   const {
     register,

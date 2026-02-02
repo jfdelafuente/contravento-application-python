@@ -25,11 +25,11 @@
  * ```
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useGPXWizard } from '../../hooks/useGPXWizard';
-import { Step1Upload } from './Step1Upload';
+import { Step1Upload, type Step1UploadHandle } from './Step1Upload';
 import { Step2Details } from './Step2Details';
-import { Step3Map } from '../trips/GPXWizard/Step3Map';
 import { Step3POIs } from './Step3POIs';
 import { Step4Review } from './Step4Review';
 import { createTripWithGPX } from '../../services/tripService';
@@ -72,14 +72,13 @@ export interface GPXWizardProps {
  * GPS Trip Creation Wizard Container
  *
  * Multi-step wizard for creating trips from GPX files.
- * Handles file upload, analysis, trip details, map visualization, POI management, and review.
+ * Handles file upload, analysis, trip details, POI management, and review.
  *
- * Steps:
- * 0. GPX Upload & Analysis
+ * Steps (Phase 2 - Option C):
+ * 0. GPX Upload & Analysis + Map Preview
  * 1. Trip Details
- * 2. Map Visualization (Phase 7 - US4)
- * 3. POI Management (Phase 8 - US5) - NEW
- * 4. Review & Publish
+ * 2. POI Management (Phase 8 - US5)
+ * 3. Review & Publish (with complete telemetry)
  *
  * @param props - Component props
  */
@@ -102,9 +101,11 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     resetWizard,
   } = useGPXWizard();
 
+  const step1Ref = useRef<Step1UploadHandle>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [tripDetails, setTripDetails] = useState<TripDetailsFormData | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishProgress, setPublishProgress] = useState<string | null>(null);
 
   /**
    * Handle Step 1 completion.
@@ -165,9 +166,13 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
 
   /**
    * Handle file removal.
-   * Clear file, telemetry data, and trackpoints.
+   * Clear file, telemetry data, trackpoints, and reset Step1 hook state.
    */
   const handleFileRemove = useCallback(() => {
+    // Reset Step1Upload hook state (telemetry, error, loading)
+    step1Ref.current?.resetAnalysis();
+
+    // Clear wizard state
     setSelectedFile(null);
     setTelemetryData(null);
     setGPXTrackpoints(null);
@@ -216,6 +221,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
     }
 
     setIsPublishing(true);
+    setPublishProgress('Creando viaje...');
 
     try {
       // Step 1: Create trip with GPX file
@@ -232,8 +238,12 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
         console.log(`🔄 [GPXWizard] Creating ${pois.length} POIs for trip ${trip.trip_id}...`);
         const createdPOIs: string[] = [];
         const failedPOIs: POICreateInput[] = [];
+        const failedPhotoUploads: string[] = [];
 
-        for (const poi of pois) {
+        for (let i = 0; i < pois.length; i++) {
+          const poi = pois[i];
+          setPublishProgress(`Creando POI ${i + 1} de ${pois.length}...`);
+
           try {
             console.log(`  📍 [GPXWizard] Creating POI: ${poi.name}`);
             const createdPOI = await createPOI(trip.trip_id, {
@@ -249,6 +259,8 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
             // Upload photo if present (Feature 017 - FR-010)
             console.log(`  🔍 [GPXWizard] Checking photo for POI ${poi.name}:`, poi.photo ? `Has photo (${poi.photo.name}, ${poi.photo.size} bytes)` : 'No photo');
             if (poi.photo) {
+              setPublishProgress(`Subiendo foto para POI ${i + 1}...`);
+
               try {
                 console.log(`  📷 [GPXWizard] Uploading photo for POI: ${poi.name}`);
                 console.log(`  📷 [GPXWizard] POI ID: ${createdPOI.poi_id}`);
@@ -258,6 +270,19 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
               } catch (photoError: any) {
                 console.error(`  ⚠️ [GPXWizard] Failed to upload photo for POI ${poi.name}:`, photoError);
                 console.error(`  ⚠️ [GPXWizard] Error details:`, photoError.response?.data || photoError.message);
+
+                // Notify user about failed photo upload
+                toast(
+                  `No se pudo subir la foto para "${poi.name}". El POI se creó sin imagen.`,
+                  {
+                    duration: 6000,
+                    icon: '⚠️',
+                  }
+                );
+
+                // Track failed photo upload
+                failedPhotoUploads.push(poi.name);
+
                 // Don't fail the whole POI creation if photo upload fails
                 // POI is created, just without the photo
               }
@@ -274,6 +299,14 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
         console.log(`📊 [GPXWizard] POI creation complete: ${createdPOIs.length}/${pois.length} successful`);
         if (failedPOIs.length > 0) {
           console.warn(`⚠️ [GPXWizard] ${failedPOIs.length} POIs failed:`, failedPOIs.map(p => p.name));
+        }
+
+        // Show summary of failed photo uploads
+        if (failedPhotoUploads.length > 0) {
+          toast.error(
+            `${failedPhotoUploads.length} ${failedPhotoUploads.length === 1 ? 'foto no se pudo subir' : 'fotos no se pudieron subir'}. Puedes añadirlas después desde la página del viaje.`,
+            { duration: 8000 }
+          );
         }
 
         // Wait for DB consistency (ensure POIs are fully persisted before navigation)
@@ -340,6 +373,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
       onError(errorData);
     } finally {
       setIsPublishing(false);
+      setPublishProgress(null);
     }
   }, [selectedFile, telemetryData, tripDetails, pois, onSuccess, onError]);
 
@@ -410,7 +444,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
             <div className="wizard-step__label">Detalles del Viaje</div>
           </div>
 
-          {/* Step 3: Map Visualization */}
+          {/* Step 3: POI Management */}
           <div
             className={`wizard-step ${currentStep === 2 ? 'wizard-step--active' : ''} ${
               currentStep > 2 ? 'wizard-step--completed' : ''
@@ -434,39 +468,12 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
                 '3'
               )}
             </div>
-            <div className="wizard-step__label">Mapa</div>
-          </div>
-
-          {/* Step 4: POI Management */}
-          <div
-            className={`wizard-step ${currentStep === 3 ? 'wizard-step--active' : ''} ${
-              currentStep > 3 ? 'wizard-step--completed' : ''
-            }`}
-          >
-            <div className="wizard-step__number">
-              {currentStep > 3 ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                '4'
-              )}
-            </div>
             <div className="wizard-step__label">Puntos de Interés</div>
           </div>
 
-          {/* Step 5: Review */}
-          <div className={`wizard-step ${currentStep === 4 ? 'wizard-step--active' : ''}`}>
-            <div className="wizard-step__number">5</div>
+          {/* Step 4: Review */}
+          <div className={`wizard-step ${currentStep === 3 ? 'wizard-step--active' : ''}`}>
+            <div className="wizard-step__number">4</div>
             <div className="wizard-step__label">Revisar y Publicar</div>
           </div>
         </div>
@@ -490,7 +497,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
       <main className="gpx-wizard__content" role="main">
         {/* Step 1: GPX Upload */}
         {currentStep === 0 && (
-          <Step1Upload onComplete={handleStep1Complete} onFileRemove={handleFileRemove} />
+          <Step1Upload ref={step1Ref} onComplete={handleStep1Complete} onFileRemove={handleFileRemove} />
         )}
 
         {/* Step 2: Trip Details */}
@@ -506,17 +513,8 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
           />
         )}
 
-        {/* Step 3: Map Visualization */}
-        {currentStep === 2 && selectedFile && telemetryData && (
-          <Step3Map
-            telemetry={telemetryData}
-            onBack={prevStep}
-            onNext={nextStep}
-          />
-        )}
-
-        {/* Step 4: POI Management */}
-        {currentStep === 3 && selectedFile && telemetryData && tripDetails && (
+        {/* Step 3: POI Management */}
+        {currentStep === 2 && selectedFile && telemetryData && tripDetails && (
           <Step3POIs
             telemetry={telemetryData}
             gpxTrackpoints={gpxTrackpoints}
@@ -528,8 +526,8 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
           />
         )}
 
-        {/* Step 5: Review */}
-        {currentStep === 4 && selectedFile && telemetryData && tripDetails && (
+        {/* Step 4: Review */}
+        {currentStep === 3 && selectedFile && telemetryData && tripDetails && (
           <Step4Review
             gpxFile={selectedFile}
             telemetry={telemetryData}
@@ -540,6 +538,18 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
             onCancel={handleCancel}
             isPublishing={isPublishing}
           />
+        )}
+
+        {/* Publishing Progress Indicator */}
+        {publishProgress && (
+          <div className="gpx-wizard__publishing-overlay" role="status" aria-live="polite">
+            <div className="gpx-wizard__publishing-dialog">
+              <div className="gpx-wizard__publishing-spinner" aria-hidden="true">
+                <div className="spinner"></div>
+              </div>
+              <p className="gpx-wizard__publishing-message">{publishProgress}</p>
+            </div>
+          </div>
         )}
 
         {/* Announce step changes to screen readers */}
@@ -559,6 +569,42 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
           >
             Cancelar
           </button>
+
+          {/* File Info Preview (moved from uploader) */}
+          {selectedFile && (
+            <div className="gpx-wizard__file-badge">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="gpx-wizard__file-badge-icon"
+              >
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                <polyline points="13 2 13 9 20 9" />
+              </svg>
+              <span className="gpx-wizard__file-badge-name">{selectedFile.name}</span>
+              <span className="gpx-wizard__file-badge-size">
+                {selectedFile.size < 1024 * 1024
+                  ? `${(selectedFile.size / 1024).toFixed(1)} KB`
+                  : `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`}
+              </span>
+              <button
+                type="button"
+                onClick={handleFileRemove}
+                className="gpx-wizard__file-badge-remove"
+                aria-label="Eliminar archivo"
+                title="Eliminar archivo"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           <div className="gpx-wizard__actions-right">
             <button
