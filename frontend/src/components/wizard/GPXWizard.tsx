@@ -110,6 +110,7 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
   /**
    * Handle Step 1 completion.
    * Store file, telemetry data, and trackpoints for map visualization.
+   * Automatically advances to Step 2 (Details).
    */
   const handleStep1Complete = useCallback(
     (file: File, telemetry: GPXTelemetry) => {
@@ -124,8 +125,12 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
       setGPXTrackpoints(telemetry.trackpoints || null);
 
       console.log('✅ [GPXWizard] State updated');
+
+      // Automatically advance to Step 2 (Details)
+      nextStep();
+      console.log('➡️  [GPXWizard] Advanced to Step 2');
     },
-    [setSelectedFile, setTelemetryData, setGPXTrackpoints]
+    [setSelectedFile, setTelemetryData, setGPXTrackpoints, nextStep]
   );
 
   /**

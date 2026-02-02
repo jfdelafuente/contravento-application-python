@@ -199,7 +199,10 @@ describe('GPXWizard (T040)', () => {
     it('should highlight current step', () => {
       render(<GPXWizard onSuccess={mockOnSuccess} onError={mockOnError} onCancel={mockOnCancel} />);
 
-      const step1 = screen.getByText(/archivo gpx/i).closest('.wizard-step');
+      // Find step indicator (not the h2 or subtitle)
+      const allSteps = screen.getAllByText(/archivo gpx/i);
+      const step1Label = allSteps.find(el => el.className === 'wizard-step__label');
+      const step1 = step1Label?.closest('.wizard-step');
       expect(step1).toHaveClass('wizard-step--active');
     });
 
@@ -216,7 +219,9 @@ describe('GPXWizard (T040)', () => {
       });
 
       // Step 1 should be marked as complete
-      const step1 = screen.getByText(/archivo gpx/i).closest('.wizard-step');
+      const allSteps = screen.getAllByText(/archivo gpx/i);
+      const step1Label = allSteps.find(el => el.className === 'wizard-step__label');
+      const step1 = step1Label?.closest('.wizard-step');
       expect(step1).toHaveClass('wizard-step--completed');
     });
 
@@ -290,30 +295,39 @@ describe('GPXWizard (T040)', () => {
     it('should show confirmation dialog before canceling with data', async () => {
       render(<GPXWizard onSuccess={mockOnSuccess} onError={mockOnError} onCancel={mockOnCancel} />);
 
-      // Complete step 1 (wizard has data)
+      // Complete step 1 (uploads file and advances to Step 2)
       fireEvent.click(screen.getByText('Mock Upload'));
       await waitFor(() => expect(screen.getByTestId('step2-details')).toBeInTheDocument());
 
-      // Click cancel
-      const cancelButton = screen.getByRole('button', { name: /cancelar/i });
+      // Go back to Step 1 where Cancel button exists
+      fireEvent.click(screen.getByText('Anterior'));
+      await waitFor(() => expect(screen.getByTestId('step1-upload')).toBeInTheDocument());
+
+      // Click cancel button
+      const cancelButton = screen.getByRole('button', { name: /cancelar asistente/i });
       fireEvent.click(cancelButton);
 
-      // Should show confirmation dialog
+      // Should show confirmation dialog (because we have data)
       expect(screen.getByText(/¿seguro que quieres cancelar/i)).toBeInTheDocument();
     });
 
     it('should not call onCancel if user declines confirmation', async () => {
       render(<GPXWizard onSuccess={mockOnSuccess} onError={mockOnError} onCancel={mockOnCancel} />);
 
-      // Complete step 1
+      // Complete step 1 and advance to Step 2
       fireEvent.click(screen.getByText('Mock Upload'));
       await waitFor(() => expect(screen.getByTestId('step2-details')).toBeInTheDocument());
 
+      // Go back to Step 1 where Cancel button exists
+      fireEvent.click(screen.getByText('Anterior'));
+      await waitFor(() => expect(screen.getByTestId('step1-upload')).toBeInTheDocument());
+
       // Click cancel
-      fireEvent.click(screen.getByRole('button', { name: /cancelar/i }));
+      const cancelButton = screen.getByRole('button', { name: /cancelar asistente/i });
+      fireEvent.click(cancelButton);
 
       // Click "No" in confirmation
-      const noButton = screen.getByRole('button', { name: /no, continuar/i });
+      const noButton = await screen.findByRole('button', { name: /no, continuar/i });
       fireEvent.click(noButton);
 
       expect(mockOnCancel).not.toHaveBeenCalled();
