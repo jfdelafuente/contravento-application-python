@@ -282,7 +282,7 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
   }, [onNext]);
 
   return (
-    <div className="step3-pois">
+    <div className="step3-pois" data-testid="step3-pois">
       {/* Step Header */}
       <header className="step3-pois__header">
         <h2 className="step3-pois__title">Puntos de Interés</h2>

@@ -105,7 +105,7 @@ export const Step1Upload = forwardRef<Step1UploadHandle, Step1UploadProps>(
   }, [telemetry, currentFile, onComplete]);
 
   return (
-    <div className="step1-upload">
+    <div className="step1-upload" data-testid="step1-upload">
       {/* Step Title - Only show when no file is uploaded */}
       {!telemetry && (
         <div className="step1-upload__header">

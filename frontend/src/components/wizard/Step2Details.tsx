@@ -164,7 +164,7 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
   };
 
   return (
-    <div className="step2-details">
+    <div className="step2-details" data-testid="step2-details">
       {/* Step Header */}
       <div className="step2-details__header">
         <h2 className="step2-details__title">Detalles del Viaje</h2>

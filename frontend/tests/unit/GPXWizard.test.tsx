@@ -53,24 +53,38 @@ vi.mock('../../src/services/poiService', () => ({
 }));
 
 // Mock Step components
-vi.mock('../../src/components/wizard/Step1Upload', () => ({
-  Step1Upload: ({ onComplete }: any) => (
-    <div data-testid="step1-upload">
-      <h2>Sube tu archivo GPX</h2>
-      <button onClick={() => onComplete(new File(['content'], 'route.gpx'), {
-        distance_km: 42.5,
-        elevation_gain: 850,
-        elevation_loss: 820,
-        max_elevation: 1250,
-        min_elevation: 450,
-        has_elevation: true,
-        difficulty: 'moderate',
-      })}>
-        Mock Upload
-      </button>
-    </div>
-  ),
-}));
+vi.mock('../../src/components/wizard/Step1Upload', async () => {
+  const React = await import('react');
+  return {
+    Step1Upload: React.forwardRef(({ onComplete }: any, ref: any) => {
+      React.useImperativeHandle(ref, () => ({
+        resetAnalysis: () => {},
+      }));
+
+      return (
+        <div data-testid="step1-upload">
+          <h2>Sube tu archivo GPX</h2>
+          <button onClick={() => onComplete(new File(['content'], 'route.gpx'), {
+            distance_km: 42.5,
+            elevation_gain: 850,
+            elevation_loss: 820,
+            max_elevation: 1250,
+            min_elevation: 450,
+            has_elevation: true,
+            has_timestamps: false,
+            start_date: null,
+            end_date: null,
+            difficulty: 'moderate',
+            suggested_title: 'route',
+            trackpoints: null,
+          })}>
+            Mock Upload
+          </button>
+        </div>
+      );
+    }),
+  };
+});
 
 vi.mock('../../src/components/wizard/Step2Details', () => ({
   Step2Details: ({ onNext, onPrevious }: any) => (
@@ -120,7 +134,12 @@ describe('GPXWizard (T040)', () => {
     max_elevation: 1250,
     min_elevation: 450,
     has_elevation: true,
+    has_timestamps: false,
+    start_date: null,
+    end_date: null,
     difficulty: 'moderate',
+    suggested_title: 'test-route',
+    trackpoints: null,
   };
 
   const mockTrip = {
@@ -169,9 +188,10 @@ describe('GPXWizard (T040)', () => {
     it('should display all steps in indicator', () => {
       render(<GPXWizard onSuccess={mockOnSuccess} onError={mockOnError} onCancel={mockOnCancel} />);
 
-      expect(screen.getByText(/archivo gpx/i)).toBeInTheDocument();
+      // Check all 4 steps are visible in the step indicator
+      expect(screen.getAllByText(/archivo gpx/i).length).toBeGreaterThan(0);
       expect(screen.getByText(/detalles del viaje/i)).toBeInTheDocument();
-      expect(screen.getByText(/^mapa$/i)).toBeInTheDocument();
+      expect(screen.getByText(/puntos de interés/i)).toBeInTheDocument();
       expect(screen.getByText(/puntos de interés/i)).toBeInTheDocument();
       expect(screen.getByText(/revisar y publicar/i)).toBeInTheDocument();
     });
@@ -360,14 +380,14 @@ describe('GPXWizard (T040)', () => {
       // Should have aria-live region
       const liveRegion = screen.getByRole('status');
       expect(liveRegion).toHaveAttribute('aria-live', 'polite');
-      expect(liveRegion).toHaveTextContent('Paso 1 de 5');
+      expect(liveRegion).toHaveTextContent('Paso 1 de 4');
 
       // Navigate to next step
       fireEvent.click(screen.getByText('Mock Upload'));
       await waitFor(() => expect(screen.getByTestId('step2-details')).toBeInTheDocument());
 
       // Should update step announcement
-      expect(liveRegion).toHaveTextContent('Paso 2 de 5');
+      expect(liveRegion).toHaveTextContent('Paso 2 de 4');
     });
 
     it('should have keyboard-accessible navigation', () => {
@@ -384,8 +404,8 @@ describe('GPXWizard (T040)', () => {
   describe('Responsive Design', () => {
     it('should render mobile-friendly layout', () => {
       // Simulate mobile viewport
-      global.innerWidth = 375;
-      global.dispatchEvent(new Event('resize'));
+      window.innerWidth = 375;
+      window.dispatchEvent(new Event('resize'));
 
       render(<GPXWizard onSuccess={mockOnSuccess} onError={mockOnError} onCancel={mockOnCancel} />);
 

@@ -128,7 +128,7 @@ export const Step4Review: React.FC<Step4ReviewProps> = ({
   isPublishing,
 }) => {
   return (
-    <div className="step3-review">
+    <div className="step3-review" data-testid="step4-review">
       {/* Step Header */}
       <div className="step3-review__header">
         <h2 className="step3-review__title">Revisar y Publicar</h2>
