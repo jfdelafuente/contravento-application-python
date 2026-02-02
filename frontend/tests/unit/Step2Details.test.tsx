@@ -32,7 +32,12 @@ describe('Step2Details (T051)', () => {
     max_elevation: 1850,
     min_elevation: 450,
     has_elevation: true,
+    has_timestamps: false,
+    start_date: null,
+    end_date: null,
     difficulty: 'difficult',
+    suggested_title: 'test-route',
+    trackpoints: null,
   };
 
   beforeEach(() => {
@@ -71,7 +76,13 @@ describe('Step2Details (T051)', () => {
       expect(screen.getByLabelText(/descripción/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/fecha de inicio/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/fecha de fin/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/privacidad/i)).toBeInTheDocument();
+
+      // Privacy field - check for radio group heading
+      expect(screen.getByText(/privacidad/i)).toBeInTheDocument();
+
+      // Verify privacy radio buttons exist
+      expect(screen.getByLabelText(/público/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/privado/i)).toBeInTheDocument();
     });
 
     it('should display difficulty badge', () => {
@@ -127,10 +138,15 @@ describe('Step2Details (T051)', () => {
         type: 'application/gpx+xml',
       });
 
+      const telemetryWithDots: GPXTelemetry = {
+        ...mockTelemetry,
+        suggested_title: 'route.long.name',
+      };
+
       render(
         <Step2Details
           gpxFile={fileWithDots}
-          telemetry={mockTelemetry}
+          telemetry={telemetryWithDots}
           onNext={mockOnNext}
           onPrevious={mockOnPrevious}
           onCancel={mockOnCancel}
