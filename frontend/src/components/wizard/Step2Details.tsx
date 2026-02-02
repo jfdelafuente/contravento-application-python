@@ -27,6 +27,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DifficultyBadge } from '../trips/DifficultyBadge';
 import { tripDetailsSchema, type TripDetailsFormData } from '../../schemas/tripDetailsSchema';
 import type { GPXTelemetry } from '../../services/gpxWizardService';
+import { formatTimeFromMinutes } from '../../services/gpxWizardService';
 import './Step2Details.css';
 
 /**
@@ -102,6 +103,12 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
   // Watch description for character count
   const description = watch('description');
   const descriptionLength = description?.length || 0;
+
+  /**
+   * Format duration from GPX total time (if available)
+   * Uses GPX-calculated total time instead of date-based calculation
+   */
+  const duration = formatTimeFromMinutes(telemetry.total_time_minutes);
 
   /**
    * Handle ESC key to close dialogs (T100)
@@ -180,6 +187,13 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
           <span className="step2-details__summary-label">Distancia:</span>
           <span className="step2-details__summary-value">{telemetry.distance_km} km</span>
         </div>
+
+        {duration && (
+          <div className="step2-details__summary-item">
+            <span className="step2-details__summary-label">Duración:</span>
+            <span className="step2-details__summary-value">{duration}</span>
+          </div>
+        )}
 
         {telemetry.has_elevation && telemetry.elevation_gain !== null && (
           <div className="step2-details__summary-item">
@@ -293,34 +307,36 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
           </div>
         </div>
 
-        {/* Privacy */}
-        <div className="step2-details__field">
+        {/* Privacy - Single Line Layout */}
+        <div className="step2-details__field step2-details__field--privacy">
           <label className="step2-details__label">
             Privacidad <span className="step2-details__required">*</span>
           </label>
-          <div className="step2-details__radio-group">
-            <label className="step2-details__radio-label">
+          <div className="step2-details__radio-group step2-details__radio-group--horizontal">
+            <label className="step2-details__radio-label step2-details__radio-label--compact">
               <input
                 type="radio"
                 {...register('privacy')}
                 value="public"
                 className="step2-details__radio"
               />
-              <span>Público</span>
-              <span className="step2-details__radio-description">
-                Visible para todos los usuarios
+              <span className="step2-details__radio-text">
+                <span className="step2-details__radio-title">Público</span>
+                <span className="step2-details__radio-description">Visible para todos</span>
               </span>
             </label>
 
-            <label className="step2-details__radio-label">
+            <label className="step2-details__radio-label step2-details__radio-label--compact">
               <input
                 type="radio"
                 {...register('privacy')}
                 value="private"
                 className="step2-details__radio"
               />
-              <span>Privado</span>
-              <span className="step2-details__radio-description">Solo visible para ti</span>
+              <span className="step2-details__radio-text">
+                <span className="step2-details__radio-title">Privado</span>
+                <span className="step2-details__radio-description">Solo para ti</span>
+              </span>
             </label>
           </div>
         </div>

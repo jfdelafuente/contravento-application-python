@@ -36,6 +36,8 @@ export interface GPXTelemetry {
   has_timestamps: boolean;
   start_date: string | null;
   end_date: string | null;
+  total_time_minutes: number | null;
+  moving_time_minutes: number | null;
   difficulty: TripDifficulty;
   suggested_title: string;
   trackpoints: TrackPointSimple[] | null;
@@ -270,4 +272,46 @@ export function getDifficultyColor(difficulty: TripDifficulty): string {
   };
 
   return colorMap[difficulty] || '#6b7280'; // Gray fallback
+}
+
+/**
+ * Format time from minutes to human-readable format
+ *
+ * @param minutes - Total time in minutes
+ * @returns Formatted time string (e.g., "2h 30m", "1 día 3h", "45m")
+ *
+ * @example
+ * formatTimeFromMinutes(45) // "45m"
+ * formatTimeFromMinutes(150) // "2h 30m"
+ * formatTimeFromMinutes(1500) // "1 día 1h"
+ */
+export function formatTimeFromMinutes(minutes: number | null): string | null {
+  if (minutes === null || minutes === undefined) {
+    return null;
+  }
+
+  const totalMinutes = Math.round(minutes);
+
+  // Less than 1 hour - show only minutes
+  if (totalMinutes < 60) {
+    return `${totalMinutes}m`;
+  }
+
+  // Less than 24 hours - show hours and minutes
+  if (totalMinutes < 1440) {
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  }
+
+  // 24 hours or more - show days and hours
+  const days = Math.floor(totalMinutes / 1440);
+  const remainingMinutes = totalMinutes % 1440;
+  const hours = Math.floor(remainingMinutes / 60);
+
+  if (hours > 0) {
+    return days === 1 ? `1 día ${hours}h` : `${days} días ${hours}h`;
+  }
+
+  return days === 1 ? '1 día' : `${days} días`;
 }

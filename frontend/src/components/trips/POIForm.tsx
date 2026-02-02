@@ -170,18 +170,47 @@ export const POIForm: React.FC<POIFormProps> = ({
 
     try {
       if (isEditMode) {
+        // Check if we're in wizard mode (temporary poi_id starts with "temp-")
+        const isWizardMode = editingPOI?.poi_id.startsWith('temp-');
+
+        // Determine photo value (for wizard mode):
+        // - If new photo selected: use new photo
+        // - If photo was removed: set to null
+        // - If photo wasn't touched: undefined (preserve existing)
+        let photoValue: File | null | undefined = undefined;
+        if (isWizardMode) {
+          if (selectedPhoto) {
+            photoValue = selectedPhoto; // New photo selected
+          } else if (photoPreview === null && editingPOI?.photo_url) {
+            photoValue = null; // Photo was removed
+          }
+          // else: undefined (photo wasn't touched)
+        }
+
+        // Determine photo_url value (for published trips):
+        // - If photo was removed in published trip: set to null
+        // - If photo wasn't touched: undefined (preserve existing)
+        let photoUrlValue: string | null | undefined = undefined;
+        if (!isWizardMode) {
+          // Detect if photo was removed: photoPreview is null AND POI had a photo before
+          if (photoPreview === null && editingPOI?.photo_url) {
+            photoUrlValue = null; // Photo was removed - tell backend to delete it
+          }
+          // else: undefined (photo wasn't touched or new photo will be uploaded separately)
+        }
+
         // Update existing POI
         const updateData: POIUpdateInput = {
           name: trimmedName,
           description: trimmedDescription || null,
           poi_type: poiType,
+          // Include photo field for both wizard and published trips
+          // The parent component will handle uploading if needed
+          photo: isWizardMode ? photoValue : selectedPhoto || undefined,
+          // Include photo_url: null in published trips to delete photo
+          photo_url: photoUrlValue,
         };
         await onSubmit(updateData);
-
-        // Upload new photo if selected
-        if (selectedPhoto && editingPOI) {
-          await uploadPOIPhoto(editingPOI.poi_id, selectedPhoto);
-        }
       } else {
         // Create new POI
         const createData: POICreateInput = {

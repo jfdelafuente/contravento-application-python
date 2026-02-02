@@ -512,6 +512,8 @@ class GPXService:
             - has_timestamps: Whether GPX contains timestamp data
             - start_date: Start date from GPS timestamps (YYYY-MM-DD, None if no timestamps)
             - end_date: End date from GPS timestamps (YYYY-MM-DD, None if same day or no timestamps)
+            - total_time_minutes: Total elapsed time in minutes (None if no timestamps)
+            - moving_time_minutes: Time in motion in minutes (None if no timestamps)
             - difficulty: TripDifficulty enum value (auto-calculated)
             - trackpoints: Simplified trackpoints (only if include_trackpoints=True)
 
@@ -563,6 +565,8 @@ class GPXService:
             has_timestamps = any(p.time is not None for p in points)
             start_date = None
             end_date = None
+            total_time_minutes = None
+            moving_time_minutes = None
 
             if has_timestamps:
                 # Extract timestamps from points that have them
@@ -574,6 +578,35 @@ class GPXService:
                     # Convert to date-only format (YYYY-MM-DD)
                     start_date = min_time.date().isoformat()
                     end_date = max_time.date().isoformat()
+
+                    # Calculate total time in minutes
+                    total_time_seconds = (max_time - min_time).total_seconds()
+                    total_time_minutes = round(total_time_seconds / 60, 1)
+
+                    # Calculate moving time (exclude stops where speed < 1 km/h)
+                    moving_seconds = 0.0
+                    for i in range(1, len(points)):
+                        prev_point = points[i - 1]
+                        curr_point = points[i]
+
+                        if prev_point.time is not None and curr_point.time is not None:
+                            time_diff = (curr_point.time - prev_point.time).total_seconds()
+
+                            # Calculate speed for this segment
+                            distance_km = self._calculate_distance(
+                                prev_point.latitude,
+                                prev_point.longitude,
+                                curr_point.latitude,
+                                curr_point.longitude,
+                            )
+
+                            if time_diff > 0:
+                                speed_kmh = (distance_km / time_diff) * 3600
+                                # Consider moving if speed >= 1 km/h (filters out stops)
+                                if speed_kmh >= 1.0:
+                                    moving_seconds += time_diff
+
+                    moving_time_minutes = round(moving_seconds / 60, 1)
 
             # Calculate elevation statistics if data exists
             elevation_gain = None
@@ -627,6 +660,8 @@ class GPXService:
                 "has_timestamps": has_timestamps,
                 "start_date": start_date,
                 "end_date": end_date,
+                "total_time_minutes": total_time_minutes,
+                "moving_time_minutes": moving_time_minutes,
                 "difficulty": difficulty,
             }
 

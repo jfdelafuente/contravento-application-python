@@ -137,6 +137,8 @@ describe('GPXWizard (T040)', () => {
     has_timestamps: false,
     start_date: null,
     end_date: null,
+    total_time_minutes: null,
+    moving_time_minutes: null,
     difficulty: 'moderate',
     suggested_title: 'test-route',
     trackpoints: null,

@@ -76,6 +76,20 @@ class GPXTelemetry(BaseModel):
         json_schema_extra={"example": "2024-06-05"},
     )
 
+    total_time_minutes: float | None = Field(
+        None,
+        ge=0,
+        description="Total elapsed time from GPX timestamps in minutes (None if no timestamps)",
+        json_schema_extra={"example": 420.5},
+    )
+
+    moving_time_minutes: float | None = Field(
+        None,
+        ge=0,
+        description="Time in motion, excludes stops, in minutes (None if no timestamps)",
+        json_schema_extra={"example": 380.0},
+    )
+
     difficulty: TripDifficulty = Field(
         ...,
         description="Auto-calculated trip difficulty from distance and elevation",
@@ -114,6 +128,8 @@ class GPXTelemetry(BaseModel):
                 "has_timestamps": True,
                 "start_date": "2024-06-01",
                 "end_date": "2024-06-05",
+                "total_time_minutes": 420.5,
+                "moving_time_minutes": 380.0,
                 "difficulty": "difficult",
                 "suggested_title": "Ruta Pirineos",
                 "trackpoints": [
@@ -172,6 +188,11 @@ class GPXAnalysisResponse(BaseModel):
                     "max_elevation": 1850.0,
                     "min_elevation": 450.0,
                     "has_elevation": True,
+                    "has_timestamps": True,
+                    "start_date": "2024-06-01",
+                    "end_date": "2024-06-05",
+                    "total_time_minutes": 420.5,
+                    "moving_time_minutes": 380.0,
                     "difficulty": "difficult",
                     "suggested_title": "Ruta Pirineos",
                     "trackpoints": [

@@ -23,7 +23,7 @@ import { ElevationProfile } from '../components/trips/ElevationProfile';
 import { AdvancedStats } from '../components/trips/AdvancedStats';
 import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
 import { deleteGPX } from '../services/gpxService';
-import { getTripPOIs, createPOI, updatePOI, deletePOI } from '../services/poiService';
+import { getTripPOIs, createPOI, updatePOI, deletePOI, uploadPOIPhoto } from '../services/poiService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { useGPXTrack } from '../hooks/useGPXTrack';
 import { useMapProfileSync } from '../hooks/useMapProfileSync';
@@ -517,17 +517,35 @@ export const TripDetailPage: React.FC = () => {
     setPOIError(null);
 
     try {
+      let poiId: string;
+
       if (editingPOI) {
         // Update existing POI
         await updatePOI(editingPOI.poi_id, data as POIUpdateInput);
+        poiId = editingPOI.poi_id;
+
+        // Upload new photo if selected (published trip only)
+        const updateData = data as POIUpdateInput;
+        if (updateData.photo instanceof File) {
+          await uploadPOIPhoto(poiId, updateData.photo);
+        }
+
         toast.success('POI actualizado correctamente');
       } else {
         // Create new POI
-        await createPOI(trip.trip_id, data as POICreateInput);
+        const createdPOI = await createPOI(trip.trip_id, data as POICreateInput);
+        poiId = createdPOI.poi_id;
+
+        // Upload photo if selected
+        const createData = data as POICreateInput;
+        if (createData.photo instanceof File) {
+          await uploadPOIPhoto(poiId, createData.photo);
+        }
+
         toast.success('POI añadido correctamente');
       }
 
-      // Refresh POIs
+      // Refresh POIs after all operations complete
       await fetchPOIs();
 
       // Close form and reset state

@@ -65,6 +65,8 @@ describe('Step1Upload (T043)', () => {
     has_timestamps: false,
     start_date: null,
     end_date: null,
+    total_time_minutes: null,
+    moving_time_minutes: null,
     difficulty: 'moderate',
     suggested_title: 'Ruta en Bicicleta de 42.5 km',
     trackpoints: [
@@ -83,6 +85,8 @@ describe('Step1Upload (T043)', () => {
     has_timestamps: false,
     start_date: null,
     end_date: null,
+    total_time_minutes: null,
+    moving_time_minutes: null,
     difficulty: 'easy',
     suggested_title: 'Ruta en Bicicleta de 15.3 km',
     trackpoints: [

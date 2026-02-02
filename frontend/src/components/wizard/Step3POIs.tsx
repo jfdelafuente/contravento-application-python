@@ -109,6 +109,42 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
   }, [gpxTrackpoints]);
 
   /**
+   * Memoize photo URLs to avoid recreating them on every render
+   * and to properly clean them up when POIs change.
+   *
+   * Dependencies include a deep representation of each POI's photo data
+   * to detect changes when editing POIs (not just when array reference changes).
+   */
+  // Calculate poiPhotoKeys without memoization to always reflect current state
+  const poiPhotoKeys = pois.map(
+    (poi, index) =>
+      `${index}-${poi.photo?.name || ''}-${poi.photo?.size || ''}-${poi.photo_url || ''}`
+  );
+
+  const photoUrls = useMemo(() => {
+    return pois.map((poi) => {
+      if (poi.photo) {
+        return URL.createObjectURL(poi.photo);
+      }
+      return poi.photo_url || null;
+    });
+  }, [pois, poiPhotoKeys.join(',')]);
+
+  /**
+   * Clean up object URLs when component unmounts or POIs change
+   */
+  useEffect(() => {
+    return () => {
+      // Revoke all object URLs created from File objects
+      photoUrls.forEach((url, index) => {
+        if (url && pois[index]?.photo) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [photoUrls, pois]);
+
+  /**
    * Hide map skeleton after brief delay for map initialization (T098)
    */
   useEffect(() => {
@@ -199,10 +235,18 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
       if (editingIndex !== null) {
         // Update existing POI (merge update data with existing coordinates)
         const updated = [...pois];
+        const updateData = data as POIUpdateInput;
+
         updated[editingIndex] = {
           ...updated[editingIndex],
-          ...(data as POIUpdateInput),
+          ...updateData,
           sequence: editingIndex,
+          // Handle photo:
+          // - undefined: preserve existing photo
+          // - null: explicitly remove photo
+          // - File: new photo selected
+          photo: updateData.photo !== undefined ? updateData.photo : updated[editingIndex].photo,
+          photo_url: updateData.photo_url !== undefined ? updateData.photo_url : updated[editingIndex].photo_url,
         };
         setPOIs(updated);
       } else {
@@ -302,7 +346,7 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
           }`}
           title={
             pois.length >= MAX_POIS
-              ? 'Máximo 6 POIs en el wizard (hasta 20 tras publicar)'
+              ? 'Has llegado al número máximo de POIs (podrás añadir hasta 20 tras publicar)'
               : 'Añadir punto de interés'
           }
           aria-label={
@@ -397,12 +441,24 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
           </h3>
           <ul className="step3-pois__list">
             {pois.map((poi, index) => (
-              <li key={index} className="poi-item">
+              <li key={poiPhotoKeys[index]} className="poi-item">
                 <div className="poi-item__icon">
                   <span role="img" aria-label={POI_TYPE_LABELS[poi.poi_type]}>
                     {POI_TYPE_EMOJI[poi.poi_type]}
                   </span>
                 </div>
+
+                {/* Photo thumbnail if available */}
+                {photoUrls[index] && (
+                  <div className="poi-item__photo">
+                    <img
+                      src={photoUrls[index]!}
+                      alt={`Foto de ${poi.name}`}
+                      className="poi-item__photo-img"
+                    />
+                  </div>
+                )}
+
                 <div className="poi-item__content">
                   <h4 className="poi-item__name">{poi.name}</h4>
                   <p className="poi-item__type">{POI_TYPE_LABELS[poi.poi_type]}</p>

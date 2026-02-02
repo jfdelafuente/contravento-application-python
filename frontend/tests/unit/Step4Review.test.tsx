@@ -31,7 +31,14 @@ describe('Step4Review (T068 + T094)', () => {
     max_elevation: 1200,
     min_elevation: 350,
     has_elevation: true,
+    has_timestamps: false,
+    start_date: null,
+    end_date: null,
+    total_time_minutes: null,
+    moving_time_minutes: null,
     difficulty: 'moderate',
+    suggested_title: 'test-route',
+    trackpoints: null,
   };
 
   const mockTripDetails: TripDetailsFormData = {

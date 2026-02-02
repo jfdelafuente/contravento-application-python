@@ -35,6 +35,8 @@ describe('Step2Details (T051)', () => {
     has_timestamps: false,
     start_date: null,
     end_date: null,
+    total_time_minutes: null,
+    moving_time_minutes: null,
     difficulty: 'difficult',
     suggested_title: 'test-route',
     trackpoints: null,
@@ -300,7 +302,9 @@ describe('Step2Details (T051)', () => {
         />
       );
 
+      // First set a valid date, then clear it to trigger validation
       const startDateInput = screen.getByLabelText(/fecha de inicio/i);
+      fireEvent.change(startDateInput, { target: { value: '2024-06-01' } });
       fireEvent.change(startDateInput, { target: { value: '' } });
       fireEvent.blur(startDateInput);
 
@@ -359,7 +363,8 @@ describe('Step2Details (T051)', () => {
         />
       );
 
-      const previousButton = screen.getByRole('button', { name: /anterior/i });
+      // Use more specific aria-label to avoid confusion with dialog buttons
+      const previousButton = screen.getByRole('button', { name: /volver al paso anterior de carga/i });
       fireEvent.click(previousButton);
 
       expect(mockOnPrevious).toHaveBeenCalledTimes(1);
@@ -381,7 +386,12 @@ describe('Step2Details (T051)', () => {
       const titleInput = screen.getByLabelText(/título/i);
       fireEvent.change(titleInput, { target: { value: '' } });
 
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
+      // Use aria-label query and include disabled state
+      const nextButton = screen.getByRole('button', { name: /continuar al siguiente paso|completar el formulario/i });
+
+      // Button should be disabled when form is invalid
+      expect(nextButton).toBeDisabled();
+
       fireEvent.click(nextButton);
 
       await waitFor(() => {
@@ -417,7 +427,13 @@ describe('Step2Details (T051)', () => {
       fireEvent.change(startDateInput, { target: { value: '2024-06-01' } });
       fireEvent.change(endDateInput, { target: { value: '2024-06-05' } });
 
-      const nextButton = screen.getByRole('button', { name: /siguiente/i });
+      // Wait for form validation to complete and button to be enabled
+      await waitFor(() => {
+        const nextButton = screen.getByRole('button', { name: /continuar al siguiente paso/i });
+        expect(nextButton).not.toBeDisabled();
+      });
+
+      const nextButton = screen.getByRole('button', { name: /continuar al siguiente paso/i });
       fireEvent.click(nextButton);
 
       await waitFor(() => {

@@ -126,6 +126,13 @@ export interface POIUpdateInput {
   distance_from_start_km?: number | null;
   photo_url?: string | null;
   sequence?: number;
+  /**
+   * Photo file to upload (wizard only, not sent to backend directly)
+   * - undefined: don't change existing photo
+   * - null: remove existing photo
+   * - File: add/update with new photo
+   */
+  photo?: File | null;
 }
 
 /**

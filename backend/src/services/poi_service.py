@@ -197,25 +197,30 @@ class POIService:
         await self._get_trip_with_ownership_check(poi.trip_id, user_id)
 
         # Update only provided fields
-        if data.name is not None:
+        # Use model_fields_set to detect fields that were explicitly provided (including null values)
+        fields_set = data.model_fields_set
+
+        if "name" in fields_set:
             poi.name = data.name
-        if data.description is not None:
+        if "description" in fields_set:
             poi.description = data.description
-        if data.poi_type is not None:
+        if "poi_type" in fields_set:
             poi.poi_type = data.poi_type
-        if data.latitude is not None:
+        if "latitude" in fields_set:
             poi.latitude = data.latitude
-        if data.longitude is not None:
+        if "longitude" in fields_set:
             poi.longitude = data.longitude
-        if data.distance_from_start_km is not None:
+        if "distance_from_start_km" in fields_set:
             poi.distance_from_start_km = data.distance_from_start_km
-        if data.photo_url is not None:
-            # Ensure photo_url has /storage/ prefix
-            if data.photo_url and not data.photo_url.startswith("/storage/"):
+        if "photo_url" in fields_set:
+            # Explicitly provided (can be null to delete, or a new URL)
+            if data.photo_url is None:
+                poi.photo_url = None  # Delete photo
+            elif not data.photo_url.startswith("/storage/"):
                 poi.photo_url = f"/storage/{data.photo_url.lstrip('/')}"
             else:
                 poi.photo_url = data.photo_url
-        if data.sequence is not None:
+        if "sequence" in fields_set:
             poi.sequence = data.sequence
 
         await self.db.commit()

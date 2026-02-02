@@ -194,6 +194,8 @@ async def analyze_gpx_file(
             has_timestamps=telemetry_data["has_timestamps"],
             start_date=telemetry_data["start_date"],
             end_date=telemetry_data["end_date"],
+            total_time_minutes=telemetry_data["total_time_minutes"],
+            moving_time_minutes=telemetry_data["moving_time_minutes"],
             difficulty=telemetry_data["difficulty"],
             suggested_title=suggested_title,
             trackpoints=telemetry_data["trackpoints"],

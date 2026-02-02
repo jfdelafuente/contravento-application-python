@@ -48,18 +48,26 @@
 
 .step2-details__summary {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+  flex-wrap: nowrap;
+  gap: 2rem;
   padding: 1.5rem;
   background-color: #f7fafc;
   border-radius: 8px;
   border: 2px solid #e2e8f0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  width: 100%; /* Match form width */
+  max-width: 100%; /* Prevent overflow */
+  box-sizing: border-box; /* Include border and padding in width calculation */
+  margin: 0; /* Remove any default margin */
 }
 
 .step2-details__summary-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
+  flex-shrink: 0; /* Prevent items from shrinking */
 }
 
 .step2-details__summary-label {
@@ -82,6 +90,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%; /* Match summary width */
+  max-width: 100%; /* Prevent overflow */
+  box-sizing: border-box; /* Include border and padding in width calculation */
+  margin: 0; /* Remove any default margin */
 }
 
 .step2-details__field {
@@ -136,7 +148,7 @@
 }
 
 .step2-details__textarea {
-  min-height: 150px;
+  min-height: 180px; /* Increased from 150px for more visible space */
   resize: vertical;
 }
 
@@ -186,6 +198,12 @@
   gap: 0.75rem;
 }
 
+/* Horizontal layout for privacy field */
+.step2-details__radio-group--horizontal {
+  flex-direction: row;
+  gap: 1rem;
+}
+
 .step2-details__radio-label {
   display: flex;
   align-items: flex-start;
@@ -195,6 +213,13 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+/* Compact layout for horizontal privacy options */
+.step2-details__radio-label--compact {
+  flex: 1;
+  align-items: center;
+  padding: 0.875rem 1rem;
 }
 
 .step2-details__radio-label:hover {
@@ -213,16 +238,34 @@
   margin-top: 0.125rem;
   cursor: pointer;
   accent-color: #667eea;
+  flex-shrink: 0;
 }
 
-.step2-details__radio-label > span:first-of-type {
+.step2-details__radio-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.step2-details__radio-title {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 0.9375rem;
+}
+
+.step2-details__radio-description {
+  font-size: 0.8125rem;
+  color: #718096;
+  line-height: 1.2;
+}
+
+/* Legacy support for non-compact labels */
+.step2-details__radio-label > span:first-of-type:not(.step2-details__radio-text) {
   font-weight: 600;
   color: #1a202c;
 }
 
-.step2-details__radio-description {
-  font-size: 0.875rem;
-  color: #718096;
+.step2-details__radio-label > .step2-details__radio-description:last-child {
   display: block;
   margin-top: 0.25rem;
 }
@@ -435,6 +478,14 @@
     border-color: #a0d8f1;
   }
 
+  .step2-details__radio-title {
+    color: #f7fafc;
+  }
+
+  .step2-details__radio-description {
+    color: #cbd5e0;
+  }
+
   .step2-details__dialog {
     background-color: #2d3748;
   }
@@ -454,12 +505,17 @@
 
 @media (max-width: 768px) {
   .step2-details__summary {
-    flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
+    padding: 1.25rem;
   }
 
   .step2-details__date-group {
     grid-template-columns: 1fr;
+  }
+
+  /* Keep privacy horizontal on tablets */
+  .step2-details__radio-group--horizontal {
+    flex-direction: row;
   }
 
   .step2-details__actions {
@@ -500,6 +556,20 @@
 
   .step2-details__summary {
     padding: 1rem;
+    gap: 1rem;
+  }
+
+  /* Compact privacy options on small screens */
+  .step2-details__radio-label--compact {
+    padding: 0.75rem 0.625rem;
+  }
+
+  .step2-details__radio-title {
+    font-size: 0.875rem;
+  }
+
+  .step2-details__radio-description {
+    font-size: 0.75rem;
   }
 
   .step2-details__button {

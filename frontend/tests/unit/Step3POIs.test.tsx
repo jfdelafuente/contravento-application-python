@@ -41,7 +41,14 @@ describe('Step3POIs Component', () => {
     max_elevation: 1850,
     min_elevation: 450,
     has_elevation: true,
+    has_timestamps: false,
+    start_date: null,
+    end_date: null,
+    total_time_minutes: null,
+    moving_time_minutes: null,
     difficulty: 'very_difficult',
+    suggested_title: 'test-route',
+    trackpoints: null,
   };
 
   const mockTripDetails: TripDetailsFormData = {
