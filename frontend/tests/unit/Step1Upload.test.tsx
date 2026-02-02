@@ -40,6 +40,15 @@ vi.mock('../../src/services/gpxWizardService', () => ({
   },
 }));
 
+// Mock MapPreview component (Leaflet doesn't work in jsdom)
+vi.mock('../../src/components/wizard/MapPreview', () => ({
+  MapPreview: ({ title }: { title?: string }) => (
+    <div data-testid="map-preview" aria-label={`Mapa de ${title || 'ruta'}`}>
+      <p>Mapa Preview</p>
+    </div>
+  ),
+}));
+
 describe('Step1Upload (T043)', () => {
   const mockOnComplete = vi.fn();
   const mockOnFileRemove = vi.fn();
@@ -53,7 +62,15 @@ describe('Step1Upload (T043)', () => {
     max_elevation: 1250,
     min_elevation: 450,
     has_elevation: true,
+    has_timestamps: false,
+    start_date: null,
+    end_date: null,
     difficulty: 'moderate',
+    suggested_title: 'Ruta en Bicicleta de 42.5 km',
+    trackpoints: [
+      { latitude: 40.4168, longitude: -3.7038, elevation: 650, distance_km: 0 },
+      { latitude: 40.4269, longitude: -3.7138, elevation: 700, distance_km: 42.5 },
+    ],
   };
 
   const mockTelemetryWithoutElevation: gpxWizardService.GPXTelemetry = {
@@ -63,7 +80,15 @@ describe('Step1Upload (T043)', () => {
     max_elevation: null,
     min_elevation: null,
     has_elevation: false,
+    has_timestamps: false,
+    start_date: null,
+    end_date: null,
     difficulty: 'easy',
+    suggested_title: 'Ruta en Bicicleta de 15.3 km',
+    trackpoints: [
+      { latitude: 41.3874, longitude: 2.1686, elevation: null, distance_km: 0 },
+      { latitude: 41.3974, longitude: 2.1786, elevation: null, distance_km: 15.3 },
+    ],
   };
 
   beforeEach(() => {
@@ -99,13 +124,13 @@ describe('Step1Upload (T043)', () => {
           })
       );
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['gpx content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       // Should show loading state
@@ -117,13 +142,13 @@ describe('Step1Upload (T043)', () => {
     it('should call onComplete with file and telemetry on success', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -138,13 +163,13 @@ describe('Step1Upload (T043)', () => {
       );
       mockAnalyzeGPXFile.mockRejectedValue(error);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -159,11 +184,11 @@ describe('Step1Upload (T043)', () => {
         new gpxWizardService.GPXAnalysisError('INVALID_FILE_TYPE', 'Invalid file type')
       );
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'document.pdf', { type: 'application/pdf' });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -172,125 +197,113 @@ describe('Step1Upload (T043)', () => {
     });
   });
 
-  describe('Telemetry Preview - With Elevation', () => {
-    it('should display distance in telemetry preview', async () => {
+  describe('Telemetry Preview - Phase 2 (Suggested Title & Map)', () => {
+    it('should display suggested title in telemetry preview', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        expect(screen.getByText(/42\.5\s*km/i)).toBeInTheDocument();
+        expect(screen.getByText(/ruta en bicicleta de 42\.5 km/i)).toBeInTheDocument();
       });
     });
 
-    it('should display elevation gain', async () => {
+    it('should display suggested title header', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        expect(screen.getByText(/850\s*m/i)).toBeInTheDocument();
+        expect(screen.getByText(/título sugerido/i)).toBeInTheDocument();
       });
     });
 
-    it('should display difficulty level', async () => {
+    it('should display hint about editing title in next step', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        expect(screen.getByText(/moderada/i)).toBeInTheDocument();
+        expect(screen.getByText(/podrás editarlo en el siguiente paso/i)).toBeInTheDocument();
       });
     });
 
-    it('should display max elevation', async () => {
+    it('should hide step title when telemetry is shown', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+
+      // Initially shows step title
+      expect(screen.getByText(/sube tu archivo gpx/i)).toBeInTheDocument();
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
+      // After analysis, step title should be hidden
       await waitFor(() => {
-        expect(screen.getByText(/1250\s*m/i)).toBeInTheDocument();
+        expect(screen.queryByText(/sube tu archivo gpx/i)).not.toBeInTheDocument();
       });
     });
   });
 
-  describe('Telemetry Preview - Without Elevation', () => {
-    it('should display distance even without elevation', async () => {
+  describe('Telemetry Preview - Routes Without Elevation', () => {
+    it('should display suggested title even without elevation', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithoutElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'flat_route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        expect(screen.getByText(/15\.3\s*km/i)).toBeInTheDocument();
+        expect(screen.getByText(/ruta en bicicleta de 15\.3 km/i)).toBeInTheDocument();
       });
     });
 
-    it('should show placeholder for missing elevation data', async () => {
+    it('should show telemetry preview section for routes without elevation', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithoutElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'flat_route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        expect(screen.getByText(/sin datos de elevación/i)).toBeInTheDocument();
-      });
-    });
-
-    it('should still display difficulty without elevation', async () => {
-      mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithoutElevation);
-
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
-
-      const mockFile = new File(['content'], 'flat_route.gpx', {
-        type: 'application/gpx+xml',
-      });
-
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
-      fireEvent.change(input, { target: { files: [mockFile] } });
-
-      await waitFor(() => {
-        expect(screen.getByText(/fácil/i)).toBeInTheDocument();
+        const telemetrySection = screen.getByRole('region', { name: /vista previa del recorrido/i });
+        expect(telemetrySection).toBeInTheDocument();
       });
     });
   });
@@ -299,13 +312,13 @@ describe('Step1Upload (T043)', () => {
     it('should call onFileRemove when remove button clicked', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -321,7 +334,7 @@ describe('Step1Upload (T043)', () => {
     it('should clear telemetry preview on file removal', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      const { rerender } = render(
+      const { container } = render(
         <Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />
       );
 
@@ -329,17 +342,24 @@ describe('Step1Upload (T043)', () => {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        expect(screen.getByText(/42\.5\s*km/i)).toBeInTheDocument();
+        expect(screen.getByText(/ruta en bicicleta de 42\.5 km/i)).toBeInTheDocument();
       });
 
-      // Simulate file removal by parent component
-      rerender(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      // Click remove button to clear telemetry
+      const removeButton = screen.getByRole('button', { name: /eliminar/i });
+      fireEvent.click(removeButton);
 
-      expect(screen.queryByText(/42\.5\s*km/i)).not.toBeInTheDocument();
+      // Telemetry preview should be cleared
+      await waitFor(() => {
+        expect(screen.queryByText(/ruta en bicicleta de 42\.5 km/i)).not.toBeInTheDocument();
+      });
+
+      // Verify onFileRemove was called
+      expect(mockOnFileRemove).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -349,13 +369,13 @@ describe('Step1Upload (T043)', () => {
         new gpxWizardService.GPXAnalysisError('PROCESSING_TIMEOUT', 'Timeout error')
       );
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -371,13 +391,13 @@ describe('Step1Upload (T043)', () => {
         )
         .mockResolvedValueOnce(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -399,17 +419,17 @@ describe('Step1Upload (T043)', () => {
     it('should have accessible telemetry preview region', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
-        const telemetrySection = screen.getByRole('region', { name: /información del recorrido/i });
+        const telemetrySection = screen.getByRole('region', { name: /vista previa del recorrido/i });
         expect(telemetrySection).toBeInTheDocument();
       });
     });
@@ -417,13 +437,13 @@ describe('Step1Upload (T043)', () => {
     it('should announce analysis completion to screen readers', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'route.gpx', {
         type: 'application/gpx+xml',
       });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
       await waitFor(() => {
@@ -437,12 +457,12 @@ describe('Step1Upload (T043)', () => {
     it('should handle rapid file changes', async () => {
       mockAnalyzeGPXFile.mockResolvedValue(mockTelemetryWithElevation);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const file1 = new File(['content1'], 'route1.gpx', { type: 'application/gpx+xml' });
       const file2 = new File(['content2'], 'route2.gpx', { type: 'application/gpx+xml' });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
 
       // Upload file 1
       fireEvent.change(input, { target: { files: [file1] } });
@@ -457,22 +477,24 @@ describe('Step1Upload (T043)', () => {
     });
 
     it('should handle zero distance gracefully', async () => {
-      const zeroDistanceTelemetry = {
+      const zeroDistanceTelemetry: gpxWizardService.GPXTelemetry = {
         ...mockTelemetryWithoutElevation,
         distance_km: 0,
+        suggested_title: 'Punto en Bicicleta',
       };
 
       mockAnalyzeGPXFile.mockResolvedValue(zeroDistanceTelemetry);
 
-      render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
+      const { container } = render(<Step1Upload onComplete={mockOnComplete} onFileRemove={mockOnFileRemove} />);
 
       const mockFile = new File(['content'], 'point.gpx', { type: 'application/gpx+xml' });
 
-      const input = screen.getByLabelText(/arrastra tu archivo gpx/i, { selector: 'input' });
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [mockFile] } });
 
+      // Should still call onComplete with zero-distance telemetry
       await waitFor(() => {
-        expect(screen.getByText(/0\s*km/i)).toBeInTheDocument();
+        expect(mockOnComplete).toHaveBeenCalledWith(mockFile, zeroDistanceTelemetry);
       });
     });
   });
