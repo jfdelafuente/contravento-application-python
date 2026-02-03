@@ -21,19 +21,24 @@
 /* Header */
 .step3-review__header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .step3-review__title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #ffffff;
   margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .step3-review__description {
-  font-size: 0.95rem;
-  color: #6b7280;
+  font-size: 1rem;
+  color: #dbeafe;
   margin: 0;
 }
 
@@ -46,19 +51,38 @@
 
 /* Section */
 .step3-review__section {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
   padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.step3-review__section:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
 .step3-review__section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0 0 1rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #3b82f6;
+  border-bottom: 3px solid #dbeafe;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Telemetry Row (2 fields per row) */
+.step3-review__telemetry-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Field */
@@ -68,6 +92,120 @@
   gap: 1rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid #f3f4f6;
+}
+
+/* Telemetry fields with icons - adjust layout */
+.step3-review__field--telemetry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.step3-review__field--telemetry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Telemetry icon */
+.step3-review__telemetry-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Remove border for fields inside telemetry rows */
+.step3-review__telemetry-row .step3-review__field {
+  border-bottom: none;
+  padding: 0.875rem 1rem;
+}
+
+/* Adjust label and value layout inside telemetry fields */
+.step3-review__field--telemetry .step3-review__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.step3-review__field--telemetry .step3-review__value {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-left: auto;
+}
+
+/* Color themes for each metric */
+
+/* Distance - Blue theme */
+.step3-review__value--distance {
+  color: #2563eb;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Elevation Gain - Green theme (uphill) */
+.step3-review__value--gain {
+  color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Elevation Loss - Cyan theme (downhill) */
+.step3-review__value--loss {
+  color: #0891b2;
+  background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Max Elevation - Purple theme (mountain peak) */
+.step3-review__value--max-elevation {
+  color: #7c3aed;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Min Elevation - Indigo theme */
+.step3-review__value--min-elevation {
+  color: #4f46e5;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Difficulty - Dynamic colors based on level */
+.step3-review__value--difficulty {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.step3-review__value--difficulty-easy {
+  color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.step3-review__value--difficulty-moderate {
+  color: #d97706;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.step3-review__value--difficulty-difficult {
+  color: #ea580c;
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+}
+
+.step3-review__value--difficulty-very_difficult {
+  color: #dc2626;
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
 }
 
 .step3-review__field:last-child {
@@ -188,22 +326,25 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 0.75rem;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.15);
 }
 
 .step3-review__poi-item:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(251, 191, 36, 0.25);
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
 }
 
 .step3-review__poi-icon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   flex-shrink: 0;
   line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 .step3-review__poi-details {
@@ -216,15 +357,20 @@
 
 .step3-review__poi-name {
   font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: #92400e;
   margin: 0;
 }
 
 .step3-review__poi-type {
   font-size: 0.875rem;
-  color: #6b7280;
-  font-weight: 500;
+  color: #b45309;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
 }
 
 .step3-review__poi-description {
@@ -236,16 +382,18 @@
 
 /* No Elevation Message (Phase 2 - Option C) */
 .step3-review__no-elevation {
-  background-color: #f7fafc;
-  border-left: 4px solid #667eea;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-left: 4px solid #6366f1;
+  border-radius: 12px;
   padding: 1rem 1.25rem;
   margin-top: 1rem;
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
 }
 
 .step3-review__no-elevation p {
-  color: #4a5568;
+  color: #4338ca;
   font-size: 0.9375rem;
+  font-weight: 500;
   margin: 0;
   line-height: 1.5;
 }
@@ -286,6 +434,14 @@
   }
 }
 
+/* Tablet Layout - Stack telemetry rows */
+@media (max-width: 767px) {
+  .step3-review__telemetry-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
 /* Mobile Stacked Layout */
 @media (max-width: 639px) {
   .step3-review {
@@ -306,9 +462,18 @@
     width: 100%;
   }
 
+  .step3-review__telemetry-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
   .step3-review__field {
     grid-template-columns: 1fr;
     gap: 0.5rem;
+  }
+
+  .step3-review__field--telemetry {
+    flex-wrap: wrap;
   }
 
   .step3-review__label {

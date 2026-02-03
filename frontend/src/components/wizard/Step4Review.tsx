@@ -180,81 +180,90 @@ export const Step4Review: React.FC<Step4ReviewProps> = ({
           </div>
         </section>
 
-        {/* 3. Telemetry Section - Metrics with Icons and Colors */}
+        {/* 3. Telemetry Section - Metrics with Icons and Colors (2x2 Grid) */}
         <section className="step3-review__section">
           <h3 className="step3-review__section-title">Telemetría</h3>
 
-          <div className="step3-review__field step3-review__field--telemetry">
-            <span className="step3-review__telemetry-icon" aria-hidden="true">
-              🛣️
-            </span>
-            <span className="step3-review__label">Distancia Total:</span>
-            <span className="step3-review__value step3-review__value--distance">
-              {telemetry.distance_km.toFixed(1)} km
-            </span>
+          {/* Row 1: Distancia y Dificultad */}
+          <div className="step3-review__telemetry-row">
+            <div className="step3-review__field step3-review__field--telemetry">
+              <span className="step3-review__telemetry-icon" aria-hidden="true">
+                🛣️
+              </span>
+              <span className="step3-review__label">Distancia Total:</span>
+              <span className="step3-review__value step3-review__value--distance">
+                {telemetry.distance_km.toFixed(1)} km
+              </span>
+            </div>
+
+            <div className="step3-review__field step3-review__field--telemetry">
+              <span className="step3-review__telemetry-icon" aria-hidden="true">
+                {telemetry.difficulty === 'easy'
+                  ? '🟢'
+                  : telemetry.difficulty === 'moderate'
+                  ? '🟡'
+                  : telemetry.difficulty === 'difficult'
+                  ? '🟠'
+                  : '🔴'}
+              </span>
+              <span className="step3-review__label">Dificultad:</span>
+              <span
+                className={`step3-review__value step3-review__value--difficulty step3-review__value--difficulty-${telemetry.difficulty}`}
+              >
+                {formatDifficulty(telemetry.difficulty)}
+              </span>
+            </div>
           </div>
 
           {telemetry.has_elevation && (
             <>
-              <div className="step3-review__field step3-review__field--telemetry">
-                <span className="step3-review__telemetry-icon" aria-hidden="true">
-                  ⬆️
-                </span>
-                <span className="step3-review__label">Desnivel Positivo (+):</span>
-                <span className="step3-review__value step3-review__value--gain">
-                  {telemetry.elevation_gain !== null ? `${telemetry.elevation_gain} m` : 'N/A'}
-                </span>
+              {/* Row 2: Desnivel Positivo y Desnivel Negativo */}
+              <div className="step3-review__telemetry-row">
+                <div className="step3-review__field step3-review__field--telemetry">
+                  <span className="step3-review__telemetry-icon" aria-hidden="true">
+                    ⬆️
+                  </span>
+                  <span className="step3-review__label">Desnivel Positivo (+):</span>
+                  <span className="step3-review__value step3-review__value--gain">
+                    {telemetry.elevation_gain !== null ? `${telemetry.elevation_gain} m` : 'N/A'}
+                  </span>
+                </div>
+
+                <div className="step3-review__field step3-review__field--telemetry">
+                  <span className="step3-review__telemetry-icon" aria-hidden="true">
+                    ⬇️
+                  </span>
+                  <span className="step3-review__label">Desnivel Negativo (-):</span>
+                  <span className="step3-review__value step3-review__value--loss">
+                    {telemetry.elevation_loss !== null ? `${telemetry.elevation_loss} m` : 'N/A'}
+                  </span>
+                </div>
               </div>
 
-              <div className="step3-review__field step3-review__field--telemetry">
-                <span className="step3-review__telemetry-icon" aria-hidden="true">
-                  ⬇️
-                </span>
-                <span className="step3-review__label">Desnivel Negativo (-):</span>
-                <span className="step3-review__value step3-review__value--loss">
-                  {telemetry.elevation_loss !== null ? `${telemetry.elevation_loss} m` : 'N/A'}
-                </span>
-              </div>
+              {/* Row 3: Altitud Mínima y Altitud Máxima */}
+              <div className="step3-review__telemetry-row">
+                <div className="step3-review__field step3-review__field--telemetry">
+                  <span className="step3-review__telemetry-icon" aria-hidden="true">
+                    🏔️
+                  </span>
+                  <span className="step3-review__label">Altitud Mínima:</span>
+                  <span className="step3-review__value step3-review__value--min-elevation">
+                    {telemetry.min_elevation !== null ? `${telemetry.min_elevation} m` : 'N/A'}
+                  </span>
+                </div>
 
-              <div className="step3-review__field step3-review__field--telemetry">
-                <span className="step3-review__telemetry-icon" aria-hidden="true">
-                  ⛰️
-                </span>
-                <span className="step3-review__label">Altitud Máxima:</span>
-                <span className="step3-review__value step3-review__value--max-elevation">
-                  {telemetry.max_elevation !== null ? `${telemetry.max_elevation} m` : 'N/A'}
-                </span>
-              </div>
-
-              <div className="step3-review__field step3-review__field--telemetry">
-                <span className="step3-review__telemetry-icon" aria-hidden="true">
-                  🏔️
-                </span>
-                <span className="step3-review__label">Altitud Mínima:</span>
-                <span className="step3-review__value step3-review__value--min-elevation">
-                  {telemetry.min_elevation !== null ? `${telemetry.min_elevation} m` : 'N/A'}
-                </span>
+                <div className="step3-review__field step3-review__field--telemetry">
+                  <span className="step3-review__telemetry-icon" aria-hidden="true">
+                    ⛰️
+                  </span>
+                  <span className="step3-review__label">Altitud Máxima:</span>
+                  <span className="step3-review__value step3-review__value--max-elevation">
+                    {telemetry.max_elevation !== null ? `${telemetry.max_elevation} m` : 'N/A'}
+                  </span>
+                </div>
               </div>
             </>
           )}
-
-          <div className="step3-review__field step3-review__field--telemetry">
-            <span className="step3-review__telemetry-icon" aria-hidden="true">
-              {telemetry.difficulty === 'easy'
-                ? '🟢'
-                : telemetry.difficulty === 'moderate'
-                ? '🟡'
-                : telemetry.difficulty === 'difficult'
-                ? '🟠'
-                : '🔴'}
-            </span>
-            <span className="step3-review__label">Dificultad:</span>
-            <span
-              className={`step3-review__value step3-review__value--difficulty step3-review__value--difficulty-${telemetry.difficulty}`}
-            >
-              {formatDifficulty(telemetry.difficulty)}
-            </span>
-          </div>
 
           {!telemetry.has_elevation && (
             <div className="step3-review__no-elevation">

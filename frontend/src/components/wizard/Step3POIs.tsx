@@ -499,21 +499,21 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
       <nav className="step3-pois__navigation" aria-label="Navegación del asistente">
         <button
           type="button"
-          onClick={onPrevious}
-          className="step3-pois__button step3-pois__button--secondary"
-          aria-label="Volver al paso anterior (Mapa)"
+          onClick={handleSkip}
+          className="step3-pois__button step3-pois__button--tertiary"
+          aria-label="Omitir puntos de interés y continuar"
         >
-          Atrás
+          Omitir
         </button>
 
         <div className="step3-pois__navigation-right">
           <button
             type="button"
-            onClick={handleSkip}
-            className="step3-pois__button step3-pois__button--tertiary"
-            aria-label="Omitir puntos de interés y continuar"
+            onClick={onPrevious}
+            className="step3-pois__button step3-pois__button--secondary"
+            aria-label="Volver al paso anterior (Mapa)"
           >
-            Omitir
+            Anterior
           </button>
 
           <button

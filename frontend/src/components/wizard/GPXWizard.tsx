@@ -495,7 +495,6 @@ export const GPXWizard: React.FC<GPXWizardProps> = ({ onSuccess, onError, onCanc
             aria-label="Progreso del asistente"
           />
         </div>
-        <div className="gpx-wizard__progress-text">{progressPercentage}%</div>
       </nav>
 
       {/* Step Content */}

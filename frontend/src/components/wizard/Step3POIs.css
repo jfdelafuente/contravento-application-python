@@ -16,18 +16,24 @@
 /* Header Section */
 .step3-pois__header {
   text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .step3-pois__title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .step3-pois__description {
   font-size: 1rem;
-  color: #6b7280;
+  color: #dbeafe;
   margin: 0;
 }
 
@@ -43,21 +49,22 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #ffffff;
-  background-color: #3b82f6;
-  border: none;
-  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 2px solid #2563eb;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .step3-pois__add-button:hover:not(:disabled) {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
 }
 
 .step3-pois__add-button:active:not(:disabled) {
@@ -66,17 +73,26 @@
 
 .step3-pois__add-button:disabled,
 .step3-pois__add-button--disabled {
-  background-color: #9ca3af;
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+  border-color: #9ca3af;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .step3-pois__click-hint {
-  font-size: 0.875rem;
-  color: #3b82f6;
-  font-weight: 500;
+  font-size: 0.9375rem;
+  color: #1d4ed8;
+  font-weight: 600;
   margin: 0;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid #3b82f6;
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+.step3-pois__click-hint::before {
+  content: "👆 ";
 }
 
 @keyframes pulse {
@@ -93,15 +109,18 @@
 .step3-pois__map-container {
   width: 100%;
   height: 400px;
-  border-radius: 0.75rem;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s ease;
+  border: 2px solid #bfdbfe;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
+  transition: all 0.2s ease;
 }
 
 .step3-pois__map-container.map-click-mode {
   cursor: crosshair;
-  box-shadow: 0 0 0 3px #3b82f6, 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 4px 6px rgba(59, 130, 246, 0.2);
+  transform: scale(1.005);
 }
 
 .step3-pois__map-placeholder {
@@ -124,13 +143,20 @@
 
 /* POI List Section */
 .step3-pois__list-section {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  border-radius: 12px;
+  border: 2px solid #bfdbfe;
 }
 
 .step3-pois__list-title {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 1rem;
 }
 
@@ -148,22 +174,25 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1rem;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.15);
 }
 
 .poi-item:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: translateX(4px);
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 4px 8px rgba(251, 191, 36, 0.25);
 }
 
 .poi-item__icon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 /* POI Photo Thumbnail */
@@ -191,20 +220,25 @@
 
 .poi-item__name {
   font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: #92400e;
   margin: 0 0 0.25rem 0;
 }
 
 .poi-item__type {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #b45309;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
   margin: 0 0 0.5rem 0;
 }
 
 .poi-item__description {
   font-size: 0.875rem;
-  color: #4b5563;
+  color: #78350f;
   margin: 0;
   line-height: 1.5;
 }
@@ -216,35 +250,40 @@
 }
 
 .poi-item__button {
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 1rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
+  font-weight: 600;
+  border: 2px solid;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .poi-item__button--edit {
-  color: #3b82f6;
-  background-color: #ffffff;
+  color: #2563eb;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
   border-color: #3b82f6;
 }
 
 .poi-item__button--edit:hover {
-  background-color: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
 }
 
 .poi-item__button--delete {
-  color: #ef4444;
-  background-color: #ffffff;
+  color: #dc2626;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
   border-color: #ef4444;
 }
 
 .poi-item__button--delete:hover {
-  background-color: #fef2f2;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
 }
 
 /* Navigation Buttons */
@@ -255,7 +294,7 @@
   gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 3px solid #bfdbfe;
 }
 
 .step3-pois__navigation-right {
@@ -264,46 +303,51 @@
 }
 
 .step3-pois__button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .step3-pois__button--primary {
   color: #ffffff;
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 2px solid #2563eb;
 }
 
 .step3-pois__button--primary:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
 }
 
 .step3-pois__button--secondary {
   color: #374151;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  border: 2px solid #d1d5db;
 }
 
 .step3-pois__button--secondary:hover {
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
   border-color: #9ca3af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .step3-pois__button--tertiary {
   color: #6b7280;
-  background-color: transparent;
-  border: 1px solid #d1d5db;
+  background: transparent;
+  border: 2px solid #d1d5db;
 }
 
 .step3-pois__button--tertiary:hover {
   color: #374151;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  transform: translateY(-2px);
 }
 
 /* POI Form Modal - POIForm component has its own styles */
@@ -325,13 +369,26 @@
 }
 
 .delete-dialog {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+  border: 3px solid #ef4444;
+  border-radius: 16px;
   max-width: 400px;
   width: 100%;
-  padding: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.2),
+    0 10px 10px -5px rgba(239, 68, 68, 0.1);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .delete-dialog-icon {
@@ -342,8 +399,14 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #fef2f2;
-  color: #ef4444;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.delete-dialog-icon::before {
+  content: "⚠️";
 }
 
 .delete-dialog-icon svg {
@@ -352,19 +415,26 @@
 }
 
 .delete-dialog-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 1.375rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-align: center;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
 }
 
 .delete-dialog-text {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: 0.9375rem;
+  color: #374151;
   text-align: center;
   margin: 0 0 1.5rem 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  border-left: 3px solid #ef4444;
 }
 
 .delete-dialog-actions {
@@ -374,32 +444,38 @@
 }
 
 .delete-dialog-button {
-  padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 0.875rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .delete-dialog-button--secondary {
   color: #374151;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  border: 2px solid #d1d5db;
 }
 
 .delete-dialog-button--secondary:hover {
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .delete-dialog-button--danger {
   color: #ffffff;
-  background-color: #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 2px solid #dc2626;
 }
 
 .delete-dialog-button--danger:hover {
-  background-color: #dc2626;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
 }
 
 /* Screen Reader Only */
