@@ -227,11 +227,13 @@ describe('GPXWizard (T040)', () => {
       expect(step1).toHaveClass('wizard-step--completed');
     });
 
-    it('should show progress percentage', () => {
+    it('should show progress bar with correct value', () => {
       render(<GPXWizard onSuccess={mockOnSuccess} onError={mockOnError} onCancel={mockOnCancel} />);
 
-      // Should show 0% on first step
-      expect(screen.getByText(/0%/i)).toBeInTheDocument();
+      // Should show progress bar with 0% on first step (via aria-valuenow)
+      const progressBar = screen.getByRole('progressbar', { name: /progreso del asistente/i });
+      expect(progressBar).toHaveAttribute('aria-valuenow', '0');
+      expect(progressBar).toHaveStyle({ width: '0%' });
     });
   });
 
