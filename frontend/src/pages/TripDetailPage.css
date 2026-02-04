@@ -339,6 +339,13 @@
   border-bottom: 2px solid var(--border-color, #e5e7eb);
 }
 
+.trip-detail-page__photo-count {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-left: 0.5rem;
+}
+
 /* Description */
 .trip-detail-page__description {
   font-size: 1.0625rem;

@@ -7,11 +7,13 @@
  * Route: /trips/:tripId
  */
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TripGallery } from '../components/trips/TripGallery';
+import { PhotoCarousel, type CombinedPhoto } from '../components/trips/PhotoCarousel';
 import { POIForm } from '../components/trips/POIForm';
+import { POI_TYPE_LABELS } from '../types/poi';
 import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
@@ -133,6 +135,33 @@ export const TripDetailPage: React.FC = () => {
 
   // Check if current user is the trip owner
   const isOwner = !!(user && trip && user.user_id === trip.user_id);
+
+  // Combined photos from trip and POIs (MVP - Photo Gallery Enhancement)
+  const combinedPhotos = useMemo<CombinedPhoto[]>(() => {
+    if (!trip) return [];
+
+    // Trip photos (ordered by display_order)
+    const tripPhotos: CombinedPhoto[] = (trip.photos || []).map(photo => ({
+      url: getPhotoUrl(photo.photo_url) || '',
+      thumbnail: photo.thumbnail_url,
+      caption: photo.caption || trip.title,
+      source: 'trip' as const,
+      width: photo.width,
+      height: photo.height,
+    }));
+
+    // POI photos (filtered to only those with photos)
+    const poiPhotos: CombinedPhoto[] = pois
+      .filter(poi => poi.photo_url)
+      .map(poi => ({
+        url: getPhotoUrl(poi.photo_url!) || '',
+        thumbnail: poi.photo_url!,  // POI photos don't have separate thumbnails
+        caption: `${poi.name} - ${POI_TYPE_LABELS[poi.poi_type]}`,
+        source: 'poi' as const,
+      }));
+
+    return [...tripPhotos, ...poiPhotos];
+  }, [trip, pois]);
 
   // Fetch POIs for this trip (Feature 003 - User Story 4)
   const fetchPOIs = async () => {
@@ -715,11 +744,18 @@ export const TripDetailPage: React.FC = () => {
           </section>
         )}
 
-        {/* Photo Gallery */}
-        {trip.photos && trip.photos.length > 0 && (
+        {/* Photo Gallery - MVP: Combined Trip + POI Photos */}
+        {combinedPhotos.length > 0 && (
           <section className="trip-detail-page__section">
-            <h2 className="trip-detail-page__section-title">Galería de Fotos</h2>
-            <TripGallery photos={trip.photos} tripTitle={trip.title} />
+            <h2 className="trip-detail-page__section-title">
+              Galería de Fotos
+              {combinedPhotos.length > trip.photos.length && (
+                <span className="trip-detail-page__photo-count">
+                  ({trip.photos.length} viaje, {combinedPhotos.length - trip.photos.length} POIs)
+                </span>
+              )}
+            </h2>
+            <PhotoCarousel photos={combinedPhotos} tripTitle={trip.title} />
           </section>
         )}
 

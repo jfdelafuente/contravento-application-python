@@ -1,0 +1,507 @@
+/**
+ * PhotoCarousel Component Styles
+ *
+ * Styling for horizontal photo carousel with thumbnails.
+ * Mobile-first responsive design with touch-friendly controls.
+ *
+ * Feature: MVP - Photo Gallery Enhancement
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.photo-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   Main Photo Display
+   ========================================================================= */
+
+.photo-carousel__main {
+  position: relative;
+  width: 100%;
+  background-color: #f7fafc;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.photo-carousel__image-container {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.photo-carousel__image-container:hover {
+  transform: scale(1.01);
+}
+
+.photo-carousel__image-container:focus {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.photo-carousel__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background-color: #1a202c;
+}
+
+/* ============================================================================
+   Source Badge
+   ========================================================================= */
+
+.photo-carousel__badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+.photo-carousel__badge--trip {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.photo-carousel__badge--poi {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #78350f;
+}
+
+/* ============================================================================
+   Caption Overlay
+   ========================================================================= */
+
+.photo-carousel__caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 1rem 1rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  z-index: 1;
+}
+
+.photo-carousel__caption p {
+  margin: 0;
+  color: white;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================================
+   Click Hint
+   ========================================================================= */
+
+.photo-carousel__click-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 3;
+  backdrop-filter: blur(4px);
+}
+
+.photo-carousel__image-container:hover .photo-carousel__click-hint {
+  opacity: 1;
+}
+
+.photo-carousel__click-hint svg {
+  width: 2rem;
+  height: 2rem;
+  color: white;
+}
+
+.photo-carousel__click-hint span {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Navigation Buttons
+   ========================================================================= */
+
+.photo-carousel__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 4;
+  backdrop-filter: blur(4px);
+}
+
+.photo-carousel__nav:hover {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.photo-carousel__nav:active {
+  transform: translateY(-50%) scale(1);
+}
+
+.photo-carousel__nav:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.photo-carousel__nav svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #1a202c;
+}
+
+.photo-carousel__nav--prev {
+  left: 1rem;
+}
+
+.photo-carousel__nav--next {
+  right: 1rem;
+}
+
+/* ============================================================================
+   Counter
+   ========================================================================= */
+
+.photo-carousel__counter {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+/* ============================================================================
+   Thumbnail Strip
+   ========================================================================= */
+
+.photo-carousel__thumbnails {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.photo-carousel__thumbnails::-webkit-scrollbar {
+  height: 8px;
+}
+
+.photo-carousel__thumbnails::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.photo-carousel__thumbnails::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.photo-carousel__thumbnails::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+.photo-carousel__thumbnails-track {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.photo-carousel__thumbnail {
+  position: relative;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  padding: 0;
+  background: #f7fafc;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photo-carousel__thumbnail:hover {
+  border-color: #cbd5e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.photo-carousel__thumbnail:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.photo-carousel__thumbnail--active {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.photo-carousel__thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ============================================================================
+   Thumbnail Badge
+   ========================================================================= */
+
+.photo-carousel__thumbnail-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 700;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.photo-carousel__thumbnail-badge--trip {
+  background: #3b82f6;
+  color: white;
+}
+
+.photo-carousel__thumbnail-badge--poi {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+/* ============================================================================
+   Accessibility
+   ========================================================================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .photo-carousel__main {
+    border-radius: 8px;
+  }
+
+  .photo-carousel__image-container {
+    min-height: 300px;
+  }
+
+  .photo-carousel__nav {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .photo-carousel__nav svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .photo-carousel__nav--prev {
+    left: 0.5rem;
+  }
+
+  .photo-carousel__nav--next {
+    right: 0.5rem;
+  }
+
+  .photo-carousel__caption p {
+    font-size: 0.875rem;
+  }
+
+  .photo-carousel__thumbnail {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-carousel__image-container {
+    min-height: 250px;
+  }
+
+  .photo-carousel__badge {
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .photo-carousel__counter {
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .photo-carousel__caption {
+    padding: 1rem 0.75rem 0.75rem;
+  }
+
+  .photo-carousel__caption p {
+    font-size: 0.8125rem;
+  }
+
+  .photo-carousel__thumbnail {
+    width: 60px;
+    height: 60px;
+  }
+
+  .photo-carousel__click-hint {
+    padding: 0.75rem 1rem;
+  }
+
+  .photo-carousel__click-hint svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .photo-carousel__click-hint span {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================================================
+   Touch Device Optimizations
+   ========================================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  .photo-carousel__nav {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .photo-carousel__thumbnail {
+    width: 90px;
+    height: 90px;
+  }
+
+  /* Hide click hint on touch devices */
+  .photo-carousel__click-hint {
+    display: none;
+  }
+
+  /* Remove hover effects on touch devices */
+  .photo-carousel__image-container:hover {
+    transform: none;
+  }
+
+  .photo-carousel__nav:hover {
+    transform: translateY(-50%);
+  }
+
+  .photo-carousel__thumbnail:hover {
+    transform: none;
+    border-color: transparent;
+  }
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-carousel__image-container,
+  .photo-carousel__nav,
+  .photo-carousel__thumbnail,
+  .photo-carousel__click-hint {
+    transition: none;
+  }
+
+  .photo-carousel__image-container:hover,
+  .photo-carousel__nav:hover,
+  .photo-carousel__thumbnail:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .photo-carousel__nav,
+  .photo-carousel__counter,
+  .photo-carousel__click-hint,
+  .photo-carousel__thumbnails {
+    display: none;
+  }
+
+  .photo-carousel__badge {
+    background: white;
+    border: 1px solid #000;
+  }
+
+  .photo-carousel__badge--trip {
+    color: #000;
+  }
+
+  .photo-carousel__badge--poi {
+    color: #000;
+  }
+}
