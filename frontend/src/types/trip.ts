@@ -59,6 +59,9 @@ export interface Trip {
   /** Difficulty level (null if not provided) */
   difficulty: TripDifficulty | null;
 
+  /** Trip privacy (public/private) */
+  is_private: boolean;
+
   /** Trip creation timestamp (ISO 8601: YYYY-MM-DDTHH:mm:ssZ) */
   created_at: string;
 
@@ -141,8 +144,11 @@ export type TripSummary = TripListItem;
  * - PhotoUploader (uploaded photo preview)
  */
 export interface TripPhoto {
-  /** Unique photo identifier (UUID) */
+  /** Unique photo identifier (UUID) - Backend returns as 'id' via serialization_alias */
   photo_id: string;
+
+  /** Alias for photo_id (backend uses serialization_alias="id") */
+  id?: string;
 
   /** URL to optimized photo (max 2000px width) */
   photo_url: string;
@@ -273,6 +279,9 @@ export interface TripUpdateInput {
 
   /** Difficulty level */
   difficulty?: TripDifficulty | null;
+
+  /** Trip privacy */
+  is_private?: boolean;
 
   /** Locations (replaces existing) */
   locations?: LocationInput[];

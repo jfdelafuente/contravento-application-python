@@ -28,6 +28,7 @@ const TripEditPage = lazy(() => import('./pages/TripEditPage').then(module => ({
 // GPS Trip Creation Wizard (Feature 017)
 const TripCreateModePage = lazy(() => import('./pages/TripCreateModePage').then(module => ({ default: module.TripCreateModePage })));
 const GPXTripCreatePage = lazy(() => import('./pages/GPXTripCreatePage').then(module => ({ default: module.GPXTripCreatePage })));
+const GPXTripEditPage = lazy(() => import('./pages/GPXTripEditPage').then(module => ({ default: module.GPXTripEditPage })));
 
 // Public Trips Feed (Feature 013)
 const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage').then(module => ({ default: module.PublicFeedPage })));
@@ -153,6 +154,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TripEditPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Edit GPX trip route */}
+              <Route
+                path="/trips/:tripId/edit-gpx"
+                element={
+                  <ProtectedRoute>
+                    <GPXTripEditPage />
                   </ProtectedRoute>
                 }
               />

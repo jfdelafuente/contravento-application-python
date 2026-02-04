@@ -389,3 +389,73 @@ export const createTripWithGPX = async (
 
   return response.data.data;
 };
+
+// ============================================================================
+// Photo Management Operations
+// ============================================================================
+
+/**
+ * Upload photo to trip
+ *
+ * @param tripId - UUID of the trip
+ * @param file - Photo file to upload (JPG/PNG/WEBP, max 10MB)
+ * @returns Uploaded photo data
+ *
+ * @throws 400 if validation fails
+ * @throws 403 if not the trip owner
+ * @throws 413 if file exceeds size limit
+ *
+ * @example
+ * const photo = await uploadTripPhoto(tripId, file);
+ */
+export const uploadTripPhoto = async (
+  tripId: string,
+  file: File
+): Promise<import('../types/trip').TripPhoto> => {
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  const response = await api.post<ApiResponse<import('../types/trip').TripPhoto>>(
+    `/trips/${tripId}/photos`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data.data;
+};
+
+/**
+ * Delete photo from trip
+ *
+ * @param tripId - UUID of the trip
+ * @param photoId - UUID of the photo to delete
+ *
+ * @throws 403 if not the trip owner
+ * @throws 404 if photo not found
+ *
+ * @example
+ * await deleteTripPhoto(tripId, photoId);
+ */
+export const deleteTripPhoto = async (tripId: string, photoId: string): Promise<void> => {
+  await api.delete(`/trips/${tripId}/photos/${photoId}`);
+};
+
+/**
+ * Reorder trip photos
+ *
+ * @param tripId - UUID of the trip
+ * @param photoIds - Array of photo IDs in desired order
+ *
+ * @throws 403 if not the trip owner
+ * @throws 400 if photo IDs don't match trip's photos
+ *
+ * @example
+ * await reorderTripPhotos(tripId, [photo1.photo_id, photo2.photo_id, photo3.photo_id]);
+ */
+export const reorderTripPhotos = async (tripId: string, photoIds: string[]): Promise<void> => {
+  await api.put(`/trips/${tripId}/photos/reorder`, { photo_order: photoIds });
+};

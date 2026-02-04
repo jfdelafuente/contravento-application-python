@@ -456,10 +456,10 @@ class TripService:
         if trip.user_id != user_id:
             raise PermissionError("No tienes permiso para subir fotos a este viaje")
 
-        # Check photo limit (max 20)
+        # Check photo limit (max 6)
         photo_count = len(trip.photos)
-        if photo_count >= 20:
-            raise ValueError("Has alcanzado el límite de 20 fotos por viaje")
+        if photo_count >= 6:
+            raise ValueError("Has alcanzado el límite de 6 fotos por viaje")
 
         # Validate content type
         allowed_types = ["image/jpeg", "image/png", "image/webp"]
@@ -747,6 +747,9 @@ class TripService:
             trip.difficulty = (
                 TripDifficulty(update_data["difficulty"]) if update_data["difficulty"] else None
             )
+
+        if "is_private" in update_data:
+            trip.is_private = update_data["is_private"]
 
         # Update tags if provided
         if "tags" in update_data:

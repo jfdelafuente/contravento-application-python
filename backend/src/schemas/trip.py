@@ -208,6 +208,7 @@ class TripUpdateRequest(BaseModel):
     end_date: date | None = None
     distance_km: float | None = Field(None, ge=0.1, le=10000.0)
     difficulty: str | None = None
+    is_private: bool | None = None
     locations: list[LocationInput] | None = Field(None, max_length=50)
     tags: list[str] | None = Field(None, max_length=10)
     client_updated_at: datetime | None = Field(
@@ -396,6 +397,7 @@ class TripResponse(BaseModel):
     end_date: date | None = Field(None, description="End date")
     distance_km: float | None = Field(None, description="Distance in kilometers")
     difficulty: str | None = Field(None, description="Difficulty level")
+    is_private: bool = Field(False, description="Trip privacy (public/private)")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
     updated_at: datetime = Field(..., description="Last update timestamp (UTC)")
     published_at: datetime | None = Field(None, description="Publication timestamp (UTC)")
@@ -457,6 +459,7 @@ class TripResponse(BaseModel):
                 "difficulty": obj.difficulty.value
                 if obj.difficulty and hasattr(obj.difficulty, "value")
                 else obj.difficulty,
+                "is_private": obj.is_private,
                 "created_at": obj.created_at,
                 "updated_at": obj.updated_at,
                 "published_at": obj.published_at,

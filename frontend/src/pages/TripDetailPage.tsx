@@ -699,7 +699,11 @@ export const TripDetailPage: React.FC = () => {
               {/* Edit and Delete buttons - Second row (always together) */}
               <div className="trip-detail-page__actions-row">
                 <Link
-                  to={`/trips/${trip.trip_id}/edit`}
+                  to={
+                    trip.gpx_file
+                      ? `/trips/${trip.trip_id}/edit-gpx`
+                      : `/trips/${trip.trip_id}/edit`
+                  }
                   className="trip-detail-page__action-button trip-detail-page__action-button--edit"
                 >
                   Editar
