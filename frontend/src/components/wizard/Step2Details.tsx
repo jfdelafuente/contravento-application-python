@@ -83,6 +83,12 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
   // Use Smart-Title from backend (cleaned and formatted)
   const defaultTitle = telemetry.suggested_title;
 
+  // Fallback to today's date if GPX doesn't have timestamps
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+
   const {
     register,
     handleSubmit,
@@ -94,7 +100,7 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
     defaultValues: {
       title: initialData?.title || defaultTitle,
       description: initialData?.description || '',
-      start_date: initialData?.start_date || telemetry.start_date || '',
+      start_date: initialData?.start_date || telemetry.start_date || getTodayDate(),
       end_date: initialData?.end_date || telemetry.end_date || '',
       privacy: initialData?.privacy || 'public',
     },
@@ -284,8 +290,10 @@ export const Step2Details: React.FC<Step2DetailsProps> = ({
                 {errors.start_date.message}
               </div>
             )}
-            {telemetry.has_timestamps && telemetry.start_date && (
+            {telemetry.has_timestamps && telemetry.start_date ? (
               <div className="step2-details__hint">Fecha extraída del GPX</div>
+            ) : (
+              <div className="step2-details__hint">Fecha actual (puedes modificarla)</div>
             )}
           </div>
 
