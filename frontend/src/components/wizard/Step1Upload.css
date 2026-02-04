@@ -28,19 +28,24 @@
 
 .step1-upload__header {
   text-align: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .step1-upload__title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #ffffff;
   margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .step1-upload__description {
   font-size: 1rem;
-  color: #4a5568;
+  color: #dbeafe;
   margin: 0;
   line-height: 1.5;
 }
@@ -57,19 +62,21 @@
 
 .step1-upload__retry-button {
   padding: 0.75rem 1.5rem;
-  background-color: #d35400;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .step1-upload__retry-button:hover {
-  background-color: #e67e22;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .step1-upload__retry-button:active {
@@ -77,7 +84,7 @@
 }
 
 .step1-upload__retry-button:focus {
-  outline: 2px solid #d35400;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -109,11 +116,18 @@
    ========================================================================= */
 
 .step1-upload__suggested-title {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
   text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.step1-upload__suggested-title:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
 }
 
 .step1-upload__suggested-title h3 {
@@ -161,7 +175,7 @@
 
 /* Focus visible styles for keyboard navigation */
 .step1-upload__retry-button:focus-visible {
-  outline: 3px solid #d35400;
+  outline: 3px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -262,11 +276,13 @@
     animation: none;
   }
 
-  .step1-upload__retry-button {
+  .step1-upload__retry-button,
+  .step1-upload__suggested-title {
     transition: none;
   }
 
-  .step1-upload__retry-button:hover {
+  .step1-upload__retry-button:hover,
+  .step1-upload__suggested-title:hover {
     transform: none;
   }
 }

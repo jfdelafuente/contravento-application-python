@@ -36,24 +36,24 @@
 }
 
 .gpx-wizard-uploader__dropzone:hover {
-  border-color: #d35400;
-  background-color: #fff5ed;
+  border-color: #3b82f6;
+  background-color: #eff6ff;
 }
 
 .gpx-wizard-uploader__dropzone:focus {
-  outline: 2px solid #d35400;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
 /* Active State (File Being Dragged Over) */
 .gpx-wizard-uploader--active {
-  border-color: #d35400;
-  background-color: #fff5ed;
+  border-color: #3b82f6;
+  background-color: #eff6ff;
   border-style: solid;
 }
 
 .gpx-wizard-uploader--active .gpx-wizard-uploader__icon {
-  color: #d35400;
+  color: #3b82f6;
   transform: scale(1.1);
 }
 
@@ -86,7 +86,7 @@
 }
 
 .gpx-wizard-uploader__dropzone:hover .gpx-wizard-uploader__icon {
-  color: #d35400;
+  color: #3b82f6;
 }
 
 /* Text */
@@ -130,7 +130,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #d35400;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: gpx-wizard-uploader-spin 1s linear infinite;
 }
@@ -164,7 +164,7 @@
 }
 
 .gpx-wizard-uploader__file-icon {
-  color: #d35400;
+  color: #3b82f6;
   flex-shrink: 0;
 }
 
@@ -205,7 +205,7 @@
 }
 
 .gpx-wizard-uploader__remove-button:focus {
-  outline: 2px solid #d35400;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
