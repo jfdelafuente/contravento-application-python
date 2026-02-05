@@ -324,6 +324,7 @@ class StatsService:
         T163: Update stats when a trip is deleted.
 
         Decrements statistics. Ensures values don't go below zero.
+        Also removes achievements that are no longer met.
 
         Args:
             user_id: User ID
@@ -349,6 +350,9 @@ class StatsService:
         stats.updated_at = datetime.now(UTC)
 
         await self.db.commit()
+
+        # Remove achievements that are no longer met
+        await self._remove_unmet_achievements(user_id, stats)
 
         logger.info(f"Updated stats for user {user_id} after trip delete")
 
@@ -514,3 +518,55 @@ class StatsService:
             logger.info(f"Awarded {len(newly_earned)} new achievements to user {user_id}")
 
         return newly_earned
+
+    async def _remove_unmet_achievements(self, user_id: str, stats: UserStats) -> None:
+        """
+        Remove achievements that are no longer met after stats decrease.
+
+        Checks all user achievements and removes those that no longer meet the requirements.
+        Updates the achievements_count accordingly.
+
+        Args:
+            user_id: User ID
+            stats: User's current stats
+        """
+        # Get all user achievements with achievement details
+        result = await self.db.execute(
+            select(UserAchievement)
+            .options(joinedload(UserAchievement.achievement))
+            .where(UserAchievement.user_id == user_id)
+        )
+        user_achievements = result.scalars().all()
+
+        if not user_achievements:
+            return
+
+        # Check which achievements are no longer met
+        achievements_to_remove = []
+        for user_achievement in user_achievements:
+            achievement = user_achievement.achievement
+            still_earned = self._check_achievement_criteria(
+                achievement,
+                stats.total_kilometers,
+                stats.total_trips,
+                len(stats.countries_visited) if stats.countries_visited else 0,
+                stats.total_photos,
+                0,  # followers_count (not implemented yet)
+            )
+
+            if not still_earned:
+                achievements_to_remove.append(user_achievement)
+
+        # Remove unmet achievements
+        if achievements_to_remove:
+            for user_achievement in achievements_to_remove:
+                await self.db.delete(user_achievement)
+                stats.achievements_count = max(0, stats.achievements_count - 1)
+                logger.info(
+                    f"Removed achievement {user_achievement.achievement.code} from user {user_id} (no longer met)"
+                )
+
+            await self.db.commit()
+            logger.info(
+                f"Removed {len(achievements_to_remove)} unmet achievements from user {user_id}"
+            )

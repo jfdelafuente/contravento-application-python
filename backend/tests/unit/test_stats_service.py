@@ -281,6 +281,147 @@ class TestStatsServiceUpdateStatsOnTripDelete:
         assert stats.total_kilometers >= 0.0
         assert stats.total_photos >= 0
 
+    async def test_delete_removes_unmet_achievements(
+        self,
+        db_session: AsyncSession,
+    ):
+        """Test that deleting a trip removes achievements that are no longer met."""
+        # Create user with stats that meet achievement requirement
+        user = User(
+            id="test-user-id",
+            username="achiever",
+            email="achiever@example.com",
+            hashed_password="hashed",
+            is_active=True,
+        )
+        db_session.add(user)
+
+        stats = UserStats(
+            user_id=user.id,
+            total_trips=1,
+            total_kilometers=100.5,  # Just over 100km
+            total_photos=5,
+            achievements_count=1,
+        )
+        db_session.add(stats)
+
+        # Create achievement for 100km
+        century = Achievement(
+            code="CENTURY",
+            name="Centurión",
+            description="Recorriste 100 km",
+            badge_icon="💯",
+            requirement_type="distance",
+            requirement_value=100,
+        )
+        db_session.add(century)
+        await db_session.flush()
+
+        # Award the achievement
+        user_achievement = UserAchievement(
+            user_id=user.id,
+            achievement_id=century.id,
+        )
+        db_session.add(user_achievement)
+        await db_session.commit()
+
+        # Delete a trip that brings stats below 100km
+        stats_service = StatsService(db_session)
+        await stats_service.update_stats_on_trip_delete(
+            user_id=user.id,
+            distance_km=50.0,  # This will bring total to 50.5km
+            country_code="ES",
+            photos_count=3,
+        )
+
+        # Verify stats decreased
+        await db_session.refresh(stats)
+        assert stats.total_kilometers == 50.5  # 100.5 - 50.0
+        assert stats.total_trips == 0
+
+        # Verify achievement was removed
+        from sqlalchemy import select
+
+        result = await db_session.execute(
+            select(UserAchievement).where(UserAchievement.user_id == user.id)
+        )
+        remaining_achievements = result.scalars().all()
+        assert len(remaining_achievements) == 0  # Achievement removed
+
+        # Verify achievements_count decremented
+        assert stats.achievements_count == 0
+
+    async def test_delete_keeps_met_achievements(
+        self,
+        db_session: AsyncSession,
+    ):
+        """Test that deleting a trip keeps achievements that are still met."""
+        # Create user with stats well above achievement requirement
+        user = User(
+            id="test-user-id",
+            username="overachiever",
+            email="overachiever@example.com",
+            hashed_password="hashed",
+            is_active=True,
+        )
+        db_session.add(user)
+
+        stats = UserStats(
+            user_id=user.id,
+            total_trips=2,
+            total_kilometers=200.0,  # Well over 100km
+            total_photos=10,
+            achievements_count=1,
+        )
+        db_session.add(stats)
+
+        # Create achievement for 100km
+        century = Achievement(
+            code="CENTURY",
+            name="Centurión",
+            description="Recorriste 100 km",
+            badge_icon="💯",
+            requirement_type="distance",
+            requirement_value=100,
+        )
+        db_session.add(century)
+        await db_session.flush()
+
+        # Award the achievement
+        user_achievement = UserAchievement(
+            user_id=user.id,
+            achievement_id=century.id,
+        )
+        db_session.add(user_achievement)
+        await db_session.commit()
+
+        # Delete a trip but stay above 100km
+        stats_service = StatsService(db_session)
+        await stats_service.update_stats_on_trip_delete(
+            user_id=user.id,
+            distance_km=50.0,  # This will bring total to 150km (still > 100)
+            country_code="ES",
+            photos_count=5,
+        )
+
+        # Verify stats decreased but still above threshold
+        await db_session.refresh(stats)
+        assert stats.total_kilometers == 150.0  # 200 - 50
+        assert stats.total_trips == 1
+
+        # Verify achievement was kept
+        from sqlalchemy import select
+
+        result = await db_session.execute(
+            select(UserAchievement).where(UserAchievement.user_id == user.id)
+        )
+        remaining_achievements = result.scalars().all()
+        assert len(remaining_achievements) == 1  # Achievement kept
+        assert remaining_achievements[0].achievement_id == century.id
+
+        # Verify achievements_count unchanged
+        assert stats.achievements_count == 1
+
 
 @pytest.mark.asyncio
 class TestStatsServiceCheckAchievements:

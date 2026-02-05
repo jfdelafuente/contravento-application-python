@@ -377,13 +377,14 @@ async def test_feed_when_user_follows_nobody(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_feed_excludes_own_trips(db_session: AsyncSession):
+async def test_feed_includes_own_trips(db_session: AsyncSession):
     """
-    Test that feed excludes user's own trips (even if user "follows" themselves).
+    Test that feed includes user's own trips at the highest priority.
 
     Business Logic:
-    - User should not see their own trips in feed
-    - Feed is for discovering others' content
+    - User should see their own trips first in the personalized feed
+    - Own trips appear before followed users' trips
+    - Both public and private trips are included (user can see their own private trips)
     """
     # User with own trip
     user = User(
@@ -432,10 +433,12 @@ async def test_feed_excludes_own_trips(db_session: AsyncSession):
         limit=10,
     )
 
-    # Should NOT include own trip
+    # Should include own trip at the highest priority
     trip_ids = [t["trip_id"] for t in result["trips"]]
-    assert "trip1" not in trip_ids  # Own trip excluded
-    assert "trip2" in trip_ids  # Other trips included
+    assert "trip1" in trip_ids  # Own trip included
+    assert "trip2" in trip_ids  # Other trips also included
+    # Own trip should appear first (highest priority)
+    assert trip_ids[0] == "trip1"
 
 
 @pytest.mark.asyncio
