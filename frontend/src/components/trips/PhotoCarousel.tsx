@@ -6,7 +6,6 @@
  *
  * Features:
  * - Navigation buttons (previous/next)
- * - Thumbnail strip for quick navigation
  * - Click to open lightbox (full-screen view)
  * - Badge indicating photo source (Trip/POI)
  * - Caption overlay
@@ -15,7 +14,7 @@
  * Feature: MVP - Photo Gallery Enhancement
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -55,12 +54,27 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, tripTitle 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
+  // Reset currentIndex if it's invalid or out of bounds when photos array changes
+  useEffect(() => {
+    if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= photos.length) {
+      if (photos.length > 0) {
+        setCurrentIndex(0);
+      }
+    }
+  }, [photos.length, currentIndex]);
+
   // Empty state
   if (photos.length === 0) {
     return null;
   }
 
-  const currentPhoto = photos[currentIndex];
+  // Safely get current photo with fallback
+  const currentPhoto = photos[currentIndex] || photos[0];
+
+  // If still no photo available, return null
+  if (!currentPhoto) {
+    return null;
+  }
 
   // Navigation handlers
   const handlePrevious = () => {
@@ -69,10 +83,6 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, tripTitle 
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleThumbnailClick = (index: number) => {
-    setCurrentIndex(index);
   };
 
   const handleMainPhotoClick = () => {
@@ -190,34 +200,6 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, tripTitle 
         )}
       </div>
 
-      {/* Thumbnail Strip */}
-      {photos.length > 1 && (
-        <div className="photo-carousel__thumbnails">
-          <div className="photo-carousel__thumbnails-track">
-            {photos.map((photo, index) => (
-              <button
-                key={index}
-                onClick={() => handleThumbnailClick(index)}
-                className={`photo-carousel__thumbnail ${
-                  index === currentIndex ? 'photo-carousel__thumbnail--active' : ''
-                }`}
-                aria-label={`Ver foto ${index + 1}: ${photo.caption}`}
-                aria-current={index === currentIndex ? 'true' : 'false'}
-              >
-                <img
-                  src={photo.thumbnail || photo.url}
-                  alt={photo.caption || `Foto ${index + 1}`}
-                  className="photo-carousel__thumbnail-img"
-                />
-                <div className={`photo-carousel__thumbnail-badge photo-carousel__thumbnail-badge--${photo.source}`}>
-                  {photo.source === 'trip' ? 'V' : 'P'}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Keyboard Navigation Hint (Screen readers) */}
       <div className="sr-only" role="status" aria-live="polite">
         Foto {currentIndex + 1} de {photos.length}: {currentPhoto.caption}
@@ -231,7 +213,11 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, tripTitle 
         index={currentIndex}
         plugins={[Thumbnails, Zoom]}
         on={{
-          view: ({ index }) => setCurrentIndex(index),
+          view: (index: number) => {
+            if (!isNaN(index) && index >= 0 && index < photos.length) {
+              setCurrentIndex(index);
+            }
+          },
         }}
       />
     </div>

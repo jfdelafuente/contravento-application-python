@@ -1,7 +1,7 @@
 /**
  * PhotoCarousel Component Styles
  *
- * Styling for horizontal photo carousel with thumbnails.
+ * Styling for photo carousel with navigation buttons.
  * Mobile-first responsive design with touch-friendly controls.
  *
  * Feature: MVP - Photo Gallery Enhancement
@@ -223,108 +223,6 @@
 }
 
 /* ============================================================================
-   Thumbnail Strip
-   ========================================================================= */
-
-.photo-carousel__thumbnails {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #f7fafc;
-}
-
-.photo-carousel__thumbnails::-webkit-scrollbar {
-  height: 8px;
-}
-
-.photo-carousel__thumbnails::-webkit-scrollbar-track {
-  background: #f7fafc;
-  border-radius: 4px;
-}
-
-.photo-carousel__thumbnails::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
-}
-
-.photo-carousel__thumbnails::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
-}
-
-.photo-carousel__thumbnails-track {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-}
-
-.photo-carousel__thumbnail {
-  position: relative;
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  padding: 0;
-  background: #f7fafc;
-  border: 3px solid transparent;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.photo-carousel__thumbnail:hover {
-  border-color: #cbd5e0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.photo-carousel__thumbnail:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-.photo-carousel__thumbnail--active {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.photo-carousel__thumbnail-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* ============================================================================
-   Thumbnail Badge
-   ========================================================================= */
-
-.photo-carousel__thumbnail-badge {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.625rem;
-  font-weight: 700;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.photo-carousel__thumbnail-badge--trip {
-  background: #3b82f6;
-  color: white;
-}
-
-.photo-carousel__thumbnail-badge--poi {
-  background: #fbbf24;
-  color: #78350f;
-}
-
-/* ============================================================================
    Accessibility
    ========================================================================= */
 
@@ -374,11 +272,6 @@
   .photo-carousel__caption p {
     font-size: 0.875rem;
   }
-
-  .photo-carousel__thumbnail {
-    width: 70px;
-    height: 70px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -407,11 +300,6 @@
     font-size: 0.8125rem;
   }
 
-  .photo-carousel__thumbnail {
-    width: 60px;
-    height: 60px;
-  }
-
   .photo-carousel__click-hint {
     padding: 0.75rem 1rem;
   }
@@ -436,11 +324,6 @@
     height: 3.5rem;
   }
 
-  .photo-carousel__thumbnail {
-    width: 90px;
-    height: 90px;
-  }
-
   /* Hide click hint on touch devices */
   .photo-carousel__click-hint {
     display: none;
@@ -454,11 +337,6 @@
   .photo-carousel__nav:hover {
     transform: translateY(-50%);
   }
-
-  .photo-carousel__thumbnail:hover {
-    transform: none;
-    border-color: transparent;
-  }
 }
 
 /* ============================================================================
@@ -468,14 +346,12 @@
 @media (prefers-reduced-motion: reduce) {
   .photo-carousel__image-container,
   .photo-carousel__nav,
-  .photo-carousel__thumbnail,
   .photo-carousel__click-hint {
     transition: none;
   }
 
   .photo-carousel__image-container:hover,
-  .photo-carousel__nav:hover,
-  .photo-carousel__thumbnail:hover {
+  .photo-carousel__nav:hover {
     transform: none;
   }
 }
@@ -487,8 +363,7 @@
 @media print {
   .photo-carousel__nav,
   .photo-carousel__counter,
-  .photo-carousel__click-hint,
-  .photo-carousel__thumbnails {
+  .photo-carousel__click-hint {
     display: none;
   }
 
