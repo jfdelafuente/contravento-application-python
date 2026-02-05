@@ -245,7 +245,7 @@ export const Step3POIs: React.FC<Step3POIsProps> = ({
           // - undefined: preserve existing photo
           // - null: explicitly remove photo
           // - File: new photo selected
-          photo: updateData.photo !== undefined ? updateData.photo : updated[editingIndex].photo,
+          photo: updateData.photo !== undefined ? (updateData.photo || undefined) : updated[editingIndex].photo,
           photo_url: updateData.photo_url !== undefined ? updateData.photo_url : updated[editingIndex].photo_url,
         };
         setPOIs(updated);

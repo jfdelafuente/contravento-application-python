@@ -24,8 +24,6 @@
  */
 
 import React from 'react';
-import { MetricGroup } from './MetricGroup';
-import { MetricCard } from './MetricCard';
 import { formatDifficulty } from '../../services/gpxWizardService';
 import { POI_TYPE_EMOJI, POI_TYPE_LABELS } from '../../types/poi';
 import type { GPXTelemetry } from '../../services/gpxWizardService';

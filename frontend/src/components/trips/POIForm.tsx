@@ -14,7 +14,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { POI, POIType, POI_TYPE_LABELS, POICreateInput, POIUpdateInput } from '../../types/poi';
-import { uploadPOIPhoto } from '../../services/poiService';
 import './POIForm.css';
 
 interface POIFormProps {
