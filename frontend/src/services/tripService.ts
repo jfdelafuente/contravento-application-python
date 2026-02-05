@@ -26,6 +26,8 @@ import {
 interface GetUserTripsParams {
   tag?: string;
   status?: 'draft' | 'published';
+  visibility?: 'public' | 'private';
+  sort_by?: string;
   limit?: number;
   offset?: number;
 }
@@ -125,6 +127,8 @@ export const getUserTrips = async (
   const queryParams = new URLSearchParams();
   if (params?.tag) queryParams.append('tag', params.tag);
   if (params?.status) queryParams.append('status', params.status);
+  if (params?.visibility) queryParams.append('visibility', params.visibility);
+  if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
 

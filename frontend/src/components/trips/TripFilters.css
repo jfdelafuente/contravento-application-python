@@ -21,14 +21,15 @@
 }
 
 /* ============================================================================
-   Search Section
+   Top Bar (Search + Filters Toggle)
    ============================================================================ */
 
-.trip-filters__search-section {
+.trip-filters__top-bar {
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .trip-filters__search-wrapper {
@@ -118,9 +119,96 @@
   background-color: var(--primary-light, #dbeafe);
 }
 
+/* Filters Toggle Button */
+.trip-filters__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  background-color: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+
+.trip-filters__toggle:hover {
+  background-color: var(--bg-tertiary, #f9fafb);
+  border-color: var(--primary-color, #2563eb);
+}
+
+.trip-filters__toggle--active {
+  color: var(--primary-color, #2563eb);
+  background-color: var(--primary-light, #dbeafe);
+  border-color: var(--primary-color, #2563eb);
+}
+
+.trip-filters__toggle-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.trip-filters__toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border-radius: 10px;
+}
+
+.trip-filters__toggle-chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.trip-filters__toggle-chevron--up {
+  transform: rotate(180deg);
+}
+
+/* ============================================================================
+   Collapsible Section
+   ============================================================================ */
+
+.trip-filters__collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.trip-filters__collapsible--expanded {
+  grid-template-rows: 1fr;
+}
+
+.trip-filters__collapsible > div {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
 /* ============================================================================
    Status Filter Section
    ============================================================================ */
+
+.trip-filters__row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
 
 .trip-filters__status-section {
   display: flex;
@@ -168,6 +256,13 @@
   border-color: var(--primary-color, #2563eb);
 }
 
+.trip-filters__status-count {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
 /* ============================================================================
    Tags Section
    ============================================================================ */
@@ -179,8 +274,8 @@
 }
 
 .trip-filters__tags {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
@@ -226,13 +321,13 @@
 }
 
 .trip-filters__tags-loading {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .trip-filters__tag-skeleton {
-  width: 80px;
+  width: 100%;
   height: 36px;
   background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
@@ -254,6 +349,24 @@
   color: var(--text-tertiary, #9ca3af);
   font-style: italic;
   margin: 0;
+}
+
+.trip-filters__show-more-tags {
+  margin-top: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-color, #2563eb);
+  background-color: transparent;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.trip-filters__show-more-tags:hover {
+  background-color: var(--primary-light, #dbeafe);
+  border-color: var(--primary-color, #2563eb);
 }
 
 /* ============================================================================
@@ -324,6 +437,11 @@
   .trip-filters__search-wrapper {
     min-width: 200px;
   }
+
+  .trip-filters__tags,
+  .trip-filters__tags-loading {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Mobile (< 768px) */
@@ -333,7 +451,7 @@
     gap: 14px;
   }
 
-  .trip-filters__search-section {
+  .trip-filters__top-bar {
     flex-direction: column;
     align-items: stretch;
   }
@@ -342,9 +460,19 @@
     min-width: 100%;
   }
 
+  .trip-filters__toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
   .trip-filters__clear-all {
     width: 100%;
     justify-content: center;
+  }
+
+  .trip-filters__row {
+    flex-direction: column;
+    gap: 16px;
   }
 
   .trip-filters__status-section,
@@ -353,9 +481,13 @@
     align-items: flex-start;
   }
 
-  .trip-filters__status-buttons,
-  .trip-filters__tags {
+  .trip-filters__status-buttons {
     width: 100%;
+  }
+
+  .trip-filters__tags,
+  .trip-filters__tags-loading {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .trip-filters__status-button {
@@ -437,5 +569,40 @@
     background-color: #1e3a8a;
     color: #93c5fd;
     border-color: #3b82f6;
+  }
+
+  .trip-filters__show-more-tags {
+    color: #93c5fd;
+    border-color: #374151;
+  }
+
+  .trip-filters__show-more-tags:hover {
+    background-color: #1e3a8a;
+    border-color: #3b82f6;
+  }
+
+  .trip-filters__toggle {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+
+  .trip-filters__toggle:hover {
+    background-color: #4b5563;
+    border-color: #3b82f6;
+  }
+
+  .trip-filters__toggle--active {
+    background-color: #1e3a8a;
+    color: #93c5fd;
+    border-color: #3b82f6;
+  }
+
+  .trip-filters__toggle-badge {
+    background-color: #3b82f6;
+  }
+
+  .trip-filters__collapsible > div {
+    border-top-color: #374151;
   }
 }

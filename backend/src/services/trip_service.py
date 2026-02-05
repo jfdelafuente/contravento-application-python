@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 from PIL import Image
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -901,6 +901,8 @@ class TripService:
         user_id: str,
         tag: str | None = None,
         status: TripStatus | None = None,
+        is_private: bool | None = None,
+        sort_by: str | None = None,
         limit: int = 50,
         offset: int = 0,
         current_user_id: str | None = None,
@@ -918,6 +920,13 @@ class TripService:
             user_id: User ID to filter by
             tag: Optional tag name to filter by (case-insensitive)
             status: Optional status to filter by (DRAFT, PUBLISHED)
+            is_private: Optional visibility filter (True=private, False=public, None=all)
+            sort_by: Optional sort order (default: date-desc)
+                - date-desc: Most recent trips first (by start_date, or created_at if no start_date)
+                - date-asc: Oldest trips first (by start_date, or created_at if no start_date)
+                - distance-desc: Longest trips first
+                - distance-asc: Shortest trips first
+                - popularity-desc: Most popular trips first (TODO: not yet implemented, uses date-desc)
             limit: Maximum number of results (default 50)
             offset: Number of results to skip (default 0)
             current_user_id: ID of user viewing the trips (None for public access)
@@ -956,6 +965,9 @@ class TripService:
             # Non-owners can only see PUBLISHED trips
             query = query.where(Trip.status == TripStatus.PUBLISHED)
 
+            # Exclude private trips (only owner can see private trips)
+            query = query.where(Trip.is_private.is_(False))
+
             # Check if viewer is a follower
             is_follower = False
             if current_user_id:
@@ -980,6 +992,10 @@ class TripService:
         elif status is not None:
             query = query.where(Trip.status == status)
 
+        # Filter by is_private if provided (only for owners, non-owners already filtered)
+        if is_owner and is_private is not None:
+            query = query.where(Trip.is_private == is_private)
+
         # Filter by tag if provided (case-insensitive)
         if tag:
             tag_normalized = tag.lower().strip()
@@ -990,8 +1006,38 @@ class TripService:
                 .where(Tag.normalized == tag_normalized)
             )
 
-        # Order by created_at descending (most recent first)
-        query = query.order_by(Trip.created_at.desc())
+        # Apply sorting
+        # For date sorting, use start_date (when trip occurred) with fallback to created_at
+        # This shows trips in order of when they happened, not when they were created
+        if sort_by == 'date-asc':
+            # Oldest trips first (by start_date, or created_at if no start_date)
+            query = query.order_by(
+                case(
+                    (Trip.start_date.isnot(None), Trip.start_date),
+                    else_=func.date(Trip.created_at)
+                ).asc()
+            )
+        elif sort_by == 'distance-desc':
+            query = query.order_by(Trip.distance_km.desc())
+        elif sort_by == 'distance-asc':
+            query = query.order_by(Trip.distance_km.asc())
+        elif sort_by == 'popularity-desc':
+            # TODO: Add popularity metric (likes, views, etc.)
+            # For now, fall back to date descending
+            query = query.order_by(
+                case(
+                    (Trip.start_date.isnot(None), Trip.start_date),
+                    else_=func.date(Trip.created_at)
+                ).desc()
+            )
+        else:
+            # Default: date-desc (most recent trips first by start_date, or created_at if no start_date)
+            query = query.order_by(
+                case(
+                    (Trip.start_date.isnot(None), Trip.start_date),
+                    else_=func.date(Trip.created_at)
+                ).desc()
+            )
 
         # Apply pagination
         query = query.limit(limit).offset(offset)
@@ -1002,7 +1048,7 @@ class TripService:
 
         logger.debug(
             f"Retrieved {len(trips)} trips for user {user_id} "
-            f"(tag={tag}, status={status}, limit={limit}, offset={offset})"
+            f"(tag={tag}, status={status}, sort_by={sort_by}, limit={limit}, offset={offset})"
         )
 
         return list(trips)
@@ -1065,6 +1111,7 @@ class TripService:
             .join(User, Trip.user_id == User.id)
             .where(
                 Trip.status == TripStatus.PUBLISHED,  # Only published trips
+                Trip.is_private.is_(False),  # Exclude private trips
                 User.profile_visibility
                 == "public",  # Only trips from public profiles (Feature 013 FR-003, FR-016)
             )
@@ -1110,6 +1157,7 @@ class TripService:
             .join(User, Trip.user_id == User.id)
             .where(
                 Trip.status == TripStatus.PUBLISHED,
+                Trip.is_private.is_(False),  # Exclude private trips
                 User.profile_visibility == "public",  # Feature 013 FR-003, FR-016
             )
         )

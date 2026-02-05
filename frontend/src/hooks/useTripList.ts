@@ -27,6 +27,12 @@ interface UseTripListParams {
   /** Selected status filter (optional) */
   selectedStatus?: 'draft' | 'published' | null;
 
+  /** Selected visibility filter (optional) */
+  selectedVisibility?: 'public' | 'private' | null;
+
+  /** Sort option (optional, e.g., 'date-desc', 'distance-asc') */
+  sortBy?: string;
+
   /** Items per page (default: 12) */
   limit?: number;
 
@@ -71,6 +77,8 @@ export const useTripList = ({
   searchQuery = '',
   selectedTag = null,
   selectedStatus = null,
+  selectedVisibility = null,
+  sortBy,
   limit = 12,
   offset = 0,
 }: UseTripListParams): UseTripListReturn => {
@@ -88,6 +96,8 @@ export const useTripList = ({
       const params: {
         tag?: string;
         status?: 'draft' | 'published';
+        visibility?: 'public' | 'private';
+        sort_by?: string;
         limit: number;
         offset: number;
       } = {
@@ -103,6 +113,16 @@ export const useTripList = ({
       // Add status filter if selected
       if (selectedStatus) {
         params.status = selectedStatus;
+      }
+
+      // Add visibility filter if selected
+      if (selectedVisibility) {
+        params.visibility = selectedVisibility;
+      }
+
+      // Add sort option if selected
+      if (sortBy) {
+        params.sort_by = sortBy;
       }
 
       const response: TripListResponse = await getUserTrips(username, params);
@@ -134,7 +154,7 @@ export const useTripList = ({
     } finally {
       setIsLoading(false);
     }
-  }, [username, searchQuery, selectedTag, selectedStatus, limit, offset]);
+  }, [username, searchQuery, selectedTag, selectedStatus, selectedVisibility, sortBy, limit, offset]);
 
   // Fetch trips when params change
   useEffect(() => {
