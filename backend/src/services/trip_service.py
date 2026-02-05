@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 from PIL import Image
-from sqlalchemy import delete, func, select, case
+from sqlalchemy import case, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
