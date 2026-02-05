@@ -513,6 +513,7 @@ class TripListItemResponse(BaseModel):
         start_date: Start date
         distance_km: Distance in kilometers (optional)
         status: Trip status (draft/published)
+        is_private: Trip privacy (true = only owner can see)
         photo_count: Number of photos
         tag_names: List of tag names only
         thumbnail_url: First photo thumbnail (optional)
@@ -525,6 +526,7 @@ class TripListItemResponse(BaseModel):
     start_date: date = Field(..., description="Start date")
     distance_km: float | None = Field(None, description="Distance in kilometers")
     status: str = Field(..., description="Trip status")
+    is_private: bool = Field(False, description="Trip privacy (true = only owner can see)")
     photo_count: int = Field(..., description="Number of photos")
     tag_names: list[str] = Field(default_factory=list, description="List of tag names")
     thumbnail_url: str | None = Field(None, description="First photo thumbnail URL")
@@ -542,6 +544,7 @@ class TripListItemResponse(BaseModel):
                 "start_date": "2024-05-15",
                 "distance_km": 127.3,
                 "status": "published",
+                "is_private": False,
                 "photo_count": 12,
                 "tag_names": ["vías verdes", "andalucía"],
                 "thumbnail_url": "/storage/trip_photos/2024/12/550e.../thumb.jpg",
