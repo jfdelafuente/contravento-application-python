@@ -1009,33 +1009,30 @@ class TripService:
         # Apply sorting
         # For date sorting, use start_date (when trip occurred) with fallback to created_at
         # This shows trips in order of when they happened, not when they were created
-        if sort_by == 'date-asc':
+        if sort_by == "date-asc":
             # Oldest trips first (by start_date, or created_at if no start_date)
             query = query.order_by(
                 case(
-                    (Trip.start_date.isnot(None), Trip.start_date),
-                    else_=func.date(Trip.created_at)
+                    (Trip.start_date.isnot(None), Trip.start_date), else_=func.date(Trip.created_at)
                 ).asc()
             )
-        elif sort_by == 'distance-desc':
+        elif sort_by == "distance-desc":
             query = query.order_by(Trip.distance_km.desc())
-        elif sort_by == 'distance-asc':
+        elif sort_by == "distance-asc":
             query = query.order_by(Trip.distance_km.asc())
-        elif sort_by == 'popularity-desc':
+        elif sort_by == "popularity-desc":
             # TODO: Add popularity metric (likes, views, etc.)
             # For now, fall back to date descending
             query = query.order_by(
                 case(
-                    (Trip.start_date.isnot(None), Trip.start_date),
-                    else_=func.date(Trip.created_at)
+                    (Trip.start_date.isnot(None), Trip.start_date), else_=func.date(Trip.created_at)
                 ).desc()
             )
         else:
             # Default: date-desc (most recent trips first by start_date, or created_at if no start_date)
             query = query.order_by(
                 case(
-                    (Trip.start_date.isnot(None), Trip.start_date),
-                    else_=func.date(Trip.created_at)
+                    (Trip.start_date.isnot(None), Trip.start_date), else_=func.date(Trip.created_at)
                 ).desc()
             )
 

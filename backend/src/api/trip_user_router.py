@@ -35,7 +35,11 @@ async def get_user_trips(
     tag: str | None = Query(None, description="Filter by tag name (case-insensitive)"),
     status: TripStatus | None = Query(None, description="Filter by trip status"),
     visibility: str | None = Query(None, description="Filter by visibility (public or private)"),
-    sort_by: str | None = Query(None, description="Sort order (date-desc, date-asc, distance-desc, distance-asc, popularity-desc)"),
+    sort_by: str
+    | None = Query(
+        None,
+        description="Sort order (date-desc, date-asc, distance-desc, distance-asc, popularity-desc)",
+    ),
     limit: int = Query(50, ge=1, le=100, description="Maximum trips to return"),
     offset: int = Query(0, ge=0, description="Number of trips to skip"),
     db: AsyncSession = Depends(get_db),
@@ -93,9 +97,9 @@ async def get_user_trips(
         # Convert visibility string to is_private boolean
         is_private = None
         if visibility:
-            if visibility == 'private':
+            if visibility == "private":
                 is_private = True
-            elif visibility == 'public':
+            elif visibility == "public":
                 is_private = False
 
         service = TripService(db)
