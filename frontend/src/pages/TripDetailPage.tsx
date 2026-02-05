@@ -10,7 +10,6 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { TripGallery } from '../components/trips/TripGallery';
 import { PhotoCarousel, type CombinedPhoto } from '../components/trips/PhotoCarousel';
 import { POIForm } from '../components/trips/POIForm';
 import { POI_TYPE_LABELS } from '../types/poi';
@@ -539,6 +538,27 @@ export const TripDetailPage: React.FC = () => {
             {getStatusLabel(trip.status)}
           </div>
         )}
+
+        {/* Privacy Badge (owner-only) */}
+        {trip.is_private && isOwner && (
+          <div className="trip-detail-page__privacy-badge trip-detail-page__privacy-badge--private">
+            <svg
+              className="trip-detail-page__privacy-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <span>Privado</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -600,6 +620,27 @@ export const TripDetailPage: React.FC = () => {
                   className={`trip-detail-page__difficulty ${getDifficultyClass(trip.difficulty)}`}
                 >
                   {getDifficultyLabel(trip.difficulty)}
+                </div>
+              )}
+
+              {/* Privacy Indicator (owner-only) */}
+              {trip.is_private && isOwner && (
+                <div className="trip-detail-page__meta-item trip-detail-page__privacy-indicator">
+                  <svg
+                    className="trip-detail-page__meta-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                  <span className="trip-detail-page__meta-text">Solo tú puedes ver este viaje</span>
                 </div>
               )}
 

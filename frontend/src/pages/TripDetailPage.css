@@ -62,6 +62,42 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Privacy Badge */
+.trip-detail-page__privacy-badge {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.trip-detail-page__privacy-badge--private {
+  background: rgba(239, 68, 68, 0.9); /* Red background for private */
+  color: #ffffff;
+}
+
+.trip-detail-page__privacy-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Privacy Indicator in Metadata */
+.trip-detail-page__privacy-indicator {
+  color: var(--status-error, #ef4444);
+  font-weight: 600;
+}
+
+.trip-detail-page__privacy-indicator .trip-detail-page__meta-icon {
+  color: var(--status-error, #ef4444);
+}
+
 /* ============================================================================
    Content Section
    ============================================================================ */

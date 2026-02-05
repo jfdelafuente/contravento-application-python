@@ -117,6 +117,9 @@ export interface TripListItem {
   /** Publication status */
   status: 'draft' | 'published';
 
+  /** Trip privacy (true = only owner can see) */
+  is_private: boolean;
+
   /** Number of photos attached to trip */
   photo_count: number;
 
