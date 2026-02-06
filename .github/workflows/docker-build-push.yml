@@ -70,7 +70,9 @@ jobs:
           file: ./backend/Dockerfile
           target: production
           push: false
-          tags: ${{ steps.meta-backend.outputs.tags }}
+          tags: |
+            jfdelafuente/contravento-backend:test
+            ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -82,7 +84,9 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile.prod
           push: false
-          tags: ${{ steps.meta-frontend.outputs.tags }}
+          tags: |
+            jfdelafuente/contravento-frontend:test
+            ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
@@ -99,14 +103,14 @@ jobs:
           echo "Testing backend image can start..."
           docker run --rm --name backend-test \
             --entrypoint python \
-            jfdelafuente/contravento-backend:latest \
+            jfdelafuente/contravento-backend:test \
             -c "import sys; print(f'Python {sys.version}'); print('✓ Backend image is valid')"
 
       - name: Test Frontend Image (Smoke Test)
         run: |
           echo "Testing frontend image nginx config..."
           docker run --rm --name frontend-test \
-            jfdelafuente/contravento-frontend:latest \
+            jfdelafuente/contravento-frontend:test \
             nginx -t && echo "✓ Frontend image is valid"
 
       - name: Push Backend Image to Docker Hub
