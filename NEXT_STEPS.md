@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
 **Última actualización**: 2026-02-06
-**Estado actual**: 4 features con trabajo pendiente, ordenadas por prioridad
+**Estado actual**: 3 features con trabajo pendiente, ordenadas por prioridad
 
 ---
 
@@ -12,13 +12,13 @@
 | ~~**012-typescript-code-quality**~~ | ✅ Completada | 100% | 0 errores | ✅ ~1 hora | Ninguno |
 | ~~**017-gps-trip-wizard**~~ | ✅ Completada | 93% (98/105) | 7 tareas opcionales | ✅ ~3 días | Ninguno |
 | ~~**011-frontend-deployment**~~ | ✅ Completada | 100% (70/70) | 0 tareas | ✅ ~15 min | Ninguno |
-| **015-gpx-wizard-integration** | 🔴 Alta | 0% | 50 tareas | 4-8 horas | Ninguno |
+| ~~**015-gpx-wizard-integration**~~ | ❌ Descartada | N/A | Supersedida por F017 | N/A | Feature 017 ya implementa esto |
 | **016-deployment-docs** | 🟡 Media | 31% (9/29) | 20 tareas | 5-8 días | Ninguno |
 | **014-landing-page** | 🟡 Media | 62% (44/71) | 27 tareas | 1-2 días | Ninguno |
 | **006-dashboard-dynamic** | 🟢 Baja | 0% | 72 tareas | 3-4 días | Ninguno |
 | **004-celery-async-tasks** | 🟢 Baja | 0% | TBD | 2-3 días | Ninguno |
 
-**Recomendación**: Feature 015 (GPX Wizard Integration) - UX enhancement de alto valor
+**Recomendación**: Feature 016 (Deployment Docs) o Feature 014 (Landing Page) según prioridad de negocio
 
 ---
 
@@ -148,139 +148,41 @@
 
 ---
 
-## 🔴 PRIORIDAD ALTA
+## ❌ FEATURES DESCARTADAS
 
-### Feature 015: GPX Wizard Integration
+### Feature 015: GPX Wizard Integration ❌
 
-**Branch**: `015-gpx-wizard-integration` (a crear)
+**Estado**: ❌ **DESCARTADA** - Supersedida por Feature 017
 
-**Estado**: ⏸️ **No iniciado** - Especificación completa
+**Fecha de descarte**: 2026-02-06
 
-**Prioridad**: 🔴 **Alta** (UX Enhancement)
+**Razón**: Feature 017 (GPS Trip Creation Wizard) implementó una solución superior que incluye y supera los objetivos de Feature 015.
 
-**Tiempo estimado**: 4-8 horas (0.5-1 día)
+#### ¿Por qué se descartó?
 
-**Bloqueadores**: Ninguno
+Feature 015 pretendía agregar un modal post-creación para subir GPX después de crear un trip manual. Sin embargo, **Feature 017 implementó un wizard completo de 4 pasos** que ofrece una experiencia mucho mejor:
 
-#### Descripción Feature 015
+**Lo que Feature 015 proponía**:
+- ✅ Modal post-creación para subir GPX
+- ✅ Flujo: Crear trip manual → Modal GPX opcional
 
-Modal post-creación que aparece inmediatamente después de crear un trip, solicitando al usuario subir un archivo GPX sin necesidad de navegar a otra página.
+**Lo que Feature 017 implementó (superior)**:
+- ✅ **Mode Selection**: Usuario elige GPS o Manual desde el inicio
+- ✅ **Wizard optimizado**: 4 pasos con GPX upload integrado en Step 1
+- ✅ **Smart-Title cleaning**: Extracción automática de título desde GPX
+- ✅ **Telemetry extraction**: Distancia, elevación, gradiente automáticos
+- ✅ **Map preview**: Vista previa inmediata del track GPS
+- ✅ **POI management**: Agregar puntos de interés con photos
+- ✅ **Atomic transaction**: Trip + GPX + RouteStatistics en una sola operación
 
-#### Beneficios Feature 015
+#### Ventajas de Feature 017 sobre Feature 015
 
-- ✅ Mejora discoverability del GPX upload
-- ✅ Flujo unificado (crear trip → subir GPX)
-- ✅ No extiende el wizard (mantiene 4 pasos)
-- ✅ Frontend-only (sin cambios backend)
-- ✅ Reutiliza componente GPXUploader existente
+1. **Discoverability superior**: Usuario ve opción GPS desde el inicio (no después de crear)
+2. **Mejor UX**: Flujo unificado desde el principio, no como afterthought
+3. **Más funcionalidades**: Telemetría automática, POIs, mapas, etc.
+4. **Production-ready**: 26 E2E tests, type-safe, CI/CD smoke tests
 
-#### Implementación Feature 015 (50 tareas)
-
-**Phase 1: Setup** (4 tareas)
-
-- [ ] T001: Crear branch desde develop
-- [ ] T002: Crear archivos de componente base
-- [ ] T003: Actualizar tipos TypeScript
-- [ ] T004: Preparar estructura de tests
-
-**Phase 2: Component Creation** (18 tareas - TDD)
-
-- [ ] T005-T012: Tests unitarios (escribir PRIMERO)
-- [ ] T013: Crear PostCreationGPXModal component
-- [ ] T014: Crear PostCreationGPXModal.css
-- [ ] T015: Implementar estado prompt (botones)
-- [ ] T016: Implementar estado upload (GPXUploader)
-- [ ] T017: Agregar loading states
-- [ ] T018: Agregar error handling
-- [ ] T019-T022: Accessibility (ARIA, keyboard nav)
-
-**Phase 3: State Management** (5 tareas)
-
-- [ ] T023: Modificar useTripForm hook
-- [ ] T024: Agregar showGPXModal state
-- [ ] T025: Agregar createdTripId state
-- [ ] T026: Implementar handleGPXModalClose
-- [ ] T027: Modificar handleSubmit (mostrar modal en lugar de navigate)
-
-**Phase 4: UI Integration** (3 tareas)
-
-- [ ] T028: Integrar modal en TripCreatePage
-- [ ] T029: Conectar props y callbacks
-- [ ] T030: Verificar flujo completo
-
-**Phase 5: E2E Testing** (6 tareas - manual)
-
-- [ ] T031: Test - Upload GPX exitoso
-- [ ] T032: Test - Skip GPX upload
-- [ ] T033: Test - Error handling
-- [ ] T034: Test - ESC key y overlay click
-- [ ] T035: Test - Mobile responsive
-- [ ] T036: Test - Edit mode (modal NO debe aparecer)
-
-**Phase 6: Accessibility** (4 tareas)
-
-- [ ] T037: Verificar ARIA labels
-- [ ] T038: Test keyboard navigation
-- [ ] T039: Test screen reader
-- [ ] T040: Verificar touch targets (≥44px móvil)
-
-**Phase 7: Documentation** (5 tareas)
-
-- [ ] T041: Actualizar CLAUDE.md
-- [ ] T042: Crear TESTING_GUIDE.md
-- [ ] T043: Actualizar tasks.md con resultados
-- [ ] T044: Actualizar README.md
-- [ ] T045: Crear TROUBLESHOOTING.md
-
-**Phase 8: Pull Request** (5 tareas)
-
-- [ ] T046: Code review self-check
-- [ ] T047: Crear PR con descripción completa
-- [ ] T048: Request peer review
-- [ ] T049: Address feedback
-- [ ] T050: Merge a develop
-
-#### Arquitectura Técnica Feature 015
-
-```typescript
-// State Flow
-TripCreatePage
-  └─ TripFormWizard
-       └─ PostCreationGPXModal (nuevo)
-            ├─ Prompt State: "¿Agregar ruta GPX?" + botones
-            └─ Upload State: <GPXUploader /> (reusado)
-
-// useTripForm.ts
-const [showGPXModal, setShowGPXModal] = useState(false);
-const [createdTripId, setCreatedTripId] = useState<string | null>(null);
-
-// Después de crear trip exitosamente
-setCreatedTripId(trip.trip_id);
-setShowGPXModal(true);  // En lugar de navigate()
-
-// Modal close handler
-const handleGPXModalClose = () => {
-  setShowGPXModal(false);
-  navigate(`/trips/${createdTripId}`);
-};
-```
-
-#### Recursos Feature 015
-
-- **Especificación**: `specs/015-gpx-wizard-integration/spec.md`
-- **Plan técnico**: `specs/015-gpx-wizard-integration/plan.md`
-- **Tasks detalladas**: `specs/015-gpx-wizard-integration/tasks.md`
-- **Quick Start**: `specs/015-gpx-wizard-integration/README.md`
-
-#### Criterios de Aceptación Feature 015
-
-- [ ] Modal aparece automáticamente después de crear trip
-- [ ] Usuario puede subir GPX o skip con 1 click
-- [ ] GPXUploader funciona idénticamente dentro del modal
-- [ ] Navegación correcta después de upload/skip
-- [ ] Accessibility WCAG 2.1 AA compliant
-- [ ] Mobile responsive (≥44px touch targets)
-- [ ] Tests unitarios ≥90% coverage
+**Conclusión**: Feature 017 hace que Feature 015 sea innecesaria y obsoleta.
 
 ---
 
