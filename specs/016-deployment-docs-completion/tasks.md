@@ -21,11 +21,11 @@
 |-------|-------|----------|---|----------|
 | Phase 1: Base Structure | 1 | 1 | 100% | ✅ DONE |
 | Phase 2: Document Modes | 9 | 4 | 44% | High |
-| Phase 3: Create Guides | 7 | 0 | 0% | **HIGHEST** |
+| Phase 3: Create Guides | 7 | 1 | 14% | **HIGHEST** |
 | Phase 4: Archive Old Docs | 4 | 0 | 0% | Medium |
 | Phase 5: Update References | 4 | 4 | 100% | ✅ DONE |
 | Phase 6: Final Validation | 4 | 0 | 0% | Low (last) |
-| **TOTAL** | **29** | **9** | **31%** | - |
+| **TOTAL** | **29** | **10** | **34%** | - |
 
 ---
 
@@ -125,13 +125,14 @@
 
 ### User-Facing Guides (Priority P1)
 
-- [ ] T013 Create `docs/deployment/guides/getting-started.md` - Universal onboarding
+- [✅] T013 Create `docs/deployment/guides/getting-started.md` - Universal onboarding ✅ COMPLETED (2026-02-06)
   - **Purpose**: First document a new developer reads
   - **Content**:
     - "Choose Your Mode" flowchart (5 questions → recommended mode)
     - First-time setup (git clone, install dependencies)
     - Verification steps (backend running, frontend running, login works)
     - Next steps (explore codebase, read CLAUDE.md, run tests)
+  - **Created**: 550+ lines, comprehensive guide with role-based paths, decision tree, 3 setup options, verification steps
   - **Estimated Effort**: 3-4 hours
 
 - [ ] T015 Create `docs/deployment/guides/troubleshooting.md` - Common problems cross-mode
@@ -408,14 +409,14 @@
 
 ## Total Tasks: 29 tasks across 6 phases
 
-**Current Status**: 9/29 (31%) ✅
+**Current Status**: 10/29 (34%) ✅
 
-**Remaining Work**: 20 tasks
+**Remaining Work**: 19 tasks
 - Phase 2: 5 tasks (server modes)
-- Phase 3: 7 tasks (guides) ⭐ **HIGHEST PRIORITY**
+- Phase 3: 6 tasks (guides) ⭐ **HIGHEST PRIORITY**
 - Phase 4: 4 tasks (archive + redirects)
 - Phase 6: 4 tasks (validation)
 
 **Estimated Remaining Effort**: 5-8 days (1-1.5 weeks)
 
-**Next Action**: Start Phase 3 (guides) - `guides/getting-started.md` first for maximum impact
+**Next Action**: Continue Phase 3 (guides) - `guides/troubleshooting.md` next (high value for developers)
