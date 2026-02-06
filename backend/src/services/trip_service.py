@@ -989,7 +989,7 @@ class TripService:
                 query = query.where(User.trip_visibility == "public")
 
         # Filter by status if provided (only applies if owner, since non-owners already filtered)
-        elif status is not None:
+        if is_owner and status is not None:
             query = query.where(Trip.status == status)
 
         # Filter by is_private if provided (only for owners, non-owners already filtered)
