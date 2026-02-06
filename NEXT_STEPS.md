@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-28
-**Estado actual**: 6 features con trabajo pendiente, ordenadas por prioridad
+**Última actualización**: 2026-02-06
+**Estado actual**: 5 features con trabajo pendiente, ordenadas por prioridad
 
 ---
 
@@ -10,6 +10,7 @@
 | Feature | Prioridad | Estado | Tareas Pendientes | Tiempo Estimado | Bloqueadores |
 | ------- | --------- | ------ | ----------------- | --------------- | ------------ |
 | ~~**012-typescript-code-quality**~~ | ✅ Completada | 100% | 0 errores | ✅ ~1 hora | Ninguno |
+| ~~**017-gps-trip-wizard**~~ | ✅ Completada | 93% (98/105) | 7 tareas opcionales | ✅ ~3 días | Ninguno |
 | **011-frontend-deployment** | 🔴 Alta | 98% (69/70) | 1 tarea manual | ~15 min | Ninguno |
 | **015-gpx-wizard-integration** | 🔴 Alta | 0% | 50 tareas | 4-8 horas | Ninguno |
 | **016-deployment-docs** | 🟡 Media | 31% (9/29) | 20 tareas | 5-8 días | Ninguno |
@@ -22,6 +23,62 @@
 ---
 
 ## ✅ FEATURES COMPLETADAS
+
+### Feature 017: GPS Trip Creation Wizard ✅
+
+**Branch**: `017-gps-trip-wizard` (pendiente merge a develop)
+
+**Estado**: ✅ **93% COMPLETADA** (98/105 tareas) - MVP++ Ready for Production
+
+**Fecha de cierre**: 2026-02-06
+
+**Tiempo total**: ~3 días (~24 horas de desarrollo)
+
+#### Resumen de Logros
+
+- ✅ 60 commits implementando wizard completo de 4 pasos
+- ✅ Frontend: 6 user stories (mode selection, GPX upload, details, map, POI, publish)
+- ✅ Backend: GPX processing, route statistics, atomic transactions
+- ✅ 26 E2E tests + unit tests con TDD
+- ✅ Smart-Title cleaning, telemetry extraction, privacy controls
+- ✅ Map preview en Step 1, complete telemetry en Step 4 Review
+- ✅ Support para 6 trip photos + unlimited POI photos
+- ✅ Optimized 4-step wizard (reducido de 5 pasos, 20% más rápido)
+- ✅ Trip filters, sorting (date, distance, popularity)
+- ✅ Integration tests para photo & draft listing pasando
+- ✅ 21 mypy type errors resueltos (backend type-safe)
+- ✅ CI/CD smoke tests configurados (Docker build validation)
+
+#### Fases Completadas (9/10)
+
+1. ✅ Setup & Prerequisites (8/8 tasks)
+2. ✅ Foundational Services (12/12 tasks)
+3. ✅ US1: Mode Selection Modal (10/10 tasks)
+4. ✅ US2: GPX Upload & Processing (18/18 tasks)
+5. ✅ US3: Trip Details + Difficulty (14/14 tasks)
+6. ✅ US6: Publish Trip (Atomic) (10/10 tasks)
+7. ✅ US4: Map Visualization (8/8 tasks)
+8. ✅ US5: POI Management (10/10 tasks)
+9. ⏸️ Phase 9: Polish & Cross-Cutting (0/7 tasks - opcional)
+10. ✅ Post-MVP: Wizard UX Optimization (8/8 tasks)
+
+#### Últimos Commits Relevantes
+
+1. 81fecd2 - fix(ci): update frontend smoke test to avoid nginx config validation
+2. 5a07e69 - fix(ci): use locally built images for smoke tests
+3. 947e281 - fix: resolve all mypy type checking errors (21 errors across 4 files)
+4. 070afe7 - feat: add trip filters and sort functionality
+5. 746db84 - feat: add GPX trip edit page with privacy and 6-photo limit
+
+#### Pendiente para Merge
+
+- [ ] Crear Pull Request a develop (60 commits)
+- [ ] Review de código
+- [ ] Validación final de CI/CD
+- [ ] Merge a develop (trigger Docker Hub push)
+- [ ] Opcional: 7 tareas de Phase 9 (polish)
+
+---
 
 ### Feature 012: TypeScript Code Quality ✅
 
@@ -734,8 +791,9 @@ Agregar cola de tareas distribuida (Celery + Redis) para procesamiento asíncron
 
 | Feature | Branch | Estado | Próximo Hito |
 | ------- | ------ | ------ | ------------ |
-| 012-typescript-code-quality | `012-typescript-code-quality` | 74% | Session 5: Cleanup unused vars |
-| 011-frontend-deployment | develop | 96% | T067 (blocked by 012) |
+| ~~012-typescript-code-quality~~ | develop (merged) | 100% ✅ | Completado |
+| ~~017-gps-trip-wizard~~ | `017-gps-trip-wizard` | 93% ✅ | PR a develop |
+| 011-frontend-deployment | develop | 98% | T063: validación manual |
 | 015-gpx-wizard-integration | N/A | 0% | Phase 1: Setup |
 | 016-deployment-docs | N/A | 31% | T013: getting-started.md |
 | 014-landing-page | develop | 62% | Phase 8: Polish |
@@ -744,22 +802,13 @@ Agregar cola de tareas distribuida (Celery + Redis) para procesamiento asíncron
 
 ### Orden de Trabajo Recomendado
 
-**Sprint 1** (1-2 días):
+**Próximas prioridades** (Febrero 2026):
 
-1. ✅ Feature 012 (Session 5-6) → 25 errores → 0 errores
-2. ✅ Feature 011 (T063, T067) → 96% → 100%
-3. 🔄 Feature 015 (Phases 1-4) → 0% → MVP (upload modal funcional)
-
-**Sprint 2** (3-5 días):
-
-1. Feature 015 (Phases 5-8) → MVP → 100% (testing + docs)
-2. Feature 016 (Phase 3 - T013-T015) → 31% → 50% (core guides)
-3. Feature 014 (Phase 8 - T045-T051) → 62% → 80% (responsive + perf)
-
-**Sprint 3** (1 semana):
-
-1. Feature 016 (Phases 2, 4, 6) → 50% → 100% (complete docs)
-2. Feature 014 (Phase 8 - remaining) → 80% → 100% (cross-browser + E2E)
+1. 🔴 **Feature 017** - Crear PR y merge a develop (~30 min)
+2. 🔴 **Feature 011** - Validación manual deployment (T063, ~15 min)
+3. 🔴 **Feature 015** - GPX Wizard Integration (4-8 horas)
+4. 🟡 **Feature 016** - Core guides (T013-T015, 2-3 días)
+5. 🟡 **Feature 014** - Polish landing page (1-2 días)
 
 **Futuro** (según prioridad de negocio):
 
@@ -834,8 +883,8 @@ npm run dev
 
 ---
 
-**Última actualización**: 2026-01-28
+**Última actualización**: 2026-02-06
 
-**Próxima revisión**: Después de completar Feature 012
+**Próxima revisión**: Después de merge de Feature 017 a develop
 
 **Mantenedor**: Claude Code

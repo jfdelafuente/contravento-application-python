@@ -1790,7 +1790,21 @@ gradient: float | None = Field(
 7. **Don't skip gradient color coding**: Visual distinction between uphill/downhill is key UX feature
 
 ## Recent Changes
-- 017-gps-trip-wizard: Added Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend) | React 18, React Hook Form 7.70, react-leaflet 4.2.1 (frontend)
+
+- **017-gps-trip-wizard** (2026-02-06): ✅ GPS Trip Creation Wizard - MVP++ Complete (93%, 98/105 tasks)
+  - **Frontend**: Optimized 4-step wizard (reduced from 5 steps, 20% faster)
+    - Step 1: Mode Selection Modal + Map Preview
+    - Step 2: GPX Upload with Smart-Title cleaning & drag-and-drop
+    - Step 3: Trip Details (title, description, dates, privacy, difficulty)
+    - Step 4: Review with complete telemetry display (MetricGroup/MetricCard)
+  - **Backend**: GPX processing service with telemetry extraction
+    - Atomic trip creation with RouteStatistics
+    - Support for 6 trip photos + unlimited POI photos
+    - Trip filters & sorting (date, distance, popularity)
+  - **Quality**: 26 E2E tests, TDD workflow, 21 mypy type errors fixed
+  - **CI/CD**: Docker smoke tests configured for backend & frontend
+  - **Tech Stack**: React 18, React Hook Form 7.70, react-leaflet 4.2.1, FastAPI, SQLAlchemy 2.0
+  - **Pending**: PR to develop (60 commits), optional polish (7 tasks)
 
 - **003-gps-routes** (2026-01-25): Implemented User Story 3 - Interactive Elevation Profile
   - Added Recharts 3.7.0 for elevation visualization
@@ -1799,6 +1813,7 @@ gradient: float | None = Field(
   - Added pulsating hover marker on map following elevation profile cursor
   - Fixed Recharts 3.x API compatibility (activeIndex vs activePayload)
   - Known limitation: Hover marker precision limited by simplified trackpoints (~200-500 points)
+
 - **010-reverse-geocoding** (2026-01-21): Added TypeScript 5 (frontend), Python 3.12 (backend - no changes) + react-leaflet 4.x, Leaflet.js 1.9.x, lodash.debounce 4.x
 
-**Last updated**: 2026-01-28
+**Last updated**: 2026-02-06
