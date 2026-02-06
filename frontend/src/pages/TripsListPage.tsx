@@ -31,6 +31,10 @@ export const TripsListPage: React.FC = () => {
   // Get username from URL query parameter, or use logged-in user's username
   const targetUsername = searchParams.get('user') || user?.username || '';
 
+  // Show status filter only when user is viewing their own trips
+  const isViewingOwnTrips = user && targetUsername === user.username;
+  const showStatusFilter = Boolean(isViewingOwnTrips);
+
   // Filter state management
   const {
     searchQuery,
@@ -64,8 +68,8 @@ export const TripsListPage: React.FC = () => {
     username: targetUsername,
     searchQuery: debouncedSearchQuery, // Use debounced version for API
     selectedTag,
-    selectedStatus,
-    selectedVisibility,
+    selectedStatus: isViewingOwnTrips ? selectedStatus : null, // Only apply status filter for own trips
+    selectedVisibility: isViewingOwnTrips ? selectedVisibility : null, // Only apply visibility filter for own trips
     sortBy,
     limit,
     offset,
@@ -92,10 +96,6 @@ export const TripsListPage: React.FC = () => {
   useEffect(() => {
     goToPage(1);
   }, [targetUsername, goToPage]);
-
-  // Show status filter only when user is viewing their own trips
-  const isViewingOwnTrips = user && targetUsername === user.username;
-  const showStatusFilter = Boolean(isViewingOwnTrips);
 
   // Get status counts for filter buttons (only when viewing own trips)
   const { allCount, publishedCount, draftCount, isLoading: countsLoading } = useTripStatusCounts({
