@@ -20,12 +20,12 @@
 | Phase | Tasks | Complete | % | Priority |
 |-------|-------|----------|---|----------|
 | Phase 1: Base Structure | 1 | 1 | 100% | ✅ DONE |
-| Phase 2: Document Modes | 9 | 4 | 44% | **HIGHEST** |
+| Phase 2: Document Modes | 9 | 5 | 56% | **HIGHEST** |
 | Phase 3: Create Guides | 7 | 7 | 100% | ✅ DONE |
 | Phase 4: Archive Old Docs | 4 | 0 | 0% | Medium |
 | Phase 5: Update References | 4 | 4 | 100% | ✅ DONE |
 | Phase 6: Final Validation | 4 | 0 | 0% | Low (last) |
-| **TOTAL** | **29** | **16** | **55%** | - |
+| **TOTAL** | **29** | **17** | **59%** | - |
 
 ---
 
@@ -62,7 +62,7 @@
 
 **Source Content**: Extract from `backend/docs/DEPLOYMENT.md` sections on dev, staging, production
 
-- [ ] T008 Create `docs/deployment/modes/dev.md` - Development/Integration server deployment
+- [✅] T008 Create `docs/deployment/modes/dev.md` - Development/Integration server deployment ✅ COMPLETED (2026-02-06)
   - **Overview**: Remote development server for team integration testing
   - **Prerequisites**: Docker, SSH access to dev server, GitLab/GitHub CI access
   - **Quick Start**: `./deploy.sh dev` commands
@@ -70,6 +70,7 @@
   - **Architecture**: Nginx reverse proxy, PostgreSQL, backend API, frontend static
   - **Troubleshooting**: SSL certificate issues, database connection timeouts
   - **Related Modes**: Progression from local-full → dev → staging
+  - **Created**: 850+ lines, comprehensive guide covering architecture, Nginx configuration, SMTP setup, testing workflows, troubleshooting, security considerations
 
 - [ ] T009 Create `docs/deployment/modes/staging.md` - Staging environment (production mirror)
   - **Overview**: Pre-production testing environment, mirrors prod configuration
@@ -424,13 +425,13 @@
 
 ## Total Tasks: 29 tasks across 6 phases
 
-**Current Status**: 16/29 (55%) ✅
+**Current Status**: 17/29 (59%) ✅
 
-**Remaining Work**: 13 tasks
-- Phase 2: 5 tasks (server modes) ⭐ **HIGHEST PRIORITY**
+**Remaining Work**: 12 tasks
+- Phase 2: 4 tasks (server modes: staging, prod, preproduction, test) ⭐ **HIGHEST PRIORITY**
 - Phase 4: 4 tasks (archive + redirects)
 - Phase 6: 4 tasks (validation)
 
-**Estimated Remaining Effort**: 3-5 days
+**Estimated Remaining Effort**: 3-4 days
 
-**Next Action**: Continue Phase 2 (server modes) - T008 through T012
+**Next Action**: Continue Phase 2 (server modes) - T009 through T012
