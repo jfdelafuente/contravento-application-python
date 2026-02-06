@@ -329,7 +329,7 @@ class TripPhotoResponse(BaseModel):
         photo_url: URL to optimized photo
         thumbnail_url: URL to thumbnail
         caption: Photo caption (optional)
-        display_order: Display order (0-based)
+        order: Display order (0-based)
         width: Original photo width in pixels
         height: Original photo height in pixels
     """
@@ -338,7 +338,7 @@ class TripPhotoResponse(BaseModel):
     photo_url: str = Field(..., description="URL to optimized photo")
     thumbnail_url: str = Field(..., description="URL to thumbnail")
     caption: str | None = Field(None, description="Photo caption")
-    display_order: int = Field(..., description="Display order (0-based)")
+    order: int = Field(..., description="Display order (0-based)")
     width: int | None = Field(None, description="Original photo width")
     height: int | None = Field(None, description="Original photo height")
 
@@ -353,7 +353,7 @@ class TripPhotoResponse(BaseModel):
                 "photo_url": "/storage/trip_photos/2024/12/550e.../abc123.jpg",
                 "thumbnail_url": "/storage/trip_photos/2024/12/550e.../abc123_thumb.jpg",
                 "caption": "Vista desde el viaducto",
-                "display_order": 0,
+                "order": 0,
                 "width": 2000,
                 "height": 1500,
             }
