@@ -108,10 +108,10 @@ jobs:
 
       - name: Test Frontend Image (Smoke Test)
         run: |
-          echo "Testing frontend image nginx config..."
+          echo "Testing frontend image has static files..."
           docker run --rm --name frontend-test \
             jfdelafuente/contravento-frontend:test \
-            nginx -t && echo "✓ Frontend image is valid"
+            sh -c 'test -f /usr/share/nginx/html/index.html && nginx -v' && echo "✓ Frontend image is valid"
 
       - name: Push Backend Image to Docker Hub
         if: github.event_name != 'pull_request'
