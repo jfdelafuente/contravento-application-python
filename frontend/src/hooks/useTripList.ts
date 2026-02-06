@@ -141,7 +141,7 @@ export const useTripList = ({
       }
 
       setTrips(filteredTrips);
-      setTotal(searchQuery ? filteredTrips.length : response.total);
+      setTotal(searchQuery ? filteredTrips.length : (response.total ?? 0));
     } catch (err) {
       const error = err as Error;
       setError(error);

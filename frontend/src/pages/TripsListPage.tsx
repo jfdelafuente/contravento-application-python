@@ -198,7 +198,7 @@ export const TripsListPage: React.FC = () => {
             ) : total === 1 ? (
               '1 viaje encontrado'
             ) : (
-              `${total} viajes encontrados`
+              `${total ?? 0} viajes encontrados`
             )}
           </p>
           {trips.length > 0 && (
