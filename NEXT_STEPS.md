@@ -1,7 +1,7 @@
 # ContraVento - Próximos Pasos
 
 **Última actualización**: 2026-02-06
-**Estado actual**: 5 features con trabajo pendiente, ordenadas por prioridad
+**Estado actual**: 4 features con trabajo pendiente, ordenadas por prioridad
 
 ---
 
@@ -11,14 +11,14 @@
 | ------- | --------- | ------ | ----------------- | --------------- | ------------ |
 | ~~**012-typescript-code-quality**~~ | ✅ Completada | 100% | 0 errores | ✅ ~1 hora | Ninguno |
 | ~~**017-gps-trip-wizard**~~ | ✅ Completada | 93% (98/105) | 7 tareas opcionales | ✅ ~3 días | Ninguno |
-| **011-frontend-deployment** | 🔴 Alta | 98% (69/70) | 1 tarea manual | ~15 min | Ninguno |
+| ~~**011-frontend-deployment**~~ | ✅ Completada | 100% (70/70) | 0 tareas | ✅ ~15 min | Ninguno |
 | **015-gpx-wizard-integration** | 🔴 Alta | 0% | 50 tareas | 4-8 horas | Ninguno |
 | **016-deployment-docs** | 🟡 Media | 31% (9/29) | 20 tareas | 5-8 días | Ninguno |
 | **014-landing-page** | 🟡 Media | 62% (44/71) | 27 tareas | 1-2 días | Ninguno |
 | **006-dashboard-dynamic** | 🟢 Baja | 0% | 72 tareas | 3-4 días | Ninguno |
 | **004-celery-async-tasks** | 🟢 Baja | 0% | TBD | 2-3 días | Ninguno |
 
-**Recomendación**: Completar Feature 011 (DESBLOQUEADA) → 015 (UX enhancement de alto valor)
+**Recomendación**: Feature 015 (GPX Wizard Integration) - UX enhancement de alto valor
 
 ---
 
@@ -110,65 +110,45 @@
 
 ---
 
-## 🔴 PRIORIDAD ALTA
+### Feature 011: Frontend Deployment Integration ✅
 
-### Feature 011: Frontend Deployment Integration
+**Branch**: `develop` (merged from `011-frontend-deployment`)
 
-**Branch**: `011-frontend-deployment` (merged a develop)
+**Estado**: ✅ **100% COMPLETADA** (70/70 tareas)
 
-**Estado**: 🔄 **98% completo** (69/70 tareas)
+**Fecha de cierre**: 2026-02-06
 
-**Prioridad**: 🔴 **Alta** (~~bloqueado por Feature 012~~ ✅ DESBLOQUEADO)
+**Tiempo total**: ~15 minutos (validación final T063)
 
-**Tiempo restante**: ~15 minutos (validación manual)
+#### Resumen de Logros
 
-**Bloqueadores**: ~~Feature 012~~ ✅ Ninguno
+- ✅ 4 modos de deployment configurados y validados:
+  - **SQLite Local** (no Docker) - startup <30s ✅
+  - **Docker Minimal** (PostgreSQL + Backend + Frontend) - startup <60s ✅
+  - **Docker Full** (MailHog, Redis, pgAdmin) - startup <90s ✅
+  - **Production Builds** (staging/prod con Nginx) - optimized builds ✅
+- ✅ Scripts de deployment para Linux/Mac (`.sh`) y Windows (`.ps1`)
+- ✅ Configuración de ambiente para dev, staging y production
+- ✅ Frontend con Vite + proxy configurado (no CORS errors)
+- ✅ Hot Module Replacement (HMR) <2s
+- ✅ Production build reduce 66% tamaño (~360 KB gzipped)
+- ✅ Nginx configurado con cache headers y SPA routing
+- ✅ Docker Compose para todos los ambientes
+- ✅ Documentación completa en `quickstart.md`
 
-#### Tareas Pendientes Feature 011
+#### Fases Completadas (7/7)
 
-**T063**: ⏳ **PENDIENTE - VALIDACIÓN MANUAL** - Validar los 4 modos de deployment end-to-end
-
-```bash
-# Requiere prueba manual del usuario siguiendo quickstart.md
-cd specs/011-frontend-deployment/
-# Validar:
-# 1. SQLite Local (No Docker)
-# 2. Docker Minimal (PostgreSQL)
-# 3. Docker Full (PostgreSQL + MailHog + pgAdmin)
-# 4. Production Builds (staging/prod)
-# Tiempo: ~15 minutos
-```
-
-**Nota**: Esta es una tarea de validación manual que no puede automatizarse. El usuario debe probar cada modo de deployment para confirmar que funcionan correctamente.
-
-**T067**: ✅ **COMPLETADO** - Validar build de producción reduce tamaño ≥60%
-
-```bash
-# ✅ Feature 012 completo - 0 errores TypeScript
-npm run build:prod  # ✅ PASA - 37.53s build time
-
-# Resultados validados:
-# ✅ dist/ = ~1.06 MB total (< 1.2MB target)
-# ✅ Assets gzipped = ~360 KB (~400KB target)
-# ✅ Build time = 37.53s (< 60s target)
-# ✅ 0 TypeScript errors
-# ✅ 66% size reduction (>60% target)
-```
-
-**T068-T070**: ✅ **COMPLETADOS** - Documentación final
-
-- [x] T068: Actualizar CLAUDE.md con comandos de deployment
-- [x] T069: Crear deployment troubleshooting guide
-- [x] T070: Update NEXT_STEPS.md
-
-#### Criterios de Aceptación Feature 011
-
-- [x] Build de producción completa sin errores (✅ 0 TypeScript errors)
-- [x] Build size reducido ≥60% (✅ 66% reduction - ~360KB gzipped)
-- [ ] Los 4 modos de deployment validados (⏳ T063 - requiere validación manual del usuario)
-- [x] Documentación actualizada (✅ T068-T070 completados)
+1. ✅ Setup (8/8 tasks) - Environment files y Dockerfiles
+2. ✅ Foundational (4/4 tasks) - Vite config y build scripts
+3. ✅ US1: SQLite Local (10/10 tasks) - Development workflow
+4. ✅ US2: Docker Minimal (10/10 tasks) - PostgreSQL testing
+5. ✅ US3: Docker Full (10/10 tasks) - Complete environment
+6. ✅ US4: Production Builds (15/15 tasks) - Staging/Prod deployment
+7. ✅ Polish & Cross-Cutting (13/13 tasks) - Docs & validation (T063 ✅)
 
 ---
+
+## 🔴 PRIORIDAD ALTA
 
 ### Feature 015: GPX Wizard Integration
 
@@ -792,8 +772,8 @@ Agregar cola de tareas distribuida (Celery + Redis) para procesamiento asíncron
 | Feature | Branch | Estado | Próximo Hito |
 | ------- | ------ | ------ | ------------ |
 | ~~012-typescript-code-quality~~ | develop (merged) | 100% ✅ | Completado |
-| ~~017-gps-trip-wizard~~ | `017-gps-trip-wizard` | 93% ✅ | PR a develop |
-| 011-frontend-deployment | develop | 98% | T063: validación manual |
+| ~~017-gps-trip-wizard~~ | develop (merged) | 93% ✅ | Completado |
+| ~~011-frontend-deployment~~ | develop (merged) | 100% ✅ | Completado |
 | 015-gpx-wizard-integration | N/A | 0% | Phase 1: Setup |
 | 016-deployment-docs | N/A | 31% | T013: getting-started.md |
 | 014-landing-page | develop | 62% | Phase 8: Polish |
@@ -804,11 +784,9 @@ Agregar cola de tareas distribuida (Celery + Redis) para procesamiento asíncron
 
 **Próximas prioridades** (Febrero 2026):
 
-1. 🔴 **Feature 017** - Crear PR y merge a develop (~30 min)
-2. 🔴 **Feature 011** - Validación manual deployment (T063, ~15 min)
-3. 🔴 **Feature 015** - GPX Wizard Integration (4-8 horas)
-4. 🟡 **Feature 016** - Core guides (T013-T015, 2-3 días)
-5. 🟡 **Feature 014** - Polish landing page (1-2 días)
+1. 🔴 **Feature 015** - GPX Wizard Integration (4-8 horas) - UX enhancement de alto valor
+2. 🟡 **Feature 016** - Core guides (T013-T015, 2-3 días) - Deployment documentation
+3. 🟡 **Feature 014** - Polish landing page (1-2 días) - Marketing & branding
 
 **Futuro** (según prioridad de negocio):
 
