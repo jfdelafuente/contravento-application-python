@@ -572,11 +572,14 @@ async def create_trip_with_gpx(
                 gradient_dist = await stats_service.classify_gradients(trackpoints_for_stats)
 
                 # Fix floating-point precision issue: ensure moving_time <= total_time
-                if speed_metrics.get("moving_time_minutes") and speed_metrics.get(
-                    "total_time_minutes"
+                moving_time = speed_metrics.get("moving_time_minutes")
+                total_time = speed_metrics.get("total_time_minutes")
+                if (
+                    moving_time is not None
+                    and total_time is not None
+                    and moving_time > total_time
                 ):
-                    if speed_metrics["moving_time_minutes"] > speed_metrics["total_time_minutes"]:
-                        speed_metrics["moving_time_minutes"] = speed_metrics["total_time_minutes"]
+                    speed_metrics["moving_time_minutes"] = total_time
 
                 # Calculate weighted average gradient from distribution
                 total_distance = (
@@ -599,8 +602,8 @@ async def create_trip_with_gpx(
                 # Find max gradient from trackpoints
                 max_gradient = None
                 if parsed_data["has_elevation"]:
-                    gradients = [
-                        p.get("gradient")
+                    gradients: list[float] = [
+                        float(p["gradient"])
                         for p in trackpoints_for_stats
                         if p.get("gradient") is not None
                     ]

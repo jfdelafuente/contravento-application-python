@@ -222,7 +222,13 @@ class RouteStatsService:
 
             if should_end_climb:
                 # Save climb (from start to max elevation point)
-                if climb_max_idx > climb_start_idx:
+                if (
+                    climb_max_idx is not None
+                    and climb_start_idx is not None
+                    and climb_max_elevation is not None
+                    and climb_start_elevation is not None
+                    and climb_max_idx > climb_start_idx
+                ):
                     climb_gain = climb_max_elevation - climb_start_elevation
 
                     if climb_gain >= MIN_CLIMB_GAIN_M:
@@ -250,26 +256,31 @@ class RouteStatsService:
                 flat_count = 0  # Reset flat counter for new climb
 
         # Save final climb if exists (from start to max elevation point)
-        if climb_start_idx is not None and climb_max_idx is not None:
-            if climb_max_idx > climb_start_idx:
-                climb_gain = climb_max_elevation - climb_start_elevation
+        if (
+            climb_start_idx is not None
+            and climb_max_idx is not None
+            and climb_max_elevation is not None
+            and climb_start_elevation is not None
+            and climb_max_idx > climb_start_idx
+        ):
+            climb_gain = climb_max_elevation - climb_start_elevation
 
-                if climb_gain >= MIN_CLIMB_GAIN_M:
-                    start_km = trackpoints[climb_start_idx]["distance_km"]
-                    end_km = trackpoints[climb_max_idx]["distance_km"]
-                    distance_km = end_km - start_km
+            if climb_gain >= MIN_CLIMB_GAIN_M:
+                start_km = trackpoints[climb_start_idx]["distance_km"]
+                end_km = trackpoints[climb_max_idx]["distance_km"]
+                distance_km = end_km - start_km
 
-                    if distance_km > 0:
-                        avg_gradient = (climb_gain / (distance_km * 1000)) * 100
+                if distance_km > 0:
+                    avg_gradient = (climb_gain / (distance_km * 1000)) * 100
 
-                        climbs.append(
-                            {
-                                "start_km": start_km,
-                                "end_km": end_km,
-                                "elevation_gain_m": climb_gain,
-                                "avg_gradient": avg_gradient,
-                            }
-                        )
+                    climbs.append(
+                        {
+                            "start_km": start_km,
+                            "end_km": end_km,
+                            "elevation_gain_m": climb_gain,
+                            "avg_gradient": avg_gradient,
+                        }
+                    )
 
         # Score and rank climbs by difficulty
         # Score = elevation_gain * (1 + avg_gradient/10)

@@ -281,13 +281,13 @@ class POIService:
 
         # Get all POIs for the trip
         current_pois = await self.get_trip_pois(trip_id)
-        current_poi_ids = {poi.poi_id for poi in current_pois}
+        current_poi_ids: set[str] = {poi.poi_id for poi in current_pois}
 
         # Validate: Must include all POIs (no additions or omissions)
-        provided_poi_ids = set(poi_ids)
+        provided_poi_ids: set[str] = set(poi_ids)
         if provided_poi_ids != current_poi_ids:
-            missing = current_poi_ids - provided_poi_ids
-            extra = provided_poi_ids - current_poi_ids
+            missing: set[str] = current_poi_ids - provided_poi_ids
+            extra: set[str] = provided_poi_ids - current_poi_ids
             error_parts = []
             if missing:
                 error_parts.append(f"faltan: {missing}")
@@ -298,7 +298,7 @@ class POIService:
             )
 
         # Update sequence for each POI
-        poi_map = {poi.poi_id: poi for poi in current_pois}
+        poi_map: dict[str, PointOfInterest] = {poi.poi_id: poi for poi in current_pois}
         for new_sequence, poi_id in enumerate(poi_ids):
             poi = poi_map[poi_id]
             poi.sequence = new_sequence
