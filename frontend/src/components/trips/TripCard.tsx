@@ -33,6 +33,7 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, showStatus = false }) 
     start_date,
     distance_km,
     status,
+    is_private,
     photo_count,
     tag_names,
     thumbnail_url,
@@ -87,8 +88,29 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, showStatus = false }) 
           </div>
         )}
 
-        {/* Status badge (draft/published) - only shown if showStatus=true */}
-        {showStatus && (
+        {/* Privacy badge - shown if trip is private (highest priority) */}
+        {showStatus && is_private && (
+          <div className="trip-card__privacy">
+            <svg
+              className="trip-card__privacy-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <span>Privado</span>
+          </div>
+        )}
+
+        {/* Status badge (draft/published) - only shown if showStatus=true and not private */}
+        {showStatus && !is_private && (
           <div className={`trip-card__status ${getStatusClass(status)}`}>
             {getStatusLabel(status)}
           </div>

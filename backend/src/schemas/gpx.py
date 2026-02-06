@@ -221,7 +221,7 @@ class RouteStatisticsResponse(BaseModel):
     stats_id: str = Field(..., description="Unique statistics record ID (UUID)")
     gpx_file_id: str = Field(..., description="Associated GPX file ID (UUID)")
     avg_speed_kmh: float | None = Field(None, ge=0.0, lt=100.0, description="Average speed (km/h)")
-    max_speed_kmh: float | None = Field(None, ge=0.0, lt=100.0, description="Maximum speed (km/h)")
+    max_speed_kmh: float | None = Field(None, ge=0.0, lt=200.0, description="Maximum speed (km/h)")
     total_time_minutes: float | None = Field(
         None, ge=0.0, description="Total elapsed time (minutes)"
     )

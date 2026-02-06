@@ -85,7 +85,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   onUpload,
   onDelete,
   onReorder,
-  maxPhotos = 20,
+  maxPhotos = 6,
   maxSizeMB = 10,
   disabled = false,
 }) => {

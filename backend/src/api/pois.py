@@ -9,8 +9,9 @@ Success Criteria: SC-029, SC-030, SC-031
 """
 
 import logging
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db
@@ -289,6 +290,131 @@ async def delete_poi(
     except ValueError as e:
         logger.warning(f"Error deleting POI {poi_id}: {e}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.post(
+    "/pois/{poi_id}/photo",
+    response_model=dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    summary="Upload photo to POI",
+    description="Upload a photo to a Point of Interest (FR-010). Max 5MB per photo. Only trip owner can upload.",
+    responses={
+        200: {"description": "Photo uploaded successfully"},
+        400: {
+            "model": ErrorResponse,
+            "description": "Validation error (invalid format, file too large)",
+        },
+        403: {"model": ErrorResponse, "description": "User is not trip owner"},
+        404: {"model": ErrorResponse, "description": "POI not found"},
+    },
+)
+async def upload_poi_photo(
+    poi_id: str,
+    photo: UploadFile = File(..., description="Photo file (JPEG, PNG, WebP, max 5MB)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    """
+    Upload a photo to a Point of Interest.
+
+    FR-010 (Feature 017): POIs can have photos (max 5MB)
+
+    **Requirements:**
+    - User must be the trip owner
+    - Photo format: JPEG, PNG, or WebP
+    - Max file size: 5MB
+    - Only 1 photo per POI (replaces existing photo)
+
+    Args:
+        poi_id: POI ID
+        photo: Photo file
+        db: Database session
+        current_user: Authenticated user
+
+    Returns:
+        Standardized API response with POI data including photo_url
+    """
+    try:
+        # Validate file size (max 5MB)
+        max_size = 5 * 1024 * 1024  # 5MB in bytes
+        photo.file.seek(0, 2)  # Seek to end
+        file_size = photo.file.tell()
+        photo.file.seek(0)  # Reset to beginning
+
+        if file_size > max_size:
+            raise ValueError("La foto excede el tamaño máximo de 5MB")
+
+        # Upload photo
+        poi_service = POIService(db)
+        poi = await poi_service.upload_photo(
+            poi_id=poi_id,
+            user_id=current_user.id,
+            photo_file=photo.file,
+            filename=photo.filename or "photo.jpg",
+            content_type=photo.content_type or "image/jpeg",
+        )
+
+        return {
+            "success": True,
+            "data": {
+                "poi_id": poi.poi_id,
+                "photo_url": poi.photo_url,
+                "name": poi.name,
+                "poi_type": poi.poi_type.value,
+            },
+            "error": None,
+        }
+
+    except PermissionError as e:
+        logger.warning(f"Permission denied uploading photo to POI {poi_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "FORBIDDEN",
+                    "message": str(e),
+                },
+            },
+        )
+
+    except ValueError as e:
+        error_msg = str(e)
+        # Check if it's a not found error or validation error
+        if "no encontrado" in error_msg.lower() or "not found" in error_msg.lower():
+            status_code = status.HTTP_404_NOT_FOUND
+            error_code = "NOT_FOUND"
+        else:
+            status_code = status.HTTP_400_BAD_REQUEST
+            error_code = "VALIDATION_ERROR"
+
+        logger.warning(f"Error uploading photo to POI {poi_id}: {e}")
+        raise HTTPException(
+            status_code=status_code,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": error_code,
+                    "message": error_msg,
+                },
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error uploading photo to POI {poi_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "data": None,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Error interno del servidor",
+                },
+            },
+        )
 
 
 @router.post(

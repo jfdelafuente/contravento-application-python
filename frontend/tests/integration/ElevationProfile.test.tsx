@@ -16,7 +16,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { ElevationProfile } from '../../src/components/trips/ElevationProfile';
 
-// Mock Recharts components with click simulation
+// Mock Recharts components with click simulation (Recharts 3.x API)
 vi.mock('recharts', () => ({
   ComposedChart: vi.fn(({ children, onClick, data }: any) => {
     // Store click handler globally for test access
@@ -26,22 +26,10 @@ vi.mock('recharts', () => ({
       <div
         data-testid="composed-chart"
         onClick={(e) => {
-          // Simulate Recharts click event with activePayload
-          if (onClick) {
+          // Simulate Recharts 3.x click event with activeIndex
+          if (onClick && data && data.length > 0) {
             onClick({
-              activePayload: [
-                {
-                  payload: data?.[0] || {
-                    point_id: 'point-0',
-                    latitude: 40.0,
-                    longitude: -3.0,
-                    elevation: 500,
-                    distance_km: 0,
-                    sequence: 0,
-                    gradient: null,
-                  },
-                },
-              ],
+              activeIndex: 0, // First point in chart data
             });
           }
         }}
@@ -107,7 +95,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -134,7 +122,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -165,7 +153,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -191,7 +179,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -230,7 +218,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -258,7 +246,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
    * Verifies graceful degradation when callback is optional
    */
   it('should not throw error when onPointClick is not provided', () => {
-    const { getByTestId } = render(<ElevationProfile trackpoints={mockTrackpoints} />);
+    const { getByTestId } = render(<ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} />);
 
     const chart = getByTestId('composed-chart');
 
@@ -276,7 +264,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -299,7 +287,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={mockTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={mockTrackpoints} hasElevation={true} distanceKm={1.0} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -339,7 +327,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
     const mockOnPointClick = vi.fn();
 
     const { getByTestId } = render(
-      <ElevationProfile trackpoints={largeTrackpoints} onPointClick={mockOnPointClick} />
+      <ElevationProfile trackpoints={largeTrackpoints} hasElevation={true} distanceKm={50} onPointClick={mockOnPointClick} />
     );
 
     const chart = getByTestId('composed-chart');
@@ -366,7 +354,7 @@ describe('T071: ElevationProfile-Map Sync Integration Tests', () => {
   it('should handle empty trackpoints gracefully on click', () => {
     const mockOnPointClick = vi.fn();
 
-    const { getByText } = render(<ElevationProfile trackpoints={[]} onPointClick={mockOnPointClick} />);
+    const { getByText } = render(<ElevationProfile trackpoints={[]} hasElevation={false} distanceKm={0} onPointClick={mockOnPointClick} />);
 
     // Empty state should be shown
     expect(getByText(/No hay datos de elevación disponibles/i)).toBeInTheDocument();

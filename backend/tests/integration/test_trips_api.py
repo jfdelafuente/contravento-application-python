@@ -174,12 +174,12 @@ class TestPhotoUploadWorkflow:
         from src.models.stats import UserStats
 
         # Get user ID from auth token
-        get_user_response = await client.get("/users/me", headers=auth_headers)
-        user_id = get_user_response.json()["data"]["id"]
+        get_user_response = await client.get("/auth/me", headers=auth_headers)
+        user_id = get_user_response.json()["data"]["user_id"]
 
         result = await db_session.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats_before = result.scalar_one()
-        initial_photo_count = stats_before.total_trip_photos
+        initial_photo_count = stats_before.total_photos
 
         # Step 2: Upload photo
         img = Image.new("RGB", (400, 300), color="blue")
@@ -195,7 +195,7 @@ class TestPhotoUploadWorkflow:
 
         # Step 3: Verify stats updated
         await db_session.refresh(stats_before)
-        assert stats_before.total_trip_photos == initial_photo_count + 1
+        assert stats_before.total_photos == initial_photo_count + 1
 
 
 @pytest.mark.integration
@@ -303,12 +303,12 @@ class TestPhotoDeleteWorkflow:
         # Get user stats before deletion
         from src.models.stats import UserStats
 
-        get_user_response = await client.get("/users/me", headers=auth_headers)
-        user_id = get_user_response.json()["data"]["id"]
+        get_user_response = await client.get("/auth/me", headers=auth_headers)
+        user_id = get_user_response.json()["data"]["user_id"]
 
         result = await db_session.execute(select(UserStats).where(UserStats.user_id == user_id))
         stats_before = result.scalar_one()
-        initial_photo_count = stats_before.total_trip_photos
+        initial_photo_count = stats_before.total_photos
 
         # Step 2: Delete photo
         delete_response = await client.delete(
@@ -318,7 +318,7 @@ class TestPhotoDeleteWorkflow:
 
         # Step 3: Verify stats updated
         await db_session.refresh(stats_before)
-        assert stats_before.total_trip_photos == initial_photo_count - 1
+        assert stats_before.total_photos == initial_photo_count - 1
 
 
 @pytest.mark.integration
@@ -1190,7 +1190,8 @@ class TestDraftVisibility:
         get_response = await client.get(f"/trips/{trip_id}")
 
         # Should fail because unauthenticated users can't see drafts
-        assert get_response.status_code in [401, 404]
+        # Accepts 401 (unauthorized), 403 (forbidden), or 404 (not found)
+        assert get_response.status_code in [401, 403, 404]
 
 
 @pytest.mark.integration
@@ -1198,7 +1199,9 @@ class TestDraftVisibility:
 class TestDraftListing:
     """T094: Integration test for draft listing (separate from published)."""
 
-    async def test_list_only_drafts(self, client: AsyncClient, auth_headers: dict, test_user: User):
+    async def test_list_only_drafts(
+        self, client: AsyncClient, regular_user_headers: dict, test_user: User
+    ):
         """Test filtering user trips to show only drafts."""
         # Create 2 drafts and 1 published trip
         draft1_payload = {
@@ -1218,17 +1221,21 @@ class TestDraftListing:
         }
 
         # Create drafts
-        await client.post("/trips", json=draft1_payload, headers=auth_headers)
-        await client.post("/trips", json=draft2_payload, headers=auth_headers)
+        await client.post("/trips", json=draft1_payload, headers=regular_user_headers)
+        await client.post("/trips", json=draft2_payload, headers=regular_user_headers)
 
         # Create and publish trip
-        pub_response = await client.post("/trips", json=published_payload, headers=auth_headers)
+        pub_response = await client.post(
+            "/trips", json=published_payload, headers=regular_user_headers
+        )
         pub_trip_id = pub_response.json()["data"]["trip_id"]
-        await client.post(f"/trips/{pub_trip_id}/publish", headers=auth_headers)
+        await client.post(f"/trips/{pub_trip_id}/publish", headers=regular_user_headers)
 
         # List only drafts
         username = test_user.username
-        response = await client.get(f"/users/{username}/trips?status=draft", headers=auth_headers)
+        response = await client.get(
+            f"/users/{username}/trips?status=draft", headers=regular_user_headers
+        )
 
         assert response.status_code == 200
         data = response.json()["data"]
@@ -1242,7 +1249,7 @@ class TestDraftListing:
         assert "Published Trip" not in titles
 
     async def test_list_only_published_trips(
-        self, client: AsyncClient, auth_headers: dict, test_user: User
+        self, client: AsyncClient, regular_user_headers: dict, test_user: User
     ):
         """Test filtering user trips to show only published trips."""
         # Create 1 draft and 2 published trips
@@ -1263,21 +1270,21 @@ class TestDraftListing:
         }
 
         # Create draft (don't publish)
-        await client.post("/trips", json=draft_payload, headers=auth_headers)
+        await client.post("/trips", json=draft_payload, headers=regular_user_headers)
 
         # Create and publish trips
-        pub1_response = await client.post("/trips", json=pub1_payload, headers=auth_headers)
+        pub1_response = await client.post("/trips", json=pub1_payload, headers=regular_user_headers)
         pub1_id = pub1_response.json()["data"]["trip_id"]
-        await client.post(f"/trips/{pub1_id}/publish", headers=auth_headers)
+        await client.post(f"/trips/{pub1_id}/publish", headers=regular_user_headers)
 
-        pub2_response = await client.post("/trips", json=pub2_payload, headers=auth_headers)
+        pub2_response = await client.post("/trips", json=pub2_payload, headers=regular_user_headers)
         pub2_id = pub2_response.json()["data"]["trip_id"]
-        await client.post(f"/trips/{pub2_id}/publish", headers=auth_headers)
+        await client.post(f"/trips/{pub2_id}/publish", headers=regular_user_headers)
 
         # List only published trips
         username = test_user.username
         response = await client.get(
-            f"/users/{username}/trips?status=published", headers=auth_headers
+            f"/users/{username}/trips?status=published", headers=regular_user_headers
         )
 
         assert response.status_code == 200

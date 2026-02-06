@@ -269,6 +269,7 @@ from src.api import (
     cycling_types,
     feed,
     gpx_routes,
+    gpx_wizard,
     likes,
     pois,
     profile,
@@ -292,6 +293,8 @@ app.include_router(trip_photos_router.router)  # Trips: Photo management
 app.include_router(trip_user_router.router)  # Trips: User trips and tags
 app.include_router(gpx_routes.trip_gpx_router)  # Feature 003: GPX upload/metadata/delete
 app.include_router(gpx_routes.gpx_router)  # Feature 003: GPX status/track/download
+app.include_router(gpx_wizard.router)  # Feature 017: GPS Trip Creation Wizard (US1-US5)
+app.include_router(gpx_wizard.trips_wizard_router)  # Feature 017: POST /trips/gpx-wizard (US6)
 app.include_router(pois.router)  # Feature 003: Points of Interest (US4)
 app.include_router(cycling_types.router)  # Public cycling types endpoint
 app.include_router(cycling_types.admin_router)  # Admin cycling types endpoints

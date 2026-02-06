@@ -26,6 +26,8 @@
     "@hookform/resolvers": "^3.10.0",
     "@marsidev/react-turnstile": "^0.7.0",
     "axios": "^1.6.5",
+    "axios-retry": "^4.5.0",
+    "clsx": "^2.1.0",
     "date-fns": "^3.0.0",
     "leaflet": "1.9.x",
     "lodash.debounce": "^4.0.8",
@@ -39,6 +41,7 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.21.0",
     "recharts": "^3.7.0",
+    "tailwind-merge": "^2.2.0",
     "yet-another-react-lightbox": "^2.6.2",
     "zod": "^3.25.76"
   },

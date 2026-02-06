@@ -8,12 +8,15 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
 import { TripCard } from '../components/trips/TripCard';
 import { TripFilters } from '../components/trips/TripFilters';
+import { TripSortDropdown } from '../components/trips/TripSortDropdown';
 import { useTripList } from '../hooks/useTripList';
 import { useTripFilters } from '../hooks/useTripFilters';
+import { useTripStatusCounts } from '../hooks/useTripStatusCounts';
 import { getAllTags } from '../services/tripService';
 import { Tag } from '../types/trip';
 import './TripsListPage.css';
@@ -21,17 +24,30 @@ import './DashboardPage.css'; // For dashboard-header styles
 
 export const TripsListPage: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
+
+  // Get username from URL query parameter, or use logged-in user's username
+  const targetUsername = searchParams.get('user') || user?.username || '';
+
+  // Show status filter only when user is viewing their own trips
+  const isViewingOwnTrips = user && targetUsername === user.username;
+  const showStatusFilter = Boolean(isViewingOwnTrips);
 
   // Filter state management
   const {
     searchQuery,
+    debouncedSearchQuery,
     setSearchQuery,
     selectedTag,
     setSelectedTag,
     selectedStatus,
     setSelectedStatus,
+    selectedVisibility,
+    setSelectedVisibility,
+    sortBy,
+    setSortBy,
     offset,
     nextPage,
     previousPage,
@@ -41,7 +57,7 @@ export const TripsListPage: React.FC = () => {
     initialLimit: 12,
   });
 
-  // Fetch trips based on current filters
+  // Fetch trips based on current filters (use debounced search for API calls)
   const {
     trips,
     total,
@@ -49,10 +65,12 @@ export const TripsListPage: React.FC = () => {
     currentPage,
     totalPages,
   } = useTripList({
-    username: user?.username || '',
-    searchQuery,
+    username: targetUsername,
+    searchQuery: debouncedSearchQuery, // Use debounced version for API
     selectedTag,
-    selectedStatus,
+    selectedStatus: isViewingOwnTrips ? selectedStatus : null, // Only apply status filter for own trips
+    selectedVisibility: isViewingOwnTrips ? selectedVisibility : null, // Only apply visibility filter for own trips
+    sortBy,
     limit,
     offset,
   });
@@ -74,8 +92,24 @@ export const TripsListPage: React.FC = () => {
     fetchTags();
   }, []);
 
-  // Show status filter only for authenticated user viewing their own trips
-  const showStatusFilter = Boolean(user);
+  // Reset pagination when changing users
+  useEffect(() => {
+    goToPage(1);
+  }, [targetUsername, goToPage]);
+
+  // Clear status and visibility filters when viewing other users' trips
+  useEffect(() => {
+    if (!isViewingOwnTrips) {
+      if (selectedStatus) setSelectedStatus(null);
+      if (selectedVisibility) setSelectedVisibility(null);
+    }
+  }, [isViewingOwnTrips, selectedStatus, selectedVisibility, setSelectedStatus, setSelectedVisibility]);
+
+  // Get status counts for filter buttons (only when viewing own trips)
+  const { allCount, publishedCount, draftCount, isLoading: countsLoading } = useTripStatusCounts({
+    username: targetUsername,
+    enabled: showStatusFilter,
+  });
 
   return (
     <div className="trips-list-page">
@@ -104,9 +138,21 @@ export const TripsListPage: React.FC = () => {
       {/* Page Title */}
       <div className="trips-list-page__header">
         <div className="trips-list-page__header-content">
-          <h1 className="trips-list-page__title">Mis Viajes</h1>
+          <h1 className="trips-list-page__title">
+            {isViewingOwnTrips
+              ? 'Mis Viajes'
+              : targetUsername
+                ? `Viajes de @${targetUsername}`
+                : 'Viajes'
+            }
+          </h1>
           <p className="trips-list-page__subtitle">
-            Explora, organiza y comparte tus aventuras en bicicleta
+            {isViewingOwnTrips
+              ? 'Explora, organiza y comparte tus aventuras en bicicleta'
+              : targetUsername
+                ? `Explora las aventuras en bicicleta de @${targetUsername}`
+                : 'Explora viajes de la comunidad'
+            }
           </p>
         </div>
 
@@ -132,20 +178,26 @@ export const TripsListPage: React.FC = () => {
         )} */}
       </div>
 
-      {/* Filters */}
-      <TripFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedTag={selectedTag}
-        onTagSelect={setSelectedTag}
-        availableTags={availableTags}
-        selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
-        showStatusFilter={showStatusFilter}
-        isLoading={tagsLoading}
-      />
+      {/* Filters - only shown when viewing own trips */}
+      {isViewingOwnTrips && (
+        <TripFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedTag={selectedTag}
+          onTagSelect={setSelectedTag}
+          availableTags={availableTags}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedVisibility={selectedVisibility}
+          onVisibilityChange={setSelectedVisibility}
+          showStatusFilter={showStatusFilter}
+          isLoading={tagsLoading}
+          statusCounts={{ all: allCount, published: publishedCount, draft: draftCount }}
+          countsLoading={countsLoading}
+        />
+      )}
 
-      {/* Results Summary */}
+      {/* Results Summary with Sort Dropdown */}
       {!isLoading && (
         <div className="trips-list-page__results-summary">
           <p className="trips-list-page__results-text">
@@ -154,9 +206,16 @@ export const TripsListPage: React.FC = () => {
             ) : total === 1 ? (
               '1 viaje encontrado'
             ) : (
-              `${total} viajes encontrados`
+              `${total ?? 0} viajes encontrados`
             )}
           </p>
+          {trips.length > 0 && (
+            <TripSortDropdown
+              value={sortBy}
+              onChange={setSortBy}
+              disabled={isLoading}
+            />
+          )}
         </div>
       )}
 

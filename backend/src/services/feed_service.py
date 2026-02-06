@@ -35,10 +35,11 @@ class FeedService:
         """
         T025: Get personalized feed with sequential algorithm.
 
-        Sequential Algorithm (Bug #1 Fix):
-        1. Show ALL trips from followed users first (pages 1...N)
-        2. When followed trips exhausted, show community backfill (pages N+1...)
-        3. No duplicates possible due to sequential ordering
+        Sequential Algorithm (Updated):
+        1. Show ALL own trips first (pages 1...M) - both public and private
+        2. Show ALL trips from followed users next (pages M+1...N)
+        3. When followed trips exhausted, show community backfill (pages N+1...)
+        4. No duplicates possible due to sequential ordering
 
         Args:
             db: Database session
@@ -61,6 +62,14 @@ class FeedService:
         limit = max(1, min(50, limit))
         offset = (page - 1) * limit
 
+        # Get total count of own trips (needed for sequential algorithm)
+        _, own_count = await FeedService._get_own_trips(
+            db=db,
+            user_id=user_id,
+            limit=0,  # Just get count
+            offset=0,
+        )
+
         # Get total count of followed trips (needed for sequential algorithm)
         _, followed_count = await FeedService._get_followed_trips(
             db=db,
@@ -70,13 +79,55 @@ class FeedService:
         )
 
         # Sequential Algorithm: Determine which source to use
-        if offset < followed_count:
-            # Still showing trips from followed users
-            followed_trips, _ = await FeedService._get_followed_trips(
+        if offset < own_count:
+            # Still showing own trips
+            own_trips, _ = await FeedService._get_own_trips(
                 db=db,
                 user_id=user_id,
                 limit=limit,
                 offset=offset,
+            )
+
+            trips = own_trips
+            remaining_in_page = limit - len(own_trips)
+
+            # If this page contains the last own trips AND there's space remaining,
+            # backfill with first followed trips
+            if remaining_in_page > 0:
+                followed_trips, _ = await FeedService._get_followed_trips(
+                    db=db,
+                    user_id=user_id,
+                    limit=remaining_in_page,
+                    offset=0,  # Start from first followed trip
+                )
+
+                trips.extend(followed_trips)
+                remaining_in_page -= len(followed_trips)
+
+                # If still space remaining, backfill with community trips
+                if remaining_in_page > 0:
+                    community_trips, community_count = await FeedService._get_community_trips(
+                        db=db,
+                        user_id=user_id,
+                        limit=remaining_in_page,
+                        offset=0,  # Start from first community trip
+                        exclude_trip_ids=set(),  # No exclusion needed (sequential)
+                    )
+                    trips.extend(community_trips)
+                    total_count = own_count + followed_count + community_count
+                else:
+                    total_count = own_count + followed_count
+            else:
+                # Still within own trips pages
+                total_count = own_count + followed_count
+        elif offset < own_count + followed_count:
+            # Exhausted own trips, now showing followed trips
+            followed_offset = offset - own_count
+            followed_trips, _ = await FeedService._get_followed_trips(
+                db=db,
+                user_id=user_id,
+                limit=limit,
+                offset=followed_offset,
             )
 
             trips = followed_trips
@@ -94,13 +145,13 @@ class FeedService:
                 )
 
                 trips.extend(community_trips)
-                total_count = followed_count + community_count
+                total_count = own_count + followed_count + community_count
             else:
                 # Still within followed trips pages
-                total_count = followed_count
+                total_count = own_count + followed_count
         else:
-            # Exhausted all followed trips, now showing community backfill
-            community_offset = offset - followed_count
+            # Exhausted all own and followed trips, now showing community backfill
+            community_offset = offset - own_count - followed_count
             community_trips, community_count = await FeedService._get_community_trips(
                 db=db,
                 user_id=user_id,
@@ -110,7 +161,7 @@ class FeedService:
             )
 
             trips = community_trips
-            total_count = followed_count + community_count
+            total_count = own_count + followed_count + community_count
 
         # Calculate has_more
         has_more = (offset + len(trips)) < total_count
@@ -122,6 +173,81 @@ class FeedService:
             "limit": limit,
             "has_more": has_more,
         }
+
+    @staticmethod
+    async def _get_own_trips(
+        db: AsyncSession,
+        user_id: str,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """
+        Get user's own trips (both public and private).
+
+        Args:
+            db: Database session
+            user_id: Current user ID
+            limit: Number of trips to fetch (0 = count only, no trip loading)
+            offset: Pagination offset
+
+        Returns:
+            Tuple of (trips list, total count)
+        """
+        # Build base query for count
+        count_base_query = select(Trip.trip_id).where(
+            and_(
+                Trip.user_id == user_id,
+                Trip.status == TripStatus.PUBLISHED,
+                # Include both public and private trips (user can see their own private trips)
+            )
+        )
+
+        # Get total count
+        count_query = select(func.count()).select_from(count_base_query.subquery())
+        count_result = await db.execute(count_query)
+        total_count = count_result.scalar() or 0
+
+        # If limit=0, return count only (optimization for sequential algorithm)
+        if limit == 0:
+            return [], total_count
+
+        # Get published trips from current user (both public and private)
+        trips_query = (
+            select(Trip)
+            .where(
+                and_(
+                    Trip.user_id == user_id,
+                    Trip.status == TripStatus.PUBLISHED,
+                )
+            )
+            .options(
+                selectinload(Trip.user).selectinload(User.profile),
+                selectinload(Trip.photos),
+                selectinload(Trip.locations),
+                selectinload(Trip.trip_tags).selectinload(TripTag.tag),
+                selectinload(Trip.likes),
+                selectinload(Trip.comments),
+                selectinload(Trip.shares),
+            )
+            .order_by(desc(Trip.published_at))
+            .limit(limit)
+            .offset(offset)
+        )
+
+        trips_result = await db.execute(trips_query)
+        trips = trips_result.scalars().all()
+
+        # Convert to FeedItem dicts
+        feed_items = []
+        for trip in trips:
+            feed_item = await FeedService._trip_to_feed_item(
+                trip=trip,
+                current_user_id=user_id,
+                db=db,
+            )
+            feed_items.append(feed_item)
+
+        return feed_items, total_count
 
     @staticmethod
     async def _get_followed_trips(
@@ -157,6 +283,7 @@ class FeedService:
                 Trip.user_id.in_(following_ids),
                 Trip.user_id != user_id,  # Exclude own trips
                 Trip.status == TripStatus.PUBLISHED,
+                Trip.is_private.is_(False),  # Exclude private trips
             )
         )
 
@@ -177,6 +304,7 @@ class FeedService:
                     Trip.user_id.in_(following_ids),
                     Trip.user_id != user_id,  # Exclude own trips
                     Trip.status == TripStatus.PUBLISHED,
+                    Trip.is_private.is_(False),  # Exclude private trips
                 )
             )
             .options(
@@ -259,6 +387,7 @@ class FeedService:
                     if followed_user_ids
                     else True,  # Exclude followed users
                     Trip.status == TripStatus.PUBLISHED,
+                    Trip.is_private.is_(False),  # Exclude private trips
                     not_(Trip.trip_id.in_(exclude_trip_ids)) if exclude_trip_ids else True,
                 )
             )
@@ -285,6 +414,7 @@ class FeedService:
                     if followed_user_ids
                     else True,  # Exclude followed users
                     Trip.status == TripStatus.PUBLISHED,
+                    Trip.is_private.is_(False),  # Exclude private trips
                     not_(Trip.trip_id.in_(exclude_trip_ids)) if exclude_trip_ids else True,
                 )
             )

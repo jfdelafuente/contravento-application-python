@@ -1,0 +1,310 @@
+/**
+ * Step1Upload Component Styles
+ *
+ * Styling for wizard Step 1 (GPX Upload & Analysis).
+ * Includes telemetry preview, error states, and responsive design.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 4 (US2)
+ * Task: T045
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.step1-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   Header
+   ========================================================================= */
+
+.step1-upload__header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.step1-upload__title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step1-upload__description {
+  font-size: 1rem;
+  color: #dbeafe;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Error Actions
+   ========================================================================= */
+
+.step1-upload__error-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.step1-upload__retry-button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.step1-upload__retry-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.step1-upload__retry-button:active {
+  transform: translateY(0);
+}
+
+.step1-upload__retry-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Preview Section (Title + Map)
+   ========================================================================= */
+
+.step1-upload__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Suggested Title Section
+   ========================================================================= */
+
+.step1-upload__suggested-title {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.step1-upload__suggested-title:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.step1-upload__suggested-title h3 {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.step1-upload__suggested-title-value {
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.step1-upload__suggested-title-hint {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0;
+}
+
+
+/* ============================================================================
+   Accessibility
+   ========================================================================= */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible styles for keyboard navigation */
+.step1-upload__retry-button:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .step1-upload {
+    gap: 1rem;
+  }
+
+  .step1-upload__title {
+    font-size: 1.5rem;
+  }
+
+  .step1-upload__description {
+    font-size: 0.9375rem;
+  }
+
+  .step1-upload__preview {
+    gap: 1rem;
+  }
+
+  .step1-upload__suggested-title {
+    padding: 1.25rem;
+  }
+
+  .step1-upload__suggested-title h3 {
+    font-size: 0.875rem;
+  }
+
+  .step1-upload__suggested-title-value {
+    font-size: 1.5rem;
+  }
+
+  .step1-upload__suggested-title-hint {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .step1-upload__title {
+    font-size: 1.25rem;
+  }
+
+  .step1-upload__description {
+    font-size: 0.875rem;
+  }
+
+  .step1-upload__preview {
+    gap: 0.875rem;
+  }
+
+  .step1-upload__suggested-title {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .step1-upload__suggested-title h3 {
+    font-size: 0.8125rem;
+  }
+
+  .step1-upload__suggested-title-value {
+    font-size: 1.25rem;
+  }
+
+  .step1-upload__suggested-title-hint {
+    font-size: 0.75rem;
+  }
+
+  .step1-upload__retry-button {
+    width: 100%;
+    padding: 0.875rem;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (Future Enhancement)
+   ========================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .step1-upload__title {
+    color: #f7fafc;
+  }
+
+  .step1-upload__description {
+    color: #cbd5e0;
+  }
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .step1-upload__preview {
+    animation: none;
+  }
+
+  .step1-upload__retry-button,
+  .step1-upload__suggested-title {
+    transition: none;
+  }
+
+  .step1-upload__retry-button:hover,
+  .step1-upload__suggested-title:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .step1-upload__retry-button {
+    display: none;
+  }
+
+  .step1-upload__suggested-title {
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+  }
+
+  .step1-upload__suggested-title h3,
+  .step1-upload__suggested-title-value,
+  .step1-upload__suggested-title-hint {
+    color: black;
+  }
+}

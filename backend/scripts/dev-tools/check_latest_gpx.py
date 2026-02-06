@@ -31,7 +31,7 @@ async def check_latest_gpx():
             print("LATEST GPX FILE")
             print("=" * 70)
             print(f"GPX File ID:         {gpx.gpx_file_id}")
-            print(f"Original Filename:   {gpx.original_filename}")
+            print(f"Original Filename:   {gpx.file_name}")
             print(f"Distance:            {gpx.distance_km} km")
             print(f"Has Timestamps:      {gpx.has_timestamps}")
             print(f"Has Elevation:       {gpx.has_elevation}")

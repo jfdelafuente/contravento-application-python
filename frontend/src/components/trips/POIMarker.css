@@ -46,6 +46,22 @@
   color: #1f2937;
 }
 
+/* POI Photo (FR-010) */
+.poi-popup-photo {
+  margin: 0 0 10px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.poi-popup-photo-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 200px;
+  object-fit: cover;
+}
+
 /* POI Description */
 .poi-popup-description {
   margin: 0 0 8px 0;

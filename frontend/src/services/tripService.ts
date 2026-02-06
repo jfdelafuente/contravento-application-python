@@ -26,6 +26,8 @@ import {
 interface GetUserTripsParams {
   tag?: string;
   status?: 'draft' | 'published';
+  visibility?: 'public' | 'private';
+  sort_by?: string;
   limit?: number;
   offset?: number;
 }
@@ -94,7 +96,7 @@ export const getPublicTrips = async (
  */
 export const getTripById = async (tripId: string): Promise<Trip> => {
   const response = await api.get<ApiResponse<Trip>>(`/trips/${tripId}`, {
-    timeout: 30000, // 30 seconds for trips with large GPX files and many trackpoints
+    timeout: 60000, // 60 seconds for trips with large GPX files and many trackpoints (aligned with backend)
   });
   return response.data.data;
 };
@@ -125,15 +127,18 @@ export const getUserTrips = async (
   const queryParams = new URLSearchParams();
   if (params?.tag) queryParams.append('tag', params.tag);
   if (params?.status) queryParams.append('status', params.status);
+  if (params?.visibility) queryParams.append('visibility', params.visibility);
+  if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
 
   const url = `/users/${username}/trips${queryParams.toString() ? `?${queryParams}` : ''}`;
-  const response = await api.get<ApiResponse<TripListResponse>>(url);
+  const response = await api.get<ApiResponse<any>>(url);
 
+  // Backend returns 'count', but frontend type expects 'total'
   return {
     trips: response.data.data.trips,
-    total: response.data.data.total,
+    total: response.data.data.count || response.data.data.total || 0,
     limit: response.data.data.limit,
     offset: response.data.data.offset,
   };
@@ -320,4 +325,142 @@ export const canEditTrip = (trip: Trip, currentUserId: string): boolean => {
  */
 export const canPublishTripData = (trip: Trip): boolean => {
   return trip.status === 'draft' && trip.description.length >= 50;
+};
+
+// ============================================================================
+// GPS Trip Creation Wizard (Feature 017)
+// ============================================================================
+
+/**
+ * Create trip with GPX file in atomic transaction (T073)
+ *
+ * Creates a trip and uploads GPX file in a single atomic operation.
+ * If any step fails, the entire operation is rolled back.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 6 (US6 - Publish Trip)
+ * Contract: specs/017-gps-trip-wizard/contracts/gpx-wizard.yaml
+ *
+ * @param gpxFile - GPX file to upload (max 10MB)
+ * @param tripDetails - Trip metadata (title, description, dates, privacy)
+ * @returns Created trip with GPX metadata
+ *
+ * @throws 400 if validation fails (title too long, description too short, invalid GPX)
+ * @throws 413 if GPX file exceeds 10MB size limit
+ * @throws 401 if not authenticated
+ *
+ * @example
+ * const formData = {
+ *   title: 'Ruta Bikepacking Pirineos',
+ *   description: 'Descripción detallada con más de 50 caracteres...',
+ *   start_date: '2024-06-01',
+ *   end_date: '2024-06-05',
+ *   privacy: 'public',
+ * };
+ *
+ * const trip = await createTripWithGPX(gpxFile, formData);
+ * console.log(`Trip created: ${trip.trip_id} with ${trip.gpx_file.total_distance_km} km`);
+ */
+export const createTripWithGPX = async (
+  gpxFile: File,
+  tripDetails: {
+    title: string;
+    description: string;
+    start_date: string;
+    end_date?: string;
+    privacy: 'public' | 'private';
+  }
+): Promise<Trip> => {
+  const formData = new FormData();
+
+  // Add GPX file
+  formData.append('gpx_file', gpxFile);
+
+  // Add trip details
+  formData.append('title', tripDetails.title);
+  formData.append('description', tripDetails.description);
+  formData.append('start_date', tripDetails.start_date);
+  if (tripDetails.end_date) {
+    formData.append('end_date', tripDetails.end_date);
+  }
+  formData.append('privacy', tripDetails.privacy);
+
+  const response = await api.post<ApiResponse<Trip>>('/trips/gpx-wizard', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 60000, // 60 seconds for large GPX files
+  });
+
+  return response.data.data;
+};
+
+// ============================================================================
+// Photo Management Operations
+// ============================================================================
+
+/**
+ * Upload photo to trip
+ *
+ * @param tripId - UUID of the trip
+ * @param file - Photo file to upload (JPG/PNG/WEBP, max 10MB)
+ * @returns Uploaded photo data
+ *
+ * @throws 400 if validation fails
+ * @throws 403 if not the trip owner
+ * @throws 413 if file exceeds size limit
+ *
+ * @example
+ * const photo = await uploadTripPhoto(tripId, file);
+ */
+export const uploadTripPhoto = async (
+  tripId: string,
+  file: File
+): Promise<import('../types/trip').TripPhoto> => {
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  const response = await api.post<ApiResponse<import('../types/trip').TripPhoto>>(
+    `/trips/${tripId}/photos`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data.data;
+};
+
+/**
+ * Delete photo from trip
+ *
+ * @param tripId - UUID of the trip
+ * @param photoId - UUID of the photo to delete
+ *
+ * @throws 403 if not the trip owner
+ * @throws 404 if photo not found
+ *
+ * @example
+ * await deleteTripPhoto(tripId, photoId);
+ */
+export const deleteTripPhoto = async (tripId: string, photoId: string): Promise<void> => {
+  await api.delete(`/trips/${tripId}/photos/${photoId}`);
+};
+
+/**
+ * Reorder trip photos
+ *
+ * @param tripId - UUID of the trip
+ * @param photoIds - Array of photo IDs in desired order
+ *
+ * @throws 403 if not the trip owner
+ * @throws 400 if photo IDs don't match trip's photos
+ *
+ * @example
+ * await reorderTripPhotos(tripId, [photo1.photo_id, photo2.photo_id, photo3.photo_id]);
+ */
+export const reorderTripPhotos = async (tripId: string, photoIds: string[]): Promise<void> => {
+  await api.put(`/trips/${tripId}/photos/reorder`, { photo_order: photoIds });
 };

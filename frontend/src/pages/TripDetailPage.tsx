@@ -7,12 +7,12 @@
  * Route: /trips/:tripId
  */
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { TripGallery } from '../components/trips/TripGallery';
-import { LocationConfirmModal } from '../components/trips/LocationConfirmModal';
+import { PhotoCarousel, type CombinedPhoto } from '../components/trips/PhotoCarousel';
 import { POIForm } from '../components/trips/POIForm';
+import { POI_TYPE_LABELS } from '../types/poi';
 import { LikeButton } from '../components/likes/LikeButton';
 import { LikesListModal } from '../components/likes/LikesListModal';
 import { FollowButton } from '../components/social/FollowButton';
@@ -21,14 +21,11 @@ import { GPXUploader } from '../components/trips/GPXUploader';
 import { GPXStats } from '../components/trips/GPXStats';
 import { ElevationProfile } from '../components/trips/ElevationProfile';
 import { AdvancedStats } from '../components/trips/AdvancedStats';
-import { getTripById, deleteTrip, publishTrip, updateTrip } from '../services/tripService';
+import { getTripById, deleteTrip, publishTrip } from '../services/tripService';
 import { deleteGPX } from '../services/gpxService';
-import { getTripPOIs, createPOI, updatePOI, deletePOI } from '../services/poiService';
-import { useReverseGeocode } from '../hooks/useReverseGeocode';
+import { getTripPOIs, createPOI, updatePOI, deletePOI, uploadPOIPhoto } from '../services/poiService';
 import { useGPXTrack } from '../hooks/useGPXTrack';
 import { useMapProfileSync } from '../hooks/useMapProfileSync';
-import type { LocationSelection } from '../types/geocoding';
-import type { LocationInput } from '../types/trip';
 import type { POI, POICreateInput, POIUpdateInput } from '../types/poi';
 import {
   getDifficultyLabel,
@@ -60,10 +57,8 @@ export const TripDetailPage: React.FC = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Geocoding state (Feature 010)
+  // Map edit mode (used only for POIs)
   const [isMapEditMode, setIsMapEditMode] = useState(false);
-  const [pendingLocation, setPendingLocation] = useState<LocationSelection | null>(null);
-  const { geocode } = useReverseGeocode();
 
   // GPX track hook (Feature 003: GPS Routes - User Story 2)
   const { track: gpxTrack } = useGPXTrack(trip?.gpx_file?.gpx_file_id);
@@ -140,16 +135,45 @@ export const TripDetailPage: React.FC = () => {
   // Check if current user is the trip owner
   const isOwner = !!(user && trip && user.user_id === trip.user_id);
 
+  // Combined photos from trip and POIs (MVP - Photo Gallery Enhancement)
+  const combinedPhotos = useMemo<CombinedPhoto[]>(() => {
+    if (!trip) return [];
+
+    // Trip photos (ordered by display_order)
+    const tripPhotos: CombinedPhoto[] = (trip.photos || []).map(photo => ({
+      url: getPhotoUrl(photo.photo_url) || '',
+      thumbnail: photo.thumbnail_url,
+      caption: photo.caption || trip.title,
+      source: 'trip' as const,
+      width: photo.width,
+      height: photo.height,
+    }));
+
+    // POI photos (filtered to only those with photos)
+    const poiPhotos: CombinedPhoto[] = pois
+      .filter(poi => poi.photo_url)
+      .map(poi => ({
+        url: getPhotoUrl(poi.photo_url!) || '',
+        thumbnail: poi.photo_url!,  // POI photos don't have separate thumbnails
+        caption: `${poi.name} - ${POI_TYPE_LABELS[poi.poi_type]}`,
+        source: 'poi' as const,
+      }));
+
+    return [...tripPhotos, ...poiPhotos];
+  }, [trip, pois]);
+
   // Fetch POIs for this trip (Feature 003 - User Story 4)
   const fetchPOIs = async () => {
     if (!tripId) return;
 
+    console.log(`🔍 [TripDetailPage] Fetching POIs for trip ${tripId}...`);
     setIsPOIsLoading(true);
     try {
       const response = await getTripPOIs(tripId);
+      console.log(`✅ [TripDetailPage] Loaded ${response.pois.length} POIs:`, response.pois.map(p => p.name));
       setPois(response.pois);
     } catch (err: any) {
-      console.error('Error fetching POIs:', err);
+      console.error('❌ [TripDetailPage] Error fetching POIs:', err);
       // Don't show error toast for POIs (non-critical feature)
     } finally {
       setIsPOIsLoading(false);
@@ -317,171 +341,6 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
-  // Handle map click for adding locations (Feature 010)
-  const handleMapClick = async (lat: number, lng: number) => {
-    setPendingLocation({
-      latitude: lat,
-      longitude: lng,
-      suggestedName: '',
-      fullAddress: '',
-      isLoading: true,
-      hasError: false,
-    });
-
-    try {
-      const { name, fullAddress } = await geocode(lat, lng);
-      setPendingLocation({
-        latitude: lat,
-        longitude: lng,
-        suggestedName: name,
-        fullAddress,
-        isLoading: false,
-        hasError: false,
-      });
-    } catch (err: any) {
-      console.error('Error geocoding location:', err);
-      setPendingLocation({
-        latitude: lat,
-        longitude: lng,
-        suggestedName: '',
-        fullAddress: '',
-        isLoading: false,
-        hasError: true,
-        errorMessage: err.message || 'Error al obtener el nombre del lugar',
-      });
-    }
-  };
-
-  // Confirm and add/update location to trip (Feature 010)
-  const handleConfirmLocation = async (name: string, lat: number, lng: number) => {
-    if (!trip) return;
-
-    const locationIdToUpdate = pendingLocation?.locationId;
-    const isUpdatingExisting = !!locationIdToUpdate;
-
-    setPendingLocation(null);
-    setIsMapEditMode(false);
-
-    try {
-      const currentLocations = trip.locations || [];
-
-      let updatedLocations: LocationInput[];
-
-      if (isUpdatingExisting) {
-        // Update existing location coordinates and name
-        updatedLocations = currentLocations.map((loc) => {
-          if (loc.location_id === locationIdToUpdate) {
-            return {
-              name,
-              latitude: lat,
-              longitude: lng,
-            };
-          }
-          return {
-            name: loc.name,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          };
-        });
-      } else {
-        // Add new location at the end
-        const newLocation: LocationInput = {
-          name,
-          latitude: lat,
-          longitude: lng,
-        };
-
-        updatedLocations = [
-          ...currentLocations.map((loc) => ({
-            name: loc.name,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          })),
-          newLocation,
-        ];
-      }
-
-      // Update trip with locations array
-      const updatedTrip = await updateTrip(trip.trip_id, {
-        locations: updatedLocations,
-      });
-
-      // Update local state with new trip data
-      setTrip(updatedTrip);
-
-      const successMessage = isUpdatingExisting
-        ? `Ubicación "${name}" actualizada correctamente`
-        : `Ubicación "${name}" agregada al viaje`;
-
-      toast.success(successMessage, {
-        duration: 3000,
-        position: 'top-center',
-      });
-    } catch (err: any) {
-      console.error('Error saving location to trip:', err);
-
-      const errorMessage =
-        err.response?.data?.error?.message || 'Error al guardar ubicación. Intenta nuevamente.';
-
-      toast.error(errorMessage, {
-        duration: 5000,
-        position: 'top-center',
-      });
-    }
-  };
-
-  // Cancel location addition (Feature 010)
-  const handleCancelLocation = () => {
-    setPendingLocation(null);
-  };
-
-  // Handle marker drag for updating location coordinates (Feature 010 - User Story 2)
-  const handleMarkerDrag = async (locationId: string, newLat: number, newLng: number) => {
-    setPendingLocation({
-      latitude: newLat,
-      longitude: newLng,
-      suggestedName: '',
-      fullAddress: '',
-      isLoading: true,
-      hasError: false,
-      locationId, // Store the location ID to update the correct location
-    });
-
-    try {
-      const { name, fullAddress } = await geocode(newLat, newLng);
-      setPendingLocation({
-        latitude: newLat,
-        longitude: newLng,
-        suggestedName: name,
-        fullAddress,
-        isLoading: false,
-        hasError: false,
-        locationId,
-      });
-    } catch (err: any) {
-      console.error('Error geocoding dragged location:', err);
-      setPendingLocation({
-        latitude: newLat,
-        longitude: newLng,
-        suggestedName: '',
-        fullAddress: '',
-        isLoading: false,
-        hasError: true,
-        errorMessage: err.message || 'Error al obtener el nombre del lugar',
-        locationId,
-      });
-    }
-  };
-
-  // Toggle map edit mode (Feature 010)
-  const handleToggleMapEdit = () => {
-    setIsMapEditMode(!isMapEditMode);
-    if (isMapEditMode) {
-      // Exiting edit mode - cancel any pending location
-      setPendingLocation(null);
-    }
-  };
-
   // POI Handlers (Feature 003 - User Story 4)
 
   // Toggle POI add mode
@@ -515,17 +374,35 @@ export const TripDetailPage: React.FC = () => {
     setPOIError(null);
 
     try {
+      let poiId: string;
+
       if (editingPOI) {
         // Update existing POI
         await updatePOI(editingPOI.poi_id, data as POIUpdateInput);
+        poiId = editingPOI.poi_id;
+
+        // Upload new photo if selected (published trip only)
+        const updateData = data as POIUpdateInput;
+        if (updateData.photo instanceof File) {
+          await uploadPOIPhoto(poiId, updateData.photo);
+        }
+
         toast.success('POI actualizado correctamente');
       } else {
         // Create new POI
-        await createPOI(trip.trip_id, data as POICreateInput);
+        const createdPOI = await createPOI(trip.trip_id, data as POICreateInput);
+        poiId = createdPOI.poi_id;
+
+        // Upload photo if selected
+        const createData = data as POICreateInput;
+        if (createData.photo instanceof File) {
+          await uploadPOIPhoto(poiId, createData.photo);
+        }
+
         toast.success('POI añadido correctamente');
       }
 
-      // Refresh POIs
+      // Refresh POIs after all operations complete
       await fetchPOIs();
 
       // Close form and reset state
@@ -661,6 +538,27 @@ export const TripDetailPage: React.FC = () => {
             {getStatusLabel(trip.status)}
           </div>
         )}
+
+        {/* Privacy Badge (owner-only) */}
+        {trip.is_private && isOwner && (
+          <div className="trip-detail-page__privacy-badge trip-detail-page__privacy-badge--private">
+            <svg
+              className="trip-detail-page__privacy-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <span>Privado</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -722,6 +620,27 @@ export const TripDetailPage: React.FC = () => {
                   className={`trip-detail-page__difficulty ${getDifficultyClass(trip.difficulty)}`}
                 >
                   {getDifficultyLabel(trip.difficulty)}
+                </div>
+              )}
+
+              {/* Privacy Indicator (owner-only) */}
+              {trip.is_private && isOwner && (
+                <div className="trip-detail-page__meta-item trip-detail-page__privacy-indicator">
+                  <svg
+                    className="trip-detail-page__meta-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                  <span className="trip-detail-page__meta-text">Solo tú puedes ver este viaje</span>
                 </div>
               )}
 
@@ -805,62 +724,40 @@ export const TripDetailPage: React.FC = () => {
           {/* Owner-only action buttons (T039) */}
           {isOwner && (
             <div className="trip-detail-page__actions">
-              {/* Publish button (only for drafts) */}
+              {/* Publish button (only for drafts) - First row */}
               {trip.status === 'draft' && (
-                <button
-                  className="trip-detail-page__action-button trip-detail-page__action-button--publish"
-                  onClick={handlePublish}
-                  disabled={isPublishing}
-                >
-                  {isPublishing ? 'Publicando...' : 'Publicar'}
-                </button>
+                <div className="trip-detail-page__actions-row">
+                  <button
+                    className="trip-detail-page__action-button trip-detail-page__action-button--publish"
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                  >
+                    {isPublishing ? 'Publicando...' : 'Publicar'}
+                  </button>
+                </div>
               )}
 
-              {/* Edit locations button (Feature 010) */}
-              <button
-                className={`trip-detail-page__action-button ${
-                  isMapEditMode
-                    ? 'trip-detail-page__action-button--cancel'
-                    : 'trip-detail-page__action-button--edit'
-                }`}
-                onClick={handleToggleMapEdit}
-                disabled={isAddingPOI}
-              >
-                {isMapEditMode ? 'Cancelar edición' : 'Editar ubicaciones'}
-              </button>
-
-              {/* Add POI button (Feature 003 - User Story 4) */}
-              {trip.status === 'published' && (
-                <button
-                  className={`trip-detail-page__action-button ${
-                    isAddingPOI
-                      ? 'trip-detail-page__action-button--cancel'
-                      : 'trip-detail-page__action-button--primary'
-                  }`}
-                  onClick={handleToggleAddPOI}
-                  disabled={pois.length >= 20}
-                  title={pois.length >= 20 ? 'Máximo 20 POIs por viaje' : 'Añadir punto de interés'}
+              {/* Edit and Delete buttons - Second row (always together) */}
+              <div className="trip-detail-page__actions-row">
+                <Link
+                  to={
+                    trip.gpx_file
+                      ? `/trips/${trip.trip_id}/edit-gpx`
+                      : `/trips/${trip.trip_id}/edit`
+                  }
+                  className="trip-detail-page__action-button trip-detail-page__action-button--edit"
                 >
-                  {isAddingPOI ? 'Cancelar POI' : `Añadir POI (${pois.length}/20)`}
+                  Editar
+                </Link>
+
+                <button
+                  className="trip-detail-page__action-button trip-detail-page__action-button--delete"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
                 </button>
-              )}
-
-              {/* Edit button - Phase 7 */}
-              <Link
-                to={`/trips/${trip.trip_id}/edit`}
-                className="trip-detail-page__action-button trip-detail-page__action-button--edit"
-              >
-                Editar
-              </Link>
-
-              {/* Delete button */}
-              <button
-                className="trip-detail-page__action-button trip-detail-page__action-button--delete"
-                onClick={handleDelete}
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Eliminando...' : 'Eliminar'}
-              </button>
+              </div>
             </div>
           )}
         </div>
@@ -892,11 +789,18 @@ export const TripDetailPage: React.FC = () => {
           </section>
         )}
 
-        {/* Photo Gallery */}
-        {trip.photos && trip.photos.length > 0 && (
+        {/* Photo Gallery - MVP: Combined Trip + POI Photos */}
+        {combinedPhotos.length > 0 && (
           <section className="trip-detail-page__section">
-            <h2 className="trip-detail-page__section-title">Galería de Fotos</h2>
-            <TripGallery photos={trip.photos} tripTitle={trip.title} />
+            <h2 className="trip-detail-page__section-title">
+              Galería de Fotos
+              {combinedPhotos.length > trip.photos.length && (
+                <span className="trip-detail-page__photo-count">
+                  ({trip.photos.length} viaje, {combinedPhotos.length - trip.photos.length} POIs)
+                </span>
+              )}
+            </h2>
+            <PhotoCarousel photos={combinedPhotos} tripTitle={trip.title} />
           </section>
         )}
 
@@ -967,6 +871,24 @@ export const TripDetailPage: React.FC = () => {
         {/* Use trip.gpx_file (metadata) instead of gpxTrack (hook result) to avoid loading state issues */}
         {((trip.locations && trip.locations.length > 0) || trip.gpx_file) && (
           <section className="trip-detail-page__section">
+            {/* Add POI button (Feature 003 - User Story 4) - Owner only */}
+            {isOwner && (
+              <div className="trip-detail-page__map-actions">
+                <button
+                  className={`trip-detail-page__action-button ${
+                    isAddingPOI
+                      ? 'trip-detail-page__action-button--cancel'
+                      : 'trip-detail-page__action-button--primary'
+                  }`}
+                  onClick={handleToggleAddPOI}
+                  disabled={pois.length >= 20}
+                  title={pois.length >= 20 ? 'Máximo 20 POIs por viaje' : 'Añadir punto de interés'}
+                >
+                  {isAddingPOI ? 'Cancelar POI' : `Añadir POI (${pois.length}/20)`}
+                </button>
+              </div>
+            )}
+
             <Suspense
               fallback={
                 <div className="trip-detail-page__map-loading">Cargando ubicaciones...</div>
@@ -976,8 +898,7 @@ export const TripDetailPage: React.FC = () => {
                 locations={trip.locations || []}
                 tripTitle={trip.title}
                 isEditMode={isMapEditMode}
-                onMapClick={isAddingPOI ? handlePOIMapClick : handleMapClick}
-                onMarkerDrag={handleMarkerDrag}
+                onMapClick={isAddingPOI ? handlePOIMapClick : undefined}
                 hasGPX={!!trip.gpx_file}
                 gpxTrackPoints={gpxTrack?.trackpoints}
                 gpxStartPoint={gpxTrack?.start_point}
@@ -1084,13 +1005,6 @@ export const TripDetailPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Location Confirmation Modal (Feature 010) */}
-      <LocationConfirmModal
-        location={pendingLocation}
-        onConfirm={handleConfirmLocation}
-        onCancel={handleCancelLocation}
-      />
 
       {/* Likes List Modal (Feature 004 - US2, TC-US2-008) */}
       {trip && (

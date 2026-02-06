@@ -59,6 +59,9 @@ export interface Trip {
   /** Difficulty level (null if not provided) */
   difficulty: TripDifficulty | null;
 
+  /** Trip privacy (public/private) */
+  is_private: boolean;
+
   /** Trip creation timestamp (ISO 8601: YYYY-MM-DDTHH:mm:ssZ) */
   created_at: string;
 
@@ -114,6 +117,9 @@ export interface TripListItem {
   /** Publication status */
   status: 'draft' | 'published';
 
+  /** Trip privacy (true = only owner can see) */
+  is_private: boolean;
+
   /** Number of photos attached to trip */
   photo_count: number;
 
@@ -141,8 +147,11 @@ export type TripSummary = TripListItem;
  * - PhotoUploader (uploaded photo preview)
  */
 export interface TripPhoto {
-  /** Unique photo identifier (UUID) */
+  /** Unique photo identifier (UUID) - Backend returns as 'id' via serialization_alias */
   photo_id: string;
+
+  /** Alias for photo_id (backend uses serialization_alias="id") */
+  id?: string;
 
   /** URL to optimized photo (max 2000px width) */
   photo_url: string;
@@ -273,6 +282,9 @@ export interface TripUpdateInput {
 
   /** Difficulty level */
   difficulty?: TripDifficulty | null;
+
+  /** Trip privacy */
+  is_private?: boolean;
 
   /** Locations (replaces existing) */
   locations?: LocationInput[];
@@ -424,7 +436,7 @@ export type TripStatus = 'draft' | 'published';
 /**
  * Trip difficulty levels
  */
-export type TripDifficulty = 'easy' | 'moderate' | 'difficult' | 'very_difficult';
+export type TripDifficulty = 'easy' | 'moderate' | 'difficult' | 'very_difficult' | 'extreme';
 
 /**
  * Difficulty labels in Spanish
@@ -434,6 +446,7 @@ export const DIFFICULTY_LABELS: Record<TripDifficulty, string> = {
   moderate: 'Moderada',
   difficult: 'Difícil',
   very_difficult: 'Muy Difícil',
+  extreme: 'Extrema',
 };
 
 /**
@@ -444,6 +457,7 @@ export const DIFFICULTY_CLASSES: Record<TripDifficulty, string> = {
   moderate: 'difficulty-badge--moderate',
   difficult: 'difficulty-badge--difficult',
   very_difficult: 'difficulty-badge--very-difficult',
+  extreme: 'difficulty-badge--extreme',
 };
 
 // ============================================================================

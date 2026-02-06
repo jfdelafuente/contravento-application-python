@@ -10,6 +10,7 @@ import { Marker, Popup } from 'react-leaflet';
 import { Icon, LatLngExpression } from 'leaflet';
 import { POI, POI_TYPE_LABELS, POI_TYPE_COLORS, POI_TYPE_EMOJI } from '../../types/poi';
 import { lightenColor, darkenColor } from '../../utils/colorUtils';
+import { getPhotoUrl } from '../../utils/tripHelpers';
 import './POIMarker.css';
 
 interface POIMarkerProps {
@@ -94,6 +95,17 @@ export const POIMarker: React.FC<POIMarkerProps> = ({
 
           {/* POI Name */}
           <h3 className="poi-popup-title">{poi.name}</h3>
+
+          {/* POI Photo (FR-010) */}
+          {poi.photo_url && (
+            <div className="poi-popup-photo">
+              <img
+                src={getPhotoUrl(poi.photo_url)}
+                alt={poi.name}
+                className="poi-popup-photo-image"
+              />
+            </div>
+          )}
 
           {/* POI Description */}
           {poi.description && (

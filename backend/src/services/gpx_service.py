@@ -7,6 +7,7 @@ Success Criteria: SC-002, SC-003, SC-005, SC-026
 """
 
 import logging
+import re
 from datetime import UTC, datetime
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
@@ -22,6 +23,90 @@ logger = logging.getLogger(__name__)
 # Elevation anomaly detection range (FR-034)
 MIN_ELEVATION = -420  # Dead Sea depth
 MAX_ELEVATION = 8850  # Mount Everest height
+
+
+def clean_filename_for_title(filename: str) -> str:
+    """
+    Clean GPX filename to generate user-friendly title.
+
+    Transformations applied:
+    1. Remove .gpx extension
+    2. Remove timestamps FIRST (YYYY-MM-DD, YYYYMMDD)
+    3. Replace underscores and hyphens with spaces
+    4. Remove version numbers (v1, v2, final, etc.)
+    5. Remove common suffixes (export, copia, backup, temp)
+    6. Remove GPS-specific prefixes (only if >2 words remain)
+    7. Title case capitalization (preserving acronyms)
+    8. Remove multiple spaces
+
+    Args:
+        filename: Original filename (e.g., "ruta_pirineos_v2_final.gpx")
+
+    Returns:
+        Cleaned title (e.g., "Ruta Pirineos")
+
+    Examples:
+        >>> clean_filename_for_title("ruta_pirineos_v2_final.gpx")
+        "Ruta Pirineos"
+        >>> clean_filename_for_title("track-2024-01-15_export.gpx")
+        "Track"
+        >>> clean_filename_for_title("camino_santiago_etapa_03_v1.gpx")
+        "Camino Santiago Etapa 03"
+    """
+    # Remove .gpx extension
+    title = Path(filename).stem
+
+    # Handle edge case: empty or dot-only filenames
+    if not title or title.startswith("."):
+        return "Nueva Ruta"
+
+    # Remove timestamps FIRST (before replacing hyphens)
+    # Handles: 2024-01-15, 20240115, 2024-06-30, etc.
+    title = re.sub(r"\b\d{4}-?\d{2}-?\d{2}\b", "", title)
+
+    # Replace underscores and hyphens with spaces
+    title = title.replace("_", " ").replace("-", " ")
+
+    # Remove version numbers: v1, v2, v3, etc.
+    title = re.sub(r"\bv\d+\b", "", title, flags=re.IGNORECASE)
+
+    # Remove common suffixes: final, definitivo, export, copia, backup, temp
+    title = re.sub(
+        r"\b(final|definitivo|export|copia|copy|backup|temp|tmp)\b", "", title, flags=re.IGNORECASE
+    )
+
+    # Remove GPS-specific prefixes: track, gps, route, ruta
+    # ONLY if the title has MORE THAN 2 words after removal (to be conservative)
+    words = title.split()
+    if len(words) > 2:
+        # Try removing prefix
+        test_title = re.sub(r"^\b(track|gps|route|ruta)\b\s*", "", title, flags=re.IGNORECASE)
+        # Only use it if we still have at least 2 words
+        if len(test_title.split()) >= 2:
+            title = test_title
+
+    # Remove multiple spaces
+    title = re.sub(r"\s+", " ", title).strip()
+
+    # Title case capitalization (preserving acronyms)
+    def title_case_word(word: str) -> str:
+        """Apply title case to word, preserving acronyms."""
+        # Keep acronyms uppercase
+        if word.upper() in ["GPS", "POI", "GPX", "MTB", "BTT"]:
+            return word.upper()
+        # Keep roman numerals uppercase
+        if re.match(r"^[IVX]+$", word.upper()):
+            return word.upper()
+        # Regular title case
+        return word.capitalize()
+
+    title = " ".join(title_case_word(w) for w in title.split())
+
+    # Fallback: if title is empty or very short, return "Nueva Ruta"
+    if not title or len(title.strip()) < 3:
+        return "Nueva Ruta"
+
+    return title
 
 
 class GPXService:
@@ -391,6 +476,223 @@ class GPXService:
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
         return R * c
+
+    async def extract_telemetry_quick(
+        self, file_content: bytes, include_trackpoints: bool = False
+    ) -> dict[str, Any]:
+        """
+        Extract lightweight telemetry data from GPX file for wizard preview.
+
+        This method provides QUICK GPX analysis for the wizard's upload step.
+        Unlike parse_gpx_file(), this method does NOT:
+        - Save data to database
+
+        It extracts essential telemetry for difficulty preview:
+        - Distance (using Haversine formula)
+        - Elevation gain/loss (if elevation data exists)
+        - Auto-calculated difficulty level
+        - Optionally, simplified trackpoints for map visualization
+
+        Feature: 017-gps-trip-wizard
+        Endpoint: POST /gpx/analyze
+        Performance Goal: <2s for files up to 10MB (SC-002)
+
+        Args:
+            file_content: Raw GPX file bytes
+            include_trackpoints: If True, include simplified trackpoints for map visualization
+
+        Returns:
+            Dict with telemetry data:
+            - distance_km: Total distance in kilometers
+            - elevation_gain: Cumulative uphill in meters (None if no elevation)
+            - elevation_loss: Cumulative downhill in meters (None if no elevation)
+            - max_elevation: Maximum altitude in meters (None if no elevation)
+            - min_elevation: Minimum altitude in meters (None if no elevation)
+            - has_elevation: Whether GPX contains elevation data
+            - has_timestamps: Whether GPX contains timestamp data
+            - start_date: Start date from GPS timestamps (YYYY-MM-DD, None if no timestamps)
+            - end_date: End date from GPS timestamps (YYYY-MM-DD, None if same day or no timestamps)
+            - total_time_minutes: Total elapsed time in minutes (None if no timestamps)
+            - moving_time_minutes: Time in motion in minutes (None if no timestamps)
+            - difficulty: TripDifficulty enum value (auto-calculated)
+            - trackpoints: Simplified trackpoints (only if include_trackpoints=True)
+
+        Raises:
+            ValueError: If GPX is invalid or corrupted
+
+        Examples:
+            >>> result = await service.extract_telemetry_quick(gpx_content)
+            >>> result["distance_km"]
+            42.5
+            >>> result["elevation_gain"]
+            1250.0
+            >>> result["difficulty"]
+            TripDifficulty.DIFFICULT
+            >>> result = await service.extract_telemetry_quick(gpx_content, include_trackpoints=True)
+            >>> len(result["trackpoints"])
+            250
+        """
+        try:
+            # Parse GPX XML
+            gpx = gpxpy.parse(file_content)
+
+            # Extract all trackpoints
+            points = []
+            for track in gpx.tracks:
+                for segment in track.segments:
+                    points.extend(segment.points)
+
+            if not points:
+                raise ValueError("El archivo GPX no contiene puntos de track")
+
+            # Calculate total distance using Haversine formula
+            total_distance_km = 0.0
+            for i in range(1, len(points)):
+                prev_point = points[i - 1]
+                curr_point = points[i]
+                segment_distance = self._calculate_distance(
+                    prev_point.latitude,
+                    prev_point.longitude,
+                    curr_point.latitude,
+                    curr_point.longitude,
+                )
+                total_distance_km += segment_distance
+
+            # Check for elevation data
+            has_elevation = any(p.elevation is not None for p in points)
+
+            # Check for timestamps and extract dates if available
+            has_timestamps = any(p.time is not None for p in points)
+            start_date = None
+            end_date = None
+            total_time_minutes = None
+            moving_time_minutes = None
+
+            if has_timestamps:
+                # Extract timestamps from points that have them
+                timestamps = [p.time for p in points if p.time is not None]
+                if timestamps:
+                    # Get earliest and latest timestamps
+                    min_time = min(timestamps)
+                    max_time = max(timestamps)
+                    # Convert to date-only format (YYYY-MM-DD)
+                    start_date = min_time.date().isoformat()
+                    end_date = max_time.date().isoformat()
+
+                    # Calculate total time in minutes
+                    total_time_seconds = (max_time - min_time).total_seconds()
+                    total_time_minutes = round(total_time_seconds / 60, 1)
+
+                    # Calculate moving time (exclude stops where speed < 1 km/h)
+                    moving_seconds = 0.0
+                    for i in range(1, len(points)):
+                        prev_point = points[i - 1]
+                        curr_point = points[i]
+
+                        if prev_point.time is not None and curr_point.time is not None:
+                            time_diff = (curr_point.time - prev_point.time).total_seconds()
+
+                            # Calculate speed for this segment
+                            distance_km = self._calculate_distance(
+                                prev_point.latitude,
+                                prev_point.longitude,
+                                curr_point.latitude,
+                                curr_point.longitude,
+                            )
+
+                            if time_diff > 0:
+                                speed_kmh = (distance_km / time_diff) * 3600
+                                # Consider moving if speed >= 1 km/h (filters out stops)
+                                if speed_kmh >= 1.0:
+                                    moving_seconds += time_diff
+
+                    moving_time_minutes = round(moving_seconds / 60, 1)
+
+            # Calculate elevation statistics if data exists
+            elevation_gain = None
+            elevation_loss = None
+            max_elevation = None
+            min_elevation = None
+
+            if has_elevation:
+                elevations = [p.elevation for p in points if p.elevation is not None]
+
+                # Detect anomalous elevations (FR-034)
+                for ele in elevations:
+                    if ele < MIN_ELEVATION or ele > MAX_ELEVATION:
+                        raise ValueError(
+                            f"Elevación anómala detectada: {ele}m. "
+                            f"Los valores deben estar entre {MIN_ELEVATION}m y {MAX_ELEVATION}m"
+                        )
+
+                max_elevation = max(elevations)
+                min_elevation = min(elevations)
+
+                # Calculate cumulative elevation gain/loss
+                gain = 0.0
+                loss = 0.0
+                for i in range(1, len(points)):
+                    prev_ele = points[i - 1].elevation
+                    curr_ele = points[i].elevation
+                    if prev_ele is not None and curr_ele is not None:
+                        diff = curr_ele - prev_ele
+                        if diff > 0:
+                            gain += diff
+                        else:
+                            loss += abs(diff)
+
+                elevation_gain = round(gain, 1)
+                elevation_loss = round(loss, 1)
+
+            # Calculate difficulty using DifficultyCalculator
+            from src.services.difficulty_calculator import DifficultyCalculator
+
+            difficulty = DifficultyCalculator.calculate(total_distance_km, elevation_gain)
+
+            # Build base result
+            result = {
+                "distance_km": round(total_distance_km, 2),
+                "elevation_gain": elevation_gain,
+                "elevation_loss": elevation_loss,
+                "max_elevation": max_elevation,
+                "min_elevation": min_elevation,
+                "has_elevation": has_elevation,
+                "has_timestamps": has_timestamps,
+                "start_date": start_date,
+                "end_date": end_date,
+                "total_time_minutes": total_time_minutes,
+                "moving_time_minutes": moving_time_minutes,
+                "difficulty": difficulty,
+            }
+
+            # Optionally include simplified trackpoints for wizard map visualization
+            if include_trackpoints:
+                simplified_trackpoints = self._simplify_track_optimized(points, epsilon=0.0001)
+                # Convert to simple dict format for JSON serialization
+                result["trackpoints"] = [
+                    {
+                        "latitude": tp["latitude"],
+                        "longitude": tp["longitude"],
+                        "elevation": tp.get("elevation"),
+                        "distance_km": tp["distance_km"],
+                    }
+                    for tp in simplified_trackpoints
+                ]
+            else:
+                result["trackpoints"] = None
+
+            return result
+
+        except Exception as e:
+            if isinstance(e, ValueError):
+                # Re-raise ValueError with original message
+                raise
+            # Wrap other exceptions with Spanish error message
+            logger.error(f"Error al procesar archivo GPX: {e}")
+            raise ValueError(
+                "No se pudo procesar el archivo GPX. "
+                "Verifica que sea un archivo válido con datos de ruta."
+            )
 
     async def save_gpx_to_storage(self, trip_id: str, file_content: bytes, filename: str) -> str:
         """

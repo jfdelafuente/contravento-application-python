@@ -481,3 +481,268 @@ class TestGPXServiceGradientCalculation:
                 f"Point {i} should have gradient=None when no elevation data, "
                 f"got {point['gradient']}"
             )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestGPXServiceTelemetryQuick:
+    """
+    T012: Unit tests for extract_telemetry_quick() method.
+
+    Tests lightweight telemetry extraction for wizard preview (POST /gpx/analyze).
+    This method extracts distance and elevation WITHOUT expensive track simplification.
+
+    Feature: 017-gps-trip-wizard
+    Functional Requirements: FR-002 (Quick GPX analysis <2s)
+    Success Criteria: SC-002 (Process 10MB GPX in <30s for telemetry extraction)
+    """
+
+    async def test_extract_telemetry_quick_with_elevation(self, db_session: AsyncSession):
+        """Test quick telemetry extraction from GPX with elevation data."""
+        # Arrange
+        service = GPXService(db_session)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "short_route.gpx"
+
+        with open(gpx_path, "rb") as f:
+            gpx_content = f.read()
+
+        # Act
+        result = await service.extract_telemetry_quick(gpx_content)
+
+        # Assert - Basic telemetry
+        assert result["distance_km"] > 0, "Distance should be positive"
+        assert result["has_elevation"] is True
+
+        # Assert - Elevation data
+        assert result["elevation_gain"] is not None
+        assert result["elevation_loss"] is not None
+        assert result["max_elevation"] is not None
+        assert result["min_elevation"] is not None
+        assert result["elevation_gain"] >= 0, "Elevation gain should be non-negative"
+        assert result["elevation_loss"] >= 0, "Elevation loss should be non-negative"
+
+        # Assert - Difficulty should be calculated
+        assert result["difficulty"] is not None
+        from src.models.trip import TripDifficulty
+
+        assert isinstance(result["difficulty"], TripDifficulty)
+
+    async def test_extract_telemetry_quick_without_elevation(self, db_session: AsyncSession):
+        """Test quick telemetry extraction from GPX without elevation data."""
+        # Arrange
+        service = GPXService(db_session)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "no_elevation.gpx"
+
+        with open(gpx_path, "rb") as f:
+            gpx_content = f.read()
+
+        # Act
+        result = await service.extract_telemetry_quick(gpx_content)
+
+        # Assert - Basic telemetry
+        assert result["distance_km"] > 0, "Distance should still be calculated"
+        assert result["has_elevation"] is False
+
+        # Assert - Elevation data should be None
+        assert result["elevation_gain"] is None
+        assert result["elevation_loss"] is None
+        assert result["max_elevation"] is None
+        assert result["min_elevation"] is None
+
+        # Assert - Difficulty should still be calculated (distance-only)
+        assert result["difficulty"] is not None
+        from src.models.trip import TripDifficulty
+
+        assert isinstance(result["difficulty"], TripDifficulty)
+
+    async def test_extract_telemetry_quick_performance(self, db_session: AsyncSession):
+        """Test that quick extraction is fast (<2s for small files)."""
+        import time
+
+        # Arrange
+        service = GPXService(db_session)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "short_route.gpx"
+
+        with open(gpx_path, "rb") as f:
+            gpx_content = f.read()
+
+        # Act
+        start_time = time.perf_counter()
+        result = await service.extract_telemetry_quick(gpx_content)
+        elapsed_time = time.perf_counter() - start_time
+
+        # Assert - Performance (small files should be < 1s)
+        assert elapsed_time < 1.0, f"Extraction took {elapsed_time:.3f}s, expected <1s"
+
+        # Assert - Result is valid
+        assert result["distance_km"] > 0
+
+    async def test_extract_telemetry_quick_no_track_simplification(self, db_session: AsyncSession):
+        """Test that quick extraction does NOT include trackpoints (no simplification)."""
+        # Arrange
+        service = GPXService(db_session)
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "gpx"
+        gpx_path = fixtures_dir / "camino_del_cid.gpx"  # Large file with ~2000 points
+
+        with open(gpx_path, "rb") as f:
+            gpx_content = f.read()
+
+        # Act
+        result = await service.extract_telemetry_quick(gpx_content)
+
+        # Assert - Should NOT include trackpoints (that's the expensive part)
+        assert "trackpoints" not in result, "Quick extraction should not include trackpoints"
+        assert "simplified_points_count" not in result, "Quick extraction should not simplify"
+
+        # Assert - Should include only telemetry
+        assert "distance_km" in result
+        assert "elevation_gain" in result
+        assert "difficulty" in result
+        assert "has_elevation" in result
+
+    async def test_extract_telemetry_quick_invalid_gpx(self, db_session: AsyncSession):
+        """Test that invalid GPX is rejected with Spanish error."""
+        # Arrange
+        service = GPXService(db_session)
+        invalid_gpx = b"Not valid XML content"
+
+        # Act & Assert
+        with pytest.raises(ValueError) as exc_info:
+            await service.extract_telemetry_quick(invalid_gpx)
+
+        error_message = str(exc_info.value)
+        assert len(error_message) > 0
+        # Should have Spanish error message
+        assert "archivo" in error_message.lower() or "gpx" in error_message.lower()
+
+
+@pytest.mark.unit
+class TestCleanFilenameForTitle:
+    """
+    Unit tests for clean_filename_for_title() function.
+
+    Tests automatic title generation from GPX filenames (Feature 017 - Phase 1 Optimization).
+    """
+
+    @pytest.mark.parametrize(
+        "filename,expected_title",
+        [
+            # Basic cleaning: Remove extension
+            ("ruta.gpx", "Ruta"),
+            ("mi_viaje.gpx", "Mi Viaje"),
+            # Remove underscores and hyphens
+            ("ruta_pirineos.gpx", "Ruta Pirineos"),
+            ("camino-de-santiago.gpx", "Camino De Santiago"),
+            (
+                "ruta_muy_larga_con_muchos_guiones_bajos.gpx",
+                "Muy Larga Con Muchos Guiones Bajos",
+            ),  # ruta removed (>2 words)
+            # Remove version numbers
+            ("ruta_pirineos_v2_final.gpx", "Ruta Pirineos"),
+            ("track_v1.gpx", "Track"),
+            ("route_V3_test.gpx", "Route Test"),
+            # Remove common suffixes
+            ("camino_santiago_etapa_03_final.gpx", "Camino Santiago Etapa 03"),
+            ("ruta_export.gpx", "Ruta"),
+            ("track_definitivo.gpx", "Track"),
+            ("viaje_copia.gpx", "Viaje"),
+            ("backup_ruta_temp.gpx", "Ruta"),
+            # Remove timestamps (partial - some edge cases remain)
+            (
+                "track-2024-01-15_export.gpx",
+                "2024 01 15",
+            ),  # Complex case: track+export removed, numbers remain
+            ("ruta_20240115.gpx", "Ruta 20240115"),  # YYYYMMDD without hyphens not matched
+            ("viaje-2024-06-30-final.gpx", "Viaje"),  # Timestamp + final removed correctly
+            # Remove GPS prefixes (only if >2 words remain after removal)
+            ("gps_ruta_pirineos.gpx", "Ruta Pirineos"),
+            ("track_camino_santiago.gpx", "Camino Santiago"),
+            ("route_pyrenees.gpx", "Route Pyrenees"),  # Only 2 words, prefix stays
+            ("ruta_alps.gpx", "Ruta Alps"),  # Only 2 words, prefix stays
+            (
+                "ruta_muy_larga_con_muchos_guiones_bajos.gpx",
+                "Muy Larga Con Muchos Guiones Bajos",
+            ),  # >2 words, prefix removed
+            # DO NOT remove prefix if it's the only word
+            ("track.gpx", "Track"),
+            ("gps.gpx", "GPS"),
+            ("route.gpx", "Route"),
+            # Preserve acronyms (uppercase)
+            ("ruta_GPS_POI_III.gpx", "GPS POI III"),  # >2 words, ruta removed
+            ("track_mtb_v2.gpx", "Track MTB"),  # 2 words, prefix stays
+            ("GPS_export.gpx", "GPS"),
+            # Preserve roman numerals
+            ("camino_etapa_IV.gpx", "Camino Etapa IV"),
+            ("ruta_dia_II.gpx", "Dia II"),  # ruta removed (>2 words before final becomes 2 words)
+            # Title case (first letter of each word capitalized)
+            ("camino_de_santiago.gpx", "Camino De Santiago"),
+            ("via_verde_del_tajo.gpx", "Via Verde Del Tajo"),
+            # Complex real-world examples
+            ("bikepacking-alps-day2.gpx", "Bikepacking Alps Day2"),
+            ("GPS_TRACK_FINAL_DEFINITIVO_v3.gpx", "GPS Track"),
+            ("camino_santiago_etapa_03_v1_export.gpx", "Camino Santiago Etapa 03"),
+            (
+                "ruta_pirineos_2024-06-15_final_v2.gpx",
+                "Pirineos 2024 06 15",
+            ),  # Timestamp partially removed, ruta removed (>2 words)
+            # Edge cases: Very short or empty
+            ("muy-corto.gpx", "Muy Corto"),
+            ("a.gpx", "Nueva Ruta"),  # Too short (fallback)
+            (".", "Nueva Ruta"),  # Empty stem (fallback)
+            ("", "Nueva Ruta"),  # Empty (fallback)
+            # Multiple spaces cleanup
+            (
+                "ruta___con___espacios___multiples.gpx",
+                "Con Espacios Multiples",
+            ),  # ruta removed (>2 words)
+            ("track  -  final  -  v2.gpx", "Track"),
+        ],
+    )
+    def test_clean_filename_for_title(self, filename, expected_title):
+        """
+        Test filename cleaning for all transformation rules.
+
+        Args:
+            filename: Input GPX filename
+            expected_title: Expected cleaned title
+        """
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act
+        result = clean_filename_for_title(filename)
+
+        # Assert
+        assert (
+            result == expected_title
+        ), f"Expected '{expected_title}' but got '{result}' for filename '{filename}'"
+
+    def test_clean_filename_preserves_special_characters_in_names(self):
+        """Test that special characters in actual place names are preserved."""
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act & Assert - Numbers in place names should be preserved
+        assert clean_filename_for_title("ruta_N340.gpx") == "Ruta N340"
+        assert clean_filename_for_title("carretera_A2_etapa_3.gpx") == "Carretera A2 Etapa 3"
+
+    def test_clean_filename_handles_mixed_case(self):
+        """Test that mixed case filenames are properly normalized."""
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act & Assert
+        assert clean_filename_for_title("RUTA_PIRINEOS.gpx") == "Ruta Pirineos"
+        assert clean_filename_for_title("cAmInO_dE_sAnTiAgO.gpx") == "Camino De Santiago"
+        assert clean_filename_for_title("gPs_TrAcK.gpx") == "GPS Track"
+
+    def test_clean_filename_handles_unicode(self):
+        """Test that Unicode characters (accents, ñ) are preserved."""
+        from src.services.gpx_service import clean_filename_for_title
+
+        # Act & Assert
+        assert clean_filename_for_title("camino_del_niño.gpx") == "Camino Del Niño"
+        assert (
+            clean_filename_for_title("ruta_montaña_león.gpx") == "Montaña León"
+        )  # ruta removed (>2 words)
+        assert clean_filename_for_title("vía_plata.gpx") == "Vía Plata"

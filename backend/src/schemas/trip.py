@@ -95,7 +95,7 @@ class TripCreateRequest(BaseModel):
         start_date: Start date (cannot be in future)
         end_date: End date (optional, must be >= start_date)
         distance_km: Distance in kilometers (0.1-10000)
-        difficulty: Difficulty level (easy, moderate, difficult, very_difficult)
+        difficulty: Difficulty level (easy, moderate, difficult, very_difficult, extreme)
         locations: List of locations visited
         tags: List of tag names (max 10 tags, max 50 chars each)
     """
@@ -114,7 +114,7 @@ class TripCreateRequest(BaseModel):
     )
     difficulty: str | None = Field(
         None,
-        description="Difficulty level: easy, moderate, difficult, very_difficult",
+        description="Difficulty level: easy, moderate, difficult, very_difficult, extreme",
     )
     locations: list[LocationInput] = Field(
         default_factory=list,
@@ -133,7 +133,7 @@ class TripCreateRequest(BaseModel):
         """Validate difficulty is one of allowed values."""
         if v is None:
             return None
-        allowed = ["easy", "moderate", "difficult", "very_difficult"]
+        allowed = ["easy", "moderate", "difficult", "very_difficult", "extreme"]
         if v not in allowed:
             raise ValueError(f"La dificultad debe ser una de: {', '.join(allowed)}")
         return v
@@ -208,6 +208,7 @@ class TripUpdateRequest(BaseModel):
     end_date: date | None = None
     distance_km: float | None = Field(None, ge=0.1, le=10000.0)
     difficulty: str | None = None
+    is_private: bool | None = None
     locations: list[LocationInput] | None = Field(None, max_length=50)
     tags: list[str] | None = Field(None, max_length=10)
     client_updated_at: datetime | None = Field(
@@ -220,7 +221,7 @@ class TripUpdateRequest(BaseModel):
         """Validate difficulty is one of allowed values."""
         if v is None:
             return None
-        allowed = ["easy", "moderate", "difficult", "very_difficult"]
+        allowed = ["easy", "moderate", "difficult", "very_difficult", "extreme"]
         if v not in allowed:
             raise ValueError(f"La dificultad debe ser una de: {', '.join(allowed)}")
         return v
@@ -328,7 +329,7 @@ class TripPhotoResponse(BaseModel):
         photo_url: URL to optimized photo
         thumbnail_url: URL to thumbnail
         caption: Photo caption (optional)
-        display_order: Display order (0-based)
+        order: Display order (0-based)
         width: Original photo width in pixels
         height: Original photo height in pixels
     """
@@ -337,7 +338,7 @@ class TripPhotoResponse(BaseModel):
     photo_url: str = Field(..., description="URL to optimized photo")
     thumbnail_url: str = Field(..., description="URL to thumbnail")
     caption: str | None = Field(None, description="Photo caption")
-    display_order: int = Field(..., description="Display order (0-based)")
+    order: int = Field(..., description="Display order (0-based)")
     width: int | None = Field(None, description="Original photo width")
     height: int | None = Field(None, description="Original photo height")
 
@@ -352,7 +353,7 @@ class TripPhotoResponse(BaseModel):
                 "photo_url": "/storage/trip_photos/2024/12/550e.../abc123.jpg",
                 "thumbnail_url": "/storage/trip_photos/2024/12/550e.../abc123_thumb.jpg",
                 "caption": "Vista desde el viaducto",
-                "display_order": 0,
+                "order": 0,
                 "width": 2000,
                 "height": 1500,
             }
@@ -396,6 +397,7 @@ class TripResponse(BaseModel):
     end_date: date | None = Field(None, description="End date")
     distance_km: float | None = Field(None, description="Distance in kilometers")
     difficulty: str | None = Field(None, description="Difficulty level")
+    is_private: bool = Field(False, description="Trip privacy (public/private)")
     created_at: datetime = Field(..., description="Creation timestamp (UTC)")
     updated_at: datetime = Field(..., description="Last update timestamp (UTC)")
     published_at: datetime | None = Field(None, description="Publication timestamp (UTC)")
@@ -457,6 +459,7 @@ class TripResponse(BaseModel):
                 "difficulty": obj.difficulty.value
                 if obj.difficulty and hasattr(obj.difficulty, "value")
                 else obj.difficulty,
+                "is_private": obj.is_private,
                 "created_at": obj.created_at,
                 "updated_at": obj.updated_at,
                 "published_at": obj.published_at,
@@ -510,6 +513,7 @@ class TripListItemResponse(BaseModel):
         start_date: Start date
         distance_km: Distance in kilometers (optional)
         status: Trip status (draft/published)
+        is_private: Trip privacy (true = only owner can see)
         photo_count: Number of photos
         tag_names: List of tag names only
         thumbnail_url: First photo thumbnail (optional)
@@ -522,6 +526,7 @@ class TripListItemResponse(BaseModel):
     start_date: date = Field(..., description="Start date")
     distance_km: float | None = Field(None, description="Distance in kilometers")
     status: str = Field(..., description="Trip status")
+    is_private: bool = Field(False, description="Trip privacy (true = only owner can see)")
     photo_count: int = Field(..., description="Number of photos")
     tag_names: list[str] = Field(default_factory=list, description="List of tag names")
     thumbnail_url: str | None = Field(None, description="First photo thumbnail URL")
@@ -539,6 +544,7 @@ class TripListItemResponse(BaseModel):
                 "start_date": "2024-05-15",
                 "distance_km": 127.3,
                 "status": "published",
+                "is_private": False,
                 "photo_count": 12,
                 "tag_names": ["vías verdes", "andalucía"],
                 "thumbnail_url": "/storage/trip_photos/2024/12/550e.../thumb.jpg",

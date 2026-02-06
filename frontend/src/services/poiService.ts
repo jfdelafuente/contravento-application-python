@@ -122,3 +122,48 @@ export async function reorderPOIs(
   );
   return response.data;
 }
+
+/**
+ * Upload a photo to a POI
+ *
+ * FR-010 (Feature 017): POIs can have photos (max 5MB)
+ *
+ * @param poiId - POI ID
+ * @param photo - Photo file (JPEG, PNG, WebP, max 5MB)
+ * @returns Updated POI with photo_url
+ * @throws Error if file too large, invalid format, or user not owner
+ */
+export async function uploadPOIPhoto(
+  poiId: string,
+  photo: File
+): Promise<POI> {
+  // Client-side validation
+  const MAX_SIZE_MB = 5;
+  const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+  if (photo.size > MAX_SIZE_BYTES) {
+    throw new Error(`La foto excede el tamaño máximo de ${MAX_SIZE_MB}MB`);
+  }
+
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(photo.type)) {
+    throw new Error('Solo se permiten archivos JPEG, PNG y WebP');
+  }
+
+  // Create FormData for multipart/form-data request
+  const formData = new FormData();
+  formData.append('photo', photo);
+
+  const response = await api.post<{ success: boolean; data: POI; error: null }>(
+    `/pois/${poiId}/photo`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data.data;
+}

@@ -51,9 +51,9 @@ describe('ManifestoSection Component', () => {
       expect(pillars).toHaveLength(4);
     });
 
-    it('should render first pillar: "El camino es el destino"', () => {
+    it('should render first pillar: "El viaje importa más"', () => {
       renderManifestoSection();
-      const pillar1 = screen.getByRole('heading', { level: 3, name: /el camino es el destino/i });
+      const pillar1 = screen.getByRole('heading', { level: 3, name: /el viaje importa más/i });
       expect(pillar1).toBeInTheDocument();
     });
 
@@ -77,9 +77,9 @@ describe('ManifestoSection Component', () => {
   });
 
   describe('Pillar Descriptions', () => {
-    it('should include description for "El camino es el destino" pillar', () => {
+    it('should include description for "El viaje importa más" pillar', () => {
       renderManifestoSection();
-      const description = screen.getByText(/el viaje importa más que el destino/i);
+      const description = screen.getByText(/el camino es el destino.*cada pedalada/i);
       expect(description).toBeInTheDocument();
     });
 
@@ -171,7 +171,7 @@ describe('ManifestoSection Component', () => {
       const pillarHeadings = Array.from(container.querySelectorAll('.manifesto-pillar h3'));
       const headingTexts = pillarHeadings.map(h => h.textContent);
 
-      expect(headingTexts[0]).toMatch(/el camino es el destino/i);
+      expect(headingTexts[0]).toMatch(/el viaje importa más/i);
       expect(headingTexts[1]).toMatch(/pedalear para conectar/i);
       expect(headingTexts[2]).toMatch(/regenerar territorios/i);
       expect(headingTexts[3]).toMatch(/comunidad sobre competencia/i);

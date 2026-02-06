@@ -1,0 +1,183 @@
+/**
+ * MetricCard Component Styles
+ *
+ * Feature: 017-gps-trip-wizard (Phase 1 Optimization)
+ * Task: T003
+ */
+
+/* ============================================================================
+   Base Styles
+   ========================================================================= */
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================================
+   Icon
+   ========================================================================= */
+
+.metric-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: #f7fafc;
+  color: #4a5568;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   Content
+   ========================================================================= */
+
+.metric-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.metric-card__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #718096;
+  line-height: 1.2;
+}
+
+.metric-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  line-height: 1.2;
+}
+
+/* ============================================================================
+   Size Variants
+   ========================================================================= */
+
+.metric-card--small .metric-card__label {
+  font-size: 0.75rem;
+}
+
+.metric-card--small .metric-card__value {
+  font-size: 1.125rem;
+}
+
+.metric-card--small .metric-card__icon {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1rem;
+}
+
+.metric-card--medium {
+  /* Default styles already applied */
+}
+
+.metric-card--large .metric-card__label {
+  font-size: 1rem;
+}
+
+.metric-card--large .metric-card__value {
+  font-size: 2rem;
+}
+
+.metric-card--large .metric-card__icon {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+}
+
+/* ============================================================================
+   Color Variants
+   ========================================================================= */
+
+.metric-card--primary {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+
+.metric-card--primary .metric-card__icon {
+  background-color: #667eea;
+  color: white;
+}
+
+.metric-card--primary .metric-card__value {
+  color: #667eea;
+}
+
+.metric-card--success {
+  border-color: #48bb78;
+}
+
+.metric-card--success .metric-card__icon {
+  background-color: #48bb78;
+  color: white;
+}
+
+.metric-card--success .metric-card__value {
+  color: #48bb78;
+}
+
+.metric-card--warning {
+  border-color: #f59e0b;
+}
+
+.metric-card--warning .metric-card__icon {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.metric-card--warning .metric-card__value {
+  color: #f59e0b;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .metric-card {
+    padding: 0.75rem;
+  }
+
+  .metric-card__label {
+    font-size: 0.8125rem;
+  }
+
+  .metric-card__value {
+    font-size: 1.25rem;
+  }
+
+  .metric-card__icon {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+  }
+
+  /* Adjust large variant for mobile */
+  .metric-card--large .metric-card__value {
+    font-size: 1.5rem;
+  }
+
+  .metric-card--large .metric-card__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
+  }
+}

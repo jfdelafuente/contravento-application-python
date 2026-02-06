@@ -124,6 +124,28 @@
   color: #14532d;
 }
 
+/* Privacy badge (private trips) */
+.trip-card__privacy {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  background-color: rgba(239, 68, 68, 0.9); /* Red */
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+}
+
+.trip-card__privacy-icon {
+  width: 14px;
+  height: 14px;
+}
+
 /* ============================================================================
    Content Section
    ============================================================================ */

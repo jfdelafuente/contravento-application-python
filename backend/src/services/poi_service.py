@@ -9,19 +9,27 @@ Success Criteria: SC-029, SC-030, SC-031
 """
 
 import logging
+import uuid
+from datetime import UTC, datetime
+from io import BytesIO
+from pathlib import Path
+from typing import BinaryIO
 
+import aiofiles
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.config import settings
 from src.models.poi import PointOfInterest
-from src.models.trip import Trip, TripStatus
+from src.models.trip import Trip
 from src.schemas.poi import POICreateInput, POITypeEnum, POIUpdateInput
+from src.utils.file_storage import validate_photo
 
 logger = logging.getLogger(__name__)
 
-# Business rule: Maximum POIs per trip (SC-029)
-MAX_POIS_PER_TRIP = 20
+# Business rule: Maximum POIs per trip (FR-011 from Feature 017)
+MAX_POIS_PER_TRIP = 6
 
 
 class POIService:
@@ -65,11 +73,13 @@ class POIService:
             PermissionError: If user is not trip owner
         """
         # Verify trip exists and user is owner
-        trip = await self._get_trip_with_ownership_check(trip_id, user_id)
+        await self._get_trip_with_ownership_check(trip_id, user_id)
 
-        # FR-029: POIs can only be added to published trips
-        if trip.status != TripStatus.PUBLISHED:
-            raise ValueError("Solo se pueden añadir POIs a viajes publicados")
+        # FR-029: POIs can be added to trips by their owners
+        # - PUBLISHED trips: Normal flow (trip is public)
+        # - DRAFT trips: Wizard flow (owner can add POIs before publishing)
+        # Ownership already verified by _get_trip_with_ownership_check above
+        # Note: Removed status check to support wizard workflow (Feature 017)
 
         # SC-029: Enforce maximum 20 POIs per trip
         current_poi_count = await self._get_trip_poi_count(trip_id)
@@ -187,21 +197,30 @@ class POIService:
         await self._get_trip_with_ownership_check(poi.trip_id, user_id)
 
         # Update only provided fields
-        if data.name is not None:
+        # Use model_fields_set to detect fields that were explicitly provided (including null values)
+        fields_set = data.model_fields_set
+
+        if "name" in fields_set:
             poi.name = data.name
-        if data.description is not None:
+        if "description" in fields_set:
             poi.description = data.description
-        if data.poi_type is not None:
+        if "poi_type" in fields_set:
             poi.poi_type = data.poi_type
-        if data.latitude is not None:
+        if "latitude" in fields_set:
             poi.latitude = data.latitude
-        if data.longitude is not None:
+        if "longitude" in fields_set:
             poi.longitude = data.longitude
-        if data.distance_from_start_km is not None:
+        if "distance_from_start_km" in fields_set:
             poi.distance_from_start_km = data.distance_from_start_km
-        if data.photo_url is not None:
-            poi.photo_url = data.photo_url
-        if data.sequence is not None:
+        if "photo_url" in fields_set:
+            # Explicitly provided (can be null to delete, or a new URL)
+            if data.photo_url is None:
+                poi.photo_url = None  # Delete photo
+            elif not data.photo_url.startswith("/storage/"):
+                poi.photo_url = f"/storage/{data.photo_url.lstrip('/')}"
+            else:
+                poi.photo_url = data.photo_url
+        if "sequence" in fields_set:
             poi.sequence = data.sequence
 
         await self.db.commit()
@@ -262,13 +281,13 @@ class POIService:
 
         # Get all POIs for the trip
         current_pois = await self.get_trip_pois(trip_id)
-        current_poi_ids = {poi.poi_id for poi in current_pois}
+        current_poi_ids: set[str] = {poi.poi_id for poi in current_pois}
 
         # Validate: Must include all POIs (no additions or omissions)
-        provided_poi_ids = set(poi_ids)
+        provided_poi_ids: set[str] = set(poi_ids)
         if provided_poi_ids != current_poi_ids:
-            missing = current_poi_ids - provided_poi_ids
-            extra = provided_poi_ids - current_poi_ids
+            missing: set[str] = current_poi_ids - provided_poi_ids
+            extra: set[str] = provided_poi_ids - current_poi_ids
             error_parts = []
             if missing:
                 error_parts.append(f"faltan: {missing}")
@@ -279,7 +298,7 @@ class POIService:
             )
 
         # Update sequence for each POI
-        poi_map = {poi.poi_id: poi for poi in current_pois}
+        poi_map: dict[str, PointOfInterest] = {poi.poi_id: poi for poi in current_pois}
         for new_sequence, poi_id in enumerate(poi_ids):
             poi = poi_map[poi_id]
             poi.sequence = new_sequence
@@ -292,9 +311,98 @@ class POIService:
         logger.info(f"Reordered {len(reordered_pois)} POIs for trip {trip_id} by user {user_id}")
         return reordered_pois
 
+    async def upload_photo(
+        self,
+        poi_id: str,
+        user_id: str,
+        photo_file: BinaryIO,
+        filename: str,
+        content_type: str,
+    ) -> PointOfInterest:
+        """
+        Upload a photo for a POI.
+
+        FR-010 (Feature 017): POIs can have photos (max 5MB per photo)
+
+        Args:
+            poi_id: POI identifier
+            user_id: ID of user uploading the photo (must be trip owner)
+            photo_file: Photo file content
+            filename: Original filename
+            content_type: MIME type of the photo
+
+        Returns:
+            Updated PointOfInterest instance with photo_url
+
+        Raises:
+            ValueError: If validation fails
+            PermissionError: If user is not trip owner
+        """
+        # Get POI with trip for ownership check
+        poi = await self.get_poi(poi_id)
+
+        # Verify user is trip owner
+        await self._get_trip_with_ownership_check(poi.trip_id, user_id)
+
+        # Validate photo (max 5MB for POIs)
+        photo_bytes = BytesIO(photo_file.read())
+        validate_photo(photo_bytes, content_type, max_size_mb=5)
+
+        # Generate storage path
+        storage_path = self._get_poi_photo_storage_path(poi_id, filename)
+        full_path = Path(settings.storage_path) / storage_path
+
+        # Create directories if they don't exist
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Save photo to disk
+        photo_bytes.seek(0)
+        async with aiofiles.open(full_path, "wb") as f:
+            await f.write(photo_bytes.read())
+
+        # Update POI with photo URL (include /storage prefix for static file serving)
+        poi.photo_url = f"/storage/{storage_path}"
+
+        await self.db.commit()
+        await self.db.refresh(poi)
+
+        logger.info(f"Uploaded photo for POI {poi_id} by user {user_id}: {storage_path}")
+        return poi
+
     # ========================================================================
     # Helper methods
     # ========================================================================
+
+    def _get_poi_photo_storage_path(self, poi_id: str, filename: str) -> str:
+        """
+        Generate storage path for a POI's photo.
+
+        Path structure: poi_photos/{year}/{month}/{poi_id}_{uuid}.{ext}
+
+        Args:
+            poi_id: POI identifier
+            filename: Original filename (extension will be extracted)
+
+        Returns:
+            Relative path for storing the file
+
+        Example:
+            >>> _get_poi_photo_storage_path("poi123", "photo.jpg")
+            'poi_photos/2026/01/poi123_a1b2c3d4.jpg'
+        """
+        now = datetime.now(UTC)
+        year = now.strftime("%Y")
+        month = now.strftime("%m")
+
+        # Generate unique filename
+        file_ext = Path(filename).suffix or ".jpg"
+        unique_id = uuid.uuid4().hex[:8]
+        new_filename = f"{poi_id}_{unique_id}{file_ext}"
+
+        # Create path: poi_photos/YYYY/MM/poi_id_uuid.ext
+        relative_path = f"poi_photos/{year}/{month}/{new_filename}"
+
+        return relative_path
 
     async def _get_trip_with_ownership_check(self, trip_id: str, user_id: str) -> Trip:
         """

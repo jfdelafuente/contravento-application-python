@@ -70,7 +70,7 @@ interface UseTripPhotosReturn {
 export const useTripPhotos = ({
   tripId,
   initialPhotos = [],
-  maxPhotos = 20,
+  maxPhotos = 6,
   chunkSize: _chunkSize = 3,
 }: UseTripPhotosOptions): UseTripPhotosReturn => {
   const [photos, setPhotos] = useState<PhotoFile[]>(initialPhotos);

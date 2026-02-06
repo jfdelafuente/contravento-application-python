@@ -1,1378 +1,841 @@
 # ContraVento - Próximos Pasos
 
-**Última actualización**: 2026-01-22 (Feature 003 - GPX Upload Timeout Fix ✅ COMPLETADO)
-**Estado actual**: Upload de GPX optimizado y con manejo correcto de timeouts
+**Última actualización**: 2026-01-28
+**Estado actual**: 6 features con trabajo pendiente, ordenadas por prioridad
 
 ---
 
-## 🎉 LOGRO RECIENTE: GPX Upload Timeout Fix (Feature 003 - UX Improvement)
+## 📋 Resumen Ejecutivo
 
-**Fecha**: 2026-01-22
-**Commit**: 2d6a44d (timeout fix)
-**Status**: ✅ **COMPLETADO** - False timeout errors eliminated
+| Feature | Prioridad | Estado | Tareas Pendientes | Tiempo Estimado | Bloqueadores |
+| ------- | --------- | ------ | ----------------- | --------------- | ------------ |
+| ~~**012-typescript-code-quality**~~ | ✅ Completada | 100% | 0 errores | ✅ ~1 hora | Ninguno |
+| **011-frontend-deployment** | 🔴 Alta | 98% (69/70) | 1 tarea manual | ~15 min | Ninguno |
+| **015-gpx-wizard-integration** | 🔴 Alta | 0% | 50 tareas | 4-8 horas | Ninguno |
+| **016-deployment-docs** | 🟡 Media | 31% (9/29) | 20 tareas | 5-8 días | Ninguno |
+| **014-landing-page** | 🟡 Media | 62% (44/71) | 27 tareas | 1-2 días | Ninguno |
+| **006-dashboard-dynamic** | 🟢 Baja | 0% | 72 tareas | 3-4 días | Ninguno |
+| **004-celery-async-tasks** | 🟢 Baja | 0% | TBD | 2-3 días | Ninguno |
 
-**Problema Resuelto**:
-
-- ❌ **Antes**: Usuarios veían error en uploads exitosos (timeout 10s vs procesamiento 7-8s)
-- ✅ **Después**: Timeout de 30s permite procesamiento completo sin errores falsos
-- ✅ **UX mejorada**: No más reintentos innecesarios por timeouts prematuros
-
-**Cambios Aplicados**:
-
-- ✅ `gpxService.ts`: Timeout específico de 30s para endpoint `/trips/{id}/gpx`
-- ✅ Otros endpoints mantienen timeout de 10s (sin cambios)
-- ✅ Soporta archivos hasta 10MB sin timeouts falsos
+**Recomendación**: Completar Feature 011 (DESBLOQUEADA) → 015 (UX enhancement de alto valor)
 
 ---
 
-## 🎉 LOGRO ANTERIOR: Async GPX Processing Optimization (Feature 003 - Phase 6)
+## ✅ FEATURES COMPLETADAS
 
-**Fecha**: 2026-01-22
-**Commits**: 556ab50 (async implementation) + 74dc770 (performance optimization)
-**Status**: ✅ **COMPLETADO** - SC-003 achieved (<15s for 5MB files)
+### Feature 012: TypeScript Code Quality ✅
 
-**Implementación Completada**:
+**Branch**: `develop` (merged from `012-typescript-code-quality`)
 
-- ✅ **Background Processing**: FastAPI BackgroundTasks implementado
-- ✅ **Status Polling**: Endpoint GET /gpx/{gpx_file_id}/status funcionando
-- ✅ **Database Integration**: Sesión de DB compartida con get_db()
-- ✅ **Error Handling**: Estados "processing", "completed", "failed" con mensajes
-- ✅ **SQLite Testing Fix**: Procesamiento sincrónico en modo testing para evitar isolation issues
-- ✅ **Performance Optimization**: Douglas-Peucker algorithm optimized (O(n) → O(1) lookup)
-- ✅ **Test T019**: ✅ PASANDO (7/7 integration tests passing)
+**Estado**: ✅ **100% COMPLETADA** (0 errores TypeScript)
 
-**Performance Results**:
+**Fecha de cierre**: 2026-01-28
 
-- **Target (SC-003)**: <15 segundos para archivos 5-10MB
-- **Before optimization**: ~20 segundos para archivo 5MB ❌
-- **After optimization**: ~7.3 segundos para archivo 5MB ✅
-- **Improvement**: **63% faster** (13s reduction)
+**Tiempo total**: ~1 hora (bajo el estimado de 2-4 horas)
 
-**Optimizations Applied**:
+#### Resumen de Logros
 
-1. ✅ **Profiling Infrastructure** (T031): time.perf_counter() timing logs for each pipeline phase
-2. ✅ **Douglas-Peucker Optimization** (T032): O(1) dict lookup vs O(n) linear search
-3. ✅ **Aggressive Simplification**: epsilon 0.00001° → 0.0001° (10m precision)
-4. ✅ **Elevation Processing**: min/max check before loop
-5. ✅ **Timestamp Detection**: Sample first 100 points vs all points
+- ✅ 96 errores TypeScript resueltos en 7 commits
+- ✅ Production build pasa con 0 errores (37.53s)
+- ✅ Build size: ~1.06 MB uncompressed, ~360 KB gzipped
+- ✅ Todas las métricas cumplidas (AC-001 a AC-006)
+- ✅ Feature 011 T067 DESBLOQUEADA
 
-**Test Results**:
+#### Commits
 
-- ✅ **T019**: Integration test passing with SC-003 compliance
-- ✅ **All GPX tests**: 7/7 passing
-- ✅ **No regressions**: Existing functionality preserved
+1. cca0483 - Import fixes (APIError → ApiError)
+2. b150573 - Remove unused imports
+3. ebb94a3 - Property mismatches + AxiosError typing
+4. 56146a4 - RegisterForm + authService transform
+5. d42e364 - Unused variables batch 1
+6. f2fa7ec - LoginPage unused login removal
+7. 1129057 - Add missing dependencies (clsx, tailwind-merge)
 
 ---
 
-## 🎉 LOGRO ANTERIOR: Feature 003 - GPS Routes MERGED TO DEVELOP
+## 🔴 PRIORIDAD ALTA
 
-**Fecha**: 2026-01-22
-**Branch**: `003-gps-routes` → **MERGED to develop** ✅
-**Commits totales**: 43 commits
-**Pull Request**: Completada y mergeada exitosamente
+### Feature 011: Frontend Deployment Integration
 
-**Implementación Completada**:
+**Branch**: `011-frontend-deployment` (merged a develop)
 
-- ✅ **MVP GPS Routes 100% funcional** - Upload, processing, stats, map visualization, download
-- ✅ **Backend**: GPXFile/TrackPoint models, gpxpy parsing, Douglas-Peucker simplification
-- ✅ **Frontend**: GPXUploader, GPXStats, TripMap integration con ruta GPS
-- ✅ **Testing**: 8/8 unit tests, 6/7 integration tests (async processing deferred)
-- ✅ **Manual Testing**: 4/4 tests pasados (T046-T049)
-- ✅ **CI/CD Validation**: Docker smoke tests corregidos y workflows pasando
-- ✅ **4 bug fixes críticos** aplicados durante testing session
+**Estado**: 🔄 **98% completo** (69/70 tareas)
 
-**Fases Completadas** (4/8):
+**Prioridad**: 🔴 **Alta** (~~bloqueado por Feature 012~~ ✅ DESBLOQUEADO)
 
-1. ✅ **Phase 1**: GPX Data Model & Migrations (13 tasks)
-2. ✅ **Phase 2**: Backend Services & API (11 tasks)
-3. ✅ **Phase 3**: Frontend Upload & Stats (10 tasks + T041.5)
-4. ✅ **Phase 4**: Visualización Mínima en Mapa (6 tasks)
+**Tiempo restante**: ~15 minutos (validación manual)
 
-**Fases Diferidas a Post-MVP**:
+**Bloqueadores**: ~~Feature 012~~ ✅ Ninguno
 
-- ⏭️ **Phase 5**: Perfil de Elevación Interactivo (Recharts) - 15 tasks
-- ⏭️ **Phase 6**: Puntos de Interés (POI management) - 14 tasks
-- ⏭️ **Phase 7**: Estadísticas Avanzadas (speed, climbs) - 10 tasks
-- ⏭️ **Phase 8**: Testing & Documentation - 21 tasks
+#### Tareas Pendientes Feature 011
 
-**Tests Ejecutados** (Manual Testing):
-
-1. ✅ **T046**: Upload GPX <1MB - Procesamiento sincrónico (<3s) ✅
-2. ✅ **T047**: Upload GPX >1MB - Retorna 501 Not Implemented (async deferred) ✅
-3. ✅ **T048**: Download GPX original - Descarga con trip title como filename ✅
-4. ✅ **T049**: Cascade delete - GPXFile y TrackPoints eliminados correctamente ✅
-
-**Bug Fixes Aplicados** (4 fixes durante testing):
-
-1. ✅ **Photos Not Uploading** (Commit 7af4071) - TripFormWizard photos array fix
-2. ✅ **Blank Screen After Publish** (Commit 2b429ad) - Refetch completo tras publish
-3. ✅ **Gallery Showing Placeholders** (Commit d05124d) - Lazy loading optimizado
-4. ✅ **GPX Download Filename** (Commit 4353960) - Trip title sanitization
-
-**CI/CD Infrastructure Improvements** (2 fixes):
-
-1. ✅ **SQLAlchemy AsyncIO Error** (Commit cfa1ac4) - Simplified smoke test sin database
-2. ✅ **Docker ENTRYPOINT Bypass** (Commit 9945c75) - `--entrypoint` flag en smoke tests
-
-**Commits del Feature** (43 commits totales):
+**T063**: ⏳ **PENDIENTE - VALIDACIÓN MANUAL** - Validar los 4 modos de deployment end-to-end
 
 ```bash
-# CI/CD Fixes (últimos 2 commits)
-9945c75 - fix(ci): bypass Docker ENTRYPOINT in smoke tests to avoid migration execution
-cfa1ac4 - fix(ci): simplify backend smoke test to avoid database initialization
-
-# Manual Testing & Bug Fixes
-4c8ed4e - docs(003-gps-routes): update MANUAL_TESTING.md with test results and bug fixes summary
-4353960 - fix(backend): download GPX file with trip title as filename
-d05124d - fix(frontend): optimize lazy loading in TripGallery to load first 6 images immediately
-2b429ad - fix(frontend): refetch trip after publish to show complete data
-7af4071 - fix(frontend): pass photos array to onSubmit in TripFormWizard
-
-# Documentation
-29d7d23 - docs: update NEXT_STEPS.md with Feature 003 GPS Routes status
-222ab06 - docs(003-gps-routes): update MANUAL_TESTING.md index with API verification subsection
-db6eb9e - docs(003-gps-routes): add API verification guide to T048
-19202ee - docs(003-gps-routes): add T041.5 - GPX download button implementation
-4e6dee4 - docs(003-gps-routes): update T048 manual testing guide for download button
-
-# ... (38 more commits from development phases)
+# Requiere prueba manual del usuario siguiendo quickstart.md
+cd specs/011-frontend-deployment/
+# Validar:
+# 1. SQLite Local (No Docker)
+# 2. Docker Minimal (PostgreSQL)
+# 3. Docker Full (PostgreSQL + MailHog + pgAdmin)
+# 4. Production Builds (staging/prod)
+# Tiempo: ~15 minutos
 ```
 
-**Tiempo Total Invertido**: ~12 horas
-- Backend implementation: ~4 horas
-- Frontend implementation: ~3 horas
-- Manual testing & bug fixes: ~3 horas
-- CI/CD validation: ~2 horas
+**Nota**: Esta es una tarea de validación manual que no puede automatizarse. El usuario debe probar cada modo de deployment para confirmar que funcionan correctamente.
 
-**Archivos Añadidos/Modificados**: 25 archivos
-- Backend: 7 archivos (models, services, API, schemas, migrations, tests)
-- Frontend: 8 archivos (components, hooks, services, types, CSS)
-- CI/CD: 1 archivo (.github/workflows/docker-build-push.yml)
-- Specs: 6 archivos (spec.md, plan.md, tasks.md, data-model.md, contracts/, MANUAL_TESTING.md)
-- Docs: 2 archivos (NEXT_STEPS.md, tasks.md)
+**T067**: ✅ **COMPLETADO** - Validar build de producción reduce tamaño ≥60%
 
-**Próximo Paso**: Continuar con próxima feature o deployment a staging
-
----
-
-## 🎉 LOGRO ANTERIOR: Integration Tests Improvements
-
-**Fecha**: 2026-01-21
-**Branch**: `fix/integration-tests-failures` → **MERGED to develop** ✅
-
-**Resultados**:
-
-- ✅ **21 tests corregidos** - De 90 pasando a 111 pasando (58% → 71% success rate)
-- ✅ **+13% mejora** en tasa de éxito de integration tests
-- ✅ **0 errores** - Todos los ERROR status resueltos (de 15 a 0)
-- ✅ **36 tests fallidos** restantes (bajó de 51 a 36)
-
-**Correcciones Implementadas** (10 fases):
-
-1. ✅ **API Response Format Standardization** (3 tests)
-   - Comments API: Wrapper `create_response()` añadido
-   - Likes API: Wrapper `create_response()` añadido
-   - Follow API: Ya tenía formato correcto con `ApiResponse`
-
-2. ✅ **Fixture Name Mismatch** (2 tests)
-   - `async_client` → `client` en test_stats_calculation.py
-   - `async_client` → `client` en test_follow_workflow.py
-
-3. ✅ **Date Type Fixes** (3-5 tests)
-   - Cambio de strings `"2024-06-01"` → `date(2024, 6, 1)` objects
-   - Archivos: test_likes_api.py, test_public_feed.py
-
-4. ✅ **UserProfile Foreign Key Fixtures** (4-6 tests)
-   - Añadido `flush()` + UserProfile creation en test_comments_api.py
-   - Añadido `flush()` + UserProfile creation en test_likes_api.py
-
-5. ✅ **Duplicate pytest_plugins** (1-5 tests)
-   - Merged duplicate declarations en conftest.py
-
-6. ✅ **create_access_token() Signature Fix** (1 test)
-   - Cambio de keyword args → dict parameter en test_likes_api.py
-
-7. ✅ **HTTPException Format Assertions** (1 test)
-   - Actualizado para usar `data["error"]["message"]` en lugar de `data["detail"]`
-
-8. ✅ **Incomplete Tests Marked as Skip** (9 tests)
-   - `@pytest.mark.skip` añadido en test_auth_flow.py con razones documentadas
-
-9. ✅ **Follow Workflow Partial Fix** (2/5 tests passing)
-   - Flush() calls añadidos para UserProfile creation
-   - **Problema conocido**: 3 tests con session isolation issue (investigación futura)
-
-**Commits Mergeados**: 3 commits
-
-- API Response Format Standardization
-- Partial Follow Workflow + Likes Own Trip fixes
-- Comprehensive Progress Documentation
-
-**Tiempo Invertido**: ~2 horas (análisis + fixes + testing + documentación)
-
-**Problemas Conocidos**:
-
-- 🔴 **Session Isolation** (3 tests en Follow Workflow): Users creados inline con `db_session` no visibles en API requests
-- 🔴 **Quick Wins Restantes** (12 tests): Comments pagination, Likes format, Tag filtering, Draft listing
-- 🔴 **Complex Features** (21 tests): Profile privacy, Stats calculation, Trip photos
-
-**Siguiente Paso**: Continuar con Quick Wins restantes (~80 min estimado) o priorizar session isolation fix
-
----
-
-## 🎉 LOGRO ANTERIOR: CI/CD Activado
-
-**Fecha**: 2026-01-21
-**Branch**: `test/ci-cd-activation` → **MERGED to develop** ✅
-
-**Cambios Implementados**:
-
-- ✅ SECRET_KEY configurado en GitHub Secrets
-- ✅ Todos los workflows (ci.yml, backend-tests.yml, frontend-tests.yml) actualizados para usar `${{ secrets.SECRET_KEY }}`
-- ✅ E2E tests temporalmente desactivados (72.7% coverage - P28/P29 pendientes)
-- ✅ GitHub Actions ejecutando correctamente en cada Pull Request
-
-**Workflows Activados**:
-
-1. **GitGuardian Security Checks** - Escaneo de secretos ✅
-2. **Backend Quality Checks** - black, ruff, mypy ✅
-3. **Frontend Quality Checks** - lint, type-check ✅
-4. **Backend Tests** - pytest con PostgreSQL (111/156 integration tests passing - 71%)
-5. **Frontend Tests** - unit tests con coverage ✅
-6. **Security Scan** - Trivy + Safety ✅
-
-**Nota sobre Tests Fallidos**:
-
-- 36 integration tests fallando (bajó de 51 tras PR #33)
-- No bloquean el desarrollo - se pueden arreglar en futuro PR dedicado
-- SECRET_KEY funciona correctamente ✅
-
----
-
-## 🎯 Próxima Acción Recomendada
-
-### Opción A: Feature 015 - Dashboard Redesign (Fase 4 pendiente) ⭐ RECOMENDADO
-
-**Estimación**: 3-4 horas | **Prioridad**: Media-Alta | **Impacto**: Alto (UX del Dashboard)
-
-**Repositorio**: Branch `015-dashboard-redesign` (Fase 3 completada)
-**Fase actual**: Phase 3 completada (Stats Overview) - Phase 4 pendiente (Navegación y Búsqueda)
-**Último trabajo**: 2026-01-21 - Implementada Fase 3 con diseño Tailwind moderno
-**Próximo hito**: Fase 4 (User Story 2 - Navegación y Búsqueda Rápida) - 11 tareas
-
-**Fases Completadas**:
-- ✅ Phase 1: Tailwind CSS Setup (6 tasks)
-- ✅ Phase 2: Foundation Prerequisites (10 tasks)
-- ✅ Phase 3: User Story 1 - Stats Overview (22 tasks)
-
-**Fase Pendiente**:
-- 🔜 **Phase 4**: User Story 2 - Navegación y Búsqueda Rápida (11 tasks)
-  - Barra de búsqueda global
-  - Menú de navegación rápida
-  - Atajos de teclado
-  - Filtros dinámicos
-
-**Por qué es prioritario**:
-- Mejora significativa de UX en el dashboard
-- Diseño moderno ya implementado en Fase 3
-- Base sólida de componentes reutilizables
-- Integración con endpoints existentes funcionando
-
-**Documentación**: Ver [`specs/015-dashboard-redesign/tasks.md`](specs/015-dashboard-redesign/tasks.md)
-
----
-
-### Opción B: Continuar E2E Testing - Resolver P28 y P29
-
-**Estimación**: 2-3 horas | **Prioridad**: Alta | **Impacto**: Alto (Estabilidad de tests)
-
-**Repositorio**: Branch `fix/e2e-auth-frontend-backend-mismatch` → **MERGED to develop** ✅
-**Fase actual**: 24/33 tests passing (72.7%) - Mejora de +15.1% sobre baseline
-**Último trabajo**: 2026-01-20 - Resueltos P15-P27 (12 problemas), mejorados tests de registro con Turnstile
-**Próximo hito**: Resolver P28 (logout redirect) y P29 (duplicate username error banner) para llegar a 27/33 tests (81.8%)
-
-**Problemas Pendientes**:
-- **P28** - Logout no redirige a `/login` (test: T047)
-  - Botón "Cerrar sesión" existe y es clickeable pero no navega
-  - Investigar implementación frontend del logout flow
-  - **Impacto**: Funcionalidad de seguridad crítica
-
-- **P29** - Duplicate username no muestra error banner (test: T046)
-  - Backend retorna error pero frontend no lo muestra
-  - Posible problema de timing similar a Turnstile
-  - **Impacto**: UX de validación de formularios
-
-**Por qué es prioritario**:
-- E2E tests son **bloqueadores para CI/CD** - necesitan pasar antes de activar pipelines
-- P28 afecta funcionalidad de seguridad (logout)
-- Resolver estos 2 problemas sube coverage a ~82% (excelente para MVP)
-
-**Documentación**: Ver [`docs/E2E_TRACKING.md`](docs/E2E_TRACKING.md) para análisis completo
-
----
-
-### Opción C: Continuar Feature 004 - US4 (Compartir Viajes)
-
-**Estimación**: 5-7 horas | **Prioridad**: Media-Alta | **Impacto**: Alto
-
-**Repositorio**: Trabajo futuro en branch `004-social-network`
-**Fase actual**: US1+US2+US3 mergeadas a develop exitosamente (2026-01-20)
-**Último trabajo**: 2026-01-20 - Completado merge de US1+US2+US3 (Feed, Likes, Comentarios)
-**Próximo hito**: US4 (Compartir Viajes) y US5 (Notificaciones)
-
----
-
-## Estado Actual del Proyecto
-
-## Features Completadas ✅
-
-### Feature 015: Dashboard Redesign (🔄 EN PROGRESO - Fase 3/7 Completada)
-
-**Branch**: `015-dashboard-redesign` (activa)
-**Status**: 🔄 **43% COMPLETADO** - Fase 3 completada (Stats Overview)
-**Last update**: 2026-01-21
-**Priority**: P2 (High - UX Enhancement)
-**Commits totales**: 2 commits
-
-**Fases Completadas** (3/7):
-
-- ✅ **Phase 1**: Tailwind CSS Setup (6 tasks) - 100%
-- ✅ **Phase 2**: Foundation Prerequisites (10 tasks) - 100%
-- ✅ **Phase 3**: User Story 1 - Stats Overview (22 tasks) - 100%
-
-**Fases Pendientes** (4/7):
-
-- 🔜 **Phase 4**: User Story 2 - Navegación y Búsqueda Rápida (11 tasks)
-- 🔜 **Phase 5**: User Story 3 - Quick Actions (9 tasks)
-- 🔜 **Phase 6**: User Story 4 - Activity Feed (15 tasks)
-- 🔜 **Phase 7**: Testing & Documentation (8 tasks)
-
-**Implementación Completada (Fase 3)**:
-
-**Frontend**:
-
-- ✅ StatCard component con diseño moderno Tailwind
-  - Gradientes sutiles (bg-gradient-to-br)
-  - Ring borders con transparencia
-  - Hover animations (shadow, translate, ring)
-  - Layout: icono + label horizontal, valor centrado
-  - Responsive (p-4 sm:p-5 lg:p-6)
-  - Color schemes: primary, success, info, warning
-- ✅ StatsOverview component
-  - Grid responsive: 1/2/3 columnas (mobile/tablet/desktop)
-  - 9 stat cards con datos reales del backend
-  - Mensaje motivacional para nuevos usuarios
-  - Loading states con skeleton
-  - Error handling con retry
-- ✅ Custom hook: useDashboardStats
-  - Fetches combinados: /users/{username}/stats + /users/{username}/profile
-  - Parallel API calls con Promise.all()
-  - Error handling con mensajes en español
-- ✅ dashboardService: API integration
-  - Combina cycling stats + social data (followers/following)
-  - Maneja formatos de respuesta diferentes
-
-**Critical Fix**:
-
-- ✅ `@import "tailwindcss"` añadido a index.css (habilita todas las utilities)
-
-**Integración**:
-
-- ✅ StatsOverview integrado en DashboardPage.tsx
-
-**Archivos Principales**:
-
-- Frontend: 7 archivos (components, hooks, services, types, CSS)
-- Specs: tasks.md actualizado
-
-**Commits realizados**: 2 commits (25e41b4, 7c77b73)
-
-**Tiempo invertido**: ~4 horas (setup + implementación + fixes + integración)
-
-**Próximo Paso**: Implementar Fase 4 (Navegación y Búsqueda Rápida) - 11 tareas
-
----
-
-### Feature 004: Red Social y Feed de Ciclistas (✅ PARCIALMENTE MERGEADA - US1+US2+US3)
-
-**Branch**: `004-social-network` → **MERGED to develop** (US1+US2+US3)
-**Status**: ✅ **60% COMPLETADO** - US1+US2+US3 mergeadas a develop
-**Merge date**: 2026-01-20
-**Priority**: P1 (Critical - Core Social Features)
-**Commits totales**: 580+ commits
-
-**User Stories Completadas** (3/5):
-- ✅ **US1**: Feed Personalizado (100%)
-- ✅ **US2**: Likes/Me Gusta (100%)
-- ✅ **US3**: Comentarios en Viajes (100%)
-
-**User Stories Pendientes** (2/5):
-- 🔜 **US4**: Compartir Viajes (Priority: P4) - Estimación: 5-7 horas
-- 🔜 **US5**: Notificaciones de Interacciones (Priority: P5) - Estimación: 8-10 horas
-
-**Implementación Mergeada**:
-
-**Backend**:
-- ✅ Modelos: Follow, Like, Comment con relaciones y constraints
-- ✅ Endpoints: /feed, /trips/{id}/like, /users/{username}/follow, /trips/{id}/comments
-- ✅ Servicios: SocialService, LikeService, CommentService, FeedService
-- ✅ Feed personalizado con algoritmo secuencial (Bug #1 fixed)
-- ✅ HTML sanitization (XSS prevention)
-- ✅ Rate limiting (10 comments/hour)
-- ✅ 21/21 unit tests passing (Comment service)
-- ✅ 43 integration tests (auth, profile, stats, trips, social)
-
-**Frontend**:
-- ✅ FeedPage con infinite scroll
-- ✅ PublicFeedPage con like button
-- ✅ FollowButton component (optimistic UI, 3 tamaños)
-- ✅ LikeButton component con optimistic UI
-- ✅ LikesListModal con pagination infinita
-- ✅ CommentList, CommentItem, CommentForm components
-- ✅ UserProfilePage con FollowButton + follower/following counters
-- ✅ Custom hooks: useFeed, useLike, useFollow, useTripLikes, useComments, useComment
-- ✅ Diseño rústico consistente (Playfair Display, earth tones)
-- ✅ Accessibility (ARIA labels, keyboard navigation)
-- ✅ Mobile-responsive design (44×44px touch targets)
-
-**Testing**:
-- ✅ US1 Core: 8/8 tests pasados (100%)
-- ✅ US1 Follow/Unfollow: 7/9 tests pasados (78%)
-- ✅ US2 Likes: 10/10 tests pasados (100%)
-- ✅ US2 Likes List Modal: 4/16 tests críticos pasados (TC-US2-008)
-- ✅ US3 Comentarios: 19/20 tests manuales pasados (95%) + 21/21 unit tests (100%)
-- ✅ Integration: 4/4 tests pasados (100%)
-
-**Bug Fixes Realizados**:
-1. ✅ Bug #1: Duplicate Trips in Infinite Scroll (Sequential Algorithm implemented)
-2. ✅ CSS Hover Bug: Like counter con 0 likes mostraba hover effects (fixed)
-3. ✅ Profile Privacy: Private profiles return 403 FORBIDDEN (not 404)
-4. ✅ Missing imports: Link (react-router-dom) in LikesListModal
-5. ✅ TypeScript interfaces: UserProfile updated to match backend
-6. ✅ Backend privacy validation in ProfileService.get_profile()
-
-**Documentación Generada**:
-- `specs/004-social-network/TC-US2-008_TEST_RESULTS.md` (400 lines)
-- `specs/004-social-network/TC-US2-008_TESTING_GUIDE.md` (406 lines)
-- `specs/004-social-network/US3-COMMENTS-MANUAL-TESTING.md` (965 lines)
-- `specs/004-social-network/US3-IMPLEMENTATION-SUMMARY.md` (635 lines)
-- `specs/004-social-network/BUGS_FOUND_TESTING.md`
-- `specs/004-social-network/FOLLOW_BUTTON_TESTING.md` (356 lines)
-- `specs/004-social-network/SCENARIO_1_WALKTHROUGH.md` (314 lines)
-
-**Archivos Principales**:
-- Backend: 10 archivos (models, services, API endpoints, tests)
-- Frontend: 18 archivos (pages, components, hooks, services, CSS)
-- Migrations: 2 migraciones
-- Tests: 6 archivos de testing
-- Documentación: 10 archivos de specs y guías
-
-**Tiempo Total Invertido**: ~20 horas (US1/US2: 12h + US3: 8h - backend + frontend + testing + documentación)
-
-**Post-Merge Steps (Trabajo Diferido)**:
-
-- ⏭️ Completar US4: Compartir Viajes (5-7 horas)
-- ⏭️ Completar US5: Notificaciones (8-10 horas)
-- ⏭️ US1 Follow/Unfollow: 2/9 tests funcionales pendientes
-- ⏭️ TC-US2-008 (Likes List Modal): 12/16 test scenarios pendientes
-- ⏭️ TC-COMMENT-013 (Paginación comentarios): Requiere >60 comentarios
-
----
-
-### E2E Testing Suite - Auth Tests Improvements (✅ MERGEADA A DEVELOP)
-
-**Branch**: `fix/e2e-auth-frontend-backend-mismatch` → **MERGED to develop**
-**Status**: ✅ **PARCIALMENTE COMPLETADO** - Mejoras significativas en estabilidad de tests
-**Merge date**: 2026-01-20
-**Priority**: P1 (Critical - CI/CD Blocker)
-
-**Resultados Finales**:
-
-- ✅ **24/33 tests passing (72.7%)** - Mejora de +15.1% sobre baseline (57.6%)
-- ✅ Chromium: 9/11 passing (81.8%)
-- ✅ Firefox: 8/11 passing (72.7%)
-- ✅ WebKit: 9/11 passing (81.8%)
-
-**Problemas Resueltos (P15-P27)**: 12 problemas críticos
-
-1. ✅ **P15**: Registration success message not found → Changed to navigation wait
-2. ✅ **P16**: Duplicate username error selector → Changed to `.error-banner` class
-3. ✅ **P17**: Invalid credentials error selector → Changed to `.error-banner` class
-4. ✅ **P18**: User menu button not found → Removed unnecessary click
-5. ✅ **P19**: Protected routes not redirecting → Fixed route paths and wait strategy
-6. ✅ **P20**: Public routes test illogical → Rewrote to verify staying on same URL
-7. ✅ **P21**: Landing page redirect with mock token → Real API authentication
-8. ✅ **P22**: Registration missing checkbox → Added `page.check('input[type="checkbox"]')`
-9. ✅ **P23**: Logout not waiting → Added `waitForURL()` with 10s timeout
-10. ✅ **P24**: Public routes timeout → Removed `waitUntil: 'networkidle'`
-11. ✅ **P25**: General test reliability → Comprehensive timing improvements
-12. ✅ **P26-P27**: **Turnstile CAPTCHA callback timing** → Increased wait to 5s (MAJOR FIX)
-
-**Hallazgos Técnicos Clave**:
-
-- **Cloudflare Turnstile**: Widget muestra "Success" ✓ visualmente pero callback `onSuccess` tarda ~5s en ejecutar en E2E environment
-- **React Hook Form**: No lee inputs dinámicamente creados (imposible inyectar token manualmente)
-- **Testing Key**: `1x00000000000000000000AA` auto-pasa pero requiere tiempo para callback
-
-**Problemas Pendientes**:
-
-- 🔴 **P28**: Logout no redirige a `/login` (test: T047) - Funcionalidad de seguridad crítica
-- 🔴 **P29**: Duplicate username no muestra error banner (test: T046) - UX de validación
-
-**Documentación Generada**:
-
-- `docs/E2E_TRACKING.md` (1,016 lines) - Tracking completo de 15 problemas (P15-P29)
-
-**Commits mergeados**: 15 commits con fixes incrementales
-
-**Tiempo invertido**: ~4 horas (análisis + fixes + testing + documentación)
-
-**Siguiente Paso**: Resolver P28 y P29 para alcanzar ~82% coverage (27/33 tests)
-
----
-
-### Feature 014: Landing Page Inspiradora (✅ MERGEADA A DEVELOP)
-
-**Branch**: `014-landing-page-inspiradora` → **MERGED to develop**
-**Status**: ✅ **COMPLETADO 100%** - Mergeada a develop
-**Merge date**: 2026-01-16
-**Priority**: P1 (Critical - User Acquisition Foundation)
-
-**Implementación Completada**: MVP completo con todas las secciones y funcionalidades
-
-**Entregables**:
-
-- ✅ Complete Landing Page with 8 sections (Header, Hero, Manifesto, Value Pillars, How It Works, Discover Trips, CTA, Footer)
-- ✅ SEO optimization with react-helmet-async
-- ✅ Responsive design (mobile/tablet/desktop)
-- ✅ Comprehensive test suite (**208 tests**, 100% landing page coverage)
-- ✅ Accessibility (WCAG 2.1 AA compliant)
-- ✅ Performance optimized (Google Fonts preloaded)
-- ✅ Sticky header with navigation (Rutas, Login)
-- ✅ "Descubre nuevas rutas" section displaying 4 recent public trips
-- ✅ Color palette: Terracota (#D35400), Verde Bosque (#1B2621), Crema (#F9F7F2)
-- ✅ Complete documentation (4 guides, ~15,000 words)
-
-**User Stories Implementadas** (8/8):
-
-1. ✅ US1: Hero Section + Manifesto + Authenticated Redirect (17+21+14 tests)
-2. ✅ US2: Value Pillars Section (28 tests)
-3. ✅ US3: How It Works Section (33 tests)
-4. ✅ US4: CTA Section (25 tests + E2E scenarios)
-5. ✅ US5: Footer (34 tests)
-6. ✅ US6: Header Component (21 tests) - Sticky header with navigation
-7. ✅ US7: Discover Trips Section (15 tests) - Displays 4 recent public trips
-8. ✅ US8: Documentation (HERO_IMAGE_GUIDE.md, FEATURE_SUMMARY.md, SESSION_SUMMARY.md)
-
-**Testing Coverage**:
-
-- Unit Tests: **208/208 passing** ✅ (21 Header + 15 DiscoverTrips + 172 landing)
-- Coverage: 100% for landing page components
-- E2E Tests: Visitor journey scenarios ready
-
-**Design Features**:
-- Color Palette: Terracota (#D35400), Verde Bosque (#1B2621), Crema (#F9F7F2)
-- Typography: Playfair Display (serif), System Sans-serif
-- Philosophy: "El camino es el destino"
-- Responsive: 2x2 grid (desktop) → stacked (mobile)
-
-**Documentation Created**:
-- `specs/014-landing-page-inspiradora/FEATURE_SUMMARY.md` (366 lines)
-- `specs/014-landing-page-inspiradora/HERO_IMAGE_GUIDE.md` (663 lines)
-- `specs/014-landing-page-inspiradora/SESSION_SUMMARY.md` (368 lines)
-- `frontend/src/assets/images/landing/README.md` (184 lines)
-
-**Post-Merge Steps**:
-- [ ] Deploy to staging environment
-- [ ] Run E2E tests for complete user journey
-- [ ] Performance audit with Lighthouse (target: LCP < 2.5s)
-- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] Mobile device testing (iOS, Android)
-- [ ] User acceptance testing
-
----
-
-## Features Anteriores ✅
-
-### Feature 001: Testing & QA Suite (✅ MERGEADA A DEVELOP)
-
-**Branch**: `001-testing-qa` → **MERGED to develop**
-**Status**: ✅ **COMPLETADO 98.6%** - Mergeada a develop
-**Merge date**: 2026-01-16
-**Priority**: P1 (Critical - Infrastructure Foundation)
-
-**Implementación Completada**: 72/73 tasks (98.6%)
-
-**Entregables**:
-- ✅ Suite completa de smoke tests (4 deployment modes validados)
-- ✅ Integration tests (API + Database)
-- ✅ E2E tests con Playwright (171 executions: 57 tests × 3 browsers)
-- ✅ Performance tests (pytest-benchmark + Locust load testing)
-- ✅ CI/CD pipeline (4 GitHub Actions workflows)
-- ✅ Documentación comprehensiva (3 guías, ~3,600 líneas)
-
-**Fases Implementadas**:
-1. ✅ Phase 1: Test Framework Setup (pytest, Vitest, Playwright)
-2. ✅ Phase 2: Smoke Tests (4 deployment modes)
-3. ✅ Phase 3: Integration Tests (API endpoints, database)
-4. ✅ Phase 4: E2E Tests (user flows, 3 browsers)
-5. ✅ Phase 5: Performance Tests (benchmarks + load testing)
-6. ✅ Phase 6: CI/CD Workflows (GitHub Actions)
-7. ✅ Phase 7: Documentation (QA manual + CI/CD guide + testing manual)
-
-**Testing Coverage**:
-- Backend Integration: 43 tests (auth, profile, stats, trips, social)
-- Frontend E2E: 57 tests × 3 browsers = 171 executions (Chromium, Firefox, WebKit)
-- Performance: 12 benchmarks + load testing (100+ concurrent users)
-- Smoke Tests: 4 deployment modes (SQLite Local, Docker Minimal, Docker Full, Production)
-
-**CI/CD Workflows**:
-1. `backend-tests.yml`: pytest (unit, integration, coverage ≥90%)
-2. `frontend-tests.yml`: Vitest + TypeScript type-check
-3. `e2e-tests.yml`: Playwright cross-browser testing
-4. `deploy-staging.yml`: Automated staging deployment
-
-**Documentación Generada**:
-- `docs/QA_TESTING_MANUAL.md` (1,095 lines): Complete testing guide
-- `docs/CI_CD_GUIDE.md` (1,579 lines): CI/CD infrastructure guide
-- `docs/TESTING_MANUAL.md` (938 lines): Technical testing reference
-
-**Archivos Añadidos**: 53 files, +15,377 lines
-- Tests: 32 archivos (integration, E2E, performance)
-- CI/CD: 4 workflows
-- Docs: 3 comprehensive guides
-- Scripts: Cross-platform helpers (Bash + PowerShell)
-
-**Commits mergeados**: 11 commits con implementación completa
-
-**Tiempo invertido**: ~6 horas (planning + implementation + documentation)
-
-**Task Pendiente** (opcional):
-- ⏸️ T045: SQLAlchemy query logging (optional - N+1 detection)
-
----
-
-### Issue #012: TypeScript Code Quality (✅ MERGEADO A DEVELOP)
-
-**Branch**: `012-typescript-code-quality` → **MERGED to develop**
-**Status**: ✅ **COMPLETADO 100%** - Mergeado a develop
-**Merge date**: 2026-01-14
-**Priority**: P2 (High - Desbloquea production builds)
-
-**Errores Arreglados**: 25 errores TypeScript (100% resueltos)
-
-**Errores Críticos (13)**:
-- Step3Photos: null vs undefined para photo URLs
-- Step4Review: Optional chaining para latitude/longitude
-- TripFormWizard: Argument count en onSubmit (2 ocurrencias)
-- TripGallery: Propiedades no soportadas de lightbox
-- useTripForm: Comparación de TripDifficulty
-- photoService: Casting de AxiosProgressEvent
-- setupTests: global → globalThis (4 ocurrencias)
-
-**Variables No Usadas (12)**:
-- Prefijadas con underscore: initialData, chunkSize, code, tripId, photoId, caption
-- Removidas: errors, persistFormData, isSubmitting, refetch, useAuth, formatDate, expect, TripDifficulty
-
-**Dependencias Añadidas**:
-- terser: Para production builds
-
-**Verificación**:
-- ✅ TypeScript type-check: 0 errores (antes: 25)
-- ✅ Production build: Exitoso (14.43s)
-
-**Archivos Modificados**: 18 archivos (components, hooks, pages, services, utils)
-
-**Impacto**:
-- Desbloquea Feature 011 T067 (production build validation)
-- Habilita production builds sin errores
-- Base sólida para CI/CD pipeline
-
-**Commits mergeados**: 8 commits con fixes incrementales
-
-**Tiempo invertido**: ~2 horas (5 sesiones)
-
----
-
-### Feature 013: Public Trips Feed (✅ MERGEADA A DEVELOP)
-
-**Branch**: `013-public-trips-feed` → **MERGED to develop**
-**Status**: ✅ **MERGEADA** - En develop, lista para deployment
-**Merge date**: 2026-01-14
-**Priority**: P1 (Critical - Homepage pública)
-
-**Implementación Completada**:
-
-- ✅ Backend: Endpoint `/trips/public` con paginación configurable
-- ✅ Frontend: PublicFeedPage con diseño rústico completo
-- ✅ Header: Autenticación adaptativa (anónimo/autenticado)
-- ✅ Pagination: 8 trips/página (configurable en backend)
-- ✅ Privacy filtering: Solo PUBLISHED + trip_visibility='public'
-- ✅ Rustic design system aplicado (Playfair Display, earth tones)
-- ✅ Trip details: Acceso anónimo y autenticado funcionando (fix: backend + frontend)
-- ✅ E2E Testing: 23/27 tests pasados (85.2% coverage - MVP desktop)
-
-**Tests E2E Validados**:
-
-- ✅ User Story 1 (Browse): 6/7 pasados - Feed funcional
-- ✅ User Story 2 (Header): 7/9 pasados - Autenticación adaptativa funcional
-- ✅ User Story 3 (Privacy): 4/5 pasados - Privacy filtering funcional
-- ✅ User Story 4 (Details): 6/6 pasados ✅ - Acceso público/autenticado completo
-
-**Issues Resueltos**:
-
-- ✅ Avatar photo URL path (user.photo_url vs user.profile.photo_url)
-- ✅ Login redirect (ahora va a `/` en lugar de `/welcome`)
-- ✅ Anonymous trip access: Backend optional auth + Frontend public route (TC-US4-004)
-
-**Documentación Generada**:
-
-- `specs/013-public-trips-feed/TESTING_RESULTS.md` - Resultados E2E testing
-- `specs/013-public-trips-feed/E2E_TESTING_GUIDE.md` - Guía de testing completa
-- `specs/013-public-trips-feed/spec.md` - Especificación completa
-- `specs/013-public-trips-feed/plan.md` - Plan de implementación
-- `specs/013-public-trips-feed/tasks.md` - Tareas ejecutadas
-
-**Commits mergeados**: 15 commits con implementación completa
-
-**Tiempo invertido**: ~5.5 horas (design system + E2E testing + bug fixes + documentación)
-
-**Decisión de Lanzamiento - MVP Desktop-First**:
-
-- ✅ **MVP Funcional**: Feature completa y estable para experiencia desktop
-- ✅ **85.2% Test Coverage**: 23/27 tests E2E pasados (cobertura suficiente para MVP)
-- ✅ **Mergeada a develop**: Lista para deployment a staging/production
-- ⏭️ **Tests Diferidos a Fase 2** (Post-deployment - Optimización continua):
-  - TC-US1-007: Loading state animation (mejora visual, no funcional)
-  - TC-US2-009: Error handling logout (mejora de UX, no crítica)
-  - TC-US2-010: Mobile responsive header (diferido a optimización móvil general)
-  - TC-US3-005: Eager loading verification (validación técnica de performance)
-
-**Archivos Principales Añadidos/Modificados**:
-
-- Backend: `src/api/trips.py`, `src/services/trip_service.py`, `src/schemas/trip.py`
-- Frontend: `pages/PublicFeedPage.tsx`, `components/PublicHeader.tsx`, `components/PublicTripCard.tsx`
-- Tests: 6 archivos de testing (unit, integration, contract)
-- Migrations: 2 migraciones de base de datos
-- Docs: 7 archivos de especificación y guías
-
----
-
-### Feature 011: Frontend Deployment Integration (COMPLETADA)
-
-**Branch**: `011-frontend-deployment` → **MERGED to develop**
-**Status**: ✅ Completada y mergeada (69/70 tareas)
-**Merge date**: 2026-01-12
-
-**Logros**:
-- ✅ 4 modos de deployment implementados y funcionales
-  - SQLite Local: <30s startup, desarrollo diario
-  - Docker Minimal: PostgreSQL testing, <60s startup
-  - Docker Full: Todos los servicios (MailHog, pgAdmin, Redis)
-  - Production Builds: Nginx, terser, chunking optimizado
-- ✅ Scripts cross-platform (Linux .sh + Windows .ps1)
-- ✅ Auto-generación de SECRET_KEY en deploy scripts
-- ✅ Vite configuration con proxy y build optimization
-- ✅ Docker compose multi-file overlay pattern
-- ✅ 10 bug fixes (PostgreSQL ENUM, Docker contexts, etc.)
-- ✅ 5 guías de documentación completas (2,400+ líneas)
-- ✅ Validaciones: startup times, HMR, CORS, security
-
-**Fases implementadas**:
-1. Phase 1: Environment configuration (.env files)
-2. Phase 2: Vite configuration (proxy, builds)
-3. Phase 3: SQLite Local development workflow
-4. Phase 4: Docker Minimal with frontend support
-5. Phase 5: Docker Full with all services
-6. Phase 6: Production builds (Nginx, optimization)
-7. Phase 7: Documentation (5 comprehensive guides)
-8. Phase 8: Validation & Testing (6/7 tasks ✅)
-
-**Commits**: 17 commits mergeados a develop
-**Files changed**: 39 archivos, +8,860 líneas
-
-**Blocked Task**:
-- ⏸️ T067: Production build size validation (bloqueado por TypeScript errors)
-
----
-
-### Issue #012: TypeScript Code Quality (EN PROGRESO)
-
-**Branch**: `012-typescript-code-quality` (active)
-**Status**: ⏸️ **74% completado** (71/96 errores arreglados)
-**Priority**: P2 (Medium) - Bloquea Feature 011 T067
-
-**Progreso por Sesión**:
-- ✅ Session 1: Import fixes (APIError → ApiError) - 10 errores
-- ✅ Session 2: Property mismatches + AxiosError typing - 37 errores
-- ✅ Session 3: RegisterForm + type imports - 9 errores
-- ✅ Session 4: Unused variables - 15 errores
-- ⏸️ **25 errores restantes**
-
-**Errores Críticos Restantes** (13 errores - bloquean build):
-1. TripFormWizard.tsx: Argument count mismatch (2)
-2. Step4Review.tsx: Undefined latitude/longitude (2)
-3. Step3Photos.tsx: null vs undefined type (1)
-4. TripGallery.tsx: Unknown lightbox properties (2)
-5. photoService.ts: AxiosProgressEvent casting (1)
-6. useTripForm.ts: Empty string comparison (1)
-7. setupTests.ts: global not defined (4)
-
-**Errores No-Críticos** (12 errores - warnings):
-- Unused variables/parameters en 11 archivos
-
-**Commits realizados**: 7 commits (cca0483, b150573, ebb94a3, 56146a4, d42e364, f2fa7ec, 363704f)
-**Tiempo invertido**: 50 minutos (4 sesiones)
-**Estimado restante**: ~35 minutos (2 sesiones)
-
----
-
-## Features Completadas ✅
-
-### Feature 001: Testing & QA Suite ✅
-- Suite completa de smoke tests (4 deployment modes)
-- Integration tests (43 tests backend)
-- E2E tests con Playwright (57 tests × 3 browsers)
-- Performance tests (pytest-benchmark + Locust)
-- CI/CD pipeline (4 GitHub Actions workflows)
-- Documentación completa (3 guías, ~3,600 líneas)
-
-### Feature 001: User Profiles Backend ✅
-- Sistema de autenticación backend
-- Perfiles de usuario
-- Stats tracking
-
-### Feature 002: Travel Diary Backend ✅
-- Trips CRUD
-- Photos upload
-- Tags system
-- Draft workflow
-
-### Feature 005: Frontend User Auth ✅
-- Sistema de autenticación completo
-- Diseño rústico aplicado
-- Dashboard y Profile placeholders
-
-### Feature 006: Dashboard Dinámico ✅
-- Stats cards con datos reales
-- Recent trips section
-- Quick actions
-
-### Feature 007: Gestión de Perfil Completa ✅
-- Editar perfil completo
-- Upload y crop de foto de perfil
-- Cambiar contraseña
-- Configuración de cuenta
-
-### Feature 008: Travel Diary Frontend ✅
-- Lista de viajes con filtros
-- Crear/editar viaje (multi-step form)
-- Detalle de viaje completo
-- Upload múltiple de fotos
-- Sistema de tags interactivo
-- Photo gallery con lightbox
-
-### Feature 009: GPS Coordinates Frontend ✅
-- LocationInput component para coordenadas
-- TripMap component con react-leaflet
-- Numbered markers y route polyline
-- Fullscreen mode
-- Error handling y tile retry
-- Location list con estado "Sin coordenadas GPS"
-
-### Feature 010: Reverse Geocoding ✅
-- Click en mapa para seleccionar ubicaciones
-- Reverse geocoding con Nominatim API
-- LocationConfirmModal component
-- useReverseGeocode hook con debouncing
-- Geocoding cache (LRU, 100 entries)
-- Drag markers para ajustar coordenadas
-- Accessibility (WCAG 2.1 AA compliant)
-- Mobile responsive design
-
-### Feature 003: GPS Routes Interactive (🔄 EN PROGRESO - Phase 4/8 Completada)
-
-**Branch**: `003-gps-routes` (activa)
-**Status**: 🔄 **50% COMPLETADO** - Phase 4 completada (Visualización Mínima en Mapa)
-**Last update**: 2026-01-21
-**Priority**: P2 (Medium-High - MVP GPS functionality)
-**Commits totales**: 5 commits
-
-**Fases Completadas** (4/8):
-
-- ✅ **Phase 1**: GPX Data Model & Migrations (13 tasks) - 100%
-- ✅ **Phase 2**: Backend Services & API (11 tasks) - 100%
-- ✅ **Phase 3**: Frontend Upload & Stats (10 tasks + T041.5) - 100%
-- ✅ **Phase 4**: Visualización Mínima en Mapa (6 tasks) - 100%
-
-**Fases Pendientes** (4/8):
-
-- 🔜 **Phase 5**: User Story 3 - Perfil de Elevación Interactivo (15 tasks) - DEFERRED
-- 🔜 **Phase 6**: User Story 4 - Puntos de Interés (14 tasks) - DEFERRED
-- 🔜 **Phase 7**: User Story 5 - Estadísticas Avanzadas (10 tasks) - DEFERRED
-- 🔜 **Phase 8**: Testing & Documentation (21 tasks) - DEFERRED
-
-**Implementación Completada (MVP - Phases 1-4)**:
-
-**Backend**:
-
-- ✅ Data Model: GPXFile, GPXTrack, TrackPoint (PostgreSQL + SQLite DDL)
-- ✅ Migrations: `create_gpx_tables.py` (3 tablas)
-- ✅ Services: `gpx_service.py` (parse, simplify, calculate stats, elevation)
-  - gpxpy library para parsing GPX 1.0/1.1
-  - rdp (Ramer-Douglas-Peucker) para simplificación de tracks (90% reducción)
-  - Haversine formula para cálculo de distancias
-  - Threshold-based elevation filtering (3m)
-- ✅ API Endpoints (trips.py):
-  - POST `/trips/{trip_id}/gpx` - Upload GPX (sync <1MB)
-  - GET `/gpx/{gpx_file_id}/track` - Get simplified trackpoints
-  - GET `/gpx/{gpx_file_id}/download` - Download original GPX
-  - DELETE `/trips/{trip_id}/gpx` - Delete GPX (cascade)
-- ✅ Schemas: GPXUploadResponse, TrackDataResponse, TrackPoint
-- ✅ Storage: Hybrid filesystem + database
-  - Original files: `storage/gpx_files/{year}/{month}/{trip_id}/original.gpx`
-  - Simplified points: PostgreSQL/SQLite (90% size reduction)
-
-**Frontend**:
-
-- ✅ GPXUploader component
-  - Drag-drop file upload (react-dropzone pattern)
-  - Validación: .gpx extension, ≤10MB size
-  - Loading states, error handling
-- ✅ GPXStats component
-  - 5 stat cards: Distance, Elevation Gain/Loss, Max/Min Altitude
-  - Card-based grid layout (responsive: 5/3/2/1 columns)
-  - Color-coded icons (blue, green, orange, purple, teal)
-  - Download button (owner-only, FR-039)
-  - "No elevation data" message fallback
-- ✅ TripMap integration con GPX
-  - Polyline roja (#dc2626) para ruta GPS
-  - Marcadores: verde (inicio), rojo (fin)
-  - Auto-fit bounds con padding 50px
-  - Click en marcadores muestra popup con coordenadas (5 decimales)
-- ✅ Custom Hooks:
-  - `useGPXUpload.ts` - Upload con polling (async)
-  - `useGPXTrack.ts` - Fetch simplified trackpoints
-- ✅ Services:
-  - `gpxService.ts` - API integration (upload, download, track)
-- ✅ Types:
-  - `gpx.ts` - TypeScript interfaces completas
-
-**Testing**:
-
-- ✅ Backend Unit: 8/8 tests passing (test_gpx_service.py)
-- ✅ Backend Integration: 6/7 tests passing (test_gpx_api.py) - async processing deferred
-- ✅ Coverage: 88.68% (gpx_service.py)
-- 🔜 Frontend Unit: GPXUploader, GPXStats (T041, T042 - PENDING)
-- 🔜 E2E Tests: Upload, visualización, download (T063-T067 - PENDING)
-
-**Archivos Principales**:
-
-- Backend: 7 archivos (models, services, API, schemas, migrations, tests)
-- Frontend: 8 archivos (components, hooks, services, types, CSS)
-- Specs: 6 archivos (spec.md, plan.md, tasks.md, data-model.md, contracts/, MANUAL_TESTING.md)
-
-**Commits realizados**: 5 commits
-
-- feat(backend): GPX data model, service, API endpoints
-- feat(frontend): GPX upload, stats, map visualization
-- feat(frontend): add GPX download button to GPXStats component
-- docs(003-gps-routes): update T048 manual testing guide + API verification
-- docs(003-gps-routes): update MANUAL_TESTING.md index
-
-**Tiempo invertido**: ~8 horas (backend + frontend + testing + documentación)
-
-**Decisiones Técnicas Clave**:
-
-- ✅ gpxpy para parsing (madura, pure Python, GPX 1.0/1.1)
-- ✅ Sync processing solo <1MB (async >1MB deferred - T047)
-- ✅ Douglas-Peucker simplification (90% reducción: 10k→1k points)
-- ✅ Hybrid storage (filesystem original + DB simplified)
-- ✅ Elevation threshold filtering (3m para GPS noise)
-- ⏸️ Async processing >1MB: DEFERRED (returns 501 Not Implemented)
-
-**Fase Actual Completada**: MVP funcional con upload sync (<1MB), visualización en mapa, estadísticas básicas, y download.
-
-**Próximo Paso (Post-MVP - DEFERRED)**:
-
-- ⏭️ Phase 5: Perfil de Elevación Interactivo (Recharts)
-- ⏭️ Phase 6: Puntos de Interés (POI management)
-- ⏭️ Phase 7: Estadísticas Avanzadas (speed, climbs)
-- ⏭️ Async processing >1MB (BackgroundTasks)
-
-**Manual Testing Guide**: `specs/003-gps-routes/MANUAL_TESTING.md`
-
-- T046: Upload <1MB ✅
-- T047: Upload >1MB (async - returns 501) ⏸️
-- T048: Download GPX ✅ (UI + API verification)
-- T049: Delete cascade ✅
-- T065: Visualización mapa ✅
-
-**Documentación**: Ver [`specs/003-gps-routes/`](specs/003-gps-routes/) para especificación completa
-
-### Feature 011: Frontend Deployment Integration ✅
-- 4 deployment modes (SQLite Local, Docker Minimal, Docker Full, Production)
-- Cross-platform scripts (Linux/Mac + Windows)
-- Auto-generation of environment configs
-- Comprehensive documentation (5 guides)
-- Validation suite (startup, HMR, CORS, security)
-
-### Feature 013: Public Trips Feed ✅
-- Public feed endpoint con paginación configurable
-- PublicFeedPage con diseño rústico completo
-- PublicHeader con autenticación adaptativa
-- Privacy filtering (PUBLISHED + public visibility)
-- Trip details: Acceso público y autenticado (fix completo backend + frontend)
-- E2E testing: 23/27 tests pasados (85.2% coverage - MVP desktop)
-- MVP desktop-first (tests móviles diferidos a Fase 2)
-
-### Issue #012: TypeScript Code Quality ✅
-- Resueltos 25 errores TypeScript (100%)
-- 13 errores críticos de tipos arreglados
-- 12 variables no usadas eliminadas/prefijadas
-- Terser instalado para production builds
-- TypeScript type-check: 0 errores
-- Production build: Exitoso
-
----
-
-## Próximos Pasos Inmediatos 🎯
-
-### Opción A: Configurar CI/CD en GitHub - RECOMENDADO ⭐
-
-**Prioridad**: Alta (activar pipelines automatizados)
-**Estimación**: 1-2 horas
-**Branch**: develop (ya merged)
-
-**Objetivo**:
-Activar los 4 workflows de GitHub Actions ya implementados en Feature 001-testing-qa.
-
-**Pasos**:
-1. **Configurar GitHub Secrets** (Settings → Secrets and variables → Actions):
-   - `SECRET_KEY`: Generar con `python -c "import secrets; print(secrets.token_urlsafe(32))"`
-   - `DOCKER_USERNAME`: Usuario de Docker Hub (opcional, para deploy staging)
-   - `DOCKER_PASSWORD`: Token de Docker Hub (opcional)
-   - `STAGING_SERVER`: IP/hostname del servidor de staging (opcional)
-
-2. **Configurar GitHub Environments** (Settings → Environments):
-   - Crear environment `staging` con protection rules
-   - Crear environment `production` con protection rules
-
-3. **Habilitar Branch Protection** (Settings → Branches → main/develop):
-   - Require status checks to pass before merging
-   - Select: `backend-tests`, `frontend-tests`, `e2e-tests`
-
-4. **Primer PR de prueba**:
-   - Crear branch de prueba desde develop
-   - Hacer un cambio mínimo (ej: actualizar README)
-   - Abrir PR y verificar que los workflows se ejecutan correctamente
-
-**Workflows Disponibles**:
-- `backend-tests.yml`: pytest (unit, integration, coverage ≥90%)
-- `frontend-tests.yml`: Vitest + TypeScript type-check
-- `e2e-tests.yml`: Playwright cross-browser testing (57 tests × 3 browsers)
-- `deploy-staging.yml`: Automated staging deployment
-
-**Documentación**: Ver [docs/CI_CD_GUIDE.md](docs/CI_CD_GUIDE.md) para guía completa
-
----
-
-### Opción B: Nueva Feature - Advanced Search & Filters
-
-**Prioridad**: Media
-**Estimación**: 3-4 días
-**Branch**: Nueva desde develop
-
-**Objetivo**:
-Implementar búsqueda global de viajes con filtros avanzados y mapa de clustering.
-
-**Recomendación**: Comenzar después de validar CI/CD en staging
-
----
-
-### Opción C: Deployment a Staging
-
-**Prioridad**: Alta
-**Estimación**: 2-4 horas
-**Branch**: develop
-
-**Objetivo**:
-Realizar primer deployment a staging para validación real con usuarios.
-
-**Recomendación**: Ejecutar después de configurar CI/CD (Opción A)
-
----
-
-## Roadmap Técnico 🗺️
-
-### Fase 1: Estabilización (COMPLETADA) ✅
-**Objetivo**: Proyecto production-ready
-
-1. ✅ **Issue #012**: TypeScript Code Quality
-   - Estado: 100% completado (25/25 errors resueltos)
-   - Resultado: Production builds funcionando
-
-2. ✅ **Testing/QA Suite** (Feature 001-testing-qa)
-   - Estado: 98.6% completado (72/73 tasks)
-   - Entrega: Suite automatizada completa (smoke, integration, E2E, performance)
-
-3. ✅ **CI/CD Pipeline**
-   - Estado: 100% completado
-   - Entrega: 4 GitHub Actions workflows implementados
-
-**Resultado**: ✅ Base sólida lista para deployment a staging/production
-
----
-
-### Fase 2: Activación y Validación (ACTUAL) 🎯
-**Objetivo**: Poner en marcha infraestructura de calidad
-
-1. **Configuración CI/CD en GitHub**
-   - Estado: Pendiente
-   - Prioridad: Alta
-   - Acción: Configurar secrets, environments, branch protection
-
-2. **Deployment a Staging**
-   - Estado: Pendiente
-   - Prioridad: Alta
-   - Acción: Primer deployment real para validación
-
-3. **Validación con Usuarios Reales**
-   - Estado: Pendiente
-   - Prioridad: Media
-   - Acción: Testing beta con usuarios seleccionados
-
-**Resultado**: Infraestructura de calidad activa y validada
-
----
-
-### Fase 3: Expansión Controlada (FUTURO)
-
-#### Feature 012: Advanced Search & Filters
-- **Prioridad**: Media
-- **Estimación**: 3-4 días
-- Búsqueda global de viajes
-- Filtros avanzados (distancia, dificultad, tags)
-- Mapa global con clustering
-
-#### Feature 004: Social Features - Remaining User Stories
-
-- **Prioridad**: Alta
-- **Estimación**: 13-17 horas (US4: 5-7h + US5: 8-10h)
-- **Status actual**: 3/5 User Stories completadas (60%)
-- 🔜 US4: Compartir viajes con comentario opcional
-- 🔜 US5: Notificaciones de interacciones sociales
-
-#### Feature 014: GPS Routes (Complejo)
-- **Prioridad**: Media-Alta
-- **Estimación**: 7-10 días
-- Upload y procesamiento GPX
-- Perfil de elevación interactivo
-- Estadísticas avanzadas
-- Análisis de rendimiento
-
----
-
-## Métricas de Progreso 📊
-
-### Features Completadas y Mergeadas (16/17) 🎉
-
-- ✅ 001-testing-qa: Testing & QA Suite (mergeada 2026-01-16)
-- ✅ 001: User Profiles Backend
-- ✅ 002: Travel Diary Backend
-- 🔄 003: GPS Routes Interactive (Phase 4/8 completada - MVP funcional) - **EN PROGRESO** (2026-01-21) - 50% completa
-- ✅ 004: Social Network (US1+US2+US3) - **MERGEADA** (2026-01-20) - 60% completa
-- ✅ 005: Frontend User Auth
-- ✅ 006: Dashboard Dinámico
-- ✅ 007: Gestión de Perfil
-- ✅ 008: Travel Diary Frontend
-- ✅ 009: GPS Coordinates Frontend
-- ✅ 010: Reverse Geocoding
-- ✅ 011: Frontend Deployment Integration
-- ✅ 012: TypeScript Code Quality
-- ✅ 013: Public Trips Feed (MVP Desktop)
-- ✅ 014: Landing Page Inspiradora
-- 🔄 015: Dashboard Redesign (Phase 3/7 completada) - **EN PROGRESO** (2026-01-21) - 43% completa
-
-### Features Parcialmente Completadas (Trabajo Futuro)
-
-- 🔜 004: Social Network - **US4/US5 pendientes** (US4: Compartir Viajes, US5: Notificaciones) - Estimación: 13-17 horas
-
-### Tasks Prioritarias
-
-- 🎯 **Opción A**: Continuar Feature 004 con US4-US5 (RECOMENDADO - 13-17 horas)
-- 🎯 **Opción B**: Merge Feature 004 a develop y comenzar nueva feature
-- ⏳ **Opción C**: Configurar CI/CD en GitHub (1-2 horas)
-- ⏳ **Opción D**: Deployment a Staging (2-4 horas)
-- ⏳ **Opción E**: Advanced Search & Filters (3-4 días)
-
-### Cobertura de Testing
-- **Backend Unit**: ~90% (pytest coverage)
-- **Backend Integration**: 43 tests (auth, profile, stats, trips, social)
-- **Frontend Unit**: ~60% (vitest - necesita mejora)
-- **E2E**: 57 tests × 3 browsers = 171 executions (Playwright)
-- **Performance**: 12 benchmarks + load testing (100+ concurrent users)
-- **Smoke Tests**: 4 deployment modes validados
-
-### Líneas de Código (estimado)
-- **Backend**: ~28,000 líneas (Python)
-- **Frontend**: ~25,000 líneas (TypeScript/React)
-- **Tests**: ~18,000 líneas
-- **Docs**: ~25,000 líneas
-- **Total**: ~96,000 líneas
-
----
-
-## Comandos Útiles 🛠️
-
-### Git Workflow
 ```bash
-# Ver estado
-git status
-git log --oneline -10
+# ✅ Feature 012 completo - 0 errores TypeScript
+npm run build:prod  # ✅ PASA - 37.53s build time
 
-# Continuar Issue #012
+# Resultados validados:
+# ✅ dist/ = ~1.06 MB total (< 1.2MB target)
+# ✅ Assets gzipped = ~360 KB (~400KB target)
+# ✅ Build time = 37.53s (< 60s target)
+# ✅ 0 TypeScript errors
+# ✅ 66% size reduction (>60% target)
+```
+
+**T068-T070**: ✅ **COMPLETADOS** - Documentación final
+
+- [x] T068: Actualizar CLAUDE.md con comandos de deployment
+- [x] T069: Crear deployment troubleshooting guide
+- [x] T070: Update NEXT_STEPS.md
+
+#### Criterios de Aceptación Feature 011
+
+- [x] Build de producción completa sin errores (✅ 0 TypeScript errors)
+- [x] Build size reducido ≥60% (✅ 66% reduction - ~360KB gzipped)
+- [ ] Los 4 modos de deployment validados (⏳ T063 - requiere validación manual del usuario)
+- [x] Documentación actualizada (✅ T068-T070 completados)
+
+---
+
+### Feature 015: GPX Wizard Integration
+
+**Branch**: `015-gpx-wizard-integration` (a crear)
+
+**Estado**: ⏸️ **No iniciado** - Especificación completa
+
+**Prioridad**: 🔴 **Alta** (UX Enhancement)
+
+**Tiempo estimado**: 4-8 horas (0.5-1 día)
+
+**Bloqueadores**: Ninguno
+
+#### Descripción Feature 015
+
+Modal post-creación que aparece inmediatamente después de crear un trip, solicitando al usuario subir un archivo GPX sin necesidad de navegar a otra página.
+
+#### Beneficios Feature 015
+
+- ✅ Mejora discoverability del GPX upload
+- ✅ Flujo unificado (crear trip → subir GPX)
+- ✅ No extiende el wizard (mantiene 4 pasos)
+- ✅ Frontend-only (sin cambios backend)
+- ✅ Reutiliza componente GPXUploader existente
+
+#### Implementación Feature 015 (50 tareas)
+
+**Phase 1: Setup** (4 tareas)
+
+- [ ] T001: Crear branch desde develop
+- [ ] T002: Crear archivos de componente base
+- [ ] T003: Actualizar tipos TypeScript
+- [ ] T004: Preparar estructura de tests
+
+**Phase 2: Component Creation** (18 tareas - TDD)
+
+- [ ] T005-T012: Tests unitarios (escribir PRIMERO)
+- [ ] T013: Crear PostCreationGPXModal component
+- [ ] T014: Crear PostCreationGPXModal.css
+- [ ] T015: Implementar estado prompt (botones)
+- [ ] T016: Implementar estado upload (GPXUploader)
+- [ ] T017: Agregar loading states
+- [ ] T018: Agregar error handling
+- [ ] T019-T022: Accessibility (ARIA, keyboard nav)
+
+**Phase 3: State Management** (5 tareas)
+
+- [ ] T023: Modificar useTripForm hook
+- [ ] T024: Agregar showGPXModal state
+- [ ] T025: Agregar createdTripId state
+- [ ] T026: Implementar handleGPXModalClose
+- [ ] T027: Modificar handleSubmit (mostrar modal en lugar de navigate)
+
+**Phase 4: UI Integration** (3 tareas)
+
+- [ ] T028: Integrar modal en TripCreatePage
+- [ ] T029: Conectar props y callbacks
+- [ ] T030: Verificar flujo completo
+
+**Phase 5: E2E Testing** (6 tareas - manual)
+
+- [ ] T031: Test - Upload GPX exitoso
+- [ ] T032: Test - Skip GPX upload
+- [ ] T033: Test - Error handling
+- [ ] T034: Test - ESC key y overlay click
+- [ ] T035: Test - Mobile responsive
+- [ ] T036: Test - Edit mode (modal NO debe aparecer)
+
+**Phase 6: Accessibility** (4 tareas)
+
+- [ ] T037: Verificar ARIA labels
+- [ ] T038: Test keyboard navigation
+- [ ] T039: Test screen reader
+- [ ] T040: Verificar touch targets (≥44px móvil)
+
+**Phase 7: Documentation** (5 tareas)
+
+- [ ] T041: Actualizar CLAUDE.md
+- [ ] T042: Crear TESTING_GUIDE.md
+- [ ] T043: Actualizar tasks.md con resultados
+- [ ] T044: Actualizar README.md
+- [ ] T045: Crear TROUBLESHOOTING.md
+
+**Phase 8: Pull Request** (5 tareas)
+
+- [ ] T046: Code review self-check
+- [ ] T047: Crear PR con descripción completa
+- [ ] T048: Request peer review
+- [ ] T049: Address feedback
+- [ ] T050: Merge a develop
+
+#### Arquitectura Técnica Feature 015
+
+```typescript
+// State Flow
+TripCreatePage
+  └─ TripFormWizard
+       └─ PostCreationGPXModal (nuevo)
+            ├─ Prompt State: "¿Agregar ruta GPX?" + botones
+            └─ Upload State: <GPXUploader /> (reusado)
+
+// useTripForm.ts
+const [showGPXModal, setShowGPXModal] = useState(false);
+const [createdTripId, setCreatedTripId] = useState<string | null>(null);
+
+// Después de crear trip exitosamente
+setCreatedTripId(trip.trip_id);
+setShowGPXModal(true);  // En lugar de navigate()
+
+// Modal close handler
+const handleGPXModalClose = () => {
+  setShowGPXModal(false);
+  navigate(`/trips/${createdTripId}`);
+};
+```
+
+#### Recursos Feature 015
+
+- **Especificación**: `specs/015-gpx-wizard-integration/spec.md`
+- **Plan técnico**: `specs/015-gpx-wizard-integration/plan.md`
+- **Tasks detalladas**: `specs/015-gpx-wizard-integration/tasks.md`
+- **Quick Start**: `specs/015-gpx-wizard-integration/README.md`
+
+#### Criterios de Aceptación Feature 015
+
+- [ ] Modal aparece automáticamente después de crear trip
+- [ ] Usuario puede subir GPX o skip con 1 click
+- [ ] GPXUploader funciona idénticamente dentro del modal
+- [ ] Navegación correcta después de upload/skip
+- [ ] Accessibility WCAG 2.1 AA compliant
+- [ ] Mobile responsive (≥44px touch targets)
+- [ ] Tests unitarios ≥90% coverage
+
+---
+
+## 🟡 PRIORIDAD MEDIA
+
+### Feature 016: Complete Deployment Documentation
+
+**Branch**: `016-deployment-docs-completion` (specs creadas)
+
+**Estado**: 🔄 **31% completo** (9/29 tareas)
+
+**Prioridad**: 🟡 **Media** (documentación & DX)
+
+**Tiempo restante**: 5-8 días (1-1.5 semanas)
+
+**Bloqueadores**: Ninguno
+
+#### Descripción Feature 016
+
+Completar la consolidación de documentación de deployment iniciada el 2026-01-25. Unifica 10+ archivos dispersos en un directorio `docs/deployment/` con estructura consistente.
+
+#### Estado Actual Feature 016
+
+**Completado**:
+
+- ✅ Phase 1 (Base Structure): 100% - README.md con decision tree
+- ✅ Phase 2 (Document Modes): 44% - 4/9 modos (local-dev, local-minimal, local-full, local-prod)
+- ✅ Phase 5 (Update References): 100% - CLAUDE.md, scripts, GitHub actualizados
+
+**Documentación creada**: ~4,214 líneas en 4 archivos de modos locales
+
+**Pendiente**:
+
+- ⏳ Phase 2 (Document Modes): 56% - 5 modos server pendientes
+- ⏳ Phase 3 (Create Guides): 0% - 7 guías cross-cutting
+- ⏳ Phase 4 (Archive): 0% - Archivar docs antiguos
+- ⏳ Phase 6 (Validation): 0% - Validación final
+
+#### Tareas Pendientes Feature 016 (20 de 29)
+
+**Phase 2: Document Modes** (5 tareas - T008-T012)
+
+```bash
+# Server modes (dev, staging, prod, preproduction, test)
+# Plantilla: 8 secciones (Overview → Related Modes)
+# Fuente: backend/docs/DEPLOYMENT.md
+
+T008 - modes/dev.md              # Development server
+T009 - modes/staging.md          # Pre-production
+T010 - modes/prod.md             # Production
+T011 - modes/preproduction.md    # CI/CD
+T012 - modes/test.md             # Automated testing
+```
+
+**Phase 3: Create Guides** ⭐ **HIGHEST PRIORITY** (7 tareas - T013-T019)
+
+```bash
+# Cross-cutting guides (mayor valor para developers)
+
+T013 - guides/getting-started.md        # Universal onboarding ⭐ START HERE
+T014 - guides/environment-variables.md  # Consolidar ENVIRONMENTS.md
+T015 - guides/troubleshooting.md        # Common problems ⭐ HIGH PRIORITY
+T016 - guides/docker-compose-guide.md   # Compose patterns
+T017 - guides/frontend-deployment.md    # Frontend-specific
+T018 - guides/database-management.md    # DB operations
+T019 - guides/production-checklist.md   # Pre-deploy checklist
+```
+
+**Phase 4: Archive** (4 tareas - T020-T023)
+
+```bash
+T020 - Archive QUICK_START.md → archive/
+T021 - Archive DEPLOYMENT.md → archive/
+T022 - Archive ENVIRONMENTS.md → archive/
+T023 - Create redirects to new docs
+```
+
+**Phase 6: Validation** (4 tareas - T028-T031)
+
+```bash
+T028 - Test navigation flow (all links work)
+T029 - Verify commands work (copy-paste validation)
+T030 - Test search/discoverability (find docs easily)
+T031 - Peer review (at least 1 reviewer approval)
+```
+
+#### Estrategia de Implementación Feature 016
+
+**Orden recomendado**:
+
+1. **T013-T015**: Guides (getting-started, troubleshooting, environment-variables) - Highest value
+2. **T008-T012**: Server modes - Completar documentación de modos
+3. **T016-T019**: Remaining guides - Completar guías
+4. **T020-T023**: Archive old docs - Cleanup
+5. **T028-T031**: Validation - Final checks
+
+**Parallel work** (si hay 2 developers):
+
+- Developer A: Phase 3 (Guides) - 2-3 días
+- Developer B: Phase 2 (Modes) - 2-3 días
+- Both: Phase 4 + 6 together - 2 días
+
+#### Templates to Follow Feature 016
+
+**Para Modes** (`modes/*.md`):
+
+```markdown
+# [Mode Name] Deployment
+
+## Overview
+- When to use this mode
+- Typical use cases
+
+## Prerequisites
+- Required software
+- Minimum hardware
+
+## Quick Start
+- Commands to get running
+- Access URLs
+- Default credentials
+
+## Configuration
+- Environment variables
+- docker-compose.yml reference
+
+## Usage
+- Common commands
+- Typical workflows
+
+## Architecture
+- Stack components
+- Ports and networking
+
+## Troubleshooting
+- Common problems
+- Solutions
+
+## Related Modes
+- Progression path
+- Links to related modes
+```
+
+**Para Guides** (`guides/*.md`):
+
+```markdown
+# [Guide Title]
+
+## Purpose
+- What this guide covers
+- Who should read it
+
+## [Section 1]
+- Content organized by topic
+
+## [Section 2]
+- Use tables, code blocks, lists
+
+## Common Pitfalls
+- What to avoid
+
+## See Also
+- Links to related modes/guides
+```
+
+#### Quality Checklist Feature 016
+
+**Para Modes**:
+
+- [ ] Follows 8-section template
+- [ ] All commands tested
+- [ ] URLs verified (ports, endpoints)
+- [ ] Troubleshooting section has ≥3 issues
+- [ ] Related Modes section links ≥2 modes
+
+**Para Guides**:
+
+- [ ] Clear purpose statement
+- [ ] Organized by topic
+- [ ] Examples for all commands
+- [ ] Links to relevant modes
+- [ ] "See Also" section at end
+
+**General**:
+
+- [ ] English language (no Spanish)
+- [ ] Professional tone (concise, example-driven)
+- [ ] Markdown lint clean
+- [ ] Links relative (no absolute paths)
+
+#### Recursos Feature 016
+
+- **Especificación**: `specs/016-deployment-docs-completion/spec.md`
+- **Tasks**: `specs/016-deployment-docs-completion/tasks.md`
+- **Quick Start**: `specs/016-deployment-docs-completion/README.md`
+- **Migration Plan**: `docs/deployment/MIGRATION_PLAN.md`
+- **Master Index**: `docs/deployment/README.md`
+
+#### Criterios de Aceptación Feature 016
+
+- [ ] 17 archivos de documentación (9 modes + 7 guides + 1 README)
+- [ ] ~12,000 líneas de documentación en inglés
+- [ ] 100% template compliance
+- [ ] Zero broken links
+- [ ] Peer review approval
+
+---
+
+### Feature 014: Landing Page Inspiradora - Polish & Validation
+
+**Branch**: `014-landing-page-inspiradora` (merged a develop)
+
+**Estado**: 🔄 **62% completo** (44/71 tareas)
+
+**Prioridad**: 🟡 **Media** (polish para producción)
+
+**Tiempo restante**: 1-2 días
+
+**Bloqueadores**: Ninguno
+
+#### Descripción Feature 014
+
+Completar Phase 8 (Polish & Cross-Cutting Concerns) para tener la landing page lista para producción.
+
+#### Estado Actual Feature 014
+
+**Completado**:
+
+- ✅ Setup (Phase 1): 8/8 tareas
+- ✅ Foundational (Phase 2): 3/3 tareas
+- ✅ User Story 1 (Hero + Manifesto): 12/12 tareas
+- ✅ User Story 2 (Value Pillars): 5/5 tareas
+- ✅ User Story 3 (How It Works): 5/5 tareas
+- ✅ User Story 4 (CTA): 6/6 tareas
+- ✅ User Story 5 (Footer): 5/5 tareas
+
+**Tests**: 172/172 unit tests passing (100% coverage)
+
+#### Tareas Pendientes Feature 014: Phase 8 - Polish (27 tareas)
+
+**1. Responsive Design & Accessibility** (6 tareas)
+
+```bash
+T045 - Probar/refinar estilos móviles (< 768px)
+T046 - Probar/refinar estilos tablet (768-1024px)
+T047 - Verificar contraste WCAG AA
+       # terracota: 4.8:1, verde bosque: 15.2:1, gris carbón: 9.7:1
+T048 - Agregar ARIA labels y HTML semántico
+T049 - Verificar navegación por teclado (Tab, Enter)
+T050 - Agregar alt text a todas las imágenes
+```
+
+**2. Performance Optimization** (5 tareas)
+
+```bash
+T051 - Lighthouse audit
+       # Target: LCP < 2.5s, FID < 100ms, CLS < 0.1
+T052 - Analizar bundle size (< 500KB inicial)
+T053 - Lazy loading para imágenes below-the-fold
+T054 - Preload fuentes críticas (Playfair Display)
+T055 - Verificar hero image WebP + JPG fallback
+```
+
+**3. Cross-Browser Testing** (6 tareas)
+
+```bash
+T056 - Chrome (últimas 2 versiones)
+T057 - Firefox (últimas 2 versiones)
+T058 - Safari macOS (últimas 2 versiones)
+T059 - Edge (últimas 2 versiones)
+T060 - Safari iOS (dispositivo real)
+T061 - Chrome Android (dispositivo real)
+```
+
+**4. E2E Testing** (2 tareas)
+
+```bash
+T062 - Test E2E: authenticated user auto-redirect
+T063 - Test E2E: mobile responsive behavior
+```
+
+**5. SEO & Meta Tags** (2 tareas - 1 completa)
+
+```bash
+✅ T064 - Verificar meta tags presentes
+T065 - Probar Open Graph con Facebook Sharing Debugger
+✅ T066 - Verificar jerarquía HTML (h1 → h2 → h3)
+```
+
+**6. Validación Final** (5 tareas - 2 completas)
+
+```bash
+✅ T067 - Tests unitarios ≥90% coverage (172/172 passing, 100%)
+T068 - Tests E2E passing
+T069 - Ejecutar quickstart.md scenarios
+T070 - Verificar PublicFeedPage funciona en /trips/public
+✅ T071 - Actualizar CHANGELOG.md
+```
+
+#### Priorización Recomendada Feature 014
+
+**Alta prioridad** (debe hacerse antes de merge):
+
+- T045, T046: Responsive testing
+- T047, T048: Accessibility WCAG AA
+- T051: Lighthouse audit
+- T062, T063, T068: E2E tests
+
+**Media prioridad** (nice-to-have):
+
+- T053, T054, T055: Performance optimizations
+- T056-T061: Cross-browser testing (puede hacerse post-merge)
+- T065: Open Graph preview
+
+#### Criterios de Aceptación Feature 014
+
+- [ ] Responsive design validado (móvil, tablet, desktop)
+- [ ] WCAG 2.1 AA compliant
+- [ ] Lighthouse score ≥90 (Performance, Accessibility, Best Practices)
+- [ ] Tests E2E passing
+- [ ] Cross-browser compatible (Chrome, Firefox, Safari, Edge)
+
+---
+
+## 🟢 PRIORIDAD BAJA
+
+### Feature 006: Dashboard Dinámico
+
+**Branch**: `006-dashboard-dynamic` (a crear)
+
+**Estado**: ⏸️ **No iniciado** (0/72 tareas)
+
+**Prioridad**: 🟢 **Baja** (nueva funcionalidad)
+
+**Tiempo estimado**: 3-4 días
+
+**Bloqueadores**: Ninguno
+
+#### Descripción Feature 006
+
+Dashboard personalizable con stats cards, recent trips, quick actions, welcome banner y activity feed.
+
+#### Tareas Feature 006 (72 total)
+
+**MVP Recomendado** (44 tareas):
+
+1. **Phase 1: Setup** (5 tareas)
+   - Crear estructura de directorios
+   - Crear utils para formatters
+
+2. **Phase 2: Foundational** (9 tareas) - **CRÍTICO**
+   - Definir interfaces TypeScript
+   - Implementar formatters
+   - Crear SkeletonLoader component
+
+3. **Phase 3: FR-001 Stats Cards** (11 tareas) 🎯
+   - StatsCard component (viajes, distancia, países, seguidores)
+   - Integrar API `/api/stats/me`
+   - Diseño rústico con estados de carga/error
+
+4. **Phase 4: FR-002 Recent Trips** (12 tareas)
+   - RecentTripCard (últimos 3-5 viajes)
+   - Lazy loading de imágenes
+   - Estado vacío
+
+5. **Phase 5: FR-004 Quick Actions** (7 tareas)
+   - 4 botones: Crear, Ver Perfil, Explorar, Editar
+   - Grid responsive (2x2 móvil)
+
+**Opcional** (28 tareas):
+
+- Phase 6: FR-005 Welcome Banner (6 tareas)
+- Phase 7: FR-003 Activity Feed (13 tareas - requiere backend)
+- Phase 8: Polish (9 tareas)
+
+#### Estrategia de Implementación Feature 006
+
+```bash
+# Orden recomendado
+1. Setup + Foundational (T001-T014) → Base lista
+2. FR-001 Stats Cards (T015-T025) → Primera funcionalidad
+3. FR-002 Recent Trips (T026-T037) → Contenido enriquecido
+4. FR-004 Quick Actions (T038-T044) → Navegación rápida
+# PARAR → Validar MVP funcional
+5. Polish si hay tiempo
+```
+
+#### Recursos Feature 006
+
+- **Tasks**: `specs/006-dashboard-dynamic/tasks.md`
+- **Plan**: `specs/006-dashboard-dynamic/plan.md`
+
+---
+
+### Feature 004: Async GPX Processing con Celery + Redis
+
+**Branch**: `004-celery-async-tasks` (specs completas)
+
+**Estado**: ⏸️ **No iniciado** (specs completas)
+
+**Prioridad**: 🟢 **Baja** (performance optimization)
+
+**Tiempo estimado**: 2-3 días
+
+**Bloqueadores**: Ninguno
+
+#### Descripción Feature 004
+
+Agregar cola de tareas distribuida (Celery + Redis) para procesamiento asíncrono de archivos GPX grandes (>5MB).
+
+#### Motivación Feature 004
+
+**Actual**:
+
+- Files ≤1MB: Procesamiento sincrónico (~1-2s)
+- Files >1MB: FastAPI BackgroundTasks (~7-8s)
+- Limitaciones: No persistence, no retry, no scaling, no monitoring
+
+**Propuesto**:
+
+- Files ≤5MB: Continue usando BackgroundTasks
+- Files >5MB: Procesar con Celery workers
+- Beneficios: Horizontal scaling, persistence, retries, monitoring (Flower)
+
+#### Implementación Feature 004 (7 fases según plan)
+
+**Phase 1: Dependencies & Configuration** (~2 horas)
+
+- Agregar Celery + Redis a `pyproject.toml`
+- Configurar `config.py` con variables Celery
+- Crear `.env` variables
+
+**Phase 2: Celery Application** (~3 horas)
+
+- Crear `backend/src/celery_app.py`
+- Configurar broker, backend, serialization
+
+**Phase 3: GPX Processing Task** (~4 horas)
+
+- Crear `backend/src/tasks/gpx_tasks.py`
+- Implementar `process_gpx_file_async` task
+- Base64 encoding para JSON serialization
+- Retry policy (max 3 attempts, exponential backoff)
+
+**Phase 4: Update Upload Endpoint** (~2 horas)
+
+- Modificar `backend/src/api/trips.py`
+- Routing logic: >5MB → Celery, ≤5MB → BackgroundTasks
+- Backward compatible (testing mode usa BackgroundTasks)
+
+**Phase 5: Docker Infrastructure** (~3 horas)
+
+- Agregar Redis service a docker-compose
+- Agregar celery_worker service
+- Agregar flower monitoring service
+- Escalado en producción (autoscale 2-10 workers)
+
+**Phase 6: Testing** (~4 hours)
+
+- Unit tests: `test_gpx_tasks.py`
+- Integration test: Files >5MB usan Celery
+- Manual testing con Flower UI
+
+**Phase 7: Deployment & Rollout** (~2 horas)
+
+- Phased rollout (staging → 10% → 100%)
+- Monitoring con Flower
+- Tune worker concurrency
+
+#### Recursos Feature 004
+
+- **Especificación**: `specs/004-celery-async-tasks/spec.md`
+- **Plan**: Plan disponible en claude plan file (ver system reminder)
+
+#### Criterios de Aceptación Feature 004
+
+- [ ] Files >5MB procesados asíncronomente con Celery
+- [ ] Files ≤5MB continúan usando BackgroundTasks
+- [ ] Tasks retry automáticamente (max 3 intentos)
+- [ ] Monitoring vía Flower UI
+- [ ] Horizontal scaling funcional (múltiples workers)
+
+---
+
+## 📊 Tracking de Progreso
+
+### Features en Desarrollo
+
+| Feature | Branch | Estado | Próximo Hito |
+| ------- | ------ | ------ | ------------ |
+| 012-typescript-code-quality | `012-typescript-code-quality` | 74% | Session 5: Cleanup unused vars |
+| 011-frontend-deployment | develop | 96% | T067 (blocked by 012) |
+| 015-gpx-wizard-integration | N/A | 0% | Phase 1: Setup |
+| 016-deployment-docs | N/A | 31% | T013: getting-started.md |
+| 014-landing-page | develop | 62% | Phase 8: Polish |
+| 006-dashboard-dynamic | N/A | 0% | Phase 1: Setup |
+| 004-celery-async-tasks | N/A | 0% | Phase 1: Dependencies |
+
+### Orden de Trabajo Recomendado
+
+**Sprint 1** (1-2 días):
+
+1. ✅ Feature 012 (Session 5-6) → 25 errores → 0 errores
+2. ✅ Feature 011 (T063, T067) → 96% → 100%
+3. 🔄 Feature 015 (Phases 1-4) → 0% → MVP (upload modal funcional)
+
+**Sprint 2** (3-5 días):
+
+1. Feature 015 (Phases 5-8) → MVP → 100% (testing + docs)
+2. Feature 016 (Phase 3 - T013-T015) → 31% → 50% (core guides)
+3. Feature 014 (Phase 8 - T045-T051) → 62% → 80% (responsive + perf)
+
+**Sprint 3** (1 semana):
+
+1. Feature 016 (Phases 2, 4, 6) → 50% → 100% (complete docs)
+2. Feature 014 (Phase 8 - remaining) → 80% → 100% (cross-browser + E2E)
+
+**Futuro** (según prioridad de negocio):
+
+- Feature 006 (Dashboard Dinámico) - 3-4 días
+- Feature 004 (Celery + Redis) - 2-3 días
+
+---
+
+## 🎯 Métricas de Éxito
+
+### Coverage Targets
+
+- Backend Unit: ≥90% (actual: ~90% ✅)
+- Frontend Unit: ≥80% (actual: variable por feature)
+- E2E Tests: ≥85% coverage (actual: 72.7%)
+- Integration Tests: 111/156 passing (71%)
+
+### Build Targets
+
+- TypeScript: 0 errors (actual: 25 en Feature 012)
+- Production Build: < 1.2MB (blocked by Feature 012)
+- Build Time: < 60s (SC-001)
+
+### Documentation Targets
+
+- Deployment Docs: 17 archivos, ~12,000 líneas (actual: 31%)
+- API Docs: Swagger up-to-date ✅
+- Feature Specs: 100% features tienen spec.md ✅
+
+---
+
+## 🔗 Recursos Clave
+
+### Comandos Rápidos
+
+```bash
+# Feature 012: TypeScript fixes
 git checkout 012-typescript-code-quality
-git pull origin 012-typescript-code-quality
-
-# O empezar Testing/QA
-git checkout develop
-git checkout -b testing-qa-suite
-```
-
-### Deployment Local
-```bash
-# SQLite Local (más rápido - desarrollo diario)
-./run-local-dev.sh                    # Linux/Mac
-.\run-local-dev.ps1                   # Windows
-
-# Docker Minimal (PostgreSQL testing)
-./deploy.sh local-minimal             # Linux/Mac
-.\deploy.ps1 local-minimal            # Windows
-
-# Docker Full (todos los servicios)
-./deploy.sh local --with-frontend     # Linux/Mac
-.\deploy.ps1 local -WithFrontend      # Windows
-```
-
-### Frontend Development
-```bash
-cd frontend
-
-# Type checking
 npm run type-check
-
-# Development
-npm run dev
-
-# Production build
 npm run build:prod
 
-# Tests
+# Feature 011: Deployment validation
+./deploy.sh local --with-frontend
+npm run build:prod
+
+# Feature 015: GPX Wizard (nuevo)
+git checkout -b 015-gpx-wizard-integration
+# Seguir specs/015-gpx-wizard-integration/tasks.md
+
+# Feature 016: Docs (nuevo)
+# Seguir specs/016-deployment-docs-completion/README.md
+
+# Feature 014: Landing page polish
+git checkout 014-landing-page-inspiradora
 npm run test
-npm run test:coverage
+npm run dev
 ```
 
-### Backend Development
-```bash
-cd backend
+### Documentación
 
-# Setup completo (primera vez)
-./run-local-dev.sh --setup
-
-# Servidor de desarrollo
-poetry run uvicorn src.main:app --reload
-
-# Tests
-poetry run pytest --cov=src
-```
-
----
-
-## Recursos Clave 📚
-
-### Documentación Principal
 - **CLAUDE.md**: Guía principal del proyecto
-- **QUICK_START.md**: Deployment rápido (4 modos)
-- **docs/LOCAL_DEV_GUIDE.md**: Desarrollo local detallado
-- **frontend/DEPLOYMENT_TESTING.md**: Smoke tests checklist
+- **QUICK_START.md**: Deployment rápido
+- **docs/deployment/README.md**: Master index de deployment
+- **specs/**: Todas las especificaciones de features
 
-### Especificaciones de Features
-- **specs/011-frontend-deployment/**: Deployment integration (latest)
-- **specs/012-typescript-code-quality/**: TypeScript fixes (active)
-- **specs/010-reverse-geocoding/**: Reverse geocoding (completed)
-- **specs/009-gps-coordinates/**: GPS coordinates (completed)
-- **specs/008-travel-diary-frontend/**: Travel diary (completed)
+### URLs de Desarrollo
 
-### APIs Backend
-- **Swagger Docs**: http://localhost:8000/docs
-- **Auth**: `/api/auth/*`
-- **Profile**: `/api/profile/*`
-- **Stats**: `/api/stats/*`
-- **Trips**: `/api/trips/*`
-
-### Access URLs (Local Development)
-- **Frontend Dev**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-- **MailHog UI**: http://localhost:8025 (Docker Full)
-- **pgAdmin**: http://localhost:5050 (Docker Full)
+- Frontend Dev: <http://localhost:5173>
+- Backend API: <http://localhost:8000>
+- API Docs: <http://localhost:8000/docs>
+- Flower (Celery): <http://localhost:5555> (Feature 004)
 
 ---
 
-## Decisiones Técnicas Recientes 📋
+**Última actualización**: 2026-01-28
 
-### Feature 011 (Frontend Deployment)
-- ✅ Multi-file Docker Compose overlay pattern
-- ✅ Auto-generation of environment configs
-- ✅ Cross-platform scripts (bash + PowerShell)
-- ✅ Vite proxy for API calls (no CORS issues)
-- ✅ Terser + chunking for production builds
-- ✅ Nginx serving with gzip + security headers
+**Próxima revisión**: Después de completar Feature 012
 
-### Issue #012 (TypeScript)
-- ✅ Incremental fixing approach (sessions)
-- ✅ Prioritize critical errors (block build) first
-- ✅ Document progress for continuity
-- ⏸️ Keep strict type checking enabled (no workarounds)
-
-### Testing Strategy (Pendiente)
-- [ ] Smoke tests for all deployment modes
-- [ ] Integration tests for critical paths
-- [ ] Performance benchmarks
-- [ ] CI/CD with GitHub Actions
-
----
-
-## Estado del Proyecto 🚀
-
-**Production Ready**: ✅ 95% (infraestructura completa, pendiente activación)
-
-### Listo para Producción ✅
-- ✅ Backend API completo y testeado (90% coverage)
-- ✅ Frontend features completas (13 features)
-- ✅ 4 deployment modes funcionales y validados
-- ✅ TypeScript code quality: 0 errors
-- ✅ Testing/QA suite automatizada:
-  - 43 integration tests (backend)
-  - 171 E2E executions (57 tests × 3 browsers)
-  - 12 performance benchmarks
-  - 4 smoke tests (deployment modes)
-- ✅ CI/CD pipeline implementado (4 workflows)
-- ✅ Documentación comprehensiva (3 guías de testing + deployment)
-- ✅ Security review passed
-
-### Pendiente para Producción ⏸️
-- ⏸️ Configurar GitHub Secrets (CI/CD activation)
-- ⏸️ Configurar GitHub Environments (staging/production)
-- ⏸️ Habilitar Branch Protection Rules
-- ⏸️ Deployment inicial a staging
-- ⏸️ Validación con usuarios beta
-
----
-
-**Siguiente Acción Recomendada**: Configurar CI/CD en GitHub (Opción A) para activar los workflows automatizados ya implementados, luego realizar deployment a staging para validación real.
-
-**Prioridad Máxima**: Activación > Validación > Expansión
-
-El proyecto tiene una **base sólida con 13 features completadas** (incluyendo Feature 001 Testing & QA Suite recientemente mergeada el 2026-01-16). La infraestructura de calidad está **100% implementada** y lista para activarse. Próximo paso: configurar GitHub para aprovechar los workflows automatizados y realizar primer deployment a staging.
+**Mantenedor**: Claude Code

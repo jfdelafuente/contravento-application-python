@@ -13,6 +13,18 @@ import { PublicTripListResponse } from '../../src/types/trip';
 // Mock the tripService
 vi.mock('../../src/services/tripService');
 
+// Mock useAuth hook
+vi.mock('../../src/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    isAuthenticated: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 // Mock useNavigate from react-router-dom
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {

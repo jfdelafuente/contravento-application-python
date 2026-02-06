@@ -10,6 +10,7 @@ import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Date,
     DateTime,
@@ -45,6 +46,7 @@ class TripDifficulty(str, enum.Enum):
     MODERATE = "moderate"  # Moderada
     DIFFICULT = "difficult"  # Difícil
     VERY_DIFFICULT = "very_difficult"  # Muy Difícil
+    EXTREME = "extreme"  # Extrema
 
 
 class Trip(Base):
@@ -79,6 +81,7 @@ class Trip(Base):
         Enum(TripDifficulty, native_enum=False, length=20),
         nullable=True,
     )
+    is_private = Column(Boolean, nullable=False, default=False)
 
     # Metadata
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))

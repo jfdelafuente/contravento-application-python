@@ -55,7 +55,8 @@ class RouteStatistics(Base):
     - Automatically deleted when parent GPXFile is deleted (CASCADE)
 
     Validation rules:
-    - avg_speed_kmh, max_speed_kmh: < 100 km/h (cycling realistic speeds)
+    - avg_speed_kmh: < 100 km/h (cycling realistic average speeds)
+    - max_speed_kmh: < 200 km/h (allows for steep descents)
     - total_time_minutes >= moving_time_minutes
     - top_climbs: max 3 climbs, JSON array format
     """

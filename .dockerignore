@@ -27,6 +27,7 @@ coverage.xml
 .hypothesis/
 tests/
 backend/tests/
+backend/scripts/datos/
 frontend/tests/
 
 # Node.js
@@ -86,3 +87,5 @@ specs/
 
 # Misc
 LICENSE
+
+
