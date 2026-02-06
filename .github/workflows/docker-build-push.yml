@@ -106,9 +106,8 @@ jobs:
         run: |
           echo "Testing frontend image nginx config..."
           docker run --rm --name frontend-test \
-            --entrypoint nginx \
             jfdelafuente/contravento-frontend:latest \
-            -t && echo "✓ Frontend image is valid"
+            nginx -t && echo "✓ Frontend image is valid"
 
       - name: Push Backend Image to Docker Hub
         if: github.event_name != 'pull_request'

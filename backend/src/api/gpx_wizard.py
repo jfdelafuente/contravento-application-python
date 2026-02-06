@@ -574,11 +574,7 @@ async def create_trip_with_gpx(
                 # Fix floating-point precision issue: ensure moving_time <= total_time
                 moving_time = speed_metrics.get("moving_time_minutes")
                 total_time = speed_metrics.get("total_time_minutes")
-                if (
-                    moving_time is not None
-                    and total_time is not None
-                    and moving_time > total_time
-                ):
+                if moving_time is not None and total_time is not None and moving_time > total_time:
                     speed_metrics["moving_time_minutes"] = total_time
 
                 # Calculate weighted average gradient from distribution
