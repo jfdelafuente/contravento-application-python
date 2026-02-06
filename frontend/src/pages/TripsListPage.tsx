@@ -97,6 +97,14 @@ export const TripsListPage: React.FC = () => {
     goToPage(1);
   }, [targetUsername, goToPage]);
 
+  // Clear status and visibility filters when viewing other users' trips
+  useEffect(() => {
+    if (!isViewingOwnTrips) {
+      if (selectedStatus) setSelectedStatus(null);
+      if (selectedVisibility) setSelectedVisibility(null);
+    }
+  }, [isViewingOwnTrips, selectedStatus, selectedVisibility, setSelectedStatus, setSelectedVisibility]);
+
   // Get status counts for filter buttons (only when viewing own trips)
   const { allCount, publishedCount, draftCount, isLoading: countsLoading } = useTripStatusCounts({
     username: targetUsername,

@@ -133,11 +133,12 @@ export const getUserTrips = async (
   if (params?.offset) queryParams.append('offset', params.offset.toString());
 
   const url = `/users/${username}/trips${queryParams.toString() ? `?${queryParams}` : ''}`;
-  const response = await api.get<ApiResponse<TripListResponse>>(url);
+  const response = await api.get<ApiResponse<any>>(url);
 
+  // Backend returns 'count', but frontend type expects 'total'
   return {
     trips: response.data.data.trips,
-    total: response.data.data.total,
+    total: response.data.data.count || response.data.data.total || 0,
     limit: response.data.data.limit,
     offset: response.data.data.offset,
   };
