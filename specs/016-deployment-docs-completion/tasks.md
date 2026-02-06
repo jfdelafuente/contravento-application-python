@@ -258,33 +258,36 @@
 
 ---
 
-## Phase 4: Archive Old Documentation (0/4 Complete) ⏳
+## Phase 4: Archive Old Documentation ✅ COMPLETE
 
 **Purpose**: Preserve old docs and create redirects to prevent broken links
 
 ### Archive Old Files
 
-- [ ] T020 Archive `QUICK_START.md` → `docs/deployment/archive/v0.3.0-QUICK_START.md`
-  - Copy original file to archive with version prefix
-  - Add header: "Archived on 2026-01-28, Version v0.3.0"
-  - Preserve original formatting (no edits)
+- [✅] T020 Archive `QUICK_START.md` → `docs/deployment/archive/v0.3.0-QUICK_START.md`
+  - ✅ Copied original file to archive (1,098 lines)
+  - ✅ Preserved original formatting (no edits)
+  - **Completion**: 2026-01-28
 
-- [ ] T021 Archive `backend/docs/DEPLOYMENT.md` → `docs/deployment/archive/v0.3.0-DEPLOYMENT.md`
-  - Same process as T020
-  - Note: This is a large file (31,460+ chars), verify complete migration
+- [✅] T021 Archive `backend/docs/DEPLOYMENT.md` → `docs/deployment/archive/v0.3.0-DEPLOYMENT.md`
+  - ✅ Copied original file to archive (3,725 lines)
+  - ✅ Verified complete migration
+  - **Completion**: 2026-01-28
 
-- [ ] T022 Archive `backend/docs/ENVIRONMENTS.md` → `docs/deployment/archive/v0.3.0-ENVIRONMENTS.md`
-  - Same process as T020
+- [✅] T022 Archive `backend/docs/ENVIRONMENTS.md` → `docs/deployment/archive/v0.3.0-ENVIRONMENTS.md`
+  - ✅ Copied original file to archive
+  - **Completion**: 2026-01-28
 
 ### Create Redirects
 
-- [ ] T023 Replace original files with redirect documents
-  - Replace `QUICK_START.md` content with redirect to `docs/deployment/README.md`
-  - Replace `backend/docs/DEPLOYMENT.md` content with redirect
-  - Replace `backend/docs/ENVIRONMENTS.md` content with redirect to `docs/deployment/guides/environment-variables.md`
-  - Use standard redirect template (see spec.md FR-003)
+- [✅] T023 Replace original files with redirect documents
+  - ✅ Replaced `QUICK_START.md` with redirect to `docs/deployment/README.md`
+  - ✅ Replaced `backend/docs/DEPLOYMENT.md` with redirect to `docs/deployment/README.md`
+  - ✅ Replaced `backend/docs/ENVIRONMENTS.md` with redirect to `docs/deployment/guides/environment-variables.md`
+  - ✅ Used standard redirect template (FR-003)
+  - **Completion**: 2026-01-28
 
-**Checkpoint**: Phase 4 complete when old docs archived and redirects in place
+**Checkpoint**: ✅ Old docs archived and redirects in place (2026-01-28)
 
 **Estimated Effort**: 1 day (verification-heavy, ensure no data loss)
 
@@ -429,12 +432,11 @@
 
 ## Total Tasks: 29 tasks across 6 phases
 
-**Current Status**: 21/29 (72%) ✅
+**Current Status**: 25/29 (86%) ✅
 
-**Remaining Work**: 8 tasks
-- Phase 4: 4 tasks (archive + redirects) ⭐ **HIGHEST PRIORITY**
-- Phase 6: 4 tasks (validation)
+**Remaining Work**: 4 tasks
+- Phase 6: 4 tasks (validation) ⭐ **HIGHEST PRIORITY**
 
-**Estimated Remaining Effort**: 1 day
+**Estimated Remaining Effort**: 0.5 days
 
-**Next Action**: Start Phase 4 (Archive Old Documentation) - T020 through T023
+**Next Action**: Start Phase 6 (Final Validation) - T028 through T031
