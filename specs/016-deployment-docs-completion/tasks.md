@@ -21,11 +21,11 @@
 |-------|-------|----------|---|----------|
 | Phase 1: Base Structure | 1 | 1 | 100% | ✅ DONE |
 | Phase 2: Document Modes | 9 | 4 | 44% | High |
-| Phase 3: Create Guides | 7 | 2 | 29% | **HIGHEST** |
+| Phase 3: Create Guides | 7 | 3 | 43% | **HIGHEST** |
 | Phase 4: Archive Old Docs | 4 | 0 | 0% | Medium |
 | Phase 5: Update References | 4 | 4 | 100% | ✅ DONE |
 | Phase 6: Final Validation | 4 | 0 | 0% | Low (last) |
-| **TOTAL** | **29** | **11** | **38%** | - |
+| **TOTAL** | **29** | **12** | **41%** | - |
 
 ---
 
@@ -161,7 +161,7 @@
 
 ### Technical Guides (Priority P2)
 
-- [ ] T014 Create `docs/deployment/guides/environment-variables.md` - Consolidate ENVIRONMENTS.md
+- [✅] T014 Create `docs/deployment/guides/environment-variables.md` - Consolidate ENVIRONMENTS.md ✅ COMPLETED (2026-02-06)
   - **Purpose**: Reference for all .env configuration options
   - **Content** (migrate from `backend/docs/ENVIRONMENTS.md`):
     - Variable categories: Database, Auth, Email, Storage, Frontend, Testing
@@ -169,6 +169,7 @@
     - Security warnings (SECRET_KEY must be 32+ chars, never commit .env files)
     - How to generate secrets: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
   - **Source**: `backend/docs/ENVIRONMENTS.md` (615 lines, español)
+  - **Created**: 1000+ lines, comprehensive reference with 8 variable categories, configuration by mode, security best practices, secret generation, common pitfalls
   - **Estimated Effort**: 3-4 hours (mostly translation + reorganization)
 
 - [ ] T016 Create `docs/deployment/guides/docker-compose-guide.md` - Docker Compose architecture
@@ -410,14 +411,14 @@
 
 ## Total Tasks: 29 tasks across 6 phases
 
-**Current Status**: 11/29 (38%) ✅
+**Current Status**: 12/29 (41%) ✅
 
-**Remaining Work**: 18 tasks
+**Remaining Work**: 17 tasks
 - Phase 2: 5 tasks (server modes)
-- Phase 3: 5 tasks (guides) ⭐ **HIGHEST PRIORITY**
+- Phase 3: 4 tasks (guides) ⭐ **HIGHEST PRIORITY**
 - Phase 4: 4 tasks (archive + redirects)
 - Phase 6: 4 tasks (validation)
 
 **Estimated Remaining Effort**: 5-8 days (1-1.5 weeks)
 
-**Next Action**: Continue Phase 3 (guides) - `guides/environment-variables.md` next (consolidate ENVIRONMENTS.md)
+**Next Action**: Continue Phase 3 (guides) - 4 remaining guides (docker-compose, frontend, database, production-checklist)
