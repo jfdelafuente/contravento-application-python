@@ -170,22 +170,24 @@ export const TripsListPage: React.FC = () => {
         )} */}
       </div>
 
-      {/* Filters */}
-      <TripFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedTag={selectedTag}
-        onTagSelect={setSelectedTag}
-        availableTags={availableTags}
-        selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
-        selectedVisibility={selectedVisibility}
-        onVisibilityChange={setSelectedVisibility}
-        showStatusFilter={showStatusFilter}
-        isLoading={tagsLoading}
-        statusCounts={{ all: allCount, published: publishedCount, draft: draftCount }}
-        countsLoading={countsLoading}
-      />
+      {/* Filters - only shown when viewing own trips */}
+      {isViewingOwnTrips && (
+        <TripFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedTag={selectedTag}
+          onTagSelect={setSelectedTag}
+          availableTags={availableTags}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedVisibility={selectedVisibility}
+          onVisibilityChange={setSelectedVisibility}
+          showStatusFilter={showStatusFilter}
+          isLoading={tagsLoading}
+          statusCounts={{ all: allCount, published: publishedCount, draft: draftCount }}
+          countsLoading={countsLoading}
+        />
+      )}
 
       {/* Results Summary with Sort Dropdown */}
       {!isLoading && (
