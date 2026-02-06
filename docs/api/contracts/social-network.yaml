@@ -1,0 +1,1056 @@
+openapi: 3.1.0
+info:
+  title: ContraVento Social Network API
+  version: 1.0.0
+  description: |
+    API for social interactions including feed, likes, comments, shares, and notifications.
+
+    **Feature**: 004-social-network
+    **Date**: 2026-01-16
+
+servers:
+  - url: http://localhost:8000
+    description: Development server (SQLite)
+  - url: https://api.contravento.com
+    description: Production server (PostgreSQL)
+
+tags:
+  - name: Feed
+    description: Personalized trip feed (FR-001 to FR-008)
+  - name: Likes
+    description: Like/unlike trips (FR-009 to FR-015)
+  - name: Comments
+    description: Comment on trips (FR-016 to FR-022)
+  - name: Shares
+    description: Share trips (FR-023 to FR-027)
+  - name: Notifications
+    description: User notifications (FR-028 to FR-033)
+
+paths:
+  # ============================================================
+  # FEED ENDPOINTS
+  # ============================================================
+  /feed:
+    get:
+      tags: [Feed]
+      summary: Get personalized feed (FR-001)
+      description: |
+        Returns personalized trip feed for authenticated user.
+
+        **Algorithm** (from research.md):
+        1. Trips from followed users (chronological DESC)
+        2. Backfill with popular community trips if < limit results
+
+        **Success Criteria**: SC-001 (<1s p95)
+      operationId: getFeed
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Feed retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ============================================================
+  # LIKE ENDPOINTS
+  # ============================================================
+  /trips/{trip_id}/like:
+    post:
+      tags: [Likes]
+      summary: Like a trip (FR-009)
+      description: |
+        Add like to a published trip.
+
+        **Validations**:
+        - User cannot like own trips (FR-011)
+        - User can like trip only once
+        - Trip must be PUBLISHED status
+
+        **Success Criteria**: SC-006 (<200ms p95)
+      operationId: likeTrip
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trip liked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+        '400':
+          description: Cannot like own trip or already liked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Likes]
+      summary: Unlike a trip (FR-012)
+      description: |
+        Remove like from a trip.
+
+        **Success Criteria**: SC-006 (<200ms p95)
+      operationId: unlikeTrip
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trip unliked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Like not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trips/{trip_id}/likes:
+    get:
+      tags: [Likes]
+      summary: Get trip likes list (FR-013)
+      description: |
+        Get paginated list of users who liked a trip.
+
+        **Success Criteria**: SC-010 (<500ms p95)
+      operationId: getTripLikes
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Likes list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikesListResponse'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # COMMENT ENDPOINTS
+  # ============================================================
+  /trips/{trip_id}/comments:
+    post:
+      tags: [Comments]
+      summary: Add comment to trip (FR-016)
+      description: |
+        Post a comment on a published trip.
+
+        **Validations**:
+        - Content: 1-500 characters (trimmed)
+        - HTML sanitization applied
+        - Rate limit: 10 comments/hour per user
+        - Trip must be PUBLISHED status
+
+        **Success Criteria**: SC-013 (<300ms p95)
+      operationId: addComment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateInput'
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded (10 comments/hour)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Comments]
+      summary: Get trip comments (FR-017)
+      description: |
+        Get paginated list of comments for a trip.
+
+        **Order**: Chronological (oldest first)
+        **Success Criteria**: SC-015 (<500ms p95)
+      operationId: getTripComments
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentsListResponse'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trips/{trip_id}/comments/{comment_id}:
+    put:
+      tags: [Comments]
+      summary: Edit comment (FR-019)
+      description: |
+        Edit own comment (author only).
+
+        **Validations**:
+        - Content: 1-500 characters (trimmed)
+        - HTML sanitization applied
+        - Only author can edit
+        - Sets is_edited flag and updated_at timestamp
+
+        **Success Criteria**: SC-018 (<300ms p95)
+      operationId: editComment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: comment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentUpdateInput'
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Not comment author
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Comments]
+      summary: Delete comment (FR-020)
+      description: |
+        Delete own comment (author only).
+
+        **Success Criteria**: SC-020 (<300ms p95)
+      operationId: deleteComment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: comment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Comentario eliminado correctamente"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Not comment author
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # SHARE ENDPOINTS
+  # ============================================================
+  /trips/{trip_id}/share:
+    post:
+      tags: [Shares]
+      summary: Share a trip (FR-023)
+      description: |
+        Share a published trip with optional commentary.
+
+        **Validations**:
+        - Optional comment: 0-200 characters
+        - Trip must be PUBLISHED status
+
+        **Success Criteria**: SC-023 (<500ms p95)
+      operationId: shareTrip
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareCreateInput'
+      responses:
+        '201':
+          description: Trip shared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trips/{trip_id}/shares:
+    get:
+      tags: [Shares]
+      summary: Get trip shares list (FR-025)
+      description: |
+        Get paginated list of users who shared a trip.
+
+        **Success Criteria**: SC-025 (<500ms p95)
+      operationId: getTripShares
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Shares list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharesListResponse'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # NOTIFICATION ENDPOINTS
+  # ============================================================
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: Get user notifications (FR-028)
+      description: |
+        Get paginated list of notifications for authenticated user.
+
+        **Filter**: Optional filter by read/unread status
+        **Order**: Chronological DESC (most recent first)
+        **Success Criteria**: SC-028 (<500ms p95)
+      operationId: getNotifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: is_read
+          in: query
+          schema:
+            type: boolean
+          description: Filter by read status (omit for all)
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Get unread count (FR-030)
+      description: |
+        Get count of unread notifications for authenticated user.
+
+        **Success Criteria**: SC-030 (<100ms p95)
+      operationId: getUnreadCount
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Unread count retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unread_count:
+                    type: integer
+                    example: 5
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/{notification_id}/mark-read:
+    post:
+      tags: [Notifications]
+      summary: Mark notification as read (FR-031)
+      description: |
+        Mark a single notification as read.
+
+        **Success Criteria**: SC-031 (<200ms p95)
+      operationId: markNotificationRead
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /notifications/mark-all-read:
+    post:
+      tags: [Notifications]
+      summary: Mark all notifications as read (FR-032)
+      description: |
+        Mark all user's notifications as read.
+
+        **Success Criteria**: SC-032 (<500ms p95)
+      operationId: markAllNotificationsRead
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Todas las notificaciones marcadas como leídas"
+                  marked_count:
+                    type: integer
+                    example: 12
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+# ============================================================
+# COMPONENTS
+# ============================================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    # ============================================================
+    # FEED SCHEMAS
+    # ============================================================
+    FeedResponse:
+      type: object
+      properties:
+        trips:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedItem'
+        total_count:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        has_more:
+          type: boolean
+          example: true
+
+    FeedItem:
+      type: object
+      properties:
+        trip_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Ruta Bikepacking Pirineos"
+        description:
+          type: string
+          example: "Viaje de 5 días por los Pirineos..."
+        author:
+          $ref: '#/components/schemas/UserSummary'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhotoSummary'
+        distance_km:
+          type: number
+          format: float
+          example: 320.5
+        start_date:
+          type: string
+          format: date
+          example: "2024-06-01"
+        end_date:
+          type: string
+          format: date
+          example: "2024-06-05"
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationSummary'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagSummary'
+        likes_count:
+          type: integer
+          example: 24
+        comments_count:
+          type: integer
+          example: 8
+        shares_count:
+          type: integer
+          example: 3
+        is_liked_by_me:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+
+    # ============================================================
+    # LIKE SCHEMAS
+    # ============================================================
+    LikeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Me gusta añadido correctamente"
+        likes_count:
+          type: integer
+          example: 25
+        is_liked:
+          type: boolean
+          example: true
+
+    LikesListResponse:
+      type: object
+      properties:
+        likes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LikeSummary'
+        total_count:
+          type: integer
+          example: 24
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        has_more:
+          type: boolean
+          example: true
+
+    LikeSummary:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        created_at:
+          type: string
+          format: date-time
+
+    # ============================================================
+    # COMMENT SCHEMAS
+    # ============================================================
+    CommentCreateInput:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: "¡Increíble ruta! Me encantaría hacerla algún día."
+
+    CommentUpdateInput:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: "¡Increíble ruta! Me encantaría hacerla pronto."
+
+    CommentResponse:
+      type: object
+      properties:
+        comment_id:
+          type: string
+          format: uuid
+        trip_id:
+          type: string
+          format: uuid
+        author:
+          $ref: '#/components/schemas/UserSummary'
+        content:
+          type: string
+          example: "¡Increíble ruta! Me encantaría hacerla algún día."
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_edited:
+          type: boolean
+          example: false
+
+    CommentsListResponse:
+      type: object
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentResponse'
+        total_count:
+          type: integer
+          example: 8
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        has_more:
+          type: boolean
+          example: false
+
+    # ============================================================
+    # SHARE SCHEMAS
+    # ============================================================
+    ShareCreateInput:
+      type: object
+      properties:
+        comment:
+          type: string
+          maxLength: 200
+          nullable: true
+          example: "Esta ruta es perfecta para iniciarse en bikepacking"
+
+    ShareResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Viaje compartido correctamente"
+        share_id:
+          type: string
+          format: uuid
+        shares_count:
+          type: integer
+          example: 4
+
+    SharesListResponse:
+      type: object
+      properties:
+        shares:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShareSummary'
+        total_count:
+          type: integer
+          example: 3
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        has_more:
+          type: boolean
+          example: false
+
+    ShareSummary:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        comment:
+          type: string
+          nullable: true
+          example: "Esta ruta es perfecta para iniciarse en bikepacking"
+        created_at:
+          type: string
+          format: date-time
+
+    # ============================================================
+    # NOTIFICATION SCHEMAS
+    # ============================================================
+    NotificationResponse:
+      type: object
+      properties:
+        notification_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [like, comment, share]
+          example: "like"
+        actor:
+          $ref: '#/components/schemas/UserSummary'
+        trip:
+          $ref: '#/components/schemas/TripSummary'
+        content:
+          type: string
+          nullable: true
+          example: "¡Increíble ruta! Me encantaría..."
+        is_read:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+
+    NotificationsListResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationResponse'
+        total_count:
+          type: integer
+          example: 5
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        has_more:
+          type: boolean
+          example: false
+
+    # ============================================================
+    # SHARED SCHEMAS
+    # ============================================================
+    UserSummary:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "maria_garcia"
+        full_name:
+          type: string
+          nullable: true
+          example: "María García"
+        profile_photo_url:
+          type: string
+          format: uri
+          nullable: true
+
+    PhotoSummary:
+      type: object
+      properties:
+        photo_url:
+          type: string
+          format: uri
+          example: "http://localhost:8000/storage/trip_photos/2024/06/trip123/photo1.jpg"
+        caption:
+          type: string
+          nullable: true
+
+    LocationSummary:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Parque Nacional de Ordesa"
+        latitude:
+          type: number
+          format: float
+          example: 42.6395
+        longitude:
+          type: number
+          format: float
+          example: -0.0389
+
+    TagSummary:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "bikepacking"
+        normalized:
+          type: string
+          example: "bikepacking"
+
+    TripSummary:
+      type: object
+      properties:
+        trip_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Ruta Bikepacking Pirineos"
+        photo_url:
+          type: string
+          format: uri
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "El comentario debe tener entre 1 y 500 caracteres"
+            field:
+              type: string
+              nullable: true
+              example: "content"

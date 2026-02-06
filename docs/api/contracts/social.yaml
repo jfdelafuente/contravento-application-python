@@ -1,0 +1,538 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - Social Features API
+  description: |
+    API de funciones sociales para ContraVento.
+
+    Incluye seguir/dejar de seguir usuarios, listado de seguidores y seguidos,
+    y gestión de la red social.
+
+    **Spec**: 001-user-profiles
+    **Version**: 1.0.0
+  version: 1.0.0
+
+servers:
+  - url: https://api.contravento.com/v1
+    description: Producción
+  - url: http://localhost:8000/v1
+    description: Desarrollo local
+
+tags:
+  - name: social
+    description: Relaciones sociales (seguir/seguidores)
+
+paths:
+  /users/{username}/follow:
+    post:
+      summary: Seguir a un usuario
+      description: |
+        Crea una relación de seguimiento entre el usuario autenticado y el usuario especificado.
+
+        Validaciones:
+        - No puedes seguirte a ti mismo (FR-027)
+        - No puedes seguir dos veces al mismo usuario (idempotente)
+
+        Actualiza automáticamente los contadores de followers/following.
+
+        **Functional Requirements**: FR-025, FR-027, FR-030
+      tags:
+        - social
+      operationId: followUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Usuario seguido exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/FollowResponse'
+                  message:
+                    type: string
+                    example: Ahora sigues a juan_perez
+              example:
+                success: true
+                data:
+                  follower:
+                    username: maria_garcia
+                    full_name: María García
+                    photo_url: https://api.contravento.com/storage/profile_photos/2025/12/user123.jpg
+                  following:
+                    username: juan_perez
+                    full_name: Juan Pérez
+                    photo_url: https://api.contravento.com/storage/profile_photos/2025/12/user456.jpg
+                  created_at: "2025-12-23T15:30:00Z"
+                message: Ahora sigues a juan_perez
+        '400':
+          description: Acción inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                self_follow:
+                  summary: Intento de seguirse a sí mismo
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: CANNOT_FOLLOW_SELF
+                      message: No puedes seguirte a ti mismo
+                already_following:
+                  summary: Ya sigue a este usuario
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: ALREADY_FOLLOWING
+                      message: Ya sigues a este usuario
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+    delete:
+      summary: Dejar de seguir a un usuario
+      description: |
+        Elimina la relación de seguimiento entre el usuario autenticado y el usuario especificado.
+
+        Actualiza automáticamente los contadores de followers/following.
+
+        **Functional Requirements**: FR-026, FR-031
+      tags:
+        - social
+      operationId: unfollowUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Usuario dejado de seguir exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Dejaste de seguir a juan_perez
+        '400':
+          description: No sigues a este usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: NOT_FOLLOWING
+                  message: No sigues a este usuario
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /users/{username}/followers:
+    get:
+      summary: Listar seguidores de un usuario
+      description: |
+        Retorna la lista paginada de usuarios que siguen al usuario especificado,
+        ordenados por fecha de seguimiento (más recientes primero).
+
+        **Functional Requirements**: FR-028, FR-032
+        **Success Criteria**: SC-003 (<200ms p95)
+      tags:
+        - social
+      operationId: getUserFollowers
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Lista de seguidores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/FollowersListResponse'
+                  error:
+                    type: object
+                    nullable: true
+              example:
+                success: true
+                data:
+                  followers:
+                    - username: ana_lopez
+                      full_name: Ana López
+                      photo_url: https://api.contravento.com/storage/profile_photos/2025/12/user789.jpg
+                      bio: Ciclista urbana en Madrid
+                      cycling_type: commuting
+                      followed_at: "2025-12-20T10:15:00Z"
+                    - username: carlos_ruiz
+                      full_name: Carlos Ruiz
+                      photo_url: null
+                      bio: null
+                      cycling_type: mountain
+                      followed_at: "2025-12-15T14:30:00Z"
+                  total_count: 42
+                  page: 1
+                  limit: 50
+                  has_more: false
+                error: null
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /users/{username}/following:
+    get:
+      summary: Listar usuarios que sigue un usuario
+      description: |
+        Retorna la lista paginada de usuarios que el usuario especificado está siguiendo,
+        ordenados por fecha de seguimiento (más recientes primero).
+
+        **Functional Requirements**: FR-029, FR-032
+        **Success Criteria**: SC-003 (<200ms p95)
+      tags:
+        - social
+      operationId: getUserFollowing
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Lista de usuarios seguidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/FollowingListResponse'
+                  error:
+                    type: object
+                    nullable: true
+              example:
+                success: true
+                data:
+                  following:
+                    - username: pedro_sanchez
+                      full_name: Pedro Sánchez
+                      photo_url: https://api.contravento.com/storage/profile_photos/2025/12/user321.jpg
+                      bio: Amante de las rutas de gravel
+                      cycling_type: gravel
+                      followed_at: "2025-12-22T16:45:00Z"
+                    - username: lucia_martin
+                      full_name: Lucía Martín
+                      photo_url: https://api.contravento.com/storage/profile_photos/2025/12/user654.jpg
+                      bio: Ciclista de ruta profesional
+                      cycling_type: road
+                      followed_at: "2025-12-18T09:20:00Z"
+                  total_count: 58
+                  page: 1
+                  limit: 50
+                  has_more: true
+                error: null
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /users/{username}/follow-status:
+    get:
+      summary: Verificar estado de seguimiento
+      description: |
+        Verifica si el usuario autenticado sigue al usuario especificado.
+        Útil para mostrar el botón "Seguir" o "Siguiendo" en la UI.
+
+        **Functional Requirements**: FR-030
+      tags:
+        - social
+      operationId: getFollowStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Estado de seguimiento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      is_following:
+                        type: boolean
+                        description: True si el usuario autenticado sigue al usuario especificado
+                        example: true
+                      followed_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+                        description: Fecha en que comenzó a seguir (null si no sigue)
+                        example: "2025-12-15T10:30:00Z"
+              examples:
+                following:
+                  summary: Sí sigue al usuario
+                  value:
+                    success: true
+                    data:
+                      is_following: true
+                      followed_at: "2025-12-15T10:30:00Z"
+                not_following:
+                  summary: No sigue al usuario
+                  value:
+                    success: true
+                    data:
+                      is_following: false
+                      followed_at: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    UsernameParam:
+      name: username
+      in: path
+      required: true
+      description: Nombre de usuario
+      schema:
+        type: string
+        example: juan_perez
+
+    PageParam:
+      name: page
+      in: query
+      required: false
+      description: Número de página (empieza en 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      description: Número de resultados por página (máximo 50)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 50
+        example: 20
+
+  schemas:
+    FollowResponse:
+      type: object
+      properties:
+        follower:
+          type: object
+          description: Usuario que sigue
+          properties:
+            username:
+              type: string
+              example: maria_garcia
+            full_name:
+              type: string
+              nullable: true
+              example: María García
+            photo_url:
+              type: string
+              nullable: true
+              example: https://api.contravento.com/storage/profile_photos/2025/12/user123.jpg
+        following:
+          type: object
+          description: Usuario que es seguido
+          properties:
+            username:
+              type: string
+              example: juan_perez
+            full_name:
+              type: string
+              nullable: true
+              example: Juan Pérez
+            photo_url:
+              type: string
+              nullable: true
+              example: https://api.contravento.com/storage/profile_photos/2025/12/user456.jpg
+        created_at:
+          type: string
+          format: date-time
+          description: Fecha en que se creó la relación
+          example: "2025-12-23T15:30:00Z"
+
+    UserSummary:
+      type: object
+      description: Resumen de información de usuario para listas
+      properties:
+        username:
+          type: string
+          example: ana_lopez
+        full_name:
+          type: string
+          nullable: true
+          example: Ana López
+        photo_url:
+          type: string
+          nullable: true
+          example: https://api.contravento.com/storage/profile_photos/2025/12/user789.jpg
+        bio:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: Ciclista urbana en Madrid
+        cycling_type:
+          type: string
+          nullable: true
+          enum: [road, mountain, gravel, touring, commuting]
+          example: commuting
+
+    FollowerItem:
+      allOf:
+        - $ref: '#/components/schemas/UserSummary'
+        - type: object
+          properties:
+            followed_at:
+              type: string
+              format: date-time
+              description: Fecha en que comenzó a seguir
+              example: "2025-12-20T10:15:00Z"
+
+    FollowersListResponse:
+      type: object
+      properties:
+        followers:
+          type: array
+          items:
+            $ref: '#/components/schemas/FollowerItem'
+        total_count:
+          type: integer
+          description: Total de seguidores
+          example: 42
+        page:
+          type: integer
+          description: Página actual
+          example: 1
+        limit:
+          type: integer
+          description: Resultados por página
+          example: 50
+        has_more:
+          type: boolean
+          description: True si hay más páginas disponibles
+          example: false
+
+    FollowingListResponse:
+      type: object
+      properties:
+        following:
+          type: array
+          items:
+            $ref: '#/components/schemas/FollowerItem'
+          description: Lista de usuarios que el usuario está siguiendo
+        total_count:
+          type: integer
+          description: Total de usuarios seguidos
+          example: 58
+        page:
+          type: integer
+          description: Página actual
+          example: 1
+        limit:
+          type: integer
+          description: Resultados por página
+          example: 50
+        has_more:
+          type: boolean
+          description: True si hay más páginas disponibles
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum:
+                - USER_NOT_FOUND
+                - CANNOT_FOLLOW_SELF
+                - ALREADY_FOLLOWING
+                - NOT_FOLLOWING
+                - UNAUTHORIZED
+              example: CANNOT_FOLLOW_SELF
+            message:
+              type: string
+              example: No puedes seguirte a ti mismo
+
+  responses:
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: UNAUTHORIZED
+              message: Debes iniciar sesión para realizar esta acción
+
+    UserNotFound:
+      description: Usuario no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: USER_NOT_FOUND
+              message: El usuario no existe

@@ -1,324 +1,282 @@
 # API Reference - ContraVento
 
-Complete API reference documentation for the ContraVento cycling social platform.
+Complete API reference documentation for integrating with ContraVento.
 
-**Audience**: Frontend developers, mobile app developers, API consumers
+**Audience**: Developers, API consumers, mobile app developers
 
-**Base URL**: `http://localhost:8000` (development) | `https://api.contravento.com` (production)
+**Migrated from**: `backend/docs/api/README.md` (Phase 2 consolidation)
+
+---
+
+## Quick Navigation
+
+| I need to... | Go to |
+|--------------|-------|
+| Authenticate users | [authentication.md](authentication.md) |
+| Manage trips | [endpoints/trips.md](endpoints/trips.md) |
+| Handle user profiles | [endpoints/users.md](endpoints/users.md) |
+| Build social features | [endpoints/social.md](endpoints/social.md) |
+| Work with GPS routes | [endpoints/gpx.md](endpoints/gpx.md) |
+| Test the API manually | [testing/manual-testing.md](testing/manual-testing.md) |
+| Use Postman | [testing/postman-guide.md](testing/postman-guide.md) |
+
+---
+
+## Base URLs
+
+| Environment | Base URL | Use When |
+|-------------|----------|----------|
+| **Local Development** | `http://localhost:8000` | Daily development |
+| **Docker Local** | `http://localhost:8000` | Docker testing |
+| **Development/Integration** | `http://dev.contravento.com` | Team integration |
+| **Staging** | `https://staging.contravento.com` | Pre-production testing |
+| **Production** | `https://api.contravento.com` | Live application |
 
 ---
 
 ## Quick Start
 
+### 1. Authentication
+
 ```bash
-# Health check
-curl http://localhost:8000/health
-
-# Get API documentation (OpenAPI/Swagger)
-open http://localhost:8000/docs
-
-# Authenticate
-curl -X POST http://localhost:8000/auth/login \
+# Login and get access token
+curl -X POST "http://localhost:8000/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "TestPass123!"}'
-```
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPass123!"
+  }'
 
----
-
-## Table of Contents
-
-1. [Authentication](#authentication)
-2. [API Endpoints](#api-endpoints)
-3. [OpenAPI Contracts](#openapi-contracts)
-4. [Testing](#testing)
-5. [Postman Collections](#postman-collections)
-
----
-
-## Authentication
-
-ContraVento uses **JWT (JSON Web Tokens)** for authentication with access and refresh tokens.
-
-📘 **[Complete Authentication Guide](authentication.md)**
-
-### Quick Reference
-
-**Login**:
-```http
-POST /auth/login
-Content-Type: application/json
-
+# Response
 {
-  "email": "user@example.com",
-  "password": "password123"
+  "success": true,
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "bearer",
+    "expires_in": 900
+  }
 }
 ```
 
-**Response**:
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "token_type": "bearer",
-  "expires_in": 900
-}
+### 2. Make Authenticated Requests
+
+```bash
+# Use access token in Authorization header
+curl -X GET "http://localhost:8000/trips" \
+  -H "Authorization: Bearer {access_token}"
 ```
 
-**Use Access Token**:
-```http
-GET /trips
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
-```
-
-**Token Expiration**:
-- Access Token: 15 minutes
-- Refresh Token: 30 days
+See [Authentication Guide](authentication.md) for complete JWT flow.
 
 ---
 
-## API Endpoints
+## Documentation
 
-### Core Endpoints
+### Core Concepts
 
-| Category | Endpoint Documentation | Key Features |
-|----------|----------------------|--------------|
-| **Authentication** | [auth.md](endpoints/auth.md) | Login, register, refresh tokens, email verification |
-| **Trips** | [trips.md](endpoints/trips.md) | Create, read, update, delete trips; photo upload |
-| **Users** | [users.md](endpoints/users.md) | Profiles, stats, achievements, cycling types |
-| **Social** | [social.md](endpoints/social.md) | Follow/unfollow, comments, likes, public feed |
-| **GPX** | [gpx.md](endpoints/gpx.md) | GPX upload, parsing, route visualization, elevation |
+- **[Authentication](authentication.md)** - JWT token flow, refresh, logout, security best practices
 
-### Endpoint Documentation Status
+### Endpoint Reference
 
-| Endpoint | Status | OpenAPI Contract | Last Updated |
-|----------|--------|------------------|--------------|
-| [auth.md](endpoints/auth.md) | ⏳ Planned | ✅ Available | - |
-| [trips.md](endpoints/trips.md) | ⏳ Planned | ✅ Available | - |
-| [users.md](endpoints/users.md) | ⏳ Planned | ✅ Available | - |
-| [social.md](endpoints/social.md) | ⏳ Planned | ✅ Available | - |
-| [gpx.md](endpoints/gpx.md) | ⏳ Planned | ⏳ In Progress | - |
+- **[Auth Endpoints](endpoints/auth.md)** - Register, login, refresh, logout, email verification
+- **[Trips Endpoints](endpoints/trips.md)** - CRUD trips, photos, tags, filtering, publishing
+- **[Users Endpoints](endpoints/users.md)** - Profiles, stats, photo upload
+- **[Social Endpoints](endpoints/social.md)** - Follow, comments, likes, public feed
+- **[GPX Endpoints](endpoints/gpx.md)** - GPS routes, trackpoints, POIs, elevation data
 
-**Note**: Endpoint documentation will be created in **Phase 2** (API Documentation) of the consolidation plan.
+### Testing & Integration
+
+- **[Manual Testing](testing/manual-testing.md)** - curl command reference with complete examples
+- **[Postman Guide](testing/postman-guide.md)** - Postman/Insomnia setup and workflow
+- **[OpenAPI Contracts](contracts/)** - YAML schema definitions for all endpoints
+
+---
+
+## Features Documented
+
+### Travel Diary - Trip Management (v0.4.0)
+
+**Trip CRUD Endpoints:**
+- `POST /trips` - Create trip (draft by default)
+- `GET /trips/{trip_id}` - Get trip details
+- `PUT /trips/{trip_id}` - Edit trip (owner only, optimistic locking)
+- `DELETE /trips/{trip_id}` - Delete trip and cascading data
+- `POST /trips/{trip_id}/publish` - Publish trip (makes visible to all)
+
+**Photo Management Endpoints:**
+- `POST /trips/{trip_id}/photos` - Upload photo (max 20 per trip, 10MB each)
+- `DELETE /trips/{trip_id}/photos/{photo_id}` - Delete photo
+- `PUT /trips/{trip_id}/photos/reorder` - Reorder photos
+
+**Tags & Filtering Endpoints:**
+- `GET /users/{username}/trips` - List trips with filters (tag, status, pagination)
+- `GET /tags` - Get all tags (ordered by popularity)
+
+**Characteristics:**
+- Upload: Max 20 photos/trip, max 10MB/photo, formats JPG/PNG/WebP
+- Processing: Resize to 1200px, thumbnail 400x400px
+- Reordering: Automatic gap fill on deletion
+- Validation: Owner-only operations
+- Tags: Case-insensitive matching, many-to-many relationships
+- Filtering: Tag + status combination, pagination (limit/offset)
+
+**Functional Requirements:**
+- FR-001, FR-002, FR-003: Trip creation
+- FR-007, FR-008: Trip publication and visibility
+- FR-009, FR-010, FR-011: Photo upload and processing
+- FR-012: Photo reordering
+- FR-013: Photo deletion
+- FR-016, FR-020: Trip editing with optimistic locking
+- FR-017, FR-018: Trip deletion with stats update
+- FR-025: User trip listing with tag/status filtering
+- FR-027: Tag browsing and popularity ranking
 
 ---
 
 ## OpenAPI Contracts
 
-OpenAPI 3.0 specifications for all API endpoints.
+OpenAPI 3.0 specifications for all endpoints:
 
-### Available Contracts
+| Contract | Endpoints | Location |
+|----------|-----------|----------|
+| **auth.yaml** | Authentication | [contracts/auth.yaml](contracts/auth.yaml) |
+| **trips.yaml** | Trip CRUD, photos, tags | [contracts/trips.yaml](contracts/trips.yaml) |
+| **gpx-api.yaml** | GPX upload, trackpoints | [contracts/gpx-api.yaml](contracts/gpx-api.yaml) |
+| **gpx-wizard.yaml** | GPX wizard workflow | [contracts/gpx-wizard.yaml](contracts/gpx-wizard.yaml) |
+| **social.yaml** | Follow, user relationships | [contracts/social.yaml](contracts/social.yaml) |
+| **social-network.yaml** | Comments, likes | [contracts/social-network.yaml](contracts/social-network.yaml) |
+| **public-feed-api.yaml** | Public trips feed | [contracts/public-feed-api.yaml](contracts/public-feed-api.yaml) |
+| **profile.yaml** | User profiles | [contracts/profile.yaml](contracts/profile.yaml) |
+| **stats.yaml** | User statistics | [contracts/stats.yaml](contracts/stats.yaml) |
 
-```
-contracts/
-├── auth-api.yaml           # Authentication endpoints
-├── trips-api.yaml          # Trip CRUD operations
-├── users-api.yaml          # User profiles and stats
-├── social-api.yaml         # Social features (follow, comments)
-└── gpx-api.yaml           # GPX upload and processing
-```
-
-### Using Contracts
-
-**View in Swagger UI**:
-```bash
-# Start development server
-./run-local-dev.sh
-
-# Open interactive docs
-open http://localhost:8000/docs
-```
-
-**Validate Requests** (Contract Testing):
-```bash
-cd backend
-poetry run pytest tests/contract/ -v
-```
-
-**Generate Client SDK**:
-```bash
-# From OpenAPI contract
-openapi-generator-cli generate \
-  -i docs/api/contracts/trips-api.yaml \
-  -g typescript-axios \
-  -o frontend/src/generated/api
-```
-
-**Related Documentation**:
-- [Contract Testing Guide](../testing/backend/contract-tests.md)
-
----
-
-## Testing
-
-### Manual Testing
-
-📘 **[Manual API Testing Guide](testing/manual-testing.md)**
-
-Quick test with curl:
-```bash
-# Create trip
-curl -X POST http://localhost:8000/trips \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Test Trip",
-    "description": "A test trip for API validation",
-    "start_date": "2026-02-01",
-    "distance_km": 50.5
-  }'
-```
-
-### Postman/Insomnia
-
-📘 **[Postman Setup Guide](testing/postman-guide.md)**
-
-**Collections Available**:
-- `postman/collections/ContraVento_Auth.postman_collection.json`
-- `postman/collections/ContraVento_Trips.postman_collection.json`
-- `postman/collections/ContraVento_Social.postman_collection.json`
-
-**Environments**:
-- `postman/environments/Local_Development.postman_environment.json`
-- `postman/environments/Staging.postman_environment.json`
-
----
-
-## Postman Collections
-
-Pre-built Postman collections for all API endpoints.
-
-### Quick Setup
-
-1. **Import Collections**:
-   - Open Postman
-   - Import → File → `docs/api/postman/collections/*.json`
-
-2. **Import Environment**:
-   - Import → File → `docs/api/postman/environments/Local_Development.postman_environment.json`
-
-3. **Authenticate**:
-   - Run "Auth → Login" request
-   - Access token auto-saved to environment
-
-4. **Test Endpoints**:
-   - All authenticated requests use `{{access_token}}` variable
-
-### Collection Status
-
-| Collection | Status | Endpoints | Last Updated |
-|------------|--------|-----------|--------------|
-| ContraVento_Auth | ⏳ To be migrated | Login, Register, Refresh, Verify | - |
-| ContraVento_Trips | ⏳ To be migrated | CRUD trips, Photos, Tags | - |
-| ContraVento_Users | ⏳ To be migrated | Profiles, Stats, Achievements | - |
-| ContraVento_Social | ⏳ To be migrated | Follow, Comments, Likes | - |
-| ContraVento_GPX | ⏳ To be migrated | Upload, Parse, Routes | - |
-
-**Note**: Postman collections will be migrated from `backend/docs/api/` in **Phase 2** (API Documentation).
-
----
-
-## API Design Principles
-
-ContraVento API follows these design principles:
-
-1. **RESTful**: Resource-based URLs, standard HTTP methods
-2. **JSON**: All requests and responses use JSON
-3. **Versioned**: API version in URL path (future: `/api/v2/`)
-4. **Paginated**: List endpoints support `limit` and `offset` parameters
-5. **Validated**: Pydantic schemas validate all inputs
-6. **Documented**: OpenAPI/Swagger documentation auto-generated
-7. **Tested**: Contract tests validate OpenAPI compliance
+**All contracts migrated from**: `specs/*/contracts/*.yaml`
 
 ---
 
 ## Response Format
 
-All API responses follow a standardized format:
+All API responses follow a standardized JSON format:
 
-**Success Response**:
+**Success Response:**
 ```json
 {
   "success": true,
   "data": {
-    "trip_id": "123e4567-e89b-12d3-a456-426614174000",
-    "title": "My Trip",
-    ...
+    // Response data here
   },
   "error": null
 }
 ```
 
-**Error Response**:
+**Error Response:**
 ```json
 {
   "success": false,
   "data": null,
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "El email ya está registrado",
-    "field": "email"
+    "code": "ERROR_CODE",
+    "message": "Mensaje descriptivo en español",
+    "field": "email"  // Optional: field that caused error
   }
 }
 ```
 
 ---
 
-## Rate Limiting
+## Error Codes
 
-**Development**: No rate limits
+| HTTP Status | Error Code | Common Causes |
+|-------------|------------|---------------|
+| 400 | `VALIDATION_ERROR` | Invalid input, missing required field, weak password |
+| 401 | `UNAUTHORIZED` | Invalid or expired token, wrong credentials |
+| 403 | `FORBIDDEN` | Insufficient permissions, account not verified |
+| 404 | `NOT_FOUND` | Resource does not exist |
+| 409 | `CONFLICT` | Duplicate resource, optimistic locking conflict |
+| 422 | `UNPROCESSABLE_ENTITY` | Invalid request body structure |
+| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests (login rate limit) |
+| 500 | `INTERNAL_SERVER_ERROR` | Server error |
 
-**Production**:
-- **Authentication**: 5 login attempts per 15 minutes
-- **General API**: 1000 requests per hour per IP
-- **File Upload**: 10 uploads per hour per user
+See [Authentication Guide](authentication.md#error-handling) for detailed error handling.
 
 ---
 
-## Error Codes
+## Rate Limiting
 
-| HTTP Status | Error Code | Meaning |
-|-------------|------------|---------|
-| 400 | VALIDATION_ERROR | Invalid request data |
-| 401 | UNAUTHORIZED | Missing or invalid authentication |
-| 403 | FORBIDDEN | Insufficient permissions |
-| 404 | NOT_FOUND | Resource not found |
-| 409 | CONFLICT | Resource conflict (e.g., duplicate email) |
-| 422 | UNPROCESSABLE_ENTITY | Semantic validation error |
-| 429 | RATE_LIMIT_EXCEEDED | Too many requests |
-| 500 | INTERNAL_SERVER_ERROR | Server error |
+| Endpoint | Limit | Window | Penalty |
+|----------|-------|--------|---------|
+| **Login** | 5 attempts | Per email | 15 min lockout |
+| **Register** | 3 attempts | Per IP | 1 hour lockout |
+| **General API** | 1000 requests | Per hour | 429 error |
+
+---
+
+## Postman Collections
+
+Pre-configured collections for testing:
+
+| Collection | Description | Location |
+|------------|-------------|----------|
+| **GPS Coordinates** | GPS trip creation, GPX upload, location management | [postman/collections/ContraVento_GPS_Coordinates.postman_collection.json](postman/collections/ContraVento_GPS_Coordinates.postman_collection.json) |
+| **Environment (Local)** | Local development variables (base_url, tokens) | [postman/environments/ContraVento-Local.postman_environment.json](postman/environments/ContraVento-Local.postman_environment.json) |
+
+**Auto-Update Scripts Included**:
+- Login → Save access_token
+- Create Trip → Save trip_id
+- Upload Photo → Save photo1_id, photo2_id, photo3_id
+
+See [Postman Guide](testing/postman-guide.md) for import instructions and workflow.
+
+---
+
+## API Documentation (Interactive)
+
+When the backend server is running, access interactive API docs:
+
+- **Swagger UI**: `http://localhost:8000/docs` (full OpenAPI interface)
+- **ReDoc**: `http://localhost:8000/redoc` (alternative documentation viewer)
+
+**Benefits**:
+- Try endpoints directly from browser
+- See request/response schemas
+- Auto-generated from OpenAPI contracts
+- Real-time validation
 
 ---
 
 ## Migration from Old Documentation
 
-This consolidated API reference replaces:
-
 | Old Location | New Location | Status |
 |--------------|--------------|--------|
-| `backend/docs/api/README.md` | `docs/api/README.md` | ⏳ To be migrated |
-| `backend/docs/api/MANUAL_TESTING.md` | `docs/api/testing/manual-testing.md` | ⏳ To be migrated |
-| `backend/docs/api/POSTMAN_COLLECTION.md` | `docs/api/testing/postman-guide.md` | ⏳ To be migrated |
-| `specs/*/contracts/*.yaml` | `docs/api/contracts/` | ⏳ To be migrated |
+| `backend/docs/api/README.md` | `docs/api/README.md` (this file) | ✅ Migrated (Phase 2) |
+| `backend/docs/api/MANUAL_TESTING.md` | `docs/api/testing/manual-testing.md` | ✅ Migrated (Phase 2) |
+| `backend/docs/api/POSTMAN_COLLECTION.md` | `docs/api/testing/postman-guide.md` | ✅ Migrated (Phase 2) |
+| `backend/docs/api/TAGS_TESTING.md` | `docs/api/testing/manual-testing.md` (consolidated) | ⏳ Pending |
+| `backend/docs/api/USER_PROFILES_MANUAL.md` | `docs/api/endpoints/users.md` (consolidated) | ⏳ Pending |
+| `backend/docs/api/GPS_COORDINATES_MANUAL_TESTING.md` | `docs/api/endpoints/gpx.md` (consolidated) | ⏳ Pending |
+| `specs/001-user-profiles/contracts/*.yaml` | `docs/api/contracts/` | ✅ Migrated (Phase 2) |
+| `specs/002-travel-diary/contracts/trips-api.yaml` | `docs/api/contracts/trips.yaml` | ✅ Migrated (Phase 2) |
+| `specs/003-gps-routes/contracts/gpx-api.yaml` | `docs/api/contracts/gpx-api.yaml` | ✅ Migrated (Phase 2) |
+| `specs/004-social-network/contracts/social-api.yaml` | `docs/api/contracts/social-network.yaml` | ✅ Migrated (Phase 2) |
+| `specs/013-public-trips-feed/contracts/public-feed-api.yaml` | `docs/api/contracts/public-feed-api.yaml` | ✅ Migrated (Phase 2) |
+| `specs/017-gps-trip-wizard/contracts/gpx-wizard.yaml` | `docs/api/contracts/gpx-wizard.yaml` | ✅ Migrated (Phase 2) |
+| `backend/docs/api/*.postman_collection.json` | `docs/api/postman/collections/` | ✅ Migrated (Phase 2) |
+| `backend/docs/api/*.postman_environment.json` | `docs/api/postman/environments/` | ✅ Migrated (Phase 2) |
 
-Migration will occur in **Phase 2** (Week 2) of the documentation consolidation plan.
+**Note**: Additional backend/docs/api/ testing guides will be consolidated in future iterations.
 
 ---
 
 ## Related Documentation
 
-- **[User Guides](../user-guides/README.md)** - How to use ContraVento features
-- **[Architecture](../architecture/README.md)** - Technical architecture and design
-- **[Testing](../testing/README.md)** - Testing strategies and guides
-- **[Development](../development/README.md)** - Developer workflows
-
----
-
-## Contributing
-
-Found an issue or want to improve API documentation? See [Documentation Contributing Guide](../CONTRIBUTING.md) (to be created in Phase 8).
+- **[Deployment](../deployment/README.md)** - Running API in different environments
+- **[User Guides](../user-guides/README.md)** - End-user feature documentation
+- **[Architecture](../architecture/README.md)** - Technical design and patterns
+- **[Testing](../testing/README.md)** - Testing strategies and test pyramid
+- **[Features](../features/README.md)** - Feature-specific documentation
 
 ---
 
 **Last Updated**: 2026-02-06
-**Consolidation Plan**: Phase 1 (Foundation) - Directory structure
-**API Version**: v1
+**Consolidation Plan**: Phase 2 (API Documentation) - ✅ Complete
+**API Version**: 1.0.0 (Travel Diary 0.4.0 - Tags & Categorization)
