@@ -21,11 +21,11 @@
 |-------|-------|----------|---|----------|
 | Phase 1: Base Structure | 1 | 1 | 100% | ✅ DONE |
 | Phase 2: Document Modes | 9 | 4 | 44% | High |
-| Phase 3: Create Guides | 7 | 3 | 43% | **HIGHEST** |
+| Phase 3: Create Guides | 7 | 4 | 57% | **HIGHEST** |
 | Phase 4: Archive Old Docs | 4 | 0 | 0% | Medium |
 | Phase 5: Update References | 4 | 4 | 100% | ✅ DONE |
 | Phase 6: Final Validation | 4 | 0 | 0% | Low (last) |
-| **TOTAL** | **29** | **12** | **41%** | - |
+| **TOTAL** | **29** | **13** | **45%** | - |
 
 ---
 
@@ -172,7 +172,7 @@
   - **Created**: 1000+ lines, comprehensive reference with 8 variable categories, configuration by mode, security best practices, secret generation, common pitfalls
   - **Estimated Effort**: 3-4 hours (mostly translation + reorganization)
 
-- [ ] T016 Create `docs/deployment/guides/docker-compose-guide.md` - Docker Compose architecture
+- [✅] T016 Create `docs/deployment/guides/docker-compose-guide.md` - Docker Compose architecture ✅ COMPLETED (2026-02-06)
   - **Purpose**: Understand how services connect
   - **Content** (migrate from `DOCKER_COMPOSE_GUIDE.md` if exists, else extract from modes):
     - Service dependency diagram (ASCII art or Mermaid)
@@ -180,6 +180,7 @@
     - Volume management (persistent data vs ephemeral)
     - Health checks (when services are "ready")
     - Override patterns (docker-compose.override.yml)
+  - **Created**: 850+ lines, comprehensive architecture guide with service dependencies, networking internals, volume management, health checks, overlay patterns, debugging, best practices
   - **Estimated Effort**: 3-4 hours
 
 - [ ] T017 Create `docs/deployment/guides/frontend-deployment.md` - Frontend-specific deployment
@@ -411,14 +412,14 @@
 
 ## Total Tasks: 29 tasks across 6 phases
 
-**Current Status**: 12/29 (41%) ✅
+**Current Status**: 13/29 (45%) ✅
 
-**Remaining Work**: 17 tasks
+**Remaining Work**: 16 tasks
 - Phase 2: 5 tasks (server modes)
-- Phase 3: 4 tasks (guides) ⭐ **HIGHEST PRIORITY**
+- Phase 3: 3 tasks (guides) ⭐ **HIGHEST PRIORITY**
 - Phase 4: 4 tasks (archive + redirects)
 - Phase 6: 4 tasks (validation)
 
 **Estimated Remaining Effort**: 5-8 days (1-1.5 weeks)
 
-**Next Action**: Continue Phase 3 (guides) - 4 remaining guides (docker-compose, frontend, database, production-checklist)
+**Next Action**: Continue Phase 3 (guides) - 3 remaining guides (frontend-deployment, database-management, production-checklist)
