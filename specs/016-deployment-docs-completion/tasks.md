@@ -21,11 +21,11 @@
 |-------|-------|----------|---|----------|
 | Phase 1: Base Structure | 1 | 1 | 100% | ✅ DONE |
 | Phase 2: Document Modes | 9 | 4 | 44% | High |
-| Phase 3: Create Guides | 7 | 1 | 14% | **HIGHEST** |
+| Phase 3: Create Guides | 7 | 2 | 29% | **HIGHEST** |
 | Phase 4: Archive Old Docs | 4 | 0 | 0% | Medium |
 | Phase 5: Update References | 4 | 4 | 100% | ✅ DONE |
 | Phase 6: Final Validation | 4 | 0 | 0% | Low (last) |
-| **TOTAL** | **29** | **10** | **34%** | - |
+| **TOTAL** | **29** | **11** | **38%** | - |
 
 ---
 
@@ -135,7 +135,7 @@
   - **Created**: 550+ lines, comprehensive guide with role-based paths, decision tree, 3 setup options, verification steps
   - **Estimated Effort**: 3-4 hours
 
-- [ ] T015 Create `docs/deployment/guides/troubleshooting.md` - Common problems cross-mode
+- [✅] T015 Create `docs/deployment/guides/troubleshooting.md` - Common problems cross-mode ✅ COMPLETED (2026-02-06)
   - **Purpose**: First place to look when something breaks
   - **Content** (organized by symptom):
     - **Port Conflicts**: 5173 (frontend), 8000 (backend), 5432 (PostgreSQL), 6379 (Redis), 8025 (MailHog)
@@ -156,6 +156,7 @@
     - **Permission Errors**: Can't write to storage/, Docker socket permission denied
       - Linux/macOS: `sudo chown -R $USER:$USER storage/`
       - Windows: Run as Administrator or adjust folder permissions
+  - **Created**: 900+ lines, comprehensive guide covering 7 categories with Windows/Linux/Mac solutions, quick diagnosis flowchart, emergency reset procedures
   - **Estimated Effort**: 4-5 hours
 
 ### Technical Guides (Priority P2)
@@ -409,14 +410,14 @@
 
 ## Total Tasks: 29 tasks across 6 phases
 
-**Current Status**: 10/29 (34%) ✅
+**Current Status**: 11/29 (38%) ✅
 
-**Remaining Work**: 19 tasks
+**Remaining Work**: 18 tasks
 - Phase 2: 5 tasks (server modes)
-- Phase 3: 6 tasks (guides) ⭐ **HIGHEST PRIORITY**
+- Phase 3: 5 tasks (guides) ⭐ **HIGHEST PRIORITY**
 - Phase 4: 4 tasks (archive + redirects)
 - Phase 6: 4 tasks (validation)
 
 **Estimated Remaining Effort**: 5-8 days (1-1.5 weeks)
 
-**Next Action**: Continue Phase 3 (guides) - `guides/troubleshooting.md` next (high value for developers)
+**Next Action**: Continue Phase 3 (guides) - `guides/environment-variables.md` next (consolidate ENVIRONMENTS.md)
