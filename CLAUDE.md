@@ -6,6 +6,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **ContraVento** is a cycling social platform built with FastAPI (backend) and React (frontend planned). The platform enables cyclists to document trips, share routes, track statistics, and connect with the cycling community.
 
+## Documentation Navigation
+
+For detailed documentation beyond this quick reference, see the **[Documentation Hub](docs/README.md)**.
+
+### Quick Links by Topic
+
+- 🚀 **Deployment**: [docs/deployment/README.md](docs/deployment/README.md) - All deployment modes (local-dev, staging, prod)
+- 💻 **API Reference**: [docs/api/README.md](docs/api/README.md) - Endpoints, authentication, contracts
+- 🏗️ **Architecture**: [docs/architecture/README.md](docs/architecture/README.md) - Backend, frontend, database design
+- 🧪 **Testing**: [docs/testing/README.md](docs/testing/README.md) - Unit, integration, E2E, manual QA
+- 🛠️ **Development**: [docs/development/README.md](docs/development/README.md) - Getting started, TDD, troubleshooting
+- 📖 **User Guides**: [docs/user-guides/README.md](docs/user-guides/README.md) - End-user feature documentation
+- 🔍 **Features**: [docs/features/README.md](docs/features/README.md) - Feature deep-dives
+- 📊 **Operations**: [docs/operations/README.md](docs/operations/README.md) - Production operations, monitoring
+
+### Common Documentation Scenarios
+
+| Need | Documentation Link |
+|------|-------------------|
+| **Start coding locally** | [docs/deployment/modes/local-dev.md](docs/deployment/modes/local-dev.md#quick-start) |
+| **Fix common issues** | [docs/development/troubleshooting/](docs/development/troubleshooting/) |
+| **Write tests** | [docs/testing/README.md](docs/testing/README.md) |
+| **Understand architecture** | [docs/architecture/README.md](docs/architecture/README.md) |
+| **API integration** | [docs/api/README.md](docs/api/README.md) |
+| **Deploy to staging** | [docs/deployment/modes/staging.md](docs/deployment/modes/staging.md) |
+
+**Note**: This CLAUDE.md file contains AI-specific patterns, pitfalls, and constitution requirements. For human-readable guides, use the links above.
+
 ## Commands
 
 ### Setup & Installation
