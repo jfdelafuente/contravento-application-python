@@ -199,14 +199,42 @@ check_port() {
     fi
 }
 
+# Configure frontend to use correct backend port
+configure_frontend_port() {
+    local backend_port=$1
+    local frontend_env="frontend/.env.development"
+
+    if [ ! -f "$frontend_env" ]; then
+        return 0  # Will be created later
+    fi
+
+    # Update VITE_API_URL with current backend port
+    local backend_url="http://localhost:${backend_port}"
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s|VITE_API_URL=.*|VITE_API_URL=${backend_url}|" "$frontend_env"
+    else
+        # Linux
+        sed -i "s|VITE_API_URL=.*|VITE_API_URL=${backend_url}|" "$frontend_env"
+    fi
+
+    print_success "Configured frontend to use backend at ${backend_url}"
+}
+
 # Start server
 start_server() {
     local with_frontend=$1
 
+    # Get backend port from environment or default to 8000
+    local PORT=${BACKEND_PORT:-8000}
+
     if [ "$with_frontend" = "true" ]; then
         print_header "Starting Backend + Frontend (SQLite Local)"
+        print_info "Backend port: $PORT"
     else
         print_header "Starting Backend Only (SQLite Local)"
+        print_info "Backend port: $PORT"
     fi
 
     cd backend
@@ -227,19 +255,19 @@ start_server() {
     fi
 
     # Check if backend port is in use
-    if check_port 8000; then
-        print_error "Port 8000 is already in use!"
-        print_info "Kill the process using port 8000:"
-        print_info "  lsof -ti:8000 | xargs kill -9"
+    if check_port $PORT; then
+        print_error "Port $PORT is already in use!"
+        print_info "Kill the process using port $PORT:"
+        print_info "  lsof -ti:$PORT | xargs kill -9"
         cd ..
         exit 1
     fi
 
-    print_success "Starting backend at http://localhost:8000"
-    print_info "API Docs: http://localhost:8000/docs"
+    print_success "Starting backend at http://localhost:$PORT"
+    print_info "API Docs: http://localhost:$PORT/docs"
 
     # Start uvicorn with hot reload in background
-    poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000 &
+    poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port $PORT &
     BACKEND_PID=$!
 
     cd ..
@@ -287,6 +315,13 @@ start_server() {
                 exit 1
             fi
         fi
+
+        cd ..
+
+        # Configure frontend to use correct backend port
+        configure_frontend_port $PORT
+
+        cd frontend
 
         # Check if node_modules exists
         if [ ! -d "node_modules" ]; then
@@ -338,7 +373,12 @@ start_server() {
 
 # Verify server status
 verify_servers() {
+    # Get backend port from environment or default to 8000
+    local PORT=${BACKEND_PORT:-8000}
+
     print_header "Server Status Check"
+    print_info "Checking backend on port: $PORT"
+    echo ""
 
     # Function to check if port is in use
     check_port() {
@@ -380,18 +420,18 @@ verify_servers() {
         fi
     }
 
-    # Check Backend (port 8000)
-    echo -e "${BLUE}Backend Server (http://localhost:8000)${NC}"
-    echo -n "  Port 8000: "
-    if check_port 8000; then
+    # Check Backend
+    echo -e "${BLUE}Backend Server (http://localhost:$PORT)${NC}"
+    echo -n "  Port $PORT: "
+    if check_port $PORT; then
         echo -e "${GREEN}LISTENING${NC}"
 
         echo -n "  Health check: "
-        if test_endpoint "http://localhost:8000/health"; then
+        if test_endpoint "http://localhost:$PORT/health"; then
             echo -e "${GREEN}OK${NC}"
 
             # Parse health response
-            health_data=$(get_http "http://localhost:8000/health")
+            health_data=$(get_http "http://localhost:$PORT/health")
             if [ -n "$health_data" ] && command -v jq &> /dev/null; then
                 status=$(echo "$health_data" | jq -r '.data.status' 2>/dev/null)
                 environment=$(echo "$health_data" | jq -r '.data.environment' 2>/dev/null)
@@ -407,7 +447,7 @@ verify_servers() {
         fi
 
         echo -n "  API Docs: "
-        if test_endpoint "http://localhost:8000/docs"; then
+        if test_endpoint "http://localhost:$PORT/docs"; then
             echo -e "${GREEN}AVAILABLE${NC}"
         else
             echo -e "${YELLOW}NOT AVAILABLE${NC}"
@@ -463,8 +503,8 @@ verify_servers() {
 
     # Summary
     echo -e "${BLUE}Summary:${NC}"
-    echo -n "  Backend:  "
-    if check_port 8000; then
+    echo -n "  Backend (port $PORT):  "
+    if check_port $PORT; then
         echo -e "${GREEN}RUNNING${NC}"
         backend_running=true
     else
@@ -497,6 +537,9 @@ verify_servers() {
 stop_servers() {
     local target=${1:-all}
 
+    # Get backend port from environment or default to 8000
+    local PORT=${BACKEND_PORT:-8000}
+
     # Normalize target
     target=$(echo "$target" | tr '[:upper:]' '[:lower:]')
 
@@ -508,6 +551,8 @@ stop_servers() {
     fi
 
     print_header "Stop Servers"
+    print_info "Backend port: $PORT"
+    echo ""
 
     # Function to check if port is in use
     check_port() {
@@ -571,7 +616,7 @@ stop_servers() {
 
     if [[ "$target" == "all" || "$target" == "backend" ]]; then
         echo -e "${BLUE}Stopping backend server...${NC}"
-        if stop_process_on_port 8000 "Backend"; then
+        if stop_process_on_port $PORT "Backend"; then
             backend_stopped=true
         else
             backend_stopped=false

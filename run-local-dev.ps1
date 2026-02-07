@@ -89,10 +89,15 @@ if (!(Get-Command poetry -ErrorAction SilentlyContinue)) {
 # VERIFY SERVER STATUS
 # ============================================================================
 if ($Verify) {
+    # Get backend port from environment or default to 8000
+    $PORT = if ($env:BACKEND_PORT) { [int]$env:BACKEND_PORT } else { 8000 }
+
     Write-Host ""
     Write-Host "============================================" -ForegroundColor Blue
     Write-Host "  Server Status Check" -ForegroundColor Blue
     Write-Host "============================================" -ForegroundColor Blue
+    Write-Host ""
+    Write-Host "[INFO] Checking backend on port: $PORT" -ForegroundColor Blue
     Write-Host ""
 
     # Function to test HTTP endpoint
@@ -125,13 +130,13 @@ if ($Verify) {
     }
 
     # Check Backend (port 8000)
-    Write-Host "Backend Server (http://localhost:8000)" -ForegroundColor Cyan
-    Write-Host "  Port 8000: " -NoNewline
-    if (Test-Port -Port 8000) {
+    Write-Host "Backend Server (http://localhost:$PORT)" -ForegroundColor Cyan
+    Write-Host "  Port $PORT: " -NoNewline
+    if (Test-Port -Port $PORT) {
         Write-Host "LISTENING" -ForegroundColor Green
 
         Write-Host "  Health check: " -NoNewline
-        $healthResult = Test-Endpoint -Url "http://localhost:8000/health"
+        $healthResult = Test-Endpoint -Url "http://localhost:$PORT/health"
         if ($healthResult.Success) {
             Write-Host "OK (HTTP $($healthResult.StatusCode))" -ForegroundColor Green
 
@@ -155,7 +160,7 @@ if ($Verify) {
         }
 
         Write-Host "  API Docs: " -NoNewline
-        $docsResult = Test-Endpoint -Url "http://localhost:8000/docs"
+        $docsResult = Test-Endpoint -Url "http://localhost:$PORT/docs"
         if ($docsResult.Success) {
             Write-Host "AVAILABLE (HTTP $($docsResult.StatusCode))" -ForegroundColor Green
         }
@@ -221,7 +226,7 @@ if ($Verify) {
     Write-Host ""
 
     # Summary
-    $backendRunning = Test-Port -Port 8000
+    $backendRunning = Test-Port -Port $PORT
     $frontendRunning = Test-Port -Port 5173
 
     Write-Host "Summary:" -ForegroundColor Blue
@@ -259,6 +264,9 @@ if ($Verify) {
 # STOP SERVERS
 # ============================================================================
 if ($Stop) {
+    # Get backend port from environment or default to 8000
+    $PORT = if ($env:BACKEND_PORT) { [int]$env:BACKEND_PORT } else { 8000 }
+
     # Use Target parameter or default to "all"
     if ([string]::IsNullOrEmpty($Target)) {
         $Target = "all"
@@ -278,6 +286,8 @@ if ($Stop) {
     Write-Host "============================================" -ForegroundColor Blue
     Write-Host "  Stop Servers" -ForegroundColor Blue
     Write-Host "============================================" -ForegroundColor Blue
+    Write-Host ""
+    Write-Host "[INFO] Backend port: $PORT" -ForegroundColor Blue
     Write-Host ""
 
     # Function to check if port is in use
@@ -340,7 +350,7 @@ if ($Stop) {
 
     if ($target -eq "all" -or $target -eq "backend") {
         Write-Host "Stopping backend server..." -ForegroundColor Cyan
-        $backendStopped = Stop-ProcessOnPort -Port 8000 -ServerName "Backend"
+        $backendStopped = Stop-ProcessOnPort -Port $PORT -ServerName "Backend"
         Write-Host ""
     }
 
@@ -533,6 +543,28 @@ function Test-Port {
     return $null -ne $connection
 }
 
+# Function to configure frontend with correct backend port
+function Configure-FrontendPort {
+    param(
+        [int]$BackendPort,
+        [string]$FrontendEnvPath
+    )
+
+    if (!(Test-Path $FrontendEnvPath)) {
+        return  # Will be created later
+    }
+
+    $backendUrl = "http://localhost:$BackendPort"
+    $content = Get-Content $FrontendEnvPath
+    $newContent = $content -replace 'VITE_API_URL=.*', "VITE_API_URL=$backendUrl"
+    $newContent | Set-Content $FrontendEnvPath
+
+    Write-Host "[SUCCESS] Configured frontend to use backend at $backendUrl" -ForegroundColor Green
+}
+
+# Get backend port from environment or default to 8000
+$PORT = if ($env:BACKEND_PORT) { [int]$env:BACKEND_PORT } else { 8000 }
+
 # Header
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Blue
@@ -541,6 +573,7 @@ if ($WithFrontend) {
 } else {
     Write-Host "  Starting Backend Only (SQLite Local)" -ForegroundColor Blue
 }
+Write-Host "  Backend port: $PORT" -ForegroundColor Blue
 Write-Host "============================================" -ForegroundColor Blue
 Write-Host ""
 
@@ -568,22 +601,22 @@ try {
     }
 
     # Check if backend port is in use
-    if (Test-Port -Port 8000) {
-        Write-Host "[ERROR] Port 8000 is already in use!" -ForegroundColor Red
-        Write-Host "[INFO] Kill the process using port 8000:" -ForegroundColor Blue
-        Write-Host "  Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process" -ForegroundColor Blue
+    if (Test-Port -Port $PORT) {
+        Write-Host "[ERROR] Port $PORT is already in use!" -ForegroundColor Red
+        Write-Host "[INFO] Kill the process using port $PORT:" -ForegroundColor Blue
+        Write-Host "  Get-Process -Id (Get-NetTCPConnection -LocalPort $PORT).OwningProcess | Stop-Process" -ForegroundColor Blue
         Set-Location ..
         exit 1
     }
 
-    Write-Host "[SUCCESS] Starting backend at http://localhost:8000" -ForegroundColor Green
-    Write-Host "[INFO] API Docs: http://localhost:8000/docs" -ForegroundColor Blue
+    Write-Host "[SUCCESS] Starting backend at http://localhost:$PORT" -ForegroundColor Green
+    Write-Host "[INFO] API Docs: http://localhost:$PORT/docs" -ForegroundColor Blue
 
     # Start uvicorn with hot reload in separate window
     Start-Process powershell -ArgumentList @(
         "-NoExit",
         "-Command",
-        "cd '$backendPath'; Write-Host 'ContraVento Backend Server' -ForegroundColor Cyan; Write-Host 'Running at: http://localhost:8000' -ForegroundColor Green; Write-Host 'API Docs: http://localhost:8000/docs' -ForegroundColor Green; Write-Host ''; poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
+        "cd '$backendPath'; Write-Host 'ContraVento Backend Server' -ForegroundColor Cyan; Write-Host 'Running at: http://localhost:$PORT' -ForegroundColor Green; Write-Host 'API Docs: http://localhost:$PORT/docs' -ForegroundColor Green; Write-Host ''; poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port $PORT"
     )
 
     # Start frontend if requested
@@ -619,6 +652,9 @@ try {
                 exit 1
             }
         }
+
+        # Configure frontend to use correct backend port
+        Configure-FrontendPort -BackendPort $PORT -FrontendEnvPath "$frontendPath\.env.development"
 
         # Check if node_modules exists
         if (!(Test-Path "$frontendPath\node_modules")) {

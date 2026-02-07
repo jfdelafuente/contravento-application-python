@@ -88,13 +88,13 @@ services:
       - /app/node_modules
     environment:
       # Backend API URL (accessible from browser on host machine)
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: ${BACKEND_URL:-http://localhost:8000}
       VITE_ENV: development
       VITE_DEBUG: "true"
       # Use test Turnstile key for development
       VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       # Proxy configuration for Vite dev server running in Docker
-      VITE_PROXY_TARGET: http://backend:8000  # Vite proxy target (Docker service name)
+      VITE_PROXY_TARGET: http://backend:${BACKEND_INTERNAL_PORT:-8000}  # Vite proxy target (Docker service name)
       VITE_USE_PROXY: "true"  # Enable /api prefix routing
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
