@@ -76,6 +76,9 @@ services:
     image: ${BACKEND_IMAGE:-jfdelafuente/contravento-backend:develop}
     container_name: contravento-api-jenkins
     environment:
+      # Port Configuration
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
+
       # Application
       APP_NAME: ContraVento
       APP_ENV: production
@@ -97,7 +100,7 @@ services:
       SMTP_FROM: noreply@contravento.com
 
       # CORS
-      CORS_ORIGINS: http://localhost:5173,http://localhost:8000  # Preproduction ports
+      CORS_ORIGINS: http://localhost:5173,${BACKEND_URL:-http://localhost:8000}
 
       # Storage
       STORAGE_PATH: /app/storage
@@ -107,7 +110,7 @@ services:
       LOG_FORMAT: text  # Human-readable for preproduction logs
 
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     volumes:
       # Mount local storage for uploads (persistent across container restarts)
       - ./backend/storage:/app/storage
@@ -115,7 +118,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:$${PORT:-8000}/health"]
       interval: 10s
       timeout: 5s
       retries: 5

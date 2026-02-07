@@ -63,14 +63,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development  # Use development stage from Dockerfile
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     volumes:
       # Mount source code for hot reload (override production volume)
       - ./backend/src:/app/src:ro
       # Mount storage as local directory for easy access
       - ./backend/storage:/app/storage
     environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
       DEBUG: "true"
       LOG_LEVEL: DEBUG
       LOG_FORMAT: text  # Human-readable logs for development
@@ -115,7 +118,7 @@ services:
       - /app/node_modules
     environment:
       # Backend API URL (accessible from browser on host machine)
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: ${BACKEND_URL:-http://localhost:8000}
       VITE_ENV: development
       VITE_DEBUG: "true"
       # Use test Turnstile key for development

@@ -68,8 +68,12 @@ services:
       dockerfile: Dockerfile
       args:
         APP_ENV: ${APP_ENV:-local}
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
     container_name: contravento-api-${APP_ENV:-local}
     environment:
+      # Port Configuration
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
+
       # Application
       APP_NAME: ${APP_NAME:-ContraVento}
       APP_ENV: ${APP_ENV}

@@ -56,13 +56,16 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     volumes:
       # Mount source code for hot reload (backend sigue con hot reload)
       - ./backend/src:/app/src:ro
       - ./backend/storage:/app/storage
     environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
       DEBUG: "true"
       LOG_LEVEL: DEBUG
       LOG_FORMAT: text

@@ -45,14 +45,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development  # Use development stage from Dockerfile
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     volumes:
       # Mount source code for hot reload
       - ./backend/src:/app/src:ro
       # Mount storage as local directory for easy access
       - ./backend/storage:/app/storage
     environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
       DEBUG: "true"
       LOG_LEVEL: DEBUG
       LOG_FORMAT: text  # Human-readable logs for development
