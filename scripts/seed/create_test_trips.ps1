@@ -1,6 +1,9 @@
 # Script para crear viajes de prueba en ContraVento
 # Uso: .\create_test_trips.ps1
 
+# Backend URL (configurable via env var)
+$BaseUrl = if ($env:BACKEND_URL) { $env:BACKEND_URL } else { "http://localhost:8000" }
+
 Write-Host "🔐 Iniciando sesión como testuser..." -ForegroundColor Cyan
 
 # Login
@@ -11,7 +14,7 @@ $loginBody = @{
 
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $loginResponse = Invoke-WebRequest `
-    -Uri "http://localhost:8000/auth/login" `
+    -Uri "$BaseUrl/auth/login" `
     -Method POST `
     -Body $loginBody `
     -ContentType "application/json" `
@@ -39,7 +42,7 @@ Incluye paradas en pueblos con encanto como Alcaudete, Luque y Baena. La ruta es
 } | ConvertTo-Json
 
 $response1 = Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips" `
+    -Uri "$BaseUrl/trips" `
     -Method POST `
     -Body $trip1 `
     -ContentType "application/json; charset=utf-8" `
@@ -50,7 +53,7 @@ $trip1Id = $response1.data.trip.trip_id
 
 # Publicar viaje 1
 Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips/$trip1Id/publish" `
+    -Uri "$BaseUrl/trips/$trip1Id/publish" `
     -Method POST `
     -WebSession $session | Out-Null
 Write-Host "  ✓ Publicado`n" -ForegroundColor Green
@@ -74,7 +77,7 @@ Dificultad técnica alta debido a los desniveles acumulados (+8000m) y algunas s
 } | ConvertTo-Json
 
 $response2 = Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips" `
+    -Uri "$BaseUrl/trips" `
     -Method POST `
     -Body $trip2 `
     -ContentType "application/json; charset=utf-8" `
@@ -85,7 +88,7 @@ $trip2Id = $response2.data.trip.trip_id
 
 # Publicar viaje 2
 Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips/$trip2Id/publish" `
+    -Uri "$BaseUrl/trips/$trip2Id/publish" `
     -Method POST `
     -WebSession $session | Out-Null
 Write-Host "  ✓ Publicado`n" -ForegroundColor Green
@@ -109,7 +112,7 @@ Conocí peregrinos de todo el mundo. La energía del Camino es única, diferente
 } | ConvertTo-Json
 
 $response3 = Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips" `
+    -Uri "$BaseUrl/trips" `
     -Method POST `
     -Body $trip3 `
     -ContentType "application/json; charset=utf-8" `
@@ -120,7 +123,7 @@ $trip3Id = $response3.data.trip.trip_id
 
 # Publicar viaje 3
 Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips/$trip3Id/publish" `
+    -Uri "$BaseUrl/trips/$trip3Id/publish" `
     -Method POST `
     -WebSession $session | Out-Null
 Write-Host "  ✓ Publicado`n" -ForegroundColor Green
@@ -138,7 +141,7 @@ $trip4 = @{
 } | ConvertTo-Json
 
 $response4 = Invoke-RestMethod `
-    -Uri "http://localhost:8000/trips" `
+    -Uri "$BaseUrl/trips" `
     -Method POST `
     -Body $trip4 `
     -ContentType "application/json; charset=utf-8" `

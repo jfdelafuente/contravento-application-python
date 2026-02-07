@@ -3,10 +3,13 @@
 # Script para crear viajes de prueba en ContraVento
 # Uso: bash create_test_trips.sh
 
+# Backend URL (configurable via env var)
+BASE_URL="${BACKEND_URL:-http://localhost:8000}"
+
 echo "🔐 Iniciando sesión como testuser..."
 
 # Login y obtener cookie
-curl -X POST http://localhost:8000/auth/login \
+curl -X POST ${BASE_URL}/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"TestPass123!"}' \
   -c /tmp/contravento_cookies.txt \
@@ -22,7 +25,7 @@ echo ""
 
 # Viaje 1: Vía Verde del Aceite
 echo "📝 Creando viaje 1: Vía Verde del Aceite..."
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Content-Type: application/json" \
   -b /tmp/contravento_cookies.txt \
   -d '{
@@ -40,7 +43,7 @@ echo ""
 
 # Viaje 2: Pirineos
 echo "📝 Creando viaje 2: Ruta Bikepacking Pirineos..."
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Content-Type: application/json" \
   -b /tmp/contravento_cookies.txt \
   -d '{
@@ -58,7 +61,7 @@ echo ""
 
 # Viaje 3: Camino de Santiago
 echo "📝 Creando viaje 3: Camino de Santiago..."
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Content-Type: application/json" \
   -b /tmp/contravento_cookies.txt \
   -d '{

@@ -100,7 +100,7 @@ fi
 # Set base URL based on mode
 case "$MODE" in
     local-dev|local-minimal|local-full)
-        BASE_URL="http://localhost:8000"
+        BASE_URL="${BACKEND_URL:-http://localhost:8000}"
         ;;
     staging)
         BASE_URL="https://staging.contravento.com"

@@ -21,7 +21,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-API_URL="${API_URL:-http://localhost:8000}"
+API_URL="${API_URL:-${BACKEND_URL:-http://localhost:8000}}"
 BACKEND_DIR="backend"
 
 # Helper functions

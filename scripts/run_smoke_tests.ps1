@@ -26,9 +26,9 @@ $script:TestsTotal = 0
 # Configuration
 $Timeout = 30
 $BaseUrl = switch ($Mode) {
-    'local-dev'      { 'http://localhost:8000' }
-    'local-minimal'  { 'http://localhost:8000' }
-    'local-full'     { 'http://localhost:8000' }
+    'local-dev'      { if ($env:BACKEND_URL) { $env:BACKEND_URL } else { 'http://localhost:8000' } }
+    'local-minimal'  { if ($env:BACKEND_URL) { $env:BACKEND_URL } else { 'http://localhost:8000' } }
+    'local-full'     { if ($env:BACKEND_URL) { $env:BACKEND_URL } else { 'http://localhost:8000' } }
     'staging'        { 'https://staging.contravento.com' }
 }
 

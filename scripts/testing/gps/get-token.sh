@@ -4,7 +4,7 @@
 
 set -e
 
-BASE_URL="http://localhost:8000"
+BASE_URL="${BACKEND_URL:-http://localhost:8000}"
 USERNAME="testuser"
 PASSWORD="TestPass123!"
 
