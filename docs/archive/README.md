@@ -57,11 +57,28 @@ Archived on **2026-01-28** as part of Feature 016 (Deployment Documentation Cons
 
 ---
 
-### Development Notes (✅ Archived - Phase 7)
+### Deployment Guides (✅ Archived - Phase 8)
 
-Session notes and phase plans from feature development.
+Additional deployment guides archived after consolidation.
 
-**Archived on 2026-02-07**:
+**Archived on 2026-02-07 (Phase 8)**:
+
+| Source | Destination | Reason |
+| ------ | ----------- | ------ |
+| `DOCKER_COMPOSE_GUIDE.md` | [`deployment/DOCKER_COMPOSE_GUIDE.md`](deployment/DOCKER_COMPOSE_GUIDE.md) | Content in docs/deployment/modes/preproduction.md |
+| `DOCKER_COMPOSE_ENVIRONMENTS.md` | [`deployment/DOCKER_COMPOSE_ENVIRONMENTS.md`](deployment/DOCKER_COMPOSE_ENVIRONMENTS.md) | Content in docs/deployment/modes/preproduction.md |
+
+**Total Files Archived**: 2 deployment guides
+
+**Superseded By**: [docs/deployment/modes/preproduction.md](../deployment/modes/preproduction.md)
+
+---
+
+### Development Notes (✅ Archived - Phase 7 + 8)
+
+Session notes, phase plans, and temporary development documents.
+
+**Archived on 2026-02-07 (Phase 7 - specs/ cleanup)**:
 
 | Source | Destination | Files |
 |--------|-------------|-------|
@@ -72,7 +89,21 @@ Session notes and phase plans from feature development.
 | `specs/014-landing-page-inspiradora/` | [`development-notes/014-landing-page-inspiradora/`](development-notes/014-landing-page-inspiradora/) | 2 files |
 | `specs/017-gps-trip-wizard/` | [`development-notes/017-gps-trip-wizard/`](development-notes/017-gps-trip-wizard/) | 1 file |
 
-**Total Files Archived**: 11 development notes from 6 features
+**Archived on 2026-02-07 (Phase 8 - root/backend/frontend cleanup)**:
+
+| Source | Destination | Purpose |
+| ------ | ----------- | ------- |
+| `backend/SECURITY.md` | [`security-audit-2025-12-23.md`](development-notes/security-audit-2025-12-23.md) | Security audit report (Dec 2025) |
+| `backend/INTEGRATION_TESTS_PROGRESS.md` | [`integration-tests-progress-2026-01-21.md`](development-notes/integration-tests-progress-2026-01-21.md) | Test fixes tracking (Jan 2026) |
+| `frontend/RUN_TESTS.md` | [`017-gps-trip-wizard/RUN_TESTS.md`](development-notes/017-gps-trip-wizard/RUN_TESTS.md) | Wizard testing guide |
+| `CICD_MIGRATION_GUIDE.md` + `MIGRATION_IMPACT_ANALYSIS.md` | [`cicd-migration/`](development-notes/cicd-migration/) | 2 files - CI/CD migration |
+| `JENKINS_*.md` (4 files) | [`jenkins/`](development-notes/jenkins/) | 4 files - Jenkins config (now BACKUP CI/CD) |
+| `LOCAL_PROD_TESTING.md` + others (4 files) | [`testing/`](development-notes/testing/) | 4 files - Testing notes |
+| `backend/scripts/analysis/*.md` (3 files) | [`performance-analysis/`](development-notes/performance-analysis/) | 3 files - Performance diagnostics |
+| `backend/docs/POSTGRESQL_QUICKSTART.md` | [`postgresql-quickstart.md`](development-notes/postgresql-quickstart.md) | PostgreSQL setup (content in database-issues.md) |
+| `GITHUB_ACTIONS_SETUP.md` | [`github-actions-setup-old.md`](development-notes/github-actions-setup-old.md) | Old version (newer in docs/testing/ci-cd/) |
+
+**Total Files Archived**: 27 development notes (11 from Phase 7 + 16 from Phase 8)
 
 **See**: [development-notes/README.md](development-notes/README.md) for complete index
 
@@ -232,5 +263,5 @@ When archiving documentation:
 
 **Last Updated**: 2026-02-07
 **Archival Policy**: Preserve, don't delete
-**Total Files Archived**: 44 documents (3 deployment + 11 development notes + 29 test results + 1 superseded spec)
-**Consolidation Plan**: Phase 7 (Archive and Cleanup) - ✅ Complete
+**Total Files Archived**: 65 documents (3 deployment + 27 development notes + 29 test results + 1 superseded spec + 5 deployment guides)
+**Consolidation Plan**: Phase 7-8 (Archive and Cleanup) - ✅ Complete
