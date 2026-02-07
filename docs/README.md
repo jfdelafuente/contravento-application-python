@@ -155,7 +155,7 @@ async def get_trips(
     return trips
 ```
 
-**Status**: ⏳ **Planned** (Phase 5 - Week 5)
+**Status**: 🔄 **In Progress** (Phase 5 - Foundation created)
 
 ---
 

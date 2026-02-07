@@ -1,312 +1,374 @@
 # Architecture Documentation - ContraVento
 
-Technical architecture, design decisions, and system patterns for ContraVento cycling social platform.
+Comprehensive technical design documentation for ContraVento's backend, frontend, and integrations.
 
-**Audience**: Developers, architects, technical leads
-
----
-
-## Quick Navigation
-
-| I need to understand... | Go to |
-|------------------------|-------|
-| 🏗️ Backend architecture | [Backend Overview](backend/overview.md) |
-| 🔒 Security patterns | [Backend Security](backend/security.md) |
-| 📊 Database design | [Data Model](data-model/schemas.md) |
-| ⚛️ Frontend architecture | [Frontend Overview](frontend/overview.md) |
-| 🎨 Component patterns | [Frontend Patterns](frontend/patterns.md) |
-| 🔌 External integrations | [Integrations](integrations/) |
+**Audience**: Developers, technical architects, senior engineers
 
 ---
 
-## Architecture Overview
+## Table of Contents
 
-ContraVento is built with a **Clean Architecture** approach, separating concerns into distinct layers:
+- [Overview](#overview)
+- [Backend Architecture](#backend-architecture)
+- [Frontend Architecture](#frontend-architecture)
+- [Data Model](#data-model)
+- [Integrations](#integrations)
+- [Design Decisions](#design-decisions)
+- [Related Documentation](#related-documentation)
 
+---
+
+## Overview
+
+ContraVento is a full-stack cycling social platform built with modern technologies and architectural patterns.
+
+### Technology Stack
+
+**Backend**:
+- **Framework**: FastAPI (Python 3.12)
+- **ORM**: SQLAlchemy 2.0 (async)
+- **Database**: SQLite (dev/test), PostgreSQL 16 (production)
+- **Authentication**: JWT tokens (access + refresh)
+- **File Storage**: Local filesystem (future: S3)
+- **Email**: MailHog (dev), SMTP (prod)
+
+**Frontend**:
+- **Framework**: React 18 + TypeScript 5
+- **Build Tool**: Vite 5
+- **Routing**: React Router 6
+- **Forms**: React Hook Form + Zod
+- **Maps**: Leaflet.js + react-leaflet
+- **HTTP Client**: Axios
+- **State**: React Context + local state
+
+**Infrastructure**:
+- **Containerization**: Docker + Docker Compose
+- **CI/CD**: GitHub Actions
+- **Reverse Proxy**: Nginx (staging/prod)
+- **Monitoring**: Prometheus + Grafana (future)
+
+---
+
+### Architectural Principles
+
+**1. Clean Architecture (Backend)**:
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend Layer                        │
-│              React 18 + TypeScript + Vite                │
-│          (Container/Presentational Pattern)              │
-└─────────────────────────────────────────────────────────┘
-                           ↓ HTTP/REST
-┌─────────────────────────────────────────────────────────┐
-│                      API Layer                           │
-│                 FastAPI Routers                          │
-│           (Request validation, Response formatting)       │
-└─────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────┐
-│                    Service Layer                         │
-│                  Business Logic                          │
-│         (AuthService, TripService, UserService)          │
-└─────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────┐
-│                     Model Layer                          │
-│              SQLAlchemy ORM Models                       │
-│           (User, Trip, Photo, Achievement)               │
-└─────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────┐
-│                   Database Layer                         │
-│           SQLite (dev) / PostgreSQL (prod)               │
-└─────────────────────────────────────────────────────────┘
+API Layer (FastAPI Routers)
+    ↓ calls
+Service Layer (Business Logic)
+    ↓ uses
+Model Layer (SQLAlchemy ORM)
+    ↓ persists to
+Database (SQLite/PostgreSQL)
 ```
 
-**Key Principle**: Layers can only call downward. APIs call Services, Services use Models. Never skip layers.
+**Key Rule**: Layers can only call downward. APIs call Services, Services use Models.
+
+---
+
+**2. Component-Based Architecture (Frontend)**:
+```
+Pages (Smart Containers)
+    ↓ compose
+Components (Presentational)
+    ↓ use
+Hooks (Business Logic)
+    ↓ call
+Services (API Client)
+```
+
+**Key Rule**: Separation of concerns. Pages manage state, components display UI, hooks encapsulate logic.
+
+---
+
+**3. Dependency Injection**:
+- Database sessions injected via `Depends(get_db)`
+- Current user injected via `Depends(get_current_user)`
+- No global state or singletons
+
+**4. Schema Separation**:
+- **Pydantic Schemas** (`schemas/`): Request/response validation
+- **SQLAlchemy Models** (`models/`): Database persistence
+- Never mix the two
+
+**5. Test-Driven Development (TDD)**:
+- Write tests FIRST before implementation
+- Coverage requirement: ≥90% (backend), ≥80% (frontend)
+- Test behavior, not implementation
 
 ---
 
 ## Backend Architecture
 
-### Core Documentation
+Comprehensive backend design documentation.
 
-- 📘 **[Backend Overview](backend/overview.md)** - Clean architecture, layered design, async patterns
-- 📘 **[Service Layer](backend/services.md)** - Business logic patterns, dependency injection
-- 📘 **[Database Strategy](backend/database.md)** - Dual DB (SQLite/PostgreSQL), migrations, async queries
-- 📘 **[Security Architecture](backend/security.md)** - Authentication, authorization, data protection
+📘 **Coming Soon** - Backend architecture documentation will be migrated from `backend/docs/ARCHITECTURE.md`
 
-### Key Patterns
+### Topics Covered
 
-**Dependency Injection**:
+**Core Architecture**:
+- Clean Architecture layers (API → Service → Model → Database)
+- Service Layer pattern for business logic
+- Async SQLAlchemy with asyncio
+- Dual database support (SQLite dev, PostgreSQL prod)
+
+**Security**:
+- JWT authentication flow (access + refresh tokens)
+- Password hashing with bcrypt (12 rounds)
+- CORS configuration and security headers
+- Error handling and validation
+
+**Example - Dependency Injection**:
 ```python
-@router.get("/trips/{trip_id}")
-async def get_trip(
-    trip_id: UUID,
-    current_user: User = Depends(get_current_user),  # Injected
-    db: AsyncSession = Depends(get_db)               # Injected
+from src.api.deps import get_current_user, get_db
+
+@router.get("/trips")
+async def get_trips(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    trip = await TripService.get_trip(db, trip_id, current_user)
-    return {"success": True, "data": trip}
+    trips = await TripService.get_user_trips(db, current_user)
+    return {"success": True, "data": trips}
 ```
 
-**Service Layer Pattern**:
+**Example - Service Layer**:
 ```python
 class TripService:
     @staticmethod
     async def create_trip(
         db: AsyncSession,
-        trip_data: TripCreate,
-        user: User
+        user: User,
+        trip_data: TripCreateInput
     ) -> Trip:
-        # Business logic here
-        # Validation, stats updates, notifications
-        pass
+        trip = Trip(**trip_data.dict(), user_id=user.user_id)
+        db.add(trip)
+        await db.commit()
+        await db.refresh(trip)
+        return trip
 ```
-
-**Documentation Status**:
-
-| Document | Status | Source | Last Updated |
-|----------|--------|--------|--------------|
-| [backend/overview.md](backend/overview.md) | ⏳ Planned | backend/docs/ARCHITECTURE.md | - |
-| [backend/services.md](backend/services.md) | ⏳ Planned | Extract from ARCHITECTURE.md | - |
-| [backend/database.md](backend/database.md) | ⏳ Planned | Extract from ARCHITECTURE.md | - |
-| [backend/security.md](backend/security.md) | ⏳ Planned | backend/docs/SECURITY.md | - |
 
 ---
 
 ## Frontend Architecture
 
-### Core Documentation
+React + TypeScript architecture and patterns.
 
-- 📘 **[Frontend Overview](frontend/overview.md)** - Component architecture, routing, state management
-- 📘 **[Component Patterns](frontend/patterns.md)** - Container/Presentational, custom hooks, forms
-- 📘 **[State Management](frontend/state-management.md)** - Context API, React Hook Form, local state
-- 📘 **[Routing Patterns](frontend/routing.md)** - React Router, protected routes, navigation
+📘 **Coming Soon** - Frontend architecture documentation will be created from existing patterns
 
-### Key Patterns
+### Topics Covered
 
-**Container/Presentational**:
+**Component Patterns**:
+- Container/Presentational component pattern
+- Custom hooks for business logic
+- React Hook Form + Zod validation
+- Wizard pattern for multi-step forms
+
+**State Management**:
+- Context API for shared state
+- React Router protected routes
+- Error handling and loading states
+
+**Example - Custom Hook**:
 ```typescript
-// Smart Container (Page)
-export const TripsListPage: React.FC = () => {
-  const { trips, isLoading } = useTripList(username);
-  return <TripCard trips={trips} />;
-};
-
-// Presentational Component
-export const TripCard: React.FC<TripCardProps> = ({ trip }) => {
-  return <div>{trip.title}</div>;
-};
-```
-
-**Custom Hooks**:
-```typescript
-export const useTripList = (username: string) => {
+export const useTripList = (username: string, filters?: TripFilters) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchTrips(username).then(setTrips);
-  }, [username]);
+    const fetchTrips = async () => {
+      const response = await getUserTrips(username, filters);
+      setTrips(response.data);
+      setIsLoading(false);
+    };
+    fetchTrips();
+  }, [username, filters]);
 
   return { trips, isLoading };
 };
 ```
 
-**Documentation Status**:
+**Example - Container/Presentational**:
+```typescript
+// Container (Smart)
+export const TripsListPage: React.FC = () => {
+  const { trips, isLoading } = useTripList(username);
+  return <TripGrid trips={trips} isLoading={isLoading} />;
+};
 
-| Document | Status | Source | Last Updated |
-|----------|--------|--------|--------------|
-| [frontend/overview.md](frontend/overview.md) | ⏳ Planned | frontend/README.md | - |
-| [frontend/patterns.md](frontend/patterns.md) | ⏳ Planned | frontend/docs/DESIGN_SYSTEM.md | - |
-| [frontend/state-management.md](frontend/state-management.md) | ⏳ Planned | CLAUDE.md + frontend/README.md | - |
-| [frontend/routing.md](frontend/routing.md) | ⏳ Planned | Extract from specs/005 | - |
+// Presentational (Dumb)
+export const TripGrid: React.FC<Props> = ({ trips }) => {
+  return (
+    <div className="grid">
+      {trips.map(trip => <TripCard key={trip.trip_id} trip={trip} />)}
+    </div>
+  );
+};
+```
 
 ---
 
 ## Data Model
 
-### Core Documentation
+Database schemas, relationships, and migrations.
 
-- 📘 **[Database Schemas](data-model/schemas.md)** - Complete DDL (SQLite + PostgreSQL), entity relationships
-- 📘 **[Migration Strategy](data-model/migrations.md)** - Alembic workflow, versioning, rollback procedures
+📘 **Coming Soon** - Data model documentation will consolidate `specs/*/data-model.md` files
 
-### Entity Relationship Diagram
+### Entity Overview
 
 ```
-┌─────────┐       ┌─────────┐       ┌──────────┐
-│  User   │──────<│  Trip   │>──────│ TripPhoto│
-└─────────┘       └─────────┘       └──────────┘
-     │                 │
-     │                 │
-     ▼                 ▼
-┌───────────┐     ┌──────────┐
-│UserProfile│     │   Tag    │
-└───────────┘     └──────────┘
-     │                 │
-     ▼                 ▼
-┌───────────┐     ┌────────────┐
-│ UserStats │     │TripLocation│
-└───────────┘     └────────────┘
+User ──────┬───── UserProfile (1:1)
+           ├───── UserStats (1:1)
+           ├───── Trip (1:N)
+           ├───── Comment (1:N)
+           ├───── Follow (1:N as follower)
+           └───── Follow (1:N as followed)
+
+Trip ──────┬───── TripPhoto (1:N, max 20)
+           ├───── TripLocation (1:N)
+           ├───── Tag (N:N via trip_tags)
+           ├───── GPXFile (1:1, optional)
+           ├───── Comment (1:N)
+           └───── Like (1:N)
+
+GPXFile ───┴───── GPXTrack (1:N)
+GPXTrack ──┴───── TrackPoint (1:N, simplified ~200-500 points)
 ```
 
 **Key Entities**:
-- User, UserProfile, UserStats
-- Trip, TripPhoto, TripLocation, Tag
-- Achievement, CyclingType
-- GPXFile, POI (Points of Interest)
-- Follow, Comment, Like (social features)
+- **User**: Authentication, profile, stats
+- **Trip**: Title, description, dates, distance, difficulty, status (draft/published)
+- **TripPhoto**: Photos with order, captions (max 20 per trip)
+- **GPXFile**: Original GPX with metadata
+- **GPXTrack**: Simplified track with ~200-500 points
+- **TrackPoint**: Lat/lng/elevation/gradient
 
-**Documentation Status**:
-
-| Document | Status | Source | Last Updated |
-|----------|--------|--------|--------------|
-| [data-model/schemas.md](data-model/schemas.md) | ⏳ Planned | Consolidate from specs/*/data-model.md | - |
-| [data-model/migrations.md](data-model/migrations.md) | ⏳ Planned | Extract from CLAUDE.md | - |
+**Database Strategy**:
+- **SQLite**: Development, testing (file-based, in-memory)
+- **PostgreSQL**: Staging, production (native UUID, arrays, concurrency)
+- **Migrations**: Alembic auto-generates dialect-specific DDL
 
 ---
 
 ## Integrations
 
-External services and third-party integrations:
+External services and third-party integrations.
 
-- 📘 **[GPX Processing](integrations/gpx-processing.md)** - GPX parsing, track simplification, elevation extraction
-- 📘 **[Reverse Geocoding](integrations/reverse-geocoding.md)** - Nominatim API, caching strategy, rate limiting
-- 📘 **[Photo Storage](integrations/photo-storage.md)** - File upload, image resizing, storage strategy
+📘 **Coming Soon** - Integration documentation for GPX, geocoding, and photo storage
 
-### Integration Patterns
+### GPX Processing
 
-**GPX Simplification** (Douglas-Peucker):
-```python
-# Reduce 5000 trackpoints → ~200-500 points
-simplified_track = simplify_track(
-    trackpoints=gpx.tracks[0].segments[0].points,
-    epsilon=0.0001  # Tolerance for simplification
-)
+```
+1. Upload GPX file (max 10MB)
+2. Parse with gpxpy library
+3. Extract metadata (distance, elevation, trackpoints)
+4. Simplify route (Douglas-Peucker: 5000 → 500 points)
+5. Calculate gradients between points
+6. Store simplified track in database
+7. Return statistics to user
 ```
 
-**Reverse Geocoding Cache**:
-```typescript
-// LRU cache (100 entries, ~111m precision)
-const cached = geocodingCache.get(lat, lng);
-if (cached) return cached;  // Cache hit (~70-80% hit rate)
+### Reverse Geocoding
 
-const result = await nominatimAPI.reverseGeocode(lat, lng);
-geocodingCache.set(lat, lng, result);
+```
+1. User clicks on map → (lat, lng)
+2. Check LRU cache (100 entries, 3-decimal precision)
+3. Cache miss → Call Nominatim API
+4. Debounce (1000ms) to prevent rate limits
+5. Extract Spanish place name from response
+6. Store in cache for future requests
+7. Display location confirmation modal
 ```
 
-**Documentation Status**:
+### Photo Storage
 
-| Document | Status | Source | Last Updated |
-|----------|--------|--------|--------------|
-| [integrations/gpx-processing.md](integrations/gpx-processing.md) | ⏳ Planned | specs/003/GPX_WIZARD_INTEGRATION_ANALYSIS.md | - |
-| [integrations/reverse-geocoding.md](integrations/reverse-geocoding.md) | ⏳ Planned | CLAUDE.md (Reverse Geocoding section) | - |
-| [integrations/photo-storage.md](integrations/photo-storage.md) | ⏳ Planned | Extract from CLAUDE.md | - |
+```
+1. Validate file (MIME type, size max 10MB)
+2. Store original temporarily
+3. Background task: Resize to 1200px width with Pillow
+4. Save to: storage/trip_photos/{year}/{month}/{trip_id}/
+5. Update database with photo_url
+6. Delete original
+```
 
 ---
 
 ## Design Decisions
 
-Key architectural decisions and their rationale:
+### Why Clean Architecture?
 
-### Dual Database Strategy
+**Benefits**:
+- Clear separation of concerns
+- Testable business logic (services)
+- Easy to swap database or framework
+- Prevents coupling between layers
 
-**Decision**: Support both SQLite (dev) and PostgreSQL (prod) from same codebase
+**Trade-offs**:
+- More boilerplate (schemas + models)
+- Steeper learning curve
+- Overhead for simple CRUD operations
 
-**Rationale**:
-- ✅ **Fast Development**: SQLite = instant startup, no Docker
-- ✅ **Production Parity**: PostgreSQL = production-grade features
-- ✅ **Test Isolation**: In-memory SQLite for fast tests
-- ⚠️ **Tradeoff**: Alembic migrations must handle both dialects
-
-**Implementation**: See [Database Strategy](backend/database.md)
-
----
-
-### Clean Architecture Layers
-
-**Decision**: Strict layer separation (API → Service → Model → Database)
-
-**Rationale**:
-- ✅ **Testability**: Each layer can be tested in isolation
-- ✅ **Maintainability**: Business logic separated from HTTP concerns
-- ✅ **Scalability**: Easy to swap implementations (e.g., different DB)
-- ⚠️ **Tradeoff**: More boilerplate for simple CRUD operations
-
-**Implementation**: See [Backend Overview](backend/overview.md)
+**Verdict**: Worth it for maintainability and testability.
 
 ---
 
-### Service Layer Pattern
+### Why Dual Database Strategy?
 
-**Decision**: All business logic in service classes, not in API routes
+**Benefits**:
+- Fast development (SQLite, no setup)
+- Fast tests (in-memory SQLite)
+- Production-ready (PostgreSQL)
+- Same codebase, different dialects
 
-**Rationale**:
-- ✅ **Reusability**: Services can be called from APIs, background tasks, CLI
-- ✅ **Testing**: Unit test services without HTTP layer
-- ✅ **Single Responsibility**: Routes handle HTTP, services handle logic
-- ⚠️ **Tradeoff**: Extra layer adds complexity
+**Trade-offs**:
+- Must test on both databases
+- Some PostgreSQL features unavailable (native UUID, arrays)
+- Alembic migrations must support both
 
-**Implementation**: See [Service Layer](backend/services.md)
+**Verdict**: Excellent developer experience, production-ready.
 
 ---
 
-## Migration from Old Documentation
+### Why React Hook Form + Zod?
 
-This consolidated architecture documentation replaces:
+**Benefits**:
+- Type-safe validation
+- Great DX (less boilerplate)
+- Performance (uncontrolled inputs)
+- Schema reuse (frontend + backend)
 
-| Old Location | New Location | Status |
-|--------------|--------------|--------|
-| `backend/docs/ARCHITECTURE.md` | `docs/architecture/backend/` | ⏳ Phase 5 migration |
-| `backend/docs/SECURITY.md` | `docs/architecture/backend/security.md` | ⏳ Phase 5 migration |
-| `frontend/README.md` (architecture) | `docs/architecture/frontend/` | ⏳ Phase 5 migration |
-| `frontend/docs/DESIGN_SYSTEM.md` | `docs/architecture/frontend/patterns.md` | ⏳ Phase 5 migration |
-| `specs/*/data-model.md` | `docs/architecture/data-model/schemas.md` | ⏳ Phase 5 migration |
+**Trade-offs**:
+- Learning curve (Zod schema syntax)
+- Less mature than Formik
 
-Migration will occur in **Phase 5** (Week 5) of the documentation consolidation plan.
+**Verdict**: Modern, type-safe, worth the learning curve.
 
 ---
 
 ## Related Documentation
 
 - **[API Reference](../api/README.md)** - API endpoints and contracts
-- **[Testing](../testing/README.md)** - Testing strategies
-- **[Features](../features/README.md)** - Feature specifications
+- **[Testing](../testing/README.md)** - Test strategies and guides
+- **[Deployment](../deployment/README.md)** - Deployment modes and configurations
+- **[User Guides](../user-guides/README.md)** - End-user documentation
 - **[Development](../development/README.md)** - Developer workflows
 
 ---
 
-**Last Updated**: 2026-02-06
-**Consolidation Plan**: Phase 1 (Foundation) - Directory structure
+## Migration Status
+
+| Old Location | New Location | Status |
+|--------------|--------------|--------|
+| `backend/docs/ARCHITECTURE.md` (740 lines) | `docs/architecture/backend/overview.md` | ⏳ Planned |
+| `backend/docs/SECURITY.md` (298 lines) | `docs/architecture/backend/security.md` | ⏳ Planned |
+| `frontend/README.md` (architecture section) | `docs/architecture/frontend/overview.md` | ⏳ Planned |
+| `frontend/docs/DESIGN_SYSTEM.md` | `docs/architecture/frontend/patterns.md` | ⏳ Planned |
+| `specs/003-gps-routes/GPX_WIZARD_INTEGRATION_ANALYSIS.md` | `docs/architecture/integrations/gpx-processing.md` | ⏳ Planned |
+| `specs/*/data-model.md` (multiple files) | `docs/architecture/data-model/schemas.md` | ⏳ Planned |
+
+**Consolidation Strategy**: Migrate core architecture docs, consolidate scattered data models, create integration guides from specs.
+
+---
+
+**Last Updated**: 2026-02-07
+**Consolidation Plan**: ⏳ Phase 5 (Architecture) - In progress
+**Status**: Foundation created, migrations pending
