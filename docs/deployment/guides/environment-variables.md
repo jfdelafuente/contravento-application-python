@@ -251,7 +251,202 @@ chown -R app:app /app/storage
 
 ---
 
-### 5. Frontend (Vite) Variables
+### 5. Backend Port Configuration
+
+Controls where the backend API server listens for connections. Configurable via environment variables without code changes.
+
+| Variable | Description | Required | Default | Scope |
+|----------|-------------|----------|---------|-------|
+| `BACKEND_PORT` | Host port for backend access | No | `8000` | Local dev, Docker host |
+| `BACKEND_INTERNAL_PORT` | Container internal port | No | `8000` | Docker only |
+| `BACKEND_URL` | Full backend URL | No | `http://localhost:8000` | Testing scripts, frontend |
+
+#### Variable Usage
+
+**`BACKEND_PORT`** (External/Host Port):
+- Port where backend is accessible from host machine
+- Used in Docker `ports:` mapping (left side)
+- Used by startup scripts (`run_backend.sh`, `run_backend.ps1`)
+- Example: `BACKEND_PORT=9000` → access at http://localhost:9000
+
+**`BACKEND_INTERNAL_PORT`** (Container Port):
+- Port where backend listens inside Docker container
+- Used in Docker `ports:` mapping (right side)
+- Used in Dockerfile `EXPOSE` directive
+- Usually same as `BACKEND_PORT` unless doing port remapping
+
+**`BACKEND_URL`** (Full URL):
+- Complete URL for testing and integration scripts
+- Auto-calculated from `BACKEND_PORT` if not set
+- Used by: smoke tests, GPS tests, seeding scripts
+- Frontend uses `VITE_API_URL` instead (see section 6)
+
+#### Examples by Deployment Mode
+
+**Local Development (No Docker)**:
+
+```bash
+# Linux/Mac - Use default port 8000
+./run_backend.sh
+
+# Linux/Mac - Custom port 9000
+export BACKEND_PORT=9000
+./run_backend.sh
+# Access: http://localhost:9000/docs
+
+# Windows PowerShell - Custom port 9000
+$env:BACKEND_PORT = 9000
+.\run_backend.ps1
+# Access: http://localhost:9000/docs
+```
+
+**Docker Environments (local-minimal, local-full)**:
+
+```env
+# .env.local-minimal or .env.local
+BACKEND_PORT=9000
+BACKEND_INTERNAL_PORT=9000
+BACKEND_URL=http://localhost:9000
+```
+
+```bash
+# Start with custom port
+docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml \
+  --env-file .env.local-minimal up -d
+
+# IMPORTANT: Rebuild image when changing port (build ARG)
+docker-compose build --no-cache backend
+docker-compose up -d
+
+# Access: http://localhost:9000/docs
+```
+
+**Staging/Production** (Nginx Reverse Proxy):
+
+Backend is NOT exposed directly to internet. Only internal port matters:
+
+```env
+# .env.staging or .env.prod
+BACKEND_INTERNAL_PORT=8000  # Internal container port
+# BACKEND_PORT not used (Nginx handles external traffic)
+```
+
+Nginx forwards requests to `http://backend:8000` internally.
+
+#### Testing Scripts
+
+All testing and seeding scripts support `BACKEND_URL` environment variable:
+
+```bash
+# Run tests against custom port
+export BACKEND_URL=http://localhost:9000
+
+# Smoke tests
+./scripts/run_smoke_tests.sh
+
+# GPS tests
+./scripts/testing/gps/test-gps-quick.sh
+./scripts/testing/gps/test-gps-coordinates.sh
+
+# Seed test data
+./scripts/seed/create_test_trips.sh
+```
+
+**PowerShell equivalent**:
+
+```powershell
+$env:BACKEND_URL = "http://localhost:9000"
+.\scripts\seed\create_test_trips.ps1
+```
+
+#### Port Configuration Architecture
+
+**Development Flow**:
+```
+BACKEND_PORT=9000 → run_backend.sh → uvicorn --port 9000
+                                      ↓
+                            http://localhost:9000
+```
+
+**Docker Flow**:
+```
+.env:
+  BACKEND_PORT=9000
+  BACKEND_INTERNAL_PORT=9000
+
+Dockerfile ARG PORT=9000 → ENV PORT=9000 → EXPOSE 9000
+                                            ↓
+docker-compose ports: "9000:9000"
+                      ↓      ↓
+                    host  container
+```
+
+**Nginx Reverse Proxy Flow** (staging/production):
+```
+Internet → Nginx :443 (HTTPS) → backend:8000 (internal)
+           ↓
+      SSL Termination
+      Rate Limiting
+      Static Assets
+```
+
+#### Common Pitfalls
+
+**Port not changing after setting `BACKEND_PORT` in Docker**:
+
+Docker uses build-time `ARG` for port. You must rebuild:
+
+```bash
+docker-compose build --no-cache backend
+docker-compose up -d
+```
+
+**Frontend can't reach backend on custom port**:
+
+Update frontend's `VITE_API_URL` to match:
+
+```env
+# .env.development (frontend)
+VITE_API_URL=http://localhost:9000
+```
+
+**Tests failing after port change**:
+
+Set `BACKEND_URL` before running tests:
+
+```bash
+export BACKEND_URL=http://localhost:9000
+./scripts/run_smoke_tests.sh
+```
+
+**Port conflict "address already in use"**:
+
+Another service is using the port. Check with:
+
+```bash
+# Linux/Mac
+lsof -i :8000
+
+# Windows PowerShell
+Get-NetTCPConnection -LocalPort 8000
+```
+
+Kill the process or choose a different port.
+
+#### Security Considerations
+
+**Never expose backend directly in production**:
+- Always use Nginx reverse proxy
+- Backend should only listen on Docker internal network
+- External firewall rules should block `BACKEND_PORT`
+
+**Development vs Production**:
+- Development: `BACKEND_PORT` exposed for direct testing
+- Production: Backend only accessible via Nginx (internal network)
+
+---
+
+### 6. Frontend (Vite) Variables
 
 All frontend variables must be prefixed with `VITE_` to be exposed to client-side code.
 
@@ -290,7 +485,7 @@ export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
 ---
 
-### 6. Logging & Debugging
+### 7. Logging & Debugging
 
 | Variable | Description | Required | Default | Production |
 |----------|-------------|----------|---------|------------|
@@ -320,7 +515,7 @@ LOG_FORMAT=json
 
 ---
 
-### 7. Testing Variables
+### 8. Testing Variables
 
 Used by pytest (`backend/.env.test`):
 
