@@ -82,19 +82,21 @@ Welcome to the ContraVento documentation! This is your central navigation point 
 📘 **[User Guides Documentation](user-guides/README.md)**
 
 **I want to...**:
-- Create my first trip → [Creating Trips](user-guides/trips/creating-trips.md)
-- Upload a GPX file → [Uploading GPX](user-guides/trips/uploading-gpx.md)
-- Add photos → [Adding Photos](user-guides/trips/adding-photos.md)
-- Follow other cyclists → [Following Users](user-guides/social/following-users.md)
-- Discover trips → [Public Feed](user-guides/social/public-feed.md)
+- 🆕 **Get started** → [Getting Started](user-guides/getting-started.md)
+- 📝 **Create my first trip** → [Creating Trips](user-guides/trips/creating-trips.md)
+- 🗺️ **Upload a GPX file** → [Uploading GPX](user-guides/trips/uploading-gpx.md)
+- 📸 **Add photos to trips** → [Adding Photos](user-guides/trips/adding-photos.md)
+- 👥 **Follow other cyclists** → [Following Users](user-guides/social/following-users.md)
+- 🔍 **Discover new trips** → [Public Feed](user-guides/social/public-feed.md)
+- 🗺️ **Understand GPS maps** → [GPS Routes & Maps](user-guides/maps/gps-routes.md)
 
 **Contents**:
-- 🚴 **Trips**: Creating, uploading GPX, adding photos, privacy
-- 👥 **Social**: Following, commenting, public feed
-- ⚙️ **Profile**: Editing profile, understanding stats
-- 🗺️ **Maps**: GPS routes, elevation profiles, locations
+- 🎯 **Getting Started**: Registration, login, platform tour, first trip
+- 🚴 **Trips**: Creating (4-step wizard), uploading GPX, adding photos (max 20), draft vs published
+- 👥 **Social**: Following users, public feed (filters, tags, search), comments, likes
+- 🗺️ **Maps**: GPS routes visualization, interactive maps, location markers
 
-**Status**: ⏳ **Planned** (Phase 4 - Week 4)
+**Status**: ✅ **Complete** (Phase 4 - 8 guides created)
 
 ---
 
@@ -125,7 +127,7 @@ curl -X GET http://localhost:8000/trips \
 - 📬 **[Postman Collections](api/postman/)**: Pre-built API test collections
 - 🧪 **[Testing Guides](api/testing/)**: Manual testing, Postman setup
 
-**Status**: ⏳ **Planned** (Phase 2 - Week 2, HIGH PRIORITY)
+**Status**: ✅ **Complete** (Phase 2 - 18 files created)
 
 ---
 
@@ -182,7 +184,7 @@ async def get_trips(
 
 **Coverage Requirement**: ≥90% for all modules
 
-**Status**: ⏳ **Planned** (Phase 3 - Week 3, HIGH PRIORITY)
+**Status**: ✅ **Complete** (Phase 3 - 10 files created, consolidated from 25K+ lines)
 
 ---
 
@@ -273,10 +275,10 @@ Old documentation preserved for reference:
 
 | Phase | Description | Status | Week |
 |-------|-------------|--------|------|
-| **Phase 1** | Foundation (directory structure) | 🔄 **In Progress** | Week 1 |
-| **Phase 2** | API Documentation | ⏳ Planned | Week 2 |
-| **Phase 3** | Testing Consolidation | ⏳ Planned | Week 3 |
-| **Phase 4** | User Guides | ⏳ Planned | Week 4 |
+| **Phase 1** | Foundation (directory structure) | ✅ **Complete** | Week 1 |
+| **Phase 2** | API Documentation | ✅ **Complete** | Week 2 |
+| **Phase 3** | Testing Consolidation | ✅ **Complete** | Week 3 |
+| **Phase 4** | User Guides | ✅ **Complete** | Week 4 |
 | **Phase 5** | Architecture | ⏳ Planned | Week 5 |
 | **Phase 6** | Features & Development | ⏳ Planned | Week 6 |
 | **Phase 7** | Archive & Cleanup | ⏳ Planned | Week 7 |
@@ -287,10 +289,10 @@ Old documentation preserved for reference:
 | Category | Structure | Content | Status |
 |----------|-----------|---------|--------|
 | **Deployment** | ✅ Complete | ✅ Complete (Feature 016) | ✅ 97% |
-| **User Guides** | ✅ Complete | ⏳ Phase 4 | 🔄 25% |
-| **API** | ✅ Complete | ⏳ Phase 2 | 🔄 25% |
+| **User Guides** | ✅ Complete | ✅ Complete (Phase 4) | ✅ 100% |
+| **API** | ✅ Complete | ✅ Complete (Phase 2) | ✅ 100% |
 | **Architecture** | ✅ Complete | ⏳ Phase 5 | 🔄 25% |
-| **Testing** | ✅ Complete | ⏳ Phase 3 | 🔄 25% |
+| **Testing** | ✅ Complete | ✅ Complete (Phase 3) | ✅ 100% |
 | **Features** | ✅ Complete | ⏳ Phase 6 | 🔄 25% |
 | **Development** | ✅ Complete | ⏳ Phase 6 | 🔄 25% |
 | **Operations** | ✅ Complete | ⏳ Phase 6 | 🔄 25% |
@@ -364,9 +366,9 @@ See **[Documentation Contributing Guide](CONTRIBUTING.md)** (to be created in Ph
 
 **Consolidation Goal**: ~150 well-organized files (50% reduction via consolidation)
 
-**Current Phase**: Phase 1 (Foundation) - Directory structure ✅
+**Current Phase**: Phase 4 (User Guides) - ✅ Complete
 
-**Next Milestone**: Phase 2 (API Documentation) - Week 2
+**Next Milestone**: Phase 5 (Architecture) - Week 5
 
 ---
 
@@ -387,6 +389,6 @@ This documentation structure is being built incrementally as part of a comprehen
 
 ---
 
-**Last Updated**: 2026-02-06
-**Consolidation Plan**: Phase 1 (Foundation) - Complete
-**Next Phase**: Phase 2 (API Documentation) - Week 2
+**Last Updated**: 2026-02-07
+**Consolidation Plan**: Phase 4 (User Guides) - Complete
+**Next Phase**: Phase 5 (Architecture) - Week 5
