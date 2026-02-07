@@ -150,11 +150,3 @@ services:
 #   ./deploy.sh local-minimal down
 #   ./deploy.sh local-minimal
 # ============================================================================
-
-# ============================================================================
-# Networks
-# ============================================================================
-networks:
-  contravento-network:
-    driver: bridge
-    name: contravento-local-minimal-network
