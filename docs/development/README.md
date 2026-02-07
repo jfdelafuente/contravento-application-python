@@ -67,8 +67,8 @@ gh pr create --title "feat: add new feature" --body "Description..."
 - **[TDD Workflow](tdd-workflow.md)** - ✅ Test-Driven Development process
 - **[Code Quality](code-quality.md)** - ✅ Linting, formatting, type checking requirements
 - **[Database Migrations](database-migrations.md)** - Alembic workflow (planned)
-- **[Scripts](scripts/)** - Utility scripts documentation
-- **[Troubleshooting](troubleshooting/)** - Common development issues
+- **[Scripts](scripts/)** - ✅ Utility scripts documentation
+- **[Troubleshooting](troubleshooting/)** - ✅ Common development issues
 
 ---
 
@@ -76,12 +76,12 @@ gh pr create --title "feat: add new feature" --body "Description..."
 
 ### Scripts Documentation
 
-- **[Overview](scripts/overview.md)** - All utility scripts
-- **[Analysis Scripts](scripts/analysis-scripts.md)** - GPS analysis, performance diagnostics
-- **[Seeding Scripts](scripts/seeding-scripts.md)** - Sample data creation
-- **[User Management](scripts/user-management.md)** - Create users, promote to admin
-
-**Source**: Will be migrated from `backend/scripts/` in Phase 6
+- **[Overview](scripts/overview.md)** - ✅ Complete utility scripts catalog (20+ scripts)
+  - Analysis scripts: GPX diagnostics, performance analysis
+  - Development tools: Data verification, cleanup utilities
+  - Seeding scripts: Test data creation, database seeding
+  - User management: Admin/user creation, role management
+  - Testing scripts: Verification, test data checks
 
 ### User Management Scripts
 
@@ -118,10 +118,22 @@ poetry run alembic downgrade -1
 
 Common development issues and solutions:
 
-- **[Common Issues](troubleshooting/common-issues.md)** - FAQ and quick fixes
-- **[Docker Issues](troubleshooting/docker-issues.md)** - Docker-specific problems
-- **[Database Issues](troubleshooting/database-issues.md)** - DB connection, migration problems
-- **[Email Testing](troubleshooting/email-testing.md)** - MailHog setup and debugging
+- **[Common Issues](troubleshooting/common-issues.md)** - ✅ FAQ and quick fixes (20+ issues, 8 categories)
+  - Server issues: Port conflicts, hangs, hot reload
+  - Database issues: Connection errors, migrations
+  - Dependency issues: Poetry cache, version conflicts
+  - Testing issues: Coverage, fixtures
+  - Frontend issues: CORS, React re-rendering
+  - GPX upload issues: File size, parsing, statistics
+  - Authentication issues: JWT tokens, HttpOnly cookies
+  - Email testing issues: MailHog configuration
+- **[Database Issues](troubleshooting/database-issues.md)** - ✅ DB troubleshooting (SQLite, PostgreSQL, migrations)
+  - SQLite: Locked database, foreign keys, corruption
+  - PostgreSQL: Connection refused, authentication, disk full
+  - Migrations: Sync issues, column conflicts, autogenerate
+  - Connection pool: Timeouts, SSL errors
+  - Data integrity: Duplicate keys, orphaned records
+  - Performance: N+1 queries, missing indexes
 
 ### Quick Fixes
 
@@ -188,12 +200,12 @@ See [Deployment Documentation](../deployment/README.md) for complete mode detail
 
 | Old Location | New Location | Status |
 |--------------|--------------|--------|
-| `backend/scripts/README.md` | `docs/development/scripts/overview.md` | ⏳ Phase 6 |
-| `backend/scripts/GPS_ANALYSIS_SCRIPTS.md` | `docs/development/scripts/analysis-scripts.md` | ⏳ Phase 6 |
-| `backend/docs/POSTGRESQL_QUICKSTART.md` | `docs/development/troubleshooting/database-issues.md` | ⏳ Phase 6 |
-| `backend/docs/MAILHOG_SETUP.md` | `docs/development/troubleshooting/email-testing.md` | ⏳ Phase 6 |
+| `backend/scripts/README.md` | `docs/development/scripts/overview.md` | ✅ Migrated |
+| `backend/scripts/GPS_ANALYSIS_SCRIPTS.md` | Consolidated in `docs/development/scripts/overview.md` | ✅ Migrated |
+| `backend/docs/POSTGRESQL_QUICKSTART.md` | `docs/development/troubleshooting/database-issues.md` | ✅ Migrated |
+| `backend/docs/MAILHOG_SETUP.md` | `docs/development/troubleshooting/email-testing.md` | ⏳ Pending |
 
-Migration will occur in **Phase 6** (Week 6) of the consolidation plan.
+**Note**: MAILHOG_SETUP.md migration deferred to Phase 7 (email-specific troubleshooting guide).
 
 ---
 
@@ -207,4 +219,4 @@ Migration will occur in **Phase 6** (Week 6) of the consolidation plan.
 ---
 
 **Last Updated**: 2026-02-07
-**Consolidation Plan**: Phase 6 (Development) - Core workflows ✅ (getting-started, tdd-workflow, code-quality)
+**Consolidation Plan**: Phase 6 (Development) - ✅ Complete (workflows, scripts, troubleshooting)
