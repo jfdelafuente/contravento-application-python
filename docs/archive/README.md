@@ -74,7 +74,7 @@ Session notes and phase plans from feature development.
 
 **Total Files Archived**: 11 development notes from 6 features
 
-**See**: [`development-notes/README.md`](development-notes/README.md) for complete index
+**See**: [development-notes/README.md](development-notes/README.md) for complete index
 
 ---
 
@@ -82,16 +82,24 @@ Session notes and phase plans from feature development.
 
 Historical test reports and QA results.
 
-**Archived on 2026-02-07**:
+**Archived on 2026-02-07** (Phase 7 Initial + Cleanup Continuation):
 
-| Source | Destination | Files |
-|--------|-------------|-------|
-| `specs/004-social-network/` | [`test-results/004-social-network/`](test-results/004-social-network/) | 2 files |
-| `specs/013-public-trips-feed/` | [`test-results/013-public-trips-feed/`](test-results/013-public-trips-feed/) | 1 file |
+| Source | Destination | Files | Phase |
+|--------|-------------|-------|-------|
+| `specs/003-gps-routes/` | [`test-results/003-gps-routes/`](test-results/003-gps-routes/) | 1 file | Cleanup |
+| `specs/004-social-network/` | [`test-results/004-social-network/`](test-results/004-social-network/) | 13 files | Initial + Cleanup |
+| `specs/006-dashboard-dynamic/` | [`test-results/006-dashboard-dynamic/`](test-results/006-dashboard-dynamic/) | 1 file | Cleanup |
+| `specs/007-profile-management/` | [`test-results/007-profile-management/`](test-results/007-profile-management/) | 6 files | Cleanup |
+| `specs/008-travel-diary-frontend/` | [`test-results/008-travel-diary-frontend/`](test-results/008-travel-diary-frontend/) | 2 files | Cleanup |
+| `specs/010-reverse-geocoding/` | [`test-results/010-reverse-geocoding/`](test-results/010-reverse-geocoding/) | 1 file | Cleanup |
+| `specs/013-public-trips-feed/` | [`test-results/013-public-trips-feed/`](test-results/013-public-trips-feed/) | 2 files | Initial + Cleanup |
+| `specs/017-gps-trip-wizard/` | [`test-results/017-gps-trip-wizard/`](test-results/017-gps-trip-wizard/) | 1 file | Cleanup |
 
-**Total Files Archived**: 3 test result documents from 2 features
+**Total Files Archived**: 29 test result documents from 10 features (3 initial + 26 additional)
 
-**See**: [`test-results/README.md`](test-results/README.md) for complete index
+**Test Coverage**: GPS routes, social network, dashboard, profile management, travel diary frontend, reverse geocoding, public trips feed, GPX trip wizard
+
+**See**: [`test-results/README.md`](test-results/README.md) for complete index with test coverage details
 
 ---
 
@@ -110,7 +118,25 @@ Documentation replaced by newer versions or consolidation.
 **Not Archived**:
 - `specs/011-frontend-deployment/` - Active spec with plan.md, tasks.md (NOT redundant)
 
-**See**: [`superseded/README.md`](superseded/README.md) for complete index
+**See**: [superseded/README.md](superseded/README.md) for complete index
+
+---
+
+### Moved to Active Documentation (✅ Phase 7 Cleanup)
+
+Some files were moved to active documentation instead of archiving:
+
+**Moved on 2026-02-07**:
+
+| Source                                               | Destination                            | Reason                        |
+|------------------------------------------------------|----------------------------------------|-------------------------------|
+| `specs/008-travel-diary-frontend/TROUBLESHOOTING.md` | [travel-diary-troubleshooting.md][tdt] | Active troubleshooting guide  |
+
+[tdt]: ../development/troubleshooting/travel-diary-troubleshooting.md
+
+**Total Files Moved**: 1 troubleshooting guide
+
+**See**: [docs/development/troubleshooting/README.md](../development/troubleshooting/README.md) for troubleshooting index
 
 ---
 
@@ -177,7 +203,7 @@ ls -la  # List all archived session notes
 |-----------------|----------------|--------|
 | **Deployment Docs** (v0.3.0) | 2026-01-28 | ✅ Complete (Feature 016 Phase 4) |
 | **Development Notes** | 2026-02-07 | ✅ Complete (11 files from 6 features) |
-| **Test Results** | 2026-02-07 | ✅ Complete (3 files from 2 features) |
+| **Test Results** | 2026-02-07 | ✅ Complete (29 files from 10 features) |
 | **Superseded Docs** | 2026-02-07 | ✅ Complete (1 minimal spec) |
 
 ---
@@ -206,5 +232,5 @@ When archiving documentation:
 
 **Last Updated**: 2026-02-07
 **Archival Policy**: Preserve, don't delete
-**Total Files Archived**: 15 documents (3 deployment + 11 development notes + 3 test results + 1 superseded spec)
+**Total Files Archived**: 44 documents (3 deployment + 11 development notes + 29 test results + 1 superseded spec)
 **Consolidation Plan**: Phase 7 (Archive and Cleanup) - ✅ Complete

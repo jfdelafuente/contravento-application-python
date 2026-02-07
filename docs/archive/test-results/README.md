@@ -14,27 +14,126 @@ This archive contains testing artifacts that validated feature implementation bu
 - **Automated Test Results**: Test execution reports (TEST_RESULTS_*.md)
 - **E2E Testing Results**: End-to-end test validation (TESTING_RESULTS.md)
 
-**Total Features**: 2
-**Total Files**: 3 test result documents
+**Total Features**: 10
+**Total Files**: 29 test result documents (3 initial + 26 additional)
 
 ---
 
 ## Archived Test Results
 
+### 003-gps-routes/
+**GPS Routes Feature** - GPX upload, route visualization, elevation profiles
+
+- [`MANUAL_TESTING.md`](003-gps-routes/MANUAL_TESTING.md) - Comprehensive GPS testing guide (1,129 lines)
+
+**Date Archived**: 2026-02-07
+**Reason**: Consolidated in [docs/testing/manual-qa/gps-testing.md](../../testing/manual-qa/gps-testing.md)
+
+**Test Coverage**:
+- ✅ GPX file upload and parsing
+- ✅ Route visualization on map
+- ✅ Elevation profile charts
+- ✅ Track simplification (Douglas-Peucker)
+
+---
+
 ### 004-social-network/
 **Social Network Feature** - Follow/unfollow, comments, likes
 
+**13 testing files archived**:
 - [`TEST_RESULTS_FOLLOW_UI.md`](004-social-network/TEST_RESULTS_FOLLOW_UI.md) - Follow UI test execution results
 - [`TESTING_MANUAL_US1_US2.md`](004-social-network/TESTING_MANUAL_US1_US2.md) - Manual testing guide for User Stories 1 & 2
+- [`MANUAL_TESTING_GUIDE.md`](004-social-network/MANUAL_TESTING_GUIDE.md) - General manual testing guide
+- [`BUGS_FOUND_TESTING.md`](004-social-network/BUGS_FOUND_TESTING.md) - Bug reports from testing
+- [`CSS-HOVER-BUG-FIX-TESTING.md`](004-social-network/CSS-HOVER-BUG-FIX-TESTING.md) - CSS hover bug fix validation
+- [`FOLLOW_BUTTON_TESTING.md`](004-social-network/FOLLOW_BUTTON_TESTING.md) - Follow button testing
+- [`ISSUE-CSS-HOVER-BUG.md`](004-social-network/ISSUE-CSS-HOVER-BUG.md) - CSS hover bug issue report
+- [`PENDING_WORK.md`](004-social-network/PENDING_WORK.md) - Pending testing work notes
+- [`QUICK_TEST_FOLLOW.md`](004-social-network/QUICK_TEST_FOLLOW.md) - Quick follow feature test
+- [`SCENARIO_1_WALKTHROUGH.md`](004-social-network/SCENARIO_1_WALKTHROUGH.md) - Test scenario walkthrough
+- [`TC-US2-008_TEST_RESULTS.md`](004-social-network/TC-US2-008_TEST_RESULTS.md) - Test case US2-008 results
+- [`TC-US2-008_TESTING_GUIDE.md`](004-social-network/TC-US2-008_TESTING_GUIDE.md) - Test case US2-008 guide
+- [`US3-COMMENTS-MANUAL-TESTING.md`](004-social-network/US3-COMMENTS-MANUAL-TESTING.md) - User Story 3 comments testing
 
 **Date Archived**: 2026-02-07
-**Reason**: Feature complete, tests passing in CI/CD
+**Reason**: Feature complete, consolidated in [docs/testing/manual-qa/social-testing.md](../../testing/manual-qa/social-testing.md)
 
 **Test Coverage**:
 - ✅ Follow/Unfollow functionality
 - ✅ Following list display
+- ✅ Comments system
 - ✅ UI interactions and state management
+- ✅ Bug fixes validated
 - ✅ Manual QA validation
+
+---
+
+### 006-dashboard-dynamic/
+**Dynamic Dashboard Feature** - User dashboard with dynamic widgets
+
+- [`TESTING_GUIDE.md`](006-dashboard-dynamic/TESTING_GUIDE.md) - Dashboard testing guide
+
+**Date Archived**: 2026-02-07
+**Reason**: Feature complete, tests integrated in test suite
+
+**Test Coverage**:
+- ✅ Dashboard widget rendering
+- ✅ Dynamic data loading
+- ✅ User interactions
+
+---
+
+### 007-profile-management/
+**Profile Management Feature** - User profile editing
+
+**6 testing files archived**:
+- [`MANUAL_TESTING.md`](007-profile-management/MANUAL_TESTING.md) - Manual testing procedures
+- [`TEST_REPORT.md`](007-profile-management/TEST_REPORT.md) - Test execution report
+- [`TESTING_GUIDE.md`](007-profile-management/TESTING_GUIDE.md) - Comprehensive testing guide
+- [`accessibility-and-documentation.md`](007-profile-management/accessibility-and-documentation.md) - WCAG 2.1 AA validation
+- [`responsive-testing.md`](007-profile-management/responsive-testing.md) - Mobile/tablet testing
+- [`spanish-text-verification.md`](007-profile-management/spanish-text-verification.md) - Spanish text validation
+
+**Date Archived**: 2026-02-07
+**Reason**: Feature complete, accessibility tests in test suite
+
+**Test Coverage**:
+- ✅ Profile editing workflow
+- ✅ Accessibility (WCAG 2.1 AA)
+- ✅ Responsive design (mobile/tablet)
+- ✅ Spanish text validation
+
+---
+
+### 008-travel-diary-frontend/
+**Travel Diary Frontend** - React UI for trip management
+
+- [`MANUAL_TESTING.md`](008-travel-diary-frontend/MANUAL_TESTING.md) - Manual testing procedures
+- [`TESTING_GUIDE.md`](008-travel-diary-frontend/TESTING_GUIDE.md) - Comprehensive testing guide
+
+**Date Archived**: 2026-02-07
+**Reason**: Consolidated in [docs/testing/manual-qa/trips-testing.md](../../testing/manual-qa/trips-testing.md)
+
+**Test Coverage**:
+- ✅ Trip creation wizard
+- ✅ Photo upload and management
+- ✅ Draft vs published workflow
+- ✅ Tag filtering
+
+---
+
+### 010-reverse-geocoding/
+**Reverse Geocoding Feature** - Location naming from coordinates
+
+- [`MANUAL_QA.md`](010-reverse-geocoding/MANUAL_QA.md) - Manual QA procedures
+
+**Date Archived**: 2026-02-07
+**Reason**: Feature complete, tests in test suite
+
+**Test Coverage**:
+- ✅ Click-to-add location
+- ✅ Drag-to-adjust markers
+- ✅ Geocoding accuracy
 
 ---
 
@@ -42,6 +141,7 @@ This archive contains testing artifacts that validated feature implementation bu
 **Public Trips Feed** - Discover and filter public trips
 
 - [`TESTING_RESULTS.md`](013-public-trips-feed/TESTING_RESULTS.md) - E2E testing results and validation
+- [`E2E_TESTING_GUIDE.md`](013-public-trips-feed/E2E_TESTING_GUIDE.md) - End-to-end testing guide
 
 **Date Archived**: 2026-02-07
 **Reason**: Feature complete, E2E tests integrated in CI/CD
@@ -52,6 +152,22 @@ This archive contains testing artifacts that validated feature implementation bu
 - ✅ Pagination
 - ✅ Search functionality
 - ✅ End-to-end user flows
+
+---
+
+### 017-gps-trip-wizard/
+**GPS Trip Wizard** - Multi-step GPX upload wizard
+
+- [`PERFORMANCE_TESTING.md`](017-gps-trip-wizard/PERFORMANCE_TESTING.md) - Performance testing and benchmarks
+
+**Date Archived**: 2026-02-07
+**Reason**: Feature complete, performance tests in test suite
+
+**Test Coverage**:
+- ✅ GPX upload performance
+- ✅ Track simplification speed
+- ✅ Memory usage benchmarks
+- ✅ Large file handling (>10 MB)
 
 ---
 
