@@ -116,8 +116,8 @@ Deep-dive documentation for all implemented features in the ContraVento cycling 
 | user-profiles.md | ⏳ To be created | ⏳ Phase 4 | ⏳ Phase 2 | ✅ Complete | ✅ Complete |
 | reverse-geocoding.md | ⏳ To be created | ⏳ Phase 4 | ⏳ Phase 2 | ✅ Complete | ✅ Complete |
 | public-feed.md | ⏳ To be created | ⏳ Phase 4 | ⏳ Phase 2 | ✅ Complete | ✅ Complete |
-| stats-integration.md | ⏳ To be migrated | ⏳ Phase 4 | ⏳ Phase 2 | ✅ Complete | ✅ Complete |
-| cycling-types.md | ⏳ To be migrated | N/A | ⏳ Phase 2 | ✅ Complete | N/A |
+| stats-integration.md | ✅ Migrated | ⏳ Phase 4 | ⏳ Phase 2 | ✅ Complete | ✅ Complete |
+| cycling-types.md | ✅ Migrated | N/A | ⏳ Phase 2 | ✅ Complete | N/A |
 | elevation-profile.md | ⏳ To be created | ⏳ Phase 4 | N/A | ✅ Complete | ✅ Complete |
 
 **Note**: Feature documentation will be migrated/created in **Phase 6** (Week 6) of the consolidation plan.
@@ -128,8 +128,8 @@ Deep-dive documentation for all implemented features in the ContraVento cycling 
 
 | Old Location | New Location | Status |
 |--------------|--------------|--------|
-| `backend/docs/STATS_INTEGRATION.md` | `docs/features/stats-integration.md` | ⏳ Phase 6 migration |
-| `backend/docs/CYCLING_TYPES.md` | `docs/features/cycling-types.md` | ⏳ Phase 6 migration |
+| `backend/docs/STATS_INTEGRATION.md` | `docs/features/stats-integration.md` | ✅ Migrated |
+| `backend/docs/CYCLING_TYPES.md` | `docs/features/cycling-types.md` | ✅ Migrated |
 | `specs/002-travel-diary/spec.md` | Extract to `travel-diary.md` | ⏳ Phase 6 migration |
 | `specs/003-gps-routes/spec.md` | Extract to `gps-routes.md` | ⏳ Phase 6 migration |
 | `specs/004-social-network/spec.md` | Extract to `social-network.md` | ⏳ Phase 6 migration |
@@ -146,5 +146,5 @@ Deep-dive documentation for all implemented features in the ContraVento cycling 
 
 ---
 
-**Last Updated**: 2026-02-06
-**Consolidation Plan**: Phase 1 (Foundation) - Directory structure
+**Last Updated**: 2026-02-07
+**Consolidation Plan**: Phase 6 (Features) - 2/9 features migrated (stats-integration, cycling-types)
