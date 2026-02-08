@@ -240,6 +240,75 @@ VITE_ENV=development
 VITE_DEBUG=true
 ```
 
+### Port Configuration
+
+The backend port is **fully configurable** via environment variables. By default, the backend runs on port **8000**, but you can change it to any available port.
+
+#### Configuration Methods
+
+**Method 1: Environment Variable (Quick Override)**
+
+```bash
+# Linux/Mac
+export BACKEND_PORT=9000
+./deploy.sh local
+
+# Windows PowerShell
+$env:BACKEND_PORT = 9000
+.\deploy.ps1 local
+```
+
+**Method 2: .env File (Persistent Configuration)**
+
+Edit `.env.local`:
+
+```bash
+# =============================================================================
+# BACKEND - Port Configuration
+# =============================================================================
+# Port exposed on the host machine
+BACKEND_PORT=9000
+
+# Port inside the Docker container (usually same as BACKEND_PORT)
+BACKEND_INTERNAL_PORT=9000
+
+# Full backend URL (used by frontend and testing scripts)
+BACKEND_URL=http://localhost:9000
+```
+
+**Priority Order** (highest to lowest):
+1. Exported environment variable (`export BACKEND_PORT=9000`)
+2. `.env.local` file value
+3. Default fallback (`8000`)
+
+#### Rebuilding After Port Change
+
+When you change `BACKEND_PORT`, you **must rebuild** the Docker images:
+
+```bash
+# Use --rebuild flag (recommended)
+./deploy.sh local --rebuild
+
+# Or manual rebuild
+docker-compose -f docker-compose.yml -f docker-compose.local.yml \
+  --env-file .env.local build --no-cache backend
+
+./deploy.sh local
+```
+
+#### Accessing Services with Custom Port
+
+If you set `BACKEND_PORT=9000`, access points change to:
+
+- **Backend API**: http://localhost:9000 (instead of 8000)
+- **API Docs**: http://localhost:9000/docs
+- **MailHog UI**: http://localhost:8025 (unchanged)
+- **pgAdmin**: http://localhost:5050 (unchanged)
+- **Frontend**: http://localhost:5173 (unchanged)
+- **PostgreSQL**: localhost:5432 (unchanged)
+
+The `deploy.sh` script automatically displays the correct URLs.
+
 ### Test Users (Auto-Created)
 
 | Username | Email | Password | Role |

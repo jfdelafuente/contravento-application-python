@@ -213,6 +213,91 @@ VITE_DEBUG=true
 
 **Important**: The frontend runs on port **5173** (Vite default) and uses a proxy to forward `/api/*` requests to the backend on port 8000. This eliminates CORS issues during development.
 
+### Port Configuration
+
+The backend port is **fully configurable** via environment variables. By default, the backend runs on port **8000**, but you can change it to any available port.
+
+#### Configuration Methods
+
+**Method 1: Environment Variable (Quick Override)**
+
+```bash
+# Linux/Mac
+export BACKEND_PORT=9000
+./run-local-dev.sh
+
+# Windows PowerShell
+$env:BACKEND_PORT = 9000
+.\run-local-dev.ps1
+```
+
+**Method 2: Command Line (Uvicorn directly)**
+
+```bash
+cd backend
+poetry run uvicorn src.main:app --reload --port 9000
+```
+
+**Priority Order**:
+1. Exported environment variable (`export BACKEND_PORT=9000`)
+2. Default fallback (`8000`)
+
+#### Auto-Configuration
+
+The `run-local-dev.sh` script **automatically configures** the frontend when you use `--with-frontend`:
+
+```bash
+export BACKEND_PORT=9000
+./run-local-dev.sh --with-frontend
+```
+
+This automatically updates `frontend/.env.development` with:
+```bash
+VITE_API_URL=http://localhost:9000  ✅ Auto-updated
+```
+
+#### Accessing Services with Custom Port
+
+If you set `BACKEND_PORT=9000`:
+
+- **Backend API**: http://localhost:9000 (instead of 8000)
+- **API Docs**: http://localhost:9000/docs
+- **Health Check**: http://localhost:9000/health
+- **Frontend**: http://localhost:5173 (unchanged)
+- **Database**: `backend/contravento_dev.db` (SQLite file)
+
+#### Testing Scripts Auto-Configuration
+
+All testing scripts automatically use the configured backend port:
+
+```bash
+export BACKEND_PORT=9000
+
+# These scripts auto-connect to port 9000:
+./scripts/run_smoke_tests.sh
+./scripts/testing/gps/test-gps-quick.sh
+```
+
+#### Common Port Conflicts
+
+If port 8000 is already in use:
+
+```
+ERROR: Port 8000 is already in use!
+```
+
+**Solution**:
+
+```bash
+# Option 1: Use different port
+export BACKEND_PORT=9000
+./run-local-dev.sh
+
+# Option 2: Kill conflicting process
+lsof -ti:8000 | xargs kill -9  # Linux/Mac
+Get-NetTCPConnection -LocalPort 8000 | Stop-Process -Force  # Windows
+```
+
 ### Test Users (Auto-Created)
 
 | Username | Email | Password | Role |
