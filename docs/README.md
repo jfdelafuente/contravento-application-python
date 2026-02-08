@@ -190,22 +190,26 @@ async def get_trips(
 
 ### 🔍 Features
 
-**Deep-dive documentation for all implemented features**
+**Deep-dive technical documentation for implemented features**
 
 📘 **[Features Documentation](features/README.md)**
 
-**Completed Features**:
+**Documented Features**:
+
+- 📊 **[Stats Integration](features/stats-integration.md)**: Automatic stats updates on trip operations
+- 🚴 **[Cycling Types](features/cycling-types-overview.md)**: Dynamic type management via API and YAML config
+
+**Additional Features** (user guides available):
+
 - ✅ **Travel Diary**: Document trips with photos, tags, locations
 - ✅ **GPS Routes**: GPX upload, route visualization, elevation profiles
-- ✅ **Social Network**: Follow users, comments, likes (in progress)
+- ✅ **Social Network**: Follow users, comments, likes
 - ✅ **User Profiles**: Profile management, stats, achievements
 - ✅ **Reverse Geocoding**: Location naming from coordinates
 - ✅ **Public Feed**: Discover trips, filters, search
-- ✅ **Stats Integration**: Automatic stats updates
-- ✅ **Cycling Types**: Dynamic type management
 - ✅ **Elevation Profile**: Interactive elevation charts
 
-**Status**: ⏳ **Planned** (Phase 6 - Week 6)
+**Status**: 🔄 **Partial** (2 features documented, more on-demand)
 
 ---
 
@@ -292,12 +296,12 @@ Old documentation preserved for reference:
 | **Deployment** | ✅ Complete | ✅ Complete (Feature 016) | ✅ 97% |
 | **User Guides** | ✅ Complete | ✅ Complete (Phase 4) | ✅ 100% |
 | **API** | ✅ Complete | ✅ Complete (Phase 2) | ✅ 100% |
-| **Architecture** | ✅ Complete | ✅ Complete (Phase 5) | ✅ 90% |
+| **Architecture** | ✅ Complete | ✅ Complete (Phase 5 + 8) | ✅ 95% |
 | **Testing** | ✅ Complete | ✅ Complete (Phase 3) | ✅ 100% |
-| **Features** | ✅ Complete | ⏳ Planned (future) | 🔄 30% |
+| **Features** | ✅ Complete | 🔄 Partial (2 documented) | 🔄 40% |
 | **Development** | ✅ Complete | ✅ Complete (Phase 6) | ✅ 100% |
 | **Operations** | ✅ Complete | ⏳ Planned (future) | 🔄 10% |
-| **Archive** | ✅ Complete | ✅ Complete (Phase 7) | ✅ 100% |
+| **Archive** | ✅ Complete | ✅ Complete (Phase 7 + 8) | ✅ 100% |
 
 ---
 
