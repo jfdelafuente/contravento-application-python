@@ -77,10 +77,21 @@ validate_env() {
     esac
 }
 
+# Get the appropriate .env file for an environment
+get_env_file() {
+    local env=$1
+    # local-prod uses the same .env as local
+    if [ "$env" = "local-prod" ]; then
+        echo ".env.local"
+    else
+        echo ".env.${env}"
+    fi
+}
+
 # Check if .env file exists
 check_env_file() {
     local env=$1
-    local env_file=".env.${env}"
+    local env_file=$(get_env_file "$env")
 
     if [ ! -f "$env_file" ]; then
         print_warning ".env file not found: $env_file"
@@ -136,6 +147,7 @@ start_env() {
     local with_frontend=$2  # --with-frontend flag
     local rebuild=$3        # --rebuild flag
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
     print_header "Starting $env environment"
 
@@ -144,7 +156,7 @@ start_env() {
     print_info "Using configuration:"
     echo "  - Base: docker-compose.yml"
     echo "  - Overlay: $compose_file"
-    echo "  - Env file: .env.${env}"
+    echo "  - Env file: $env_file"
     if [ "$with_frontend" = "true" ]; then
         echo "  - Frontend: ENABLED (Vite dev server)"
     fi
@@ -184,24 +196,24 @@ start_env() {
 
     # Pull latest images
     print_info "Pulling latest images..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" pull
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" pull
 
     # Build services
     if [ "$rebuild" = "true" ]; then
         print_info "Building services (--no-cache - forced rebuild)..."
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build --no-cache
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build --no-cache
     else
         print_info "Building services..."
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build
     fi
 
     # Start services (enable frontend if flag is set)
     print_info "Starting services..."
     if [ "$with_frontend" = "true" ]; then
         # Scale frontend to 1 replica to enable it
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d --scale frontend=1
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" up -d --scale frontend=1
     else
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" up -d
     fi
 
     # Wait for services to be healthy
@@ -209,22 +221,22 @@ start_env() {
     sleep 10
 
     # Show status
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" ps
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" ps
 
     print_success "$env environment started successfully!"
 
     # Get backend port (priority: env var > .env file > default 8000)
-    local backend_port=${BACKEND_PORT:-}
-    local port_source=""
+    backend_port=${BACKEND_PORT:-}
+    port_source=""
 
     if [ -n "$backend_port" ]; then
         # Port set via environment variable
         port_source="environment variable"
-    elif [ -f ".env.${env}" ]; then
+    elif [ -f "$env_file" ]; then
         # Try to read from .env file
-        backend_port=$(grep "^BACKEND_PORT=" ".env.${env}" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "")
+        backend_port=$(grep "^BACKEND_PORT=" "$env_file" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "")
         if [ -n "$backend_port" ]; then
-            port_source=".env.${env}"
+            port_source="$env_file"
         fi
     fi
 
@@ -319,10 +331,11 @@ start_env() {
 stop_env() {
     local env=$1
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
     print_header "Stopping $env environment"
 
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" down
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" down
 
     print_success "$env environment stopped"
 }
@@ -331,16 +344,18 @@ stop_env() {
 view_logs() {
     local env=$1
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" logs -f
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" logs -f
 }
 
 # Show running containers
 show_ps() {
     local env=$1
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" ps
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" ps
 }
 
 # Restart environment
