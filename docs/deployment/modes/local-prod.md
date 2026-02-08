@@ -2,7 +2,7 @@
 
 **Perfect for**: Testing production builds locally before deployment
 
-**Command**: `./deploy-local-prod.sh` (Linux/Mac) or `.\deploy-local-prod.ps1` (Windows)
+**Command**: `./deploy.sh local-prod`
 
 **Startup Time**: ~30 seconds
 
@@ -107,14 +107,8 @@ Configure as described in [local-full Configuration](local-full.md#configuration
 
 **Step 3**: Start the environment
 
-**Linux/Mac**:
 ```bash
-./deploy-local-prod.sh start
-```
-
-**Windows PowerShell**:
-```powershell
-.\deploy-local-prod.ps1 start
+./deploy.sh local-prod
 ```
 
 **First run takes longer** (~3-5 minutes):
@@ -226,26 +220,18 @@ add_header X-XSS-Protection "1; mode=block";
 #### Start Environment
 
 ```bash
-# Linux/Mac
-./deploy-local-prod.sh start
-
-# Windows
-.\deploy-local-prod.ps1 start
+./deploy.sh local-prod
 ```
 
 **Default action** (if no command specified):
 ```bash
-./deploy-local-prod.sh  # Same as "start"
+./deploy.sh local-prod  # Same as "start"
 ```
 
 #### Stop Environment
 
 ```bash
-# Linux/Mac
-./deploy-local-prod.sh stop
-
-# Windows
-.\deploy-local-prod.ps1 stop
+./deploy.sh local-prod down
 ```
 
 #### Rebuild Frontend (After Code Changes)
@@ -253,11 +239,7 @@ add_header X-XSS-Protection "1; mode=block";
 **⚠️ Important**: Unlike [local-full](local-full.md) with hot reload, **you must rebuild** the frontend after any code changes.
 
 ```bash
-# Linux/Mac
-./deploy-local-prod.sh rebuild
-
-# Windows
-.\deploy-local-prod.ps1 rebuild
+./deploy.sh local-prod --rebuild
 ```
 
 **What rebuild does**:
@@ -271,11 +253,7 @@ add_header X-XSS-Protection "1; mode=block";
 #### View Logs
 
 ```bash
-# Linux/Mac
-./deploy-local-prod.sh logs
-
-# Windows
-.\deploy-local-prod.ps1 logs
+./deploy.sh local-prod logs
 ```
 
 Press `Ctrl+C` to exit.
@@ -283,11 +261,7 @@ Press `Ctrl+C` to exit.
 #### Clean Everything
 
 ```bash
-# Linux/Mac
-./deploy-local-prod.sh clean
-
-# Windows
-.\deploy-local-prod.ps1 clean
+./deploy.sh local-prod down
 ```
 
 **Warning**: This deletes all containers and volumes (database data will be lost).
@@ -304,7 +278,7 @@ Press `Ctrl+C` to exit.
 1. Make frontend changes in `frontend/src/`
 2. Rebuild frontend:
    ```bash
-   ./deploy-local-prod.sh rebuild
+   ./deploy.sh local-prod --rebuild
    ```
 3. Wait ~2-3 minutes for build to complete
 4. Test at http://localhost:8080
@@ -321,7 +295,7 @@ Press `Ctrl+C` to exit.
 **Steps**:
 1. Start environment:
    ```bash
-   ./deploy-local-prod.sh start
+   ./deploy.sh local-prod
    ```
 2. Edit backend code in `backend/src/`
 3. Backend auto-restarts (~5 seconds) - **has hot reload**
@@ -451,7 +425,7 @@ docker-compose \
 ### Frontend Build Process
 
 ```
-1. ./deploy-local-prod.sh start
+1. ./deploy.sh local-prod
    ↓
 2. docker-compose build frontend
    ├─ Stage 1: Builder (node:18-alpine)
@@ -504,7 +478,7 @@ docker logs contravento-frontend-local-prod
 
 **If build failed, rebuild**:
 ```bash
-./deploy-local-prod.sh rebuild
+./deploy.sh local-prod --rebuild
 ```
 
 ---
@@ -515,13 +489,13 @@ docker logs contravento-frontend-local-prod
 
 **Fix - Rebuild frontend**:
 ```bash
-./deploy-local-prod.sh rebuild
+./deploy.sh local-prod --rebuild
 ```
 
 **If still not working, clean rebuild**:
 ```bash
-./deploy-local-prod.sh clean
-./deploy-local-prod.sh start
+./deploy.sh local-prod down
+./deploy.sh local-prod
 ```
 
 ---
@@ -542,7 +516,7 @@ curl http://localhost:8000/health
 
 **If backend not running**:
 ```bash
-./deploy-local-prod.sh logs backend
+./deploy.sh local-prod logs backend
 ```
 
 **Check Docker network**:
@@ -584,7 +558,7 @@ npm run build  # Test build locally
 **Fix - Use cached layers**:
 ```bash
 # Normal rebuild (uses cache)
-./deploy-local-prod.sh rebuild
+./deploy.sh local-prod --rebuild
 
 # If rebuild is slow, check Docker Desktop resource limits
 # Settings → Resources → Memory (increase to 4+ GB)
@@ -614,7 +588,7 @@ assets/
 
 **If empty, rebuild**:
 ```bash
-./deploy-local-prod.sh rebuild
+./deploy.sh local-prod --rebuild
 ```
 
 ---
@@ -630,8 +604,8 @@ docker exec contravento-frontend-local-prod cat /etc/nginx/nginx.conf
 
 **If missing config, rebuild image**:
 ```bash
-./deploy-local-prod.sh clean
-./deploy-local-prod.sh start
+./deploy.sh local-prod down
+./deploy.sh local-prod
 ```
 
 ---
@@ -699,7 +673,7 @@ When deploying to server:
 ## Tips
 
 1. **Daily development**: Use `./deploy.sh local --with-frontend` (has hot reload)
-2. **Production build testing**: Use `./deploy-local-prod.sh` (this mode)
+2. **Production build testing**: Use `./deploy.sh local-prod` (this mode)
 3. **CI/CD pipelines**: Use Dockerfile.prod automatically
 4. **Performance**: Production build is ~10x faster to serve than dev server
 5. **Debugging**: If you need source maps, use [local-full](local-full.md) (development mode)
