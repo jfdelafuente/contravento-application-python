@@ -22,6 +22,28 @@ COMMAND="${1:-start}"
 # HELPER FUNCTIONS
 # ============================================================================
 
+configure_backend_port() {
+    local backend_port=${BACKEND_PORT:-8000}
+    local frontend_env="frontend/.env.development"
+
+    if [ ! -f "$frontend_env" ]; then
+        return 0  # Will be created later in start_server
+    fi
+
+    local backend_url="http://localhost:${backend_port}"
+
+    # Update VITE_API_URL with current backend port
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s|VITE_API_URL=.*|VITE_API_URL=${backend_url}|" "$frontend_env"
+    else
+        # Linux
+        sed -i "s|VITE_API_URL=.*|VITE_API_URL=${backend_url}|" "$frontend_env"
+    fi
+
+    echo -e "\033[32m[SUCCESS] Configured frontend to connect to backend at ${backend_url}\033[0m"
+}
+
 check_port() {
     local port=$1
     if command -v lsof &> /dev/null; then
@@ -118,6 +140,13 @@ start_server() {
             exit 1
         fi
     fi
+
+    cd ..
+
+    # Configure frontend to use correct backend port
+    configure_backend_port
+
+    cd frontend
 
     # Check if node_modules exists
     if [ ! -d "node_modules" ]; then

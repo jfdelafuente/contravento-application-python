@@ -24,6 +24,24 @@ $SERVER_NAME = "Frontend"
 # HELPER FUNCTIONS
 # ============================================================================
 
+function Configure-BackendPort {
+    $backendPort = if ($env:BACKEND_PORT) { [int]$env:BACKEND_PORT } else { 8000 }
+    $frontendEnv = "frontend\.env.development"
+
+    if (!(Test-Path $frontendEnv)) {
+        return  # Will be created later in Start-Server
+    }
+
+    $backendUrl = "http://localhost:$backendPort"
+
+    # Update VITE_API_URL with current backend port
+    $content = Get-Content $frontendEnv
+    $newContent = $content -replace 'VITE_API_URL=.*', "VITE_API_URL=$backendUrl"
+    $newContent | Set-Content $frontendEnv
+
+    Write-Host "[SUCCESS] Configured frontend to connect to backend at $backendUrl" -ForegroundColor Green
+}
+
 function Test-Port {
     param([int]$Port)
     $connection = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
@@ -133,6 +151,13 @@ function Start-Server {
             exit 1
         }
     }
+
+    Set-Location ..
+
+    # Configure frontend to use correct backend port
+    Configure-BackendPort
+
+    Set-Location frontend
 
     # Check if node_modules exists
     if (!(Test-Path "node_modules")) {
