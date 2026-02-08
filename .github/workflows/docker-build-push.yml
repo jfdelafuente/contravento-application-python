@@ -110,8 +110,10 @@ jobs:
         run: |
           echo "Testing frontend image has static files and entrypoint..."
           docker run --rm --name frontend-test \
+            --entrypoint sh \
             jfdelafuente/contravento-frontend:test \
-            sh -c 'test -f /usr/share/nginx/html/index.html && test -f /etc/nginx/nginx.conf.template && test -x /docker-entrypoint.sh' && echo "✓ Frontend image is valid"
+            -c 'test -f /usr/share/nginx/html/index.html && test -f /etc/nginx/nginx.conf.template && test -x /docker-entrypoint.sh' && echo "✓ Frontend image is valid"
+
 
       - name: Push Backend Image to Docker Hub
         if: github.event_name != 'pull_request'
