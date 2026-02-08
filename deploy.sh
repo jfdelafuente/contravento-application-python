@@ -205,13 +205,21 @@ start_env() {
 
     print_success "$env environment started successfully!"
 
+    # Get backend port from .env file
+    local backend_port=8000
+    if [ -f ".env.${env}" ]; then
+        backend_port=$(grep "^BACKEND_PORT=" ".env.${env}" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "8000")
+        # Fallback to 8000 if not found or empty
+        backend_port=${backend_port:-8000}
+    fi
+
     # Environment-specific messages
     case $env in
         local-minimal)
             echo ""
             print_info "Access your minimal local environment:"
-            echo "  Backend API:     http://localhost:8000"
-            echo "  API Docs:        http://localhost:8000/docs"
+            echo "  Backend API:     http://localhost:${backend_port}"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
             if [ "$with_frontend" = "true" ]; then
                 echo "  Frontend:        http://localhost:5173"
             fi
@@ -228,8 +236,8 @@ start_env() {
         local)
             echo ""
             print_info "Access your full local environment:"
-            echo "  Backend API:     http://localhost:8000"
-            echo "  API Docs:        http://localhost:8000/docs"
+            echo "  Backend API:     http://localhost:${backend_port}"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
             if [ "$with_frontend" = "true" ]; then
                 echo "  Frontend:        http://localhost:5173"
             fi
@@ -249,8 +257,8 @@ start_env() {
         dev)
             echo ""
             print_info "Access your dev environment:"
-            echo "  Backend API:     http://dev.contravento.local:8000"
-            echo "  API Docs:        http://dev.contravento.local:8000/docs"
+            echo "  Backend API:     http://dev.contravento.local:${backend_port}"
+            echo "  API Docs:        http://dev.contravento.local:${backend_port}/docs"
             ;;
         staging)
             echo ""
