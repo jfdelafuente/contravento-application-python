@@ -87,8 +87,8 @@ case $COMMAND in
         print_header "Starting Local Production Build"
 
         # Get backend port (priority: env var > .env.local > default 8000)
-        local backend_port=${BACKEND_PORT:-}
-        local port_source=""
+        backend_port=${BACKEND_PORT:-}
+        port_source=""
 
         if [ -n "$backend_port" ]; then
             # Port set via environment variable
