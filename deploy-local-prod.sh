@@ -15,7 +15,7 @@
 #   - Proxy Nginx /api/* → backend:8000/*
 #
 # Uso:
-#   ./deploy-local-prod.sh [comando]
+#   ./deploy-local-prod.sh [comando] [flags]
 #
 # Comandos:
 #   start   - Iniciar entorno (default)
@@ -23,6 +23,9 @@
 #   rebuild - Rebuild frontend (después de cambios)
 #   logs    - Ver logs
 #   clean   - Limpiar todo (contenedores + volúmenes)
+#
+# Flags (para start):
+#   --rebuild - Forzar rebuild de todas las imágenes (ignora cache)
 # ============================================================================
 
 set -e
@@ -66,15 +69,52 @@ if [ ! -f ".env.local" ]; then
     print_success ".env.local created"
 fi
 
-# Parse command
+# Parse command and flags
 COMMAND=${1:-start}
+REBUILD_FLAG=false
+
+# Check for flags in any position
+for arg in "$@"; do
+    case "$arg" in
+        --rebuild)
+            REBUILD_FLAG=true
+            ;;
+    esac
+done
 
 case $COMMAND in
     start)
         print_header "Starting Local Production Build"
 
-        print_info "Building frontend with production Dockerfile..."
-        docker-compose -f docker-compose.yml -f docker-compose.local-prod.yml --env-file .env.local build frontend
+        # Get backend port (priority: env var > .env.local > default 8000)
+        local backend_port=${BACKEND_PORT:-}
+        local port_source=""
+
+        if [ -n "$backend_port" ]; then
+            # Port set via environment variable
+            port_source="environment variable"
+        elif [ -f ".env.local" ]; then
+            # Try to read from .env.local file
+            backend_port=$(grep "^BACKEND_PORT=" ".env.local" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "")
+            if [ -n "$backend_port" ]; then
+                port_source=".env.local"
+            fi
+        fi
+
+        # Fallback to 8000 if still not set
+        if [ -z "$backend_port" ]; then
+            backend_port=8000
+            port_source="default"
+        fi
+
+        # Build services
+        if [ "$REBUILD_FLAG" = "true" ]; then
+            print_info "Building all services (--no-cache - forced rebuild)..."
+            docker-compose -f docker-compose.yml -f docker-compose.local-prod.yml --env-file .env.local build --no-cache
+        else
+            print_info "Building frontend with production Dockerfile..."
+            docker-compose -f docker-compose.yml -f docker-compose.local-prod.yml --env-file .env.local build frontend
+        fi
 
         print_info "Starting all services..."
         docker-compose -f docker-compose.yml -f docker-compose.local-prod.yml --env-file .env.local up -d
@@ -83,8 +123,8 @@ case $COMMAND in
         echo ""
         print_info "Access your environment:"
         echo "  Frontend (Nginx):    http://localhost:8080"
-        echo "  Backend API:         http://localhost:8000"
-        echo "  API Docs:            http://localhost:8000/docs"
+        echo "  Backend API:         http://localhost:${backend_port} (port from: ${port_source})"
+        echo "  API Docs:            http://localhost:${backend_port}/docs"
         echo "  MailHog UI:          http://localhost:8025"
         echo "  pgAdmin:             http://localhost:5050"
         echo ""
@@ -139,6 +179,14 @@ case $COMMAND in
         echo "  rebuild - Rebuild frontend after changes"
         echo "  logs    - Show logs"
         echo "  clean   - Remove everything"
+        echo ""
+        echo "Flags (for start command):"
+        echo "  --rebuild - Force rebuild all images (ignore cache)"
+        echo ""
+        echo "Examples:"
+        echo "  ./deploy-local-prod.sh start"
+        echo "  ./deploy-local-prod.sh start --rebuild"
+        echo "  ./deploy-local-prod.sh rebuild"
         exit 1
         ;;
 esac
