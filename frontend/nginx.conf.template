@@ -1,29 +1,28 @@
 server {
     listen 80;
-    server_name _;  # Comodín para cualquier dominio
+    server_name _;
 
     root /usr/share/nginx/html;
     index index.html;
 
-    # Security headers (con flag 'always' para que se envíen incluso en errores)
+    # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
 
-    # Gzip compression (optimizado)
+    # Gzip compression
     gzip on;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
-    gzip_min_length 256;  # No comprimir archivos muy pequeños
+    gzip_min_length 256;
 
-    # Proxy API requests to backend (elimina CORS, mismo dominio)
-    # IMPORTANTE: El "/" al final de proxy_pass hace rewrite de /api/* a /*
-    # Ejemplo: /api/auth/me → http://backend:8000/auth/me
+    # Proxy API requests to backend (PARAMETRIZADO)
+    # Variable: BACKEND_INTERNAL_PORT (default: 8000)
     location /api/ {
-        # Allow larger file uploads (GPX files can be 1-10 MB)
         client_max_body_size 10M;
 
-        proxy_pass http://backend:8000/;  # ← Nota: "/" al final para rewrite
+        # 👇 Usa variable de entorno
+        proxy_pass http://backend:${BACKEND_INTERNAL_PORT}/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -37,7 +36,7 @@ server {
         # Allow larger file uploads (trip photos can be 10MB)
         client_max_body_size 10M;
 
-        proxy_pass http://backend:8000/storage/;
+        proxy_pass http://backend:${BACKEND_INTERNAL_PORT}/storage/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -50,20 +49,19 @@ server {
         add_header X-Cache-Status $upstream_cache_status;
     }
 
-    # SPA routing: serve index.html for all routes
+    # SPA routing
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # Cache static assets (JS, CSS, images) aggressively
-    # 1 año es seguro porque Vite usa cache busting con hashes (main.abc123.js)
+    # Cache static assets
     location ~* \.(js|css|png|jpe?g|gif|ico|svg|woff2?|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-        access_log off;  # No registrar accesos a assets (reduce overhead)
+        access_log off;
     }
 
-    # CRÍTICO: Do NOT cache index.html (siempre fetch fresh para nuevos deploys)
+    # Do NOT cache index.html
     location = /index.html {
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         expires 0;

@@ -64,14 +64,16 @@ RUN chmod +x scripts/deployment/docker-entrypoint.sh
 # Create storage directory
 RUN mkdir -p storage/profile_photos storage/trip_photos
 
-# Expose port
-EXPOSE 8000
+# Expose port (configurable via build arg)
+ARG PORT=8000
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
 # Use entrypoint script to run migrations and seed data
 ENTRYPOINT ["./scripts/deployment/docker-entrypoint.sh"]
 
 # Development server with hot reload
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT} --reload"]
 
 # Stage 3: Production Runtime
 FROM python:3.12-slim AS production
@@ -108,15 +110,17 @@ RUN mkdir -p storage/profile_photos storage/trip_photos
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
-EXPOSE 8000
+# Expose port (configurable via build arg)
+ARG PORT=8000
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
+    CMD sh -c 'python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:${PORT}/health\").read()"' || exit 1
 
 # Use entrypoint script to run migrations (no seed data in production)
 ENTRYPOINT ["./scripts/deployment/docker-entrypoint.sh"]
 
 # Production server (no reload)
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT}"]

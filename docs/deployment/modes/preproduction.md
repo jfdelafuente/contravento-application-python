@@ -105,7 +105,7 @@ docker pull jfdelafuente/contravento-backend:latest
 ./run-jenkins-env.sh start
 
 # Or with custom compose file:
-docker-compose -f docker-compose.preproduction.yml up -d
+docker-compose -f docker-compose.preproduction.dev.yml up -d
 ```
 
 **Windows PowerShell**:
@@ -114,7 +114,7 @@ docker-compose -f docker-compose.preproduction.yml up -d
 .\run-jenkins-env.ps1 start
 
 # Or with custom compose file:
-docker-compose -f docker-compose.preproduction.yml up -d
+docker-compose -f docker-compose.preproduction.dev.yml up -d
 ```
 
 **That's it!** No `.env` file needed - all defaults are configured.
@@ -123,7 +123,7 @@ docker-compose -f docker-compose.preproduction.yml up -d
 
 ```bash
 # Check all containers running
-docker-compose -f docker-compose.preproduction.yml ps
+docker-compose -f docker-compose.preproduction.dev.yml ps
 
 # Expected:
 # contravento-db-preproduction          Up (healthy)
@@ -254,7 +254,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_FILE = 'docker-compose.preproduction.yml'
+        DOCKER_COMPOSE_FILE = 'docker-compose.preproduction.dev.yml'
     }
 
     stages {
@@ -401,7 +401,7 @@ jobs:
 
       - name: Start preproduction environment
         run: |
-          docker-compose -f docker-compose.preproduction.yml up -d
+          docker-compose -f docker-compose.preproduction.dev.yml up -d
           sleep 30  # Wait for services
 
       - name: Health checks
@@ -411,12 +411,12 @@ jobs:
 
       - name: Run backend tests
         run: |
-          docker-compose -f docker-compose.preproduction.yml exec -T backend \
+          docker-compose -f docker-compose.preproduction.dev.yml exec -T backend \
             poetry run pytest tests/ --cov=src --cov-report=xml
 
       - name: Run frontend tests
         run: |
-          docker-compose -f docker-compose.preproduction.yml exec -T frontend \
+          docker-compose -f docker-compose.preproduction.dev.yml exec -T frontend \
             npm test -- --run
 
       - name: Upload coverage reports
@@ -427,8 +427,8 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f docker-compose.preproduction.yml logs
-          docker-compose -f docker-compose.preproduction.yml down -v
+          docker-compose -f docker-compose.preproduction.dev.yml logs
+          docker-compose -f docker-compose.preproduction.dev.yml down -v
 ```
 
 ### GitLab CI Example
@@ -446,7 +446,7 @@ preproduction_validation:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    COMPOSE_FILE: docker-compose.preproduction.yml
+    COMPOSE_FILE: docker-compose.preproduction.dev.yml
 
   before_script:
     - apk add --no-cache docker-compose curl
@@ -486,21 +486,53 @@ preproduction_validation:
 
 **Auto-configured** (no `.env` file needed):
 
+All services use sensible defaults, so you can deploy without any configuration:
+
+```bash
+docker-compose -f docker-compose.preproduction.dev.yml up -d
+```
+
+**Default values**:
+
 ```bash
 # Application
-APP_NAME=ContraVento-Jenkins
-APP_ENV=development
-DEBUG=false
+APP_NAME=ContraVento
+APP_ENV=production
+DEBUG=true
 
-# Security (auto-generated)
+# Security
 SECRET_KEY=jenkins_default_secret_key_for_testing_only_do_not_use_in_production
-BCRYPT_ROUNDS=10
+BCRYPT_ROUNDS=4  # Fast hashing for testing
 
-# Database
-DATABASE_URL=postgresql+asyncpg://postgres:jenkins_test_password@postgres:5432/contravento_jenkins
+# Database Configuration
 POSTGRES_DB=contravento_jenkins
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=jenkins_test_password
+
+# Ports
+POSTGRES_PORT=5432
+BACKEND_PORT=8000
+BACKEND_INTERNAL_PORT=8000
+FRONTEND_PORT=5173
+PGADMIN_PORT=5050
+
+# Container Names
+POSTGRES_CONTAINER=contravento-db-jenkins
+BACKEND_CONTAINER=contravento-api-jenkins
+FRONTEND_CONTAINER=contravento-frontend-jenkins
+PGADMIN_CONTAINER=contravento-pgadmin-jenkins
+
+# Volumes
+BACKEND_STORAGE_PATH=./backend/storage
+POSTGRES_VOLUME=postgres_data_jenkins
+PGADMIN_VOLUME=pgadmin_data_jenkins
+
+# Network
+NETWORK_NAME=jenkins-network
+
+# pgAdmin
+PGADMIN_EMAIL=admin@example.com
+PGADMIN_PASSWORD=jenkins
 
 # Frontend (test key auto-passes Turnstile)
 VITE_API_URL=http://localhost:8000
@@ -511,32 +543,221 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:8000
 
 # Logging
 LOG_LEVEL=INFO
-LOG_FORMAT=json
+LOG_FORMAT=text
 ```
 
 ### Custom Configuration (Optional)
 
-**If you need to customize**, create `.env.preproduction`:
+**If you need to customize**, use the provided template:
 
 ```bash
-# Custom secret key
-SECRET_KEY=my_custom_secret_key_for_testing
+# Copy template
+cp .env.preproduction.example .env.preproduction
 
-# Custom database password
-POSTGRES_PASSWORD=my_custom_password
+# Edit values
+nano .env.preproduction
 
-# Custom Turnstile key
-VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+# Deploy with custom config
+docker-compose -f docker-compose.preproduction.dev.yml --env-file .env.preproduction up -d
 ```
 
-**Deploy with custom config**:
+### Advanced Configuration - All Available Variables
+
+The preproduction environment is **fully parametrized** for maximum flexibility. Every aspect can be customized via environment variables.
+
+**📖 Complete Reference**: For detailed parameterization guide with examples, CI/CD integration, and troubleshooting, see **[Preproduction Parameterization Guide](./preproduction-parameterization.md)**.
+
+#### 🎯 Docker Images
+
 ```bash
-docker-compose -f docker-compose.preproduction.yml --env-file .env.preproduction up -d
+# Backend image from Docker Hub
+BACKEND_IMAGE=jfdelafuente/contravento-backend:develop
+
+# Frontend image from Docker Hub
+FRONTEND_IMAGE=jfdelafuente/contravento-frontend:develop
+
+# Example: Use custom registry or branch
+BACKEND_IMAGE=myregistry/backend:feature-branch
+FRONTEND_IMAGE=myregistry/frontend:feature-branch
+```
+
+#### 🔐 Security
+
+```bash
+# JWT secret key (generate with: python -c "import secrets; print(secrets.token_urlsafe(32))")
+SECRET_KEY=jenkins_default_secret_key_for_testing_only_do_not_use_in_production
+
+# Database password
+POSTGRES_PASSWORD=jenkins_test_password
+```
+
+#### 🗄️ Database Configuration
+
+```bash
+# Database name
+POSTGRES_DB=contravento_jenkins
+
+# Database user
+POSTGRES_USER=postgres
+
+# Database password (also used in DATABASE_URL)
+POSTGRES_PASSWORD=jenkins_test_password
+```
+
+#### 🔌 Port Mappings
+
+Customize ports to avoid conflicts or run multiple instances:
+
+```bash
+# PostgreSQL host port
+POSTGRES_PORT=5432
+
+# Backend host port
+BACKEND_PORT=8000
+
+# Backend container internal port
+BACKEND_INTERNAL_PORT=8000
+
+# Full backend URL (for testing scripts)
+BACKEND_URL=http://localhost:8000
+
+# Frontend host port
+FRONTEND_PORT=5173
+
+# pgAdmin host port
+PGADMIN_PORT=5050
+```
+
+**Example - Avoid port conflicts**:
+```bash
+POSTGRES_PORT=5433 \
+BACKEND_PORT=8001 \
+FRONTEND_PORT=5174 \
+PGADMIN_PORT=5051 \
+docker-compose -f docker-compose.preproduction.dev.yml up -d
+```
+
+#### 📦 Container Names
+
+Useful for running multiple instances simultaneously:
+
+```bash
+POSTGRES_CONTAINER=contravento-db-jenkins
+BACKEND_CONTAINER=contravento-api-jenkins
+FRONTEND_CONTAINER=contravento-frontend-jenkins
+PGADMIN_CONTAINER=contravento-pgadmin-jenkins
+```
+
+**Example - Multiple instances**:
+```bash
+# Instance 1 (default names)
+docker-compose -f docker-compose.preproduction.dev.yml up -d
+
+# Instance 2 (custom names and ports)
+POSTGRES_PORT=5433 \
+BACKEND_PORT=8001 \
+FRONTEND_PORT=5174 \
+POSTGRES_CONTAINER=contravento-db-jenkins-2 \
+BACKEND_CONTAINER=contravento-api-jenkins-2 \
+FRONTEND_CONTAINER=contravento-frontend-jenkins-2 \
+NETWORK_NAME=jenkins-network-2 \
+docker-compose -f docker-compose.preproduction.dev.yml up -d
+```
+
+#### 💾 Volumes
+
+```bash
+# Backend storage (local directory for uploads)
+BACKEND_STORAGE_PATH=./backend/storage
+
+# PostgreSQL data volume (Docker managed)
+POSTGRES_VOLUME=postgres_data_jenkins
+
+# pgAdmin data volume (Docker managed)
+PGADMIN_VOLUME=pgadmin_data_jenkins
+```
+
+**Example - Custom storage location**:
+```bash
+BACKEND_STORAGE_PATH=/mnt/external/jenkins-storage \
+docker-compose -f docker-compose.preproduction.dev.yml up -d
+```
+
+#### 🌐 Network
+
+```bash
+# Docker network name
+NETWORK_NAME=jenkins-network
+```
+
+#### 🛠️ pgAdmin Configuration
+
+```bash
+# pgAdmin login email
+PGADMIN_EMAIL=admin@example.com
+
+# pgAdmin login password
+PGADMIN_PASSWORD=jenkins
+```
+
+**Note**: pgAdmin's auto-configuration (`configs.pgadmin_servers`) does NOT support variable interpolation due to Docker Compose limitations. If you change `POSTGRES_DB`, `POSTGRES_USER`, or `POSTGRES_PORT`, you must manually update the `configs` section in the docker-compose file (lines 228-245).
+
+### Configuration Templates
+
+**Complete `.env.preproduction` example**:
+
+```bash
+# ============================================================================
+# ContraVento - Preproduction Environment (Fully Customized)
+# ============================================================================
+
+# Docker Images
+BACKEND_IMAGE=jfdelafuente/contravento-backend:develop
+FRONTEND_IMAGE=jfdelafuente/contravento-frontend:develop
+
+# Security
+SECRET_KEY=my_custom_secret_key_for_jenkins_testing
+POSTGRES_PASSWORD=my_strong_password_123
+
+# Database
+POSTGRES_DB=contravento_jenkins
+POSTGRES_USER=postgres
+
+# Ports (custom to avoid conflicts)
+POSTGRES_PORT=5433
+BACKEND_PORT=8001
+BACKEND_INTERNAL_PORT=8000
+BACKEND_URL=http://localhost:8001
+FRONTEND_PORT=5174
+PGADMIN_PORT=5051
+
+# Container Names (for multiple instances)
+POSTGRES_CONTAINER=contravento-db-jenkins-custom
+BACKEND_CONTAINER=contravento-api-jenkins-custom
+FRONTEND_CONTAINER=contravento-frontend-jenkins-custom
+PGADMIN_CONTAINER=contravento-pgadmin-jenkins-custom
+
+# Volumes
+BACKEND_STORAGE_PATH=/custom/path/storage
+POSTGRES_VOLUME=postgres_data_jenkins_custom
+PGADMIN_VOLUME=pgadmin_data_jenkins_custom
+
+# Network
+NETWORK_NAME=jenkins-network-custom
+
+# pgAdmin
+PGADMIN_EMAIL=devops@mycompany.com
+PGADMIN_PASSWORD=secure_pgadmin_password
+```
+
+**Deploy with full customization**:
+```bash
+docker-compose -f docker-compose.preproduction.dev.yml --env-file .env.preproduction up -d
 ```
 
 ### Docker Compose Configuration
 
-**Key sections** from `docker-compose.preproduction.yml`:
+**Key sections** from `docker-compose.preproduction.dev.yml`:
 
 ```yaml
 services:
@@ -593,7 +814,7 @@ services:
 #!/bin/bash
 # Helper script for preproduction environment
 
-COMPOSE_FILE="docker-compose.preproduction.yml"
+COMPOSE_FILE="docker-compose.preproduction.dev.yml"
 
 case "$1" in
   start)
@@ -650,7 +871,7 @@ param(
     [string]$Action = 'start'
 )
 
-$ComposeFile = "docker-compose.preproduction.yml"
+$ComposeFile = "docker-compose.preproduction.dev.yml"
 
 switch ($Action) {
     'start' {
@@ -705,11 +926,11 @@ curl http://localhost:8000/health
 # Expected: {"status":"healthy","database":"connected"}
 
 # 3. Run backend tests
-docker-compose -f docker-compose.preproduction.yml exec backend \
+docker-compose -f docker-compose.preproduction.dev.yml exec backend \
   poetry run pytest --cov=src --cov-report=term
 
 # 4. Run frontend tests
-docker-compose -f docker-compose.preproduction.yml exec frontend \
+docker-compose -f docker-compose.preproduction.dev.yml exec frontend \
   npm test -- --run
 
 # 5. Test API endpoints
@@ -757,7 +978,7 @@ docker push jfdelafuente/contravento-backend:latest
 lsof -i :8000              # Linux/Mac
 netstat -ano | findstr :8000  # Windows
 
-# Kill process or change port in docker-compose.preproduction.yml
+# Kill process or change port in docker-compose.preproduction.dev.yml
 ```
 
 #### Issue 3: Database Not Ready
@@ -767,13 +988,13 @@ netstat -ano | findstr :8000  # Windows
 **Fix**: Wait for PostgreSQL health check
 ```bash
 # Check postgres health
-docker-compose -f docker-compose.preproduction.yml ps
+docker-compose -f docker-compose.preproduction.dev.yml ps
 
 # If unhealthy, check logs
-docker-compose -f docker-compose.preproduction.yml logs postgres
+docker-compose -f docker-compose.preproduction.dev.yml logs postgres
 
 # Restart if needed
-docker-compose -f docker-compose.preproduction.yml restart postgres
+docker-compose -f docker-compose.preproduction.dev.yml restart postgres
 ```
 
 #### Issue 4: Tests Fail in CI
@@ -788,7 +1009,7 @@ docker-compose -f docker-compose.preproduction.yml restart postgres
 **Fix**:
 ```bash
 # Add explicit health check wait
-docker-compose -f docker-compose.preproduction.yml up -d
+docker-compose -f docker-compose.preproduction.dev.yml up -d
 until curl -f http://localhost:8000/health; do
   echo "Waiting for backend..."
   sleep 5

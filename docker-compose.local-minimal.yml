@@ -45,14 +45,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development  # Use development stage from Dockerfile
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     volumes:
       # Mount source code for hot reload
       - ./backend/src:/app/src:ro
       # Mount storage as local directory for easy access
       - ./backend/storage:/app/storage
     environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
       DEBUG: "true"
       LOG_LEVEL: DEBUG
       LOG_FORMAT: text  # Human-readable logs for development
@@ -85,13 +88,13 @@ services:
       - /app/node_modules
     environment:
       # Backend API URL (accessible from browser on host machine)
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: ${BACKEND_URL:-http://localhost:8000}
       VITE_ENV: development
       VITE_DEBUG: "true"
       # Use test Turnstile key for development
       VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       # Proxy configuration for Vite dev server running in Docker
-      VITE_PROXY_TARGET: http://backend:8000  # Vite proxy target (Docker service name)
+      VITE_PROXY_TARGET: http://backend:${BACKEND_INTERNAL_PORT:-8000}  # Vite proxy target (Docker service name)
       VITE_USE_PROXY: "true"  # Enable /api prefix routing
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
@@ -113,24 +116,24 @@ services:
   # Redis service is disabled by default in minimal setup to save resources
   # If you need Redis for cache testing, use: ./deploy.sh local
   redis:
+    image: redis:7-alpine
     deploy:
       replicas: 0
 
   # ==========================================================================
-  # pgAdmin - Database UI (Optional - Uncomment to enable)
+  # pgAdmin - Database UI (Optional)
   # ==========================================================================
-  # pgAdmin is disabled by default but can be enabled by uncommenting below
-  # Uncomment the lines below to access pgAdmin UI at http://localhost:5050
+  # pgAdmin is disabled by default to keep minimal setup lightweight
+  # To enable: change replicas to 1
   pgadmin:
+    image: dpage/pgadmin4:latest
     deploy:
-      replicas: 1
+      replicas: 0
     ports:
       - "5050:80"  # Web UI at http://localhost:5050
-
-  # By default, pgAdmin is disabled to keep minimal setup lightweight
-  # pgadmin:
-  #   deploy:
-  #     replicas: 0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@contravento.com
+      PGADMIN_DEFAULT_PASSWORD: admin
 
 # ============================================================================
 # Notes

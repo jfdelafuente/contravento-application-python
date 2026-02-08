@@ -8,6 +8,8 @@
 # Simplified deployment for all environments:
 #   ./deploy.sh local                   - Start local development
 #   ./deploy.sh local --with-frontend   - Start local + frontend
+#   ./deploy.sh local-prod              - Start local production build (test Nginx)
+#   ./deploy.sh local --rebuild         - Force rebuild (ignore cache)
 #   ./deploy.sh dev                     - Start development/integration
 #   ./deploy.sh staging                 - Start staging/pre-production
 #   ./deploy.sh prod                    - Start production
@@ -64,21 +66,32 @@ check_docker_compose() {
 validate_env() {
     local env=$1
     case $env in
-        local|local-minimal|dev|staging|prod)
+        local|local-minimal|local-prod|dev|staging|prod)
             return 0
             ;;
         *)
             print_error "Invalid environment: $env"
-            echo "Valid environments: local, local-minimal, dev, staging, prod"
+            echo "Valid environments: local, local-minimal, local-prod, dev, staging, prod"
             exit 1
             ;;
     esac
 }
 
+# Get the appropriate .env file for an environment
+get_env_file() {
+    local env=$1
+    # local-prod uses the same .env as local
+    if [ "$env" = "local-prod" ]; then
+        echo ".env.local"
+    else
+        echo ".env.${env}"
+    fi
+}
+
 # Check if .env file exists
 check_env_file() {
     local env=$1
-    local env_file=".env.${env}"
+    local env_file=$(get_env_file "$env")
 
     if [ ! -f "$env_file" ]; then
         print_warning ".env file not found: $env_file"
@@ -132,7 +145,9 @@ check_env_file() {
 start_env() {
     local env=$1
     local with_frontend=$2  # --with-frontend flag
+    local rebuild=$3        # --rebuild flag
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
     print_header "Starting $env environment"
 
@@ -141,7 +156,7 @@ start_env() {
     print_info "Using configuration:"
     echo "  - Base: docker-compose.yml"
     echo "  - Overlay: $compose_file"
-    echo "  - Env file: .env.${env}"
+    echo "  - Env file: $env_file"
     if [ "$with_frontend" = "true" ]; then
         echo "  - Frontend: ENABLED (Vite dev server)"
     fi
@@ -181,19 +196,24 @@ start_env() {
 
     # Pull latest images
     print_info "Pulling latest images..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" pull
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" pull
 
     # Build services
-    print_info "Building services..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build
+    if [ "$rebuild" = "true" ]; then
+        print_info "Building services (--no-cache - forced rebuild)..."
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build --no-cache
+    else
+        print_info "Building services..."
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build
+    fi
 
     # Start services (enable frontend if flag is set)
     print_info "Starting services..."
     if [ "$with_frontend" = "true" ]; then
         # Scale frontend to 1 replica to enable it
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d --scale frontend=1
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" up -d --scale frontend=1
     else
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" up -d
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" up -d
     fi
 
     # Wait for services to be healthy
@@ -201,17 +221,38 @@ start_env() {
     sleep 10
 
     # Show status
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" ps
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" ps
 
     print_success "$env environment started successfully!"
+
+    # Get backend port (priority: env var > .env file > default 8000)
+    backend_port=${BACKEND_PORT:-}
+    port_source=""
+
+    if [ -n "$backend_port" ]; then
+        # Port set via environment variable
+        port_source="environment variable"
+    elif [ -f "$env_file" ]; then
+        # Try to read from .env file
+        backend_port=$(grep "^BACKEND_PORT=" "$env_file" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "")
+        if [ -n "$backend_port" ]; then
+            port_source="$env_file"
+        fi
+    fi
+
+    # Fallback to 8000 if still not set
+    if [ -z "$backend_port" ]; then
+        backend_port=8000
+        port_source="default"
+    fi
 
     # Environment-specific messages
     case $env in
         local-minimal)
             echo ""
             print_info "Access your minimal local environment:"
-            echo "  Backend API:     http://localhost:8000"
-            echo "  API Docs:        http://localhost:8000/docs"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
             if [ "$with_frontend" = "true" ]; then
                 echo "  Frontend:        http://localhost:5173"
             fi
@@ -228,8 +269,8 @@ start_env() {
         local)
             echo ""
             print_info "Access your full local environment:"
-            echo "  Backend API:     http://localhost:8000"
-            echo "  API Docs:        http://localhost:8000/docs"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
             if [ "$with_frontend" = "true" ]; then
                 echo "  Frontend:        http://localhost:5173"
             fi
@@ -246,11 +287,26 @@ start_env() {
             fi
             print_info "For lighter setup → use: ./deploy.sh local-minimal"
             ;;
+        local-prod)
+            echo ""
+            print_info "Access your local production build:"
+            echo "  Frontend (Nginx): http://localhost:8080"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
+            echo "  MailHog UI:      http://localhost:8025"
+            echo "  pgAdmin:         http://localhost:5050"
+            echo "  PostgreSQL:      localhost:5432"
+            echo "  Redis:           localhost:6379"
+            echo ""
+            print_warning "Frontend uses production build (Nginx + static files)"
+            print_info "No hot reload - rebuild frontend with: ./deploy.sh local-prod --rebuild"
+            print_info "For development with hot reload → use: ./deploy.sh local --with-frontend"
+            ;;
         dev)
             echo ""
             print_info "Access your dev environment:"
-            echo "  Backend API:     http://dev.contravento.local:8000"
-            echo "  API Docs:        http://dev.contravento.local:8000/docs"
+            echo "  Backend API:     http://dev.contravento.local:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://dev.contravento.local:${backend_port}/docs"
             ;;
         staging)
             echo ""
@@ -275,10 +331,11 @@ start_env() {
 stop_env() {
     local env=$1
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
     print_header "Stopping $env environment"
 
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" down
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" down
 
     print_success "$env environment stopped"
 }
@@ -287,16 +344,18 @@ stop_env() {
 view_logs() {
     local env=$1
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" logs -f
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" logs -f
 }
 
 # Show running containers
 show_ps() {
     local env=$1
     local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
 
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" ps
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" ps
 }
 
 # Restart environment
@@ -315,43 +374,119 @@ main() {
     check_docker_compose
 
     if [ $# -eq 0 ]; then
-        print_error "Usage: $0 <environment> [command]"
         echo ""
-        echo "Environments:"
-        echo "  local-minimal  - Minimal local (PostgreSQL + Backend only) ⚡ FASTEST"
-        echo "  local          - Full local (+ Redis, MailHog, pgAdmin)"
-        echo "  dev            - Development/Integration (production-like)"
-        echo "  staging        - Staging/Pre-production (production mirror)"
-        echo "  prod           - Production (maximum security)"
+        echo -e "${BLUE}╔════════════════════════════════════════════════════════════════════════╗${NC}"
+        echo -e "${BLUE}║                   ContraVento - Deployment Script                      ║${NC}"
+        echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
         echo ""
-        echo "Commands:"
-        echo "  (default)      - Start environment"
-        echo "  --with-frontend - Start with frontend (local-minimal and local only)"
-        echo "  down           - Stop environment"
-        echo "  logs           - View logs (follow mode)"
-        echo "  ps             - Show running containers"
-        echo "  restart        - Restart environment"
+        echo "Multi-environment deployment script for ContraVento cycling platform."
+        echo "Manages Docker Compose deployments across local, staging, and production."
         echo ""
-        echo "Examples:"
-        echo "  $0 local-minimal                   # Start minimal local (backend only)"
-        echo "  $0 local-minimal --with-frontend   # Start minimal local + frontend"
-        echo "  $0 local                           # Start full local with all tools"
-        echo "  $0 local-minimal logs              # View logs"
-        echo "  $0 prod down                       # Stop production"
+        echo -e "${GREEN}USAGE:${NC}"
+        echo "  $0 <environment> [flags] [command]"
+        echo ""
+        echo -e "${GREEN}ENVIRONMENTS:${NC}"
+        echo ""
+        echo -e "  ${BLUE}local-minimal${NC}  ⚡ FASTEST - Minimal setup for rapid development"
+        echo "                 Components: PostgreSQL + Backend"
+        echo "                 Use case: Quick iterations, backend-only work"
+        echo "                 Startup: ~10 seconds"
+        echo ""
+        echo -e "  ${BLUE}local${NC}          Full local development environment"
+        echo "                 Components: PostgreSQL + Backend + Redis + MailHog + pgAdmin"
+        echo "                 Use case: Full-stack development, email testing"
+        echo "                 Startup: ~20 seconds"
+        echo ""
+        echo -e "  ${BLUE}local-prod${NC}     Local production build testing"
+        echo "                 Components: Same as 'local' + Nginx serving static frontend"
+        echo "                 Use case: Test production builds before deployment"
+        echo "                 Frontend: http://localhost:8080 (no hot reload)"
+        echo ""
+        echo -e "  ${BLUE}dev${NC}            Development/Integration environment"
+        echo "                 Components: Production-like setup with real SMTP"
+        echo "                 Use case: Integration testing, team collaboration"
+        echo ""
+        echo -e "  ${BLUE}staging${NC}        Staging/Pre-production mirror"
+        echo "                 Components: Full production stack + monitoring"
+        echo "                 Use case: Final validation before production release"
+        echo ""
+        echo -e "  ${BLUE}prod${NC}           Production environment"
+        echo "                 Components: High-availability, SSL/TLS, monitoring"
+        echo "                 Use case: Live application serving real users"
+        echo ""
+        echo -e "${GREEN}FLAGS:${NC}"
+        echo "  --with-frontend    Enable Vite dev server (local-minimal and local only)"
+        echo "                     Access at: http://localhost:5173"
+        echo ""
+        echo "  --rebuild          Force rebuild all Docker images (ignore cache)"
+        echo "                     Useful after: Dockerfile changes, dependency updates"
+        echo ""
+        echo -e "${GREEN}COMMANDS:${NC}"
+        echo "  (none)             Start environment (default action)"
+        echo "  down               Stop environment and remove containers"
+        echo "  logs               View logs in follow mode (Ctrl+C to exit)"
+        echo "  ps                 Show running containers status"
+        echo "  restart            Restart environment (down + up)"
+        echo ""
+        echo -e "${GREEN}PORT CONFIGURATION:${NC}"
+        echo "  Backend port can be configured via (priority order):"
+        echo "    1. Environment variable:  export BACKEND_PORT=9000"
+        echo "    2. .env file:             BACKEND_PORT=9000 in .env.<environment>"
+        echo "    3. Default fallback:      8000"
+        echo ""
+        echo "  Startup messages show: (port from: environment variable/file/default)"
+        echo ""
+        echo -e "${GREEN}EXAMPLES:${NC}"
+        echo "  # Quick local development (fastest)"
+        echo "  $0 local-minimal"
+        echo ""
+        echo "  # Local development with frontend"
+        echo "  $0 local-minimal --with-frontend"
+        echo ""
+        echo "  # Full local environment with all services"
+        echo "  $0 local"
+        echo ""
+        echo "  # Test production build locally"
+        echo "  $0 local-prod"
+        echo ""
+        echo "  # Force rebuild after Dockerfile changes"
+        echo "  $0 local --rebuild"
+        echo ""
+        echo "  # Custom backend port"
+        echo "  export BACKEND_PORT=9000 && $0 local"
+        echo ""
+        echo "  # View logs"
+        echo "  $0 local logs"
+        echo ""
+        echo "  # Stop environment"
+        echo "  $0 local down"
+        echo ""
+        echo "  # Deploy to staging"
+        echo "  $0 staging"
+        echo ""
+        echo -e "${GREEN}DOCUMENTATION:${NC}"
+        echo "  📖 Complete guide: docs/deployment/README.md"
+        echo "  🔧 Troubleshooting: docs/deployment/TROUBLESHOOTING.md"
+        echo "  📋 Mode details: docs/deployment/modes/"
+        echo ""
         exit 1
     fi
 
     # Parse arguments
     local env=$1
     local with_frontend=false
+    local rebuild=false
     local command="up"
 
-    # Check for --with-frontend flag in any position
+    # Check for flags in any position
     shift  # Remove first argument (env)
     for arg in "$@"; do
         case "$arg" in
             --with-frontend)
                 with_frontend=true
+                ;;
+            --rebuild)
+                rebuild=true
                 ;;
             up|start|down|stop|logs|ps|status|restart)
                 command="$arg"
@@ -363,7 +498,7 @@ main() {
 
     case $command in
         up|start)
-            start_env "$env" "$with_frontend"
+            start_env "$env" "$with_frontend" "$rebuild"
             ;;
         down|stop)
             stop_env "$env"

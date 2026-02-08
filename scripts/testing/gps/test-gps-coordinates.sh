@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Backend URL (configurable via env var)
+BASE_URL="${BACKEND_URL:-http://localhost:8000}"
+
 # Manual Test Script for GPS Coordinates Feature
 # Feature 009-gps-coordinates - Backend Validation
 
@@ -20,7 +24,7 @@ echo ""
 # Test 1: Create trip WITH GPS coordinates
 echo "📍 Test 1: Creating trip with GPS coordinates (valid ranges)"
 echo "-----------------------------------------------------------"
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -59,7 +63,7 @@ echo ""
 # Test 2: Create trip WITHOUT coordinates (backwards compatibility)
 echo "📍 Test 2: Creating trip WITHOUT coordinates (backwards compatible)"
 echo "--------------------------------------------------------------------"
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -92,7 +96,7 @@ echo ""
 # Test 3: Invalid latitude (out of range)
 echo "❌ Test 3: Invalid latitude > 90 (should fail)"
 echo "-----------------------------------------------"
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -115,7 +119,7 @@ echo ""
 # Test 4: Invalid longitude (out of range)
 echo "❌ Test 4: Invalid longitude < -180 (should fail)"
 echo "--------------------------------------------------"
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -138,7 +142,7 @@ echo ""
 # Test 5: Precision rounding (9 decimals -> rounded to 6)
 echo "🔢 Test 5: Coordinate precision (9 decimals -> rounded to 6)"
 echo "------------------------------------------------------------"
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -161,7 +165,7 @@ echo ""
 # Test 6: Mixed locations (some with coords, some without)
 echo "🔀 Test 6: Mixed locations (some with GPS, some without)"
 echo "---------------------------------------------------------"
-curl -X POST http://localhost:8000/trips \
+curl -X POST ${BASE_URL}/trips \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -194,7 +198,7 @@ echo ""
 echo "Next steps:"
 echo "1. Check the API responses above for success/error messages"
 echo "2. Retrieve trips to verify coordinates are stored:"
-echo "   curl -H 'Authorization: Bearer \$ACCESS_TOKEN' http://localhost:8000/users/testuser/trips"
+echo "   curl -H 'Authorization: Bearer \$ACCESS_TOKEN' ${BASE_URL}/users/testuser/trips"
 echo "3. View trip detail to see coordinates in response:"
-echo "   curl -H 'Authorization: Bearer \$ACCESS_TOKEN' http://localhost:8000/trips/{trip_id}"
+echo "   curl -H 'Authorization: Bearer \$ACCESS_TOKEN' ${BASE_URL}/trips/{trip_id}"
 echo ""

@@ -17,7 +17,8 @@ param(
     [string]$Command = "start"
 )
 
-$PORT = 8000
+# Allow port configuration via environment variable
+$PORT = if ($env:BACKEND_PORT) { [int]$env:BACKEND_PORT } else { 8000 }
 $SERVER_NAME = "Backend"
 
 # ============================================================================

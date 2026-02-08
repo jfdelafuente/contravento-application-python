@@ -1,7 +1,7 @@
 # Script to get access token for ContraVento API testing
 # Usage: .\get-token.ps1
 
-$BaseUrl = "http://localhost:8000"
+$BaseUrl = if ($env:BACKEND_URL) { $env:BACKEND_URL } else { "http://localhost:8000" }
 $Username = "testuser"
 $Password = "TestPass123!"
 

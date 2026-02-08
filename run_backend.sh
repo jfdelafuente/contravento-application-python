@@ -14,7 +14,8 @@
 
 set -e
 
-PORT=8000
+# Allow port configuration via environment variable
+PORT=${BACKEND_PORT:-8000}
 SERVER_NAME="Backend"
 COMMAND="${1:-start}"
 

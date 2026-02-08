@@ -22,6 +22,28 @@ COMMAND="${1:-start}"
 # HELPER FUNCTIONS
 # ============================================================================
 
+configure_backend_port() {
+    local backend_port=${BACKEND_PORT:-8000}
+    local frontend_env="frontend/.env.development"
+
+    if [ ! -f "$frontend_env" ]; then
+        return 0  # Will be created later in start_server
+    fi
+
+    local backend_url="http://localhost:${backend_port}"
+
+    # Update VITE_API_URL with current backend port
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s|VITE_API_URL=.*|VITE_API_URL=${backend_url}|" "$frontend_env"
+    else
+        # Linux
+        sed -i "s|VITE_API_URL=.*|VITE_API_URL=${backend_url}|" "$frontend_env"
+    fi
+
+    echo -e "\033[32m[SUCCESS] Configured frontend to connect to backend at ${backend_url}\033[0m"
+}
+
 check_port() {
     local port=$1
     if command -v lsof &> /dev/null; then
@@ -119,6 +141,13 @@ start_server() {
         fi
     fi
 
+    cd ..
+
+    # Configure frontend to use correct backend port
+    configure_backend_port
+
+    cd frontend
+
     # Check if node_modules exists
     if [ ! -d "node_modules" ]; then
         echo -e "\033[33m[WARNING] node_modules not found. Running npm install...\033[0m"
@@ -161,11 +190,14 @@ verify_server() {
         echo ""
         echo -n "HTTP check: "
         if command -v curl &> /dev/null; then
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 http://localhost:$PORT 2>/dev/null)
+            # Use shorter timeout and connection timeout for faster response
+            http_code=$(timeout 2 curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 --max-time 2 http://localhost:$PORT 2>/dev/null || echo "timeout")
             if [ "$http_code" = "200" ]; then
                 echo -e "\033[32mOK (HTTP $http_code)\033[0m"
+            elif [ "$http_code" = "timeout" ]; then
+                echo -e "\033[33mTIMEOUT (Vite is running but slow to respond)\033[0m"
             else
-                echo -e "\033[33mTIMEOUT (Vite dev server doesn't respond to simple GET)\033[0m"
+                echo -e "\033[33mNO RESPONSE (Vite dev server may be starting)\033[0m"
             fi
         else
             echo -e "\033[33mSKIPPED (curl not found)\033[0m"

@@ -64,6 +64,8 @@ coverage.xml
 .env
 .env.local
 .env.local-minimal
+.env.local-prod
+.env.preproduction
 .env.*.local
 *.env
 !.env.example

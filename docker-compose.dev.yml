@@ -43,9 +43,12 @@ services:
   backend:
     build:
       target: production  # Use production build
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
     ports:
-      - "8000:8000"  # Expose for testing
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
       DEBUG: "false"
       LOG_LEVEL: INFO
       LOG_FORMAT: json  # Structured logs for easier parsing

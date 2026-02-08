@@ -218,6 +218,110 @@ VITE_ENV=development
 VITE_DEBUG=true
 ```
 
+### Port Configuration
+
+The backend port is **fully configurable** via environment variables. By default, the backend runs on port **8000**, but you can change it to any available port.
+
+#### Configuration Methods
+
+**Method 1: Environment Variable (Quick Override)**
+
+```bash
+# Linux/Mac
+export BACKEND_PORT=9000
+./deploy.sh local-minimal
+
+# Windows PowerShell
+$env:BACKEND_PORT = 9000
+.\deploy.ps1 local-minimal
+```
+
+**Method 2: .env File (Persistent Configuration)**
+
+Edit `.env.local-minimal`:
+
+```bash
+# =============================================================================
+# BACKEND - Port Configuration
+# =============================================================================
+# Port exposed on the host machine
+BACKEND_PORT=9000
+
+# Port inside the Docker container (usually same as BACKEND_PORT)
+BACKEND_INTERNAL_PORT=9000
+
+# Full backend URL (used by frontend and testing scripts)
+BACKEND_URL=http://localhost:9000
+```
+
+**Priority Order** (highest to lowest):
+1. Exported environment variable (`export BACKEND_PORT=9000`)
+2. `.env.local-minimal` file value
+3. Default fallback (`8000`)
+
+#### Rebuilding After Port Change
+
+When you change `BACKEND_PORT`, you **must rebuild** the Docker images because the port is a build-time argument:
+
+```bash
+# Option 1: Use --rebuild flag (recommended)
+./deploy.sh local-minimal --rebuild
+
+# Option 2: Manual rebuild
+docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml \
+  --env-file .env.local-minimal build --no-cache backend
+
+./deploy.sh local-minimal
+```
+
+#### Accessing Services with Custom Port
+
+If you set `BACKEND_PORT=9000`, access points change to:
+
+- **Backend API**: http://localhost:9000 (instead of 8000)
+- **API Docs**: http://localhost:9000/docs
+- **Health Check**: http://localhost:9000/health
+- **Frontend**: http://localhost:5173 (unchanged)
+- **PostgreSQL**: localhost:5432 (unchanged)
+
+The `deploy.sh` script automatically displays the correct URLs based on your port configuration.
+
+#### Testing Scripts Auto-Configuration
+
+All testing and seeding scripts automatically use the configured backend port:
+
+```bash
+# Set custom port
+export BACKEND_PORT=9000
+
+# These scripts automatically connect to port 9000:
+./scripts/run_smoke_tests.sh
+./scripts/testing/gps/test-gps-quick.sh
+./scripts/seed/create_test_trips.sh
+```
+
+**Frontend auto-configuration**: The `run-local-dev.sh` and `run_frontend.sh` scripts automatically update `frontend/.env.development` with the correct `VITE_API_URL` when you start them.
+
+#### Common Port Conflicts
+
+If port 8000 is already in use, you'll see:
+
+```
+Error: Port 8000 is already in use
+```
+
+**Solution**:
+
+```bash
+# Option 1: Use different port
+export BACKEND_PORT=9000
+./deploy.sh local-minimal --rebuild
+
+# Option 2: Find and kill conflicting process
+lsof -ti:8000 | xargs kill -9  # Linux/Mac
+Get-NetTCPConnection -LocalPort 8000 | Stop-Process -Force  # Windows
+```
+
 ### Test Users (Auto-Created)
 
 | Username | Email | Password | Role |

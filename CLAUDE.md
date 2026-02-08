@@ -286,6 +286,114 @@ nano .env.local-minimal
 
 **📖 For complete deployment documentation**: See **[Deployment Guide](docs/deployment/README.md)** for detailed guides on all deployment modes, troubleshooting, and configuration.
 
+### Backend Port Configuration
+
+The backend port is fully configurable via environment variables, allowing you to run multiple instances or use custom ports without code changes.
+
+#### Environment Variables
+
+Three variables control backend port configuration:
+
+1. **`BACKEND_PORT`**: Host port where backend is accessible (external)
+   - Default: `8000`
+   - Used by: Docker port mapping, startup scripts
+   - Example: `BACKEND_PORT=9000` → access backend at http://localhost:9000
+
+2. **`BACKEND_INTERNAL_PORT`**: Container internal port (Docker only)
+   - Default: `8000`
+   - Used by: Docker container networking
+   - Usually same as BACKEND_PORT unless using port remapping
+
+3. **`BACKEND_URL`**: Full backend URL for testing scripts
+   - Default: `http://localhost:8000`
+   - Used by: Testing scripts, seeding scripts, frontend configuration
+   - Example: `BACKEND_URL=http://localhost:9000`
+
+#### Configuration Examples
+
+**Local Development (No Docker):**
+
+```bash
+# Linux/Mac
+export BACKEND_PORT=9000
+./run_backend.sh
+
+# Windows PowerShell
+$env:BACKEND_PORT = 9000
+.\run_backend.ps1
+
+# Backend now accessible at: http://localhost:9000
+# API docs at: http://localhost:9000/docs
+```
+
+**Docker Environments:**
+
+```bash
+# Edit .env file for your environment
+nano .env.local-minimal
+
+# Add or modify:
+BACKEND_PORT=9000
+BACKEND_INTERNAL_PORT=9000
+BACKEND_URL=http://localhost:9000
+
+# Start Docker with custom port
+docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml --env-file .env.local-minimal up -d
+
+# IMPORTANT: Rebuild image if changing port (build ARG)
+docker-compose build --no-cache backend
+```
+
+**Testing Scripts:**
+
+All testing and seeding scripts automatically use `BACKEND_URL` environment variable:
+
+```bash
+# Set custom backend URL for tests
+export BACKEND_URL=http://localhost:9000
+
+# Run smoke tests
+./scripts/run_smoke_tests.sh
+
+# Run GPS tests
+./scripts/testing/gps/test-gps-quick.sh
+
+# Create test trips
+./scripts/seed/create_test_trips.sh
+```
+
+#### Environment Files
+
+Port configuration is available in all `.env.*.example` files:
+
+- `.env.local.example` - Local full Docker stack
+- `.env.local-minimal.example` - Minimal Docker (PostgreSQL only)
+- `.env.dev.example` - Development/integration environment
+- `.env.staging.example` - Staging environment (internal port only)
+- `.env.prod.example` - Production environment (internal port only)
+
+**Note**: In staging/production, backend is NOT exposed directly (only via Nginx reverse proxy). Only `BACKEND_INTERNAL_PORT` is relevant.
+
+#### Troubleshooting
+
+**Port not changing after setting BACKEND_PORT:**
+
+Docker uses build-time ARG for port configuration. You must rebuild the image:
+
+```bash
+docker-compose build --no-cache backend
+docker-compose up -d
+```
+
+**Frontend can't reach backend on custom port:**
+
+Update `VITE_API_URL` in frontend configuration or set `BACKEND_URL` environment variable:
+
+```bash
+# In .env file
+VITE_API_URL=http://localhost:9000
+```
+
 ### Development Server
 
 ```bash

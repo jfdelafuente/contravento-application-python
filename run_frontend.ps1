@@ -24,6 +24,24 @@ $SERVER_NAME = "Frontend"
 # HELPER FUNCTIONS
 # ============================================================================
 
+function Configure-BackendPort {
+    $backendPort = if ($env:BACKEND_PORT) { [int]$env:BACKEND_PORT } else { 8000 }
+    $frontendEnv = "frontend\.env.development"
+
+    if (!(Test-Path $frontendEnv)) {
+        return  # Will be created later in Start-Server
+    }
+
+    $backendUrl = "http://localhost:$backendPort"
+
+    # Update VITE_API_URL with current backend port
+    $content = Get-Content $frontendEnv
+    $newContent = $content -replace 'VITE_API_URL=.*', "VITE_API_URL=$backendUrl"
+    $newContent | Set-Content $frontendEnv
+
+    Write-Host "[SUCCESS] Configured frontend to connect to backend at $backendUrl" -ForegroundColor Green
+}
+
 function Test-Port {
     param([int]$Port)
     $connection = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
@@ -134,6 +152,13 @@ function Start-Server {
         }
     }
 
+    Set-Location ..
+
+    # Configure frontend to use correct backend port
+    Configure-BackendPort
+
+    Set-Location frontend
+
     # Check if node_modules exists
     if (!(Test-Path "node_modules")) {
         Write-Host "[WARNING] node_modules not found. Running npm install..." -ForegroundColor Yellow
@@ -176,11 +201,20 @@ function Verify-Server {
         Write-Host ""
         Write-Host "HTTP check: " -NoNewline
         try {
-            $response = Invoke-WebRequest -Uri "http://localhost:$PORT" -Method Get -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop
+            # Use shorter timeout for faster response
+            $response = Invoke-WebRequest -Uri "http://localhost:$PORT" -Method Get -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop
             Write-Host "OK (HTTP $($response.StatusCode))" -ForegroundColor Green
         }
+        catch [System.Net.WebException] {
+            if ($_.Exception.Message -match "timed out") {
+                Write-Host "TIMEOUT (Vite is running but slow to respond)" -ForegroundColor Yellow
+            }
+            else {
+                Write-Host "NO RESPONSE (Vite dev server may be starting)" -ForegroundColor Yellow
+            }
+        }
         catch {
-            Write-Host "TIMEOUT (Vite dev server doesn't respond to simple GET)" -ForegroundColor Yellow
+            Write-Host "ERROR ($($_.Exception.Message))" -ForegroundColor Yellow
         }
 
         # Check config

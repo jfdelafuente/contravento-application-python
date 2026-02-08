@@ -30,17 +30,49 @@
 #   docker-compose -f docker-compose.preproduction.yml down
 #
 # Environment variables (optional):
-#   SECRET_KEY:           Auto-generated if missing
-#   POSTGRES_PASSWORD:    Defaults to 'jenkins_test_password'
+#   # Images
 #   BACKEND_IMAGE:        Docker Hub image tag (default: jfdelafuente/contravento-backend:develop)
 #   FRONTEND_IMAGE:       Docker Hub image tag (default: jfdelafuente/contravento-frontend:develop)
 #
-# Access:
-#   Frontend:           http://localhost:5173  (Preproduction port)
-#   Backend API:        http://localhost:8000
-#   API Docs:           http://localhost:8000/docs
-#   pgAdmin:            http://localhost:5050 (admin@example.com / jenkins)
-#   PostgreSQL:         localhost:5432 (contravento_jenkins / postgres / jenkins_test_password)
+#   # Security
+#   SECRET_KEY:           Auto-generated if missing
+#   POSTGRES_PASSWORD:    PostgreSQL password (default: jenkins_test_password)
+#
+#   # Database Configuration
+#   POSTGRES_DB:          Database name (default: contravento_jenkins)
+#   POSTGRES_USER:        Database user (default: postgres)
+#
+#   # Ports
+#   POSTGRES_PORT:        PostgreSQL host port (default: 5432)
+#   BACKEND_PORT:         Backend host port (default: 8000)
+#   BACKEND_INTERNAL_PORT: Backend container port (default: 8000)
+#   FRONTEND_PORT:        Frontend host port (default: 5173)
+#   PGADMIN_PORT:         pgAdmin host port (default: 5050)
+#
+#   # Container Names
+#   POSTGRES_CONTAINER:   PostgreSQL container name (default: contravento-db-jenkins)
+#   BACKEND_CONTAINER:    Backend container name (default: contravento-api-jenkins)
+#   FRONTEND_CONTAINER:   Frontend container name (default: contravento-frontend-jenkins)
+#   PGADMIN_CONTAINER:    pgAdmin container name (default: contravento-pgadmin-jenkins)
+#
+#   # Volumes
+#   BACKEND_STORAGE_PATH: Local path for backend storage (default: ./backend/storage)
+#   POSTGRES_VOLUME:      PostgreSQL data volume name (default: postgres_data_jenkins)
+#   PGADMIN_VOLUME:       pgAdmin data volume name (default: pgadmin_data_jenkins)
+#
+#   # Network
+#   NETWORK_NAME:         Docker network name (default: jenkins-network)
+#
+#   # pgAdmin
+#   PGADMIN_EMAIL:        pgAdmin login email (default: admin@example.com)
+#   PGADMIN_PASSWORD:     pgAdmin login password (default: jenkins)
+#
+# Access (default ports, configurable via environment variables):
+#   Frontend:           http://localhost:${FRONTEND_PORT:-5173}
+#   Backend API:        http://localhost:${BACKEND_PORT:-8000}
+#   API Docs:           http://localhost:${BACKEND_PORT:-8000}/docs
+#   pgAdmin:            http://localhost:${PGADMIN_PORT:-5050} (${PGADMIN_EMAIL} / ${PGADMIN_PASSWORD})
+#   PostgreSQL:         localhost:${POSTGRES_PORT:-5432} (${POSTGRES_DB} / ${POSTGRES_USER} / ${POSTGRES_PASSWORD})
 # ============================================================================
 
 services:
@@ -49,40 +81,43 @@ services:
   # ==========================================================================
   postgres:
     image: postgres:16-alpine
-    container_name: contravento-db-jenkins
+    container_name: ${POSTGRES_CONTAINER:-contravento-db-jenkins}
     environment:
-      POSTGRES_DB: contravento_jenkins
-      POSTGRES_USER: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-contravento_jenkins}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jenkins_test_password}
       POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=en_US.UTF-8
     ports:
-      - "5432:5432"  # Expose for local access
+      - "${POSTGRES_PORT:-5432}:5432"  # Expose for local access
     volumes:
-      - postgres_data_jenkins:/var/lib/postgresql/data
+      - ${POSTGRES_VOLUME:-postgres_data_jenkins}:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d contravento_jenkins"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-contravento_jenkins}"]
       interval: 5s
       timeout: 3s
       retries: 10
       start_period: 10s
     restart: unless-stopped
     networks:
-      - jenkins-network
+      - ${NETWORK_NAME:-jenkins-network}
 
   # ==========================================================================
   # Backend API - FastAPI
   # ==========================================================================
   backend:
     image: ${BACKEND_IMAGE:-jfdelafuente/contravento-backend:develop}
-    container_name: contravento-api-jenkins
+    container_name: ${BACKEND_CONTAINER:-contravento-api-jenkins}
     environment:
+      # Port Configuration
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
+
       # Application
       APP_NAME: ContraVento
       APP_ENV: production
       DEBUG: "true"
 
       # Database
-      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-jenkins_test_password}@postgres:5432/contravento_jenkins
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-jenkins_test_password}@postgres:5432/${POSTGRES_DB:-contravento_jenkins}
 
       # Security (auto-generate SECRET_KEY if not provided)
       SECRET_KEY: ${SECRET_KEY:-jenkins_default_secret_key_for_testing_only_do_not_use_in_production}
@@ -97,7 +132,7 @@ services:
       SMTP_FROM: noreply@contravento.com
 
       # CORS
-      CORS_ORIGINS: http://localhost:5173,http://localhost:8000  # Preproduction ports
+      CORS_ORIGINS: http://localhost:5173,${BACKEND_URL:-http://localhost:8000}
 
       # Storage
       STORAGE_PATH: /app/storage
@@ -107,34 +142,37 @@ services:
       LOG_FORMAT: text  # Human-readable for preproduction logs
 
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
     volumes:
       # Mount local storage for uploads (persistent across container restarts)
-      - ./backend/storage:/app/storage
+      - ${BACKEND_STORAGE_PATH:-./backend/storage}:/app/storage
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:$${PORT:-8000}/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     restart: unless-stopped
     networks:
-      - jenkins-network
+      - ${NETWORK_NAME:-jenkins-network}
 
   # ==========================================================================
   # Frontend - React/Vite Production Build (from Docker Hub)
   # ==========================================================================
   frontend:
     image: ${FRONTEND_IMAGE:-jfdelafuente/contravento-frontend:develop}
-    container_name: contravento-frontend-jenkins
+    container_name: ${FRONTEND_CONTAINER:-contravento-frontend-jenkins}
     # NOTE: Frontend image uses pre-built production bundle from Docker Hub
     # Built by GitHub Actions (docker-build-push.yml) or Jenkins (Jenkinsfile)
     # VITE_* variables were embedded at build-time, cannot be changed at runtime
+    environment:
+      # Nginx proxy configuration (generated from template at runtime)
+      BACKEND_INTERNAL_PORT: ${BACKEND_INTERNAL_PORT:-8000}
     ports:
-      - "5173:80"  # Map host port 5173 to container Nginx port 80
+      - "${FRONTEND_PORT:-5173}:80"  # Map host port to container Nginx port 80
     depends_on:
       backend:
         condition: service_healthy
@@ -142,27 +180,27 @@ services:
     # depends_on with service_healthy ensures correct startup order
     restart: unless-stopped
     networks:
-      - jenkins-network
+      - ${NETWORK_NAME:-jenkins-network}
 
   # ==========================================================================
   # pgAdmin - Database UI (for debugging and inspection)
   # ==========================================================================
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: contravento-pgadmin-jenkins
+    container_name: ${PGADMIN_CONTAINER:-contravento-pgadmin-jenkins}
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: jenkins
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-jenkins}
       PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT:-5050}:80"
     volumes:
-      - pgadmin_data_jenkins:/var/lib/pgadmin
+      - ${PGADMIN_VOLUME:-pgadmin_data_jenkins}:/var/lib/pgadmin
     depends_on:
       - postgres
     restart: unless-stopped
     networks:
-      - jenkins-network
+      - ${NETWORK_NAME:-jenkins-network}
     # Auto-configure PostgreSQL connection
     configs:
       - source: pgadmin_servers
@@ -174,8 +212,10 @@ services:
 volumes:
   postgres_data_jenkins:
     driver: local
+    name: ${POSTGRES_VOLUME:-postgres_data_jenkins}
   pgadmin_data_jenkins:
     driver: local
+    name: ${PGADMIN_VOLUME:-pgadmin_data_jenkins}
 
 # ============================================================================
 # Networks
@@ -183,11 +223,14 @@ volumes:
 networks:
   jenkins-network:
     driver: bridge
-    name: jenkins-network
+    name: ${NETWORK_NAME:-jenkins-network}
 
 # ============================================================================
 # Configs (pgAdmin auto-configuration)
 # ============================================================================
+# NOTE: Docker Compose config.content does not support variable interpolation.
+# If you change POSTGRES_DB, POSTGRES_USER, or POSTGRES_PORT, you must manually
+# update the values in this section to match.
 configs:
   pgadmin_servers:
     content: |

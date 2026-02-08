@@ -20,28 +20,15 @@ Este entorno te permite probar el **build de producción del frontend** (Nginx +
 
 ## 🚀 Uso Rápido
 
-### **Linux/Mac:**
 ```bash
 # Iniciar
-./deploy-local-prod.sh start
+./deploy.sh local-prod
 
-# Después de cambios en frontend
-./deploy-local-prod.sh rebuild
-
-# Detener
-./deploy-local-prod.sh stop
-```
-
-### **Windows (PowerShell):**
-```powershell
-# Iniciar
-.\deploy-local-prod.ps1 start
-
-# Después de cambios en frontend
-.\deploy-local-prod.ps1 rebuild
+# Después de cambios en frontend (forzar rebuild)
+./deploy.sh local-prod --rebuild
 
 # Detener
-.\deploy-local-prod.ps1 stop
+./deploy.sh local-prod down
 ```
 
 ---
@@ -62,7 +49,7 @@ Una vez iniciado, accede a:
 
 ## 📋 Diferencias con `./deploy.sh local`
 
-| Característica | `deploy.sh local` | `deploy-local-prod.sh` |
+| Característica | `deploy.sh local` | `deploy.sh local-prod` |
 |----------------|-------------------|------------------------|
 | **Frontend** | Vite dev server | Nginx + archivos estáticos |
 | **Hot Reload** | ✅ Sí | ❌ No (necesita rebuild) |
@@ -78,44 +65,44 @@ Una vez iniciado, accede a:
 
 ## 🔧 Comandos Disponibles
 
-### **start** (default)
+### **Iniciar** (default)
 Construye el frontend con Dockerfile.prod e inicia todos los servicios.
 
 ```bash
-./deploy-local-prod.sh start
+./deploy.sh local-prod
 ```
 
-### **stop**
+### **Detener**
 Detiene todos los contenedores.
 
 ```bash
-./deploy-local-prod.sh stop
+./deploy.sh local-prod down
 ```
 
-### **rebuild**
+### **Rebuild**
 Reconstruye el frontend después de cambios en código (sin cache).
 
 ```bash
 # Ejemplo: Cambias un componente React
-./deploy-local-prod.sh rebuild
+./deploy.sh local-prod --rebuild
 # Espera ~2-3 minutos para rebuild
 # Accede a http://localhost:8080 para ver cambios
 ```
 
-### **logs**
+### **Ver logs**
 Muestra logs de todos los servicios en tiempo real.
 
 ```bash
-./deploy-local-prod.sh logs
+./deploy.sh local-prod logs
 
 # Ctrl+C para salir
 ```
 
-### **clean**
-Elimina contenedores y volúmenes (limpieza completa).
+### **Ver estado**
+Muestra contenedores en ejecución.
 
 ```bash
-./deploy-local-prod.sh clean
+./deploy.sh local-prod ps
 ```
 
 ---
@@ -189,11 +176,11 @@ docker network inspect contravento-network
 ### **Cambios en frontend no aparecen**
 ```bash
 # Rebuild sin cache
-./deploy-local-prod.sh rebuild
+./deploy.sh local-prod --rebuild
 
-# Si persiste, limpia todo
-./deploy-local-prod.sh clean
-./deploy-local-prod.sh start
+# Si persiste, detén y reinicia
+./deploy.sh local-prod down
+./deploy.sh local-prod
 ```
 
 ---
@@ -201,18 +188,17 @@ docker network inspect contravento-network
 ## 📦 Archivos Involucrados
 
 - **docker-compose.local-prod.yml**: Configuración de servicios
-- **deploy-local-prod.sh**: Script de deploy (Linux/Mac)
-- **deploy-local-prod.ps1**: Script de deploy (Windows)
+- **deploy.sh**: Script unificado de deploy (usa entorno `local-prod`)
 - **frontend/Dockerfile.prod**: Dockerfile de producción (2 stages)
 - **frontend/nginx.conf**: Configuración de Nginx
-- **.env.local**: Variables de entorno
+- **.env.local**: Variables de entorno (compartido con `local`)
 
 ---
 
 ## 🎓 Flujo Interno
 
 ```
-1. ./deploy-local-prod.sh start
+1. ./deploy.sh local-prod
    ↓
 2. docker-compose build frontend
    ├─ Stage 1: Builder (node:18-alpine)
@@ -257,7 +243,8 @@ docker network inspect contravento-network
 ## 💡 Tips
 
 1. **Desarrollo diario**: Usa `./deploy.sh local --with-frontend` (hot reload)
-2. **Testing producción**: Usa `./deploy-local-prod.sh` (este entorno)
+2. **Testing producción**: Usa `./deploy.sh local-prod` (este entorno)
 3. **CI/CD**: Los pipelines usan Dockerfile.prod automáticamente
 4. **Performance**: El build de producción es ~10x más rápido que dev server
 5. **Debugging**: Si necesitas source maps, usa desarrollo (no producción)
+6. **Puerto configurable**: `export BACKEND_PORT=9000 && ./deploy.sh local-prod`

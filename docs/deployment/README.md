@@ -370,6 +370,7 @@ Cross-cutting guides for all deployment modes:
 - 🎨 **[Frontend Deployment](guides/frontend-deployment.md)** - React/Vite build and deployment
 - 🗄️ **[Database Management](guides/database-management.md)** - Migrations, seeds, backups
 - 🔧 **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
+- 🔧 **[Preproduction Parameterization](modes/preproduction-parameterization.md)** - Complete variable reference, CI/CD integration, multiple instances
 
 ### Production
 - ✅ **[Production Checklist](guides/production-checklist.md)** - Pre-deployment validation
