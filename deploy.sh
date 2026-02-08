@@ -8,6 +8,7 @@
 # Simplified deployment for all environments:
 #   ./deploy.sh local                   - Start local development
 #   ./deploy.sh local --with-frontend   - Start local + frontend
+#   ./deploy.sh local-prod              - Start local production build (test Nginx)
 #   ./deploy.sh local --rebuild         - Force rebuild (ignore cache)
 #   ./deploy.sh dev                     - Start development/integration
 #   ./deploy.sh staging                 - Start staging/pre-production
@@ -65,12 +66,12 @@ check_docker_compose() {
 validate_env() {
     local env=$1
     case $env in
-        local|local-minimal|dev|staging|prod)
+        local|local-minimal|local-prod|dev|staging|prod)
             return 0
             ;;
         *)
             print_error "Invalid environment: $env"
-            echo "Valid environments: local, local-minimal, dev, staging, prod"
+            echo "Valid environments: local, local-minimal, local-prod, dev, staging, prod"
             exit 1
             ;;
     esac
@@ -274,6 +275,21 @@ start_env() {
             fi
             print_info "For lighter setup → use: ./deploy.sh local-minimal"
             ;;
+        local-prod)
+            echo ""
+            print_info "Access your local production build:"
+            echo "  Frontend (Nginx): http://localhost:8080"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
+            echo "  MailHog UI:      http://localhost:8025"
+            echo "  pgAdmin:         http://localhost:5050"
+            echo "  PostgreSQL:      localhost:5432"
+            echo "  Redis:           localhost:6379"
+            echo ""
+            print_warning "Frontend uses production build (Nginx + static files)"
+            print_info "No hot reload - rebuild frontend with: ./deploy.sh local-prod --rebuild"
+            print_info "For development with hot reload → use: ./deploy.sh local --with-frontend"
+            ;;
         dev)
             echo ""
             print_info "Access your dev environment:"
@@ -348,6 +364,7 @@ main() {
         echo "Environments:"
         echo "  local-minimal  - Minimal local (PostgreSQL + Backend only) ⚡ FASTEST"
         echo "  local          - Full local (+ Redis, MailHog, pgAdmin)"
+        echo "  local-prod     - Local production build (Nginx + static frontend)"
         echo "  dev            - Development/Integration (production-like)"
         echo "  staging        - Staging/Pre-production (production mirror)"
         echo "  prod           - Production (maximum security)"
@@ -366,6 +383,8 @@ main() {
         echo "  $0 local-minimal --with-frontend   # Start minimal local + frontend"
         echo "  $0 local --rebuild                 # Force rebuild all images"
         echo "  $0 local                           # Start full local with all tools"
+        echo "  $0 local-prod                      # Test production build locally"
+        echo "  $0 local-prod --rebuild            # Rebuild production build"
         echo "  $0 local-minimal logs              # View logs"
         echo "  $0 prod down                       # Stop production"
         exit 1
