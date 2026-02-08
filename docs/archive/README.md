@@ -102,8 +102,10 @@ Session notes, phase plans, and temporary development documents.
 | `backend/scripts/analysis/*.md` (3 files) | [`performance-analysis/`](development-notes/performance-analysis/) | 3 files - Performance diagnostics |
 | `backend/docs/POSTGRESQL_QUICKSTART.md` | [`postgresql-quickstart.md`](development-notes/postgresql-quickstart.md) | PostgreSQL setup (content in database-issues.md) |
 | `GITHUB_ACTIONS_SETUP.md` | [`github-actions-setup-old.md`](development-notes/github-actions-setup-old.md) | Old version (newer in docs/testing/ci-cd/) |
+| `MARKDOWN_FILES_ANALYSIS.md` | [`phase8/MARKDOWN_FILES_ANALYSIS.md`](development-notes/phase8/MARKDOWN_FILES_ANALYSIS.md) | Phase 8 analysis report |
+| `PHASE8_COMPLETION_SUMMARY.md` | [`phase8/PHASE8_COMPLETION_SUMMARY.md`](development-notes/phase8/PHASE8_COMPLETION_SUMMARY.md) | Phase 8 completion summary |
 
-**Total Files Archived**: 27 development notes (11 from Phase 7 + 16 from Phase 8)
+**Total Files Archived**: 29 development notes (11 from Phase 7 + 18 from Phase 8)
 
 **See**: [development-notes/README.md](development-notes/README.md) for complete index
 
@@ -126,7 +128,14 @@ Historical test reports and QA results.
 | `specs/013-public-trips-feed/` | [`test-results/013-public-trips-feed/`](test-results/013-public-trips-feed/) | 2 files | Initial + Cleanup |
 | `specs/017-gps-trip-wizard/` | [`test-results/017-gps-trip-wizard/`](test-results/017-gps-trip-wizard/) | 1 file | Cleanup |
 
-**Total Files Archived**: 29 test result documents from 10 features (3 initial + 26 additional)
+**Archived on 2026-02-07 (Phase 8 - root cleanup)**:
+
+| Source | Destination | Reason |
+| ------ | ----------- | ------ |
+| `MANUAL_TESTING_GUIDE.md` | [`017-gps-trip-wizard/MANUAL_TESTING_GUIDE.md`](test-results/017-gps-trip-wizard/MANUAL_TESTING_GUIDE.md) | Wizard testing (content in docs/testing/manual-qa/) |
+| `TESTING_POI_MANUAL.md` | [`003-gps-routes/TESTING_POI_MANUAL.md`](test-results/003-gps-routes/TESTING_POI_MANUAL.md) | POI testing (content in docs/testing/manual-qa/) |
+
+**Total Files Archived**: 31 test result documents from 10 features (3 initial + 26 Phase 7 + 2 Phase 8)
 
 **Test Coverage**: GPS routes, social network, dashboard, profile management, travel diary frontend, reverse geocoding, public trips feed, GPX trip wizard
 
@@ -263,5 +272,5 @@ When archiving documentation:
 
 **Last Updated**: 2026-02-07
 **Archival Policy**: Preserve, don't delete
-**Total Files Archived**: 65 documents (3 deployment + 27 development notes + 29 test results + 1 superseded spec + 5 deployment guides)
+**Total Files Archived**: 69 documents (5 deployment + 29 development notes + 31 test results + 1 superseded spec + 3 root cleanup)
 **Consolidation Plan**: Phase 7-8 (Archive and Cleanup) - ✅ Complete
