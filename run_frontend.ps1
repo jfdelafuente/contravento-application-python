@@ -201,11 +201,20 @@ function Verify-Server {
         Write-Host ""
         Write-Host "HTTP check: " -NoNewline
         try {
-            $response = Invoke-WebRequest -Uri "http://localhost:$PORT" -Method Get -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop
+            # Use shorter timeout for faster response
+            $response = Invoke-WebRequest -Uri "http://localhost:$PORT" -Method Get -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop
             Write-Host "OK (HTTP $($response.StatusCode))" -ForegroundColor Green
         }
+        catch [System.Net.WebException] {
+            if ($_.Exception.Message -match "timed out") {
+                Write-Host "TIMEOUT (Vite is running but slow to respond)" -ForegroundColor Yellow
+            }
+            else {
+                Write-Host "NO RESPONSE (Vite dev server may be starting)" -ForegroundColor Yellow
+            }
+        }
         catch {
-            Write-Host "TIMEOUT (Vite dev server doesn't respond to simple GET)" -ForegroundColor Yellow
+            Write-Host "ERROR ($($_.Exception.Message))" -ForegroundColor Yellow
         }
 
         # Check config

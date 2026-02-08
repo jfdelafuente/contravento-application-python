@@ -190,11 +190,14 @@ verify_server() {
         echo ""
         echo -n "HTTP check: "
         if command -v curl &> /dev/null; then
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 http://localhost:$PORT 2>/dev/null)
+            # Use shorter timeout and connection timeout for faster response
+            http_code=$(timeout 2 curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 --max-time 2 http://localhost:$PORT 2>/dev/null || echo "timeout")
             if [ "$http_code" = "200" ]; then
                 echo -e "\033[32mOK (HTTP $http_code)\033[0m"
+            elif [ "$http_code" = "timeout" ]; then
+                echo -e "\033[33mTIMEOUT (Vite is running but slow to respond)\033[0m"
             else
-                echo -e "\033[33mTIMEOUT (Vite dev server doesn't respond to simple GET)\033[0m"
+                echo -e "\033[33mNO RESPONSE (Vite dev server may be starting)\033[0m"
             fi
         else
             echo -e "\033[33mSKIPPED (curl not found)\033[0m"
