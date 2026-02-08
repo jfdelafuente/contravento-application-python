@@ -8,6 +8,7 @@
 # Simplified deployment for all environments:
 #   ./deploy.sh local                   - Start local development
 #   ./deploy.sh local --with-frontend   - Start local + frontend
+#   ./deploy.sh local --rebuild         - Force rebuild (ignore cache)
 #   ./deploy.sh dev                     - Start development/integration
 #   ./deploy.sh staging                 - Start staging/pre-production
 #   ./deploy.sh prod                    - Start production
@@ -132,6 +133,7 @@ check_env_file() {
 start_env() {
     local env=$1
     local with_frontend=$2  # --with-frontend flag
+    local rebuild=$3        # --rebuild flag
     local compose_file="docker-compose.${env}.yml"
 
     print_header "Starting $env environment"
@@ -184,8 +186,13 @@ start_env() {
     docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" pull
 
     # Build services
-    print_info "Building services..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build
+    if [ "$rebuild" = "true" ]; then
+        print_info "Building services (--no-cache - forced rebuild)..."
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build --no-cache
+    else
+        print_info "Building services..."
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file ".env.${env}" build
+    fi
 
     # Start services (enable frontend if flag is set)
     print_info "Starting services..."
@@ -335,6 +342,7 @@ main() {
         echo "Commands:"
         echo "  (default)      - Start environment"
         echo "  --with-frontend - Start with frontend (local-minimal and local only)"
+        echo "  --rebuild      - Force rebuild images (ignore cache)"
         echo "  down           - Stop environment"
         echo "  logs           - View logs (follow mode)"
         echo "  ps             - Show running containers"
@@ -343,6 +351,7 @@ main() {
         echo "Examples:"
         echo "  $0 local-minimal                   # Start minimal local (backend only)"
         echo "  $0 local-minimal --with-frontend   # Start minimal local + frontend"
+        echo "  $0 local --rebuild                 # Force rebuild all images"
         echo "  $0 local                           # Start full local with all tools"
         echo "  $0 local-minimal logs              # View logs"
         echo "  $0 prod down                       # Stop production"
@@ -352,14 +361,18 @@ main() {
     # Parse arguments
     local env=$1
     local with_frontend=false
+    local rebuild=false
     local command="up"
 
-    # Check for --with-frontend flag in any position
+    # Check for flags in any position
     shift  # Remove first argument (env)
     for arg in "$@"; do
         case "$arg" in
             --with-frontend)
                 with_frontend=true
+                ;;
+            --rebuild)
+                rebuild=true
                 ;;
             up|start|down|stop|logs|ps|status|restart)
                 command="$arg"
@@ -371,7 +384,7 @@ main() {
 
     case $command in
         up|start)
-            start_env "$env" "$with_frontend"
+            start_env "$env" "$with_frontend" "$rebuild"
             ;;
         down|stop)
             stop_env "$env"
