@@ -21,15 +21,22 @@ const getApiBaseUrl = (): string => {
 };
 
 /**
- * Convert relative photo URL to absolute URL
+ * Convert relative photo URL to absolute URL or keep as relative based on environment
  *
  * Backend returns relative URLs like "/storage/trip_photos/..."
- * This converts them to absolute URLs like "http://localhost:8000/storage/trip_photos/..."
+ * This function handles them based on environment:
+ * - With proxy (production/Docker): Use relative paths (nginx proxies /storage/ to backend)
+ * - Without proxy (local dev): Convert to absolute URLs pointing to backend
  *
  * @param relativeUrl - Relative URL from backend (e.g., '/storage/trip_photos/...')
- * @returns Absolute URL pointing to backend, or placeholder image if null/undefined
+ * @returns URL for photo display, or placeholder image if null/undefined
  *
  * @example
+ * // With VITE_USE_PROXY=true (Docker/production):
+ * getPhotoUrl('/storage/trip_photos/2024/01/photo.jpg')
+ * // Returns: '/storage/trip_photos/2024/01/photo.jpg' (nginx proxies to backend)
+ *
+ * // With VITE_USE_PROXY=false (local dev):
  * getPhotoUrl('/storage/trip_photos/2024/01/photo.jpg')
  * // Returns: 'http://localhost:8000/storage/trip_photos/2024/01/photo.jpg'
  *
@@ -44,7 +51,13 @@ export const getPhotoUrl = (relativeUrl: string | null | undefined): string => {
     return relativeUrl;
   }
 
-  // Convert relative to absolute
+  // If using proxy (Docker/production), return relative path
+  // Nginx will proxy /storage/ requests to backend
+  if (import.meta.env.VITE_USE_PROXY === 'true') {
+    return relativeUrl; // Already starts with /storage/
+  }
+
+  // Local development without proxy: convert to absolute URL
   const baseUrl = getApiBaseUrl();
   return `${baseUrl}${relativeUrl}`;
 };
