@@ -214,21 +214,31 @@ start_env() {
 
     # Get backend port (priority: env var > .env file > default 8000)
     local backend_port=${BACKEND_PORT:-}
+    local port_source=""
 
-    # If not set via environment variable, read from .env file
-    if [ -z "$backend_port" ] && [ -f ".env.${env}" ]; then
+    if [ -n "$backend_port" ]; then
+        # Port set via environment variable
+        port_source="environment variable"
+    elif [ -f ".env.${env}" ]; then
+        # Try to read from .env file
         backend_port=$(grep "^BACKEND_PORT=" ".env.${env}" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "")
+        if [ -n "$backend_port" ]; then
+            port_source=".env.${env}"
+        fi
     fi
 
     # Fallback to 8000 if still not set
-    backend_port=${backend_port:-8000}
+    if [ -z "$backend_port" ]; then
+        backend_port=8000
+        port_source="default"
+    fi
 
     # Environment-specific messages
     case $env in
         local-minimal)
             echo ""
             print_info "Access your minimal local environment:"
-            echo "  Backend API:     http://localhost:${backend_port}"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
             echo "  API Docs:        http://localhost:${backend_port}/docs"
             if [ "$with_frontend" = "true" ]; then
                 echo "  Frontend:        http://localhost:5173"
@@ -246,7 +256,7 @@ start_env() {
         local)
             echo ""
             print_info "Access your full local environment:"
-            echo "  Backend API:     http://localhost:${backend_port}"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
             echo "  API Docs:        http://localhost:${backend_port}/docs"
             if [ "$with_frontend" = "true" ]; then
                 echo "  Frontend:        http://localhost:5173"
@@ -267,7 +277,7 @@ start_env() {
         dev)
             echo ""
             print_info "Access your dev environment:"
-            echo "  Backend API:     http://dev.contravento.local:${backend_port}"
+            echo "  Backend API:     http://dev.contravento.local:${backend_port} (port from: ${port_source})"
             echo "  API Docs:        http://dev.contravento.local:${backend_port}/docs"
             ;;
         staging)
