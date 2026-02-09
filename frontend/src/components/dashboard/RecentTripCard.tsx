@@ -22,7 +22,7 @@ const RecentTripCard: React.FC<RecentTripCardProps> = ({ trip }) => {
             <img
               src={getPhotoUrl(trip.thumbnail_url)}
               alt={trip.title}
-              className="recent-trip-card__image recent-trip-card__image--loaded"
+              className="recent-trip-card__image"
               loading="lazy"
             />
           ) : (

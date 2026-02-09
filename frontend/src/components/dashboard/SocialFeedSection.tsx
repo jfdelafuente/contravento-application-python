@@ -135,7 +135,6 @@ const SocialFeedSection: React.FC = () => {
         <h2 id="feed-heading" className="social-feed-section__title">
           Tu Pelotón
         </h2>
-        <p className="social-feed-section__subtitle">Actividad reciente de tu grupo</p>
       </div>
 
       {/* Initial loading state */}
