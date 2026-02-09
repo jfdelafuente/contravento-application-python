@@ -14,7 +14,7 @@ const SocialStatsSection: React.FC = () => {
   return (
     <section className="social-stats-section" aria-labelledby="social-stats-heading">
       <h2 id="social-stats-heading" className="social-stats-section__title">
-        Conexiones
+        Pelotón
       </h2>
 
       {loading && (

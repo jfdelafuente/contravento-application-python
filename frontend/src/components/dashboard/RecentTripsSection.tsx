@@ -7,11 +7,11 @@ import './RecentTripsSection.css';
 
 /**
  * RecentTripsSection component - Display user's recent published trips
- * Shows last 5 trips with photos, or empty state if none
+ * Shows last 4 trips in horizontal "route ribbon" format, or empty state if none
  */
 const RecentTripsSection: React.FC = () => {
   const { user } = useAuth();
-  const { trips, loading, error } = useRecentTrips(user?.username || '', 5);
+  const { trips, loading, error } = useRecentTrips(user?.username || '', 4);
 
   if (error) {
     return (
@@ -52,13 +52,16 @@ const RecentTripsSection: React.FC = () => {
         <div className="recent-trips-section__grid" aria-busy="true">
           {[1, 2, 3].map((i) => (
             <div key={i} className="recent-trips-section__skeleton-card">
-              <SkeletonLoader variant="rect" height="200px" />
-              <div style={{ padding: '1.25rem' }}>
-                <SkeletonLoader variant="text" width="80%" height="1.25rem" />
-                <SkeletonLoader variant="text" width="60%" height="0.875rem" />
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <SkeletonLoader variant="rect" width="60px" height="24px" />
-                  <SkeletonLoader variant="rect" width="70px" height="24px" />
+              {/* Left: Photo skeleton (40%) */}
+              <SkeletonLoader variant="rect" height="100%" />
+
+              {/* Right: Content skeleton (60%) */}
+              <div style={{ padding: 'var(--space-4) var(--space-5)', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'var(--space-2)' }}>
+                <SkeletonLoader variant="text" width="85%" height="18px" />
+                <SkeletonLoader variant="text" width="65%" height="18px" />
+                <div style={{ display: 'flex', gap: 'var(--space-4)', marginTop: 'var(--space-2)' }}>
+                  <SkeletonLoader variant="rect" width="80px" height="20px" />
+                  <SkeletonLoader variant="rect" width="70px" height="20px" />
                 </div>
               </div>
             </div>
