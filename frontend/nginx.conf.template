@@ -32,7 +32,8 @@ server {
     }
 
     # Proxy static file requests (photos, GPX) to backend
-    location /storage/ {
+    # IMPORTANT: Use ^~ to give this priority over regex locations (like ~* \.(jpg|png)$)
+    location ^~ /storage/ {
         # Allow larger file uploads (trip photos can be 10MB)
         client_max_body_size 10M;
 
