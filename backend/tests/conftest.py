@@ -2,22 +2,50 @@
 Pytest configuration and fixtures.
 
 Provides test fixtures for database, async client, authentication, and test data.
+
+IMPORTANT: This module loads .env.test BEFORE any src.* imports to ensure
+Settings() has environment variables available at instantiation time.
 """
 
-import asyncio
 import os
-from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
+
+# ========================================================================
+# CRITICAL: Load test environment FIRST, before any src.* imports!
+# ========================================================================
+# This prevents "Field required" validation errors when Settings() is
+# instantiated during module imports (src.main.app, src.database, etc.)
+# ========================================================================
+
+from dotenv import load_dotenv
+
+# Get path to .env.test (backend/.env.test)
+_env_file = Path(__file__).parent.parent / ".env.test"
+
+if _env_file.exists():
+    load_dotenv(_env_file, override=True)
+    os.environ["APP_ENV"] = "testing"
+else:
+    # Fallback: set minimal test environment variables
+    os.environ.setdefault("APP_ENV", "testing")
+    os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+    os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
+    os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
+# ========================================================================
+# Now safe to import src.* modules (Settings() will have environment vars)
+# ========================================================================
+
+import asyncio
+from collections.abc import AsyncGenerator, Generator
 from typing import TYPE_CHECKING
 
 import pytest
-from dotenv import load_dotenv
 from faker import Faker
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from src.database import Base
 from src.main import app
 
 if TYPE_CHECKING:
@@ -30,33 +58,15 @@ pytest_plugins = ("pytest_asyncio", "tests.fixtures.feature_013_fixtures")
 @pytest.fixture(scope="session", autouse=True)
 def load_test_env():
     """
-    Load test environment variables from .env.test.
+    Verify test environment is configured correctly.
 
-    This runs once per test session before any tests execute.
-    Sets APP_ENV=testing to ensure test configuration is used.
+    Environment variables are now loaded at module level (before any src.* imports)
+    to prevent Settings() validation errors. This fixture just validates the setup.
     """
-    # Get path to .env.test (backend/.env.test)
-    env_file = Path(__file__).parent.parent / ".env.test"
-
-    if env_file.exists():
-        load_dotenv(env_file, override=True)
-        # Ensure APP_ENV is set to testing
-        os.environ["APP_ENV"] = "testing"
-    else:
-        # Fallback: set minimal test environment variables
-        os.environ.setdefault("APP_ENV", "testing")
-        os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
-        os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
-        os.environ.setdefault("BCRYPT_ROUNDS", "4")
-
-    # IMPORTANT: Reload settings after loading test environment
-    # The settings object is instantiated at module import time, so we need to reload it
-    # We must reload the entire module to ensure all imports get the new settings
-    import importlib
-
-    import src.config
-
-    importlib.reload(src.config)
+    # Verify critical environment variables are set
+    assert os.environ.get("APP_ENV") == "testing", "APP_ENV must be 'testing'"
+    assert os.environ.get("SECRET_KEY"), "SECRET_KEY must be set"
+    assert os.environ.get("DATABASE_URL"), "DATABASE_URL must be set"
 
 
 @pytest.fixture(scope="session")
@@ -80,6 +90,9 @@ async def db_engine():
     Returns:
         Async engine for testing
     """
+    # Import Base here (after load_test_env has run)
+    from src.database import Base
+
     engine = create_async_engine(
         "sqlite+aiosqlite:///:memory:",
         connect_args={"check_same_thread": False},
