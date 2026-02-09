@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useTripLikes } from '../../hooks/useTripLikes';
+import { getPhotoUrl } from '../../utils/tripHelpers';
 import './LikesListModal.css';
 
 // Inline SVG icons (to avoid adding lucide-react dependency)
@@ -142,15 +143,6 @@ export const LikesListModal: React.FC<LikesListModalProps> = ({
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  // Get profile photo URL or default placeholder
-  const getPhotoUrl = (photoUrl: string | null): string => {
-    if (!photoUrl) return '/images/placeholders/user-avatar.png';
-    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-      return photoUrl;
-    }
-    return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${photoUrl}`;
-  };
 
   // Format timestamp to relative time (e.g., "hace 2 horas")
   const formatRelativeTime = (isoString: string): string => {

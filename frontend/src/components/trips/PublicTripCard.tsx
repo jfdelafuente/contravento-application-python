@@ -11,6 +11,7 @@ import { PublicTripSummary } from '../../types/trip';
 import { LikeButton } from '../likes/LikeButton';
 import { FollowButton } from '../social/FollowButton';
 import { LikesListModal } from '../likes/LikesListModal';
+import { getPhotoUrl } from '../../utils/tripHelpers';
 import './PublicTripCard.css';
 
 interface PublicTripCardProps {
@@ -31,24 +32,6 @@ const formatDate = (dateString: string): string => {
     month: 'long',
     day: 'numeric',
   });
-};
-
-/**
- * Get photo URL with fallback
- *
- * @param url - Photo URL (can be null)
- * @returns Photo URL or placeholder
- */
-const getPhotoUrl = (url: string | null | undefined): string => {
-  if (!url) return '/images/placeholders/trip-placeholder.jpg';
-
-  // Already absolute URL (from backend)
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-
-  // Relative path (development only)
-  return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${url}`;
 };
 
 /**
