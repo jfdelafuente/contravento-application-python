@@ -10,8 +10,8 @@
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Completed | 11 features | 65% |
-| 🚧 In Progress | 3 features | 18% |
+| ✅ Completed | 12 features | 71% |
+| 🚧 In Progress | 2 features | 12% |
 | 📋 Planned | 2 features | 12% |
 | ❌ Discarded | 2 features | - |
 
@@ -81,6 +81,21 @@
   - **Status**: ✅ Merged to `develop`
   - **Tech**: Nominatim API, lodash.debounce, LRU cache
 
+- **[017] GPS Trip Creation Wizard** (`017-gps-trip-wizard`)
+  - 4-step wizard (Mode Selection, GPX Upload, Trip Details, Review)
+  - Smart title extraction from GPX files
+  - Drag-and-drop file upload
+  - Automatic telemetry extraction (distance, elevation, duration)
+  - Route statistics display with MetricGroup/MetricCard
+  - Map preview in Step 1
+  - Atomic trip creation with RouteStatistics
+  - POI management (unlimited photos per POI)
+  - Trip filters & sorting (date, distance, popularity)
+  - E2E test coverage (26 tests)
+  - **Status**: ✅ Merged to `develop` (PR #51, #50)
+  - **Progress**: 98/105 tasks (93%) - MVP++ Complete
+  - **Tech**: React 18, React Hook Form 7.70, react-leaflet 4.2.1, FastAPI, SQLAlchemy 2.0
+
 ---
 
 ### Frontend Infrastructure
@@ -122,28 +137,6 @@
 ---
 
 ## 🚧 In Progress
-
-### High Priority
-
-- **[017] GPS Trip Creation Wizard** (`017-gps-trip-wizard`)
-  - **Branch**: `017-gps-trip-wizard` (60 commits ahead of develop)
-  - **Progress**: 98/105 tasks (93% complete)
-  - **Features**:
-    - 4-step wizard (Mode Selection, GPX Upload, Trip Details, Review)
-    - Smart title extraction from GPX
-    - Drag-and-drop file upload
-    - Route statistics display
-    - Atomic trip creation with RouteStatistics
-    - POI management (unlimited photos)
-    - Trip filters & sorting
-  - **Next Steps**:
-    - Create PR to `develop`
-    - Optional polish (7 tasks)
-  - **Tech**: React 18, React Hook Form 7.70, react-leaflet 4.2.1, FastAPI
-
----
-
-### Medium Priority
 
 - **[013] Public Trips Feed** (`013-public-trips-feed`)
   - **Branch**: `remotes/origin/013-public-trips-feed`
@@ -214,10 +207,10 @@
 ## 🎯 Next Milestones
 
 ### Q1 2026 (Current)
-- ✅ Complete 017-gps-trip-wizard
-- ⏳ Merge 017 to `develop`
-- ⏳ Complete 013-public-trips-feed
-- ⏳ Complete 014-landing-page-inspiradora
+
+- ✅ Complete 017-gps-trip-wizard (DONE - merged)
+- 🚧 Complete 013-public-trips-feed (In Progress)
+- 🚧 Complete 014-landing-page-inspiradora (In Progress)
 
 ### Q2 2026
 - Start 004-social-network
