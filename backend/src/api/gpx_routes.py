@@ -73,6 +73,19 @@ async def process_gpx_background(
     """
     from src.database import get_db
 
+    # LOG METRIC: Background Processing Start
+    processing_start_time = datetime.now(UTC)
+    file_size_mb = len(file_content) / (1024 * 1024)
+    logger.info(
+        "GPX_BACKGROUND_START",
+        extra={
+            "metric_type": "gpx_background_start",
+            "gpx_file_id": gpx_file_id,
+            "trip_id": trip_id,
+            "file_size_mb": round(file_size_mb, 2),
+        },
+    )
+
     # Get database session using the application's session factory
     async for db in get_db():
         try:
@@ -241,8 +254,42 @@ async def process_gpx_background(
                         exc_info=True,
                     )
 
+            # LOG METRIC: Background Processing Complete
+            processing_time_seconds = (datetime.now(UTC) - processing_start_time).total_seconds()
+            logger.info(
+                "GPX_PROCESSING_COMPLETE",
+                extra={
+                    "metric_type": "gpx_processing_complete",
+                    "trip_id": trip_id,
+                    "gpx_file_id": gpx_file_id,
+                    "processing_mode": "async",
+                    "processing_time_seconds": round(processing_time_seconds, 2),
+                    "file_size_mb": round(file_size_mb, 2),
+                    "total_points": gpx_file.total_points,
+                    "simplified_points": gpx_file.simplified_points,
+                    "distance_km": round(gpx_file.distance_km, 2),
+                    "has_elevation": gpx_file.has_elevation,
+                    "status": "success",
+                },
+            )
+
         except ValueError as e:
             # GPX parsing error - mark as failed
+            # LOG METRIC: Background Processing Error
+            processing_time_seconds = (datetime.now(UTC) - processing_start_time).total_seconds()
+            logger.error(
+                "GPX_PROCESSING_ERROR",
+                extra={
+                    "metric_type": "gpx_processing_error",
+                    "trip_id": trip_id,
+                    "gpx_file_id": gpx_file_id,
+                    "processing_mode": "async",
+                    "file_size_mb": round(file_size_mb, 2),
+                    "processing_time_seconds": round(processing_time_seconds, 2),
+                    "error_type": "INVALID_GPX_FORMAT",
+                    "error_message": str(e),
+                },
+            )
             logger.error(f"GPX parsing error in background task for {gpx_file_id}: {e}")
             if gpx_file:
                 gpx_file.processing_status = "failed"
@@ -251,6 +298,21 @@ async def process_gpx_background(
 
         except Exception as e:
             # Unexpected error - mark as failed
+            # LOG METRIC: Background Processing Error
+            processing_time_seconds = (datetime.now(UTC) - processing_start_time).total_seconds()
+            logger.error(
+                "GPX_PROCESSING_ERROR",
+                extra={
+                    "metric_type": "gpx_processing_error",
+                    "trip_id": trip_id,
+                    "gpx_file_id": gpx_file_id,
+                    "processing_mode": "async",
+                    "file_size_mb": round(file_size_mb, 2),
+                    "processing_time_seconds": round(processing_time_seconds, 2),
+                    "error_type": "INTERNAL_ERROR",
+                    "error_message": str(e),
+                },
+            )
             logger.error(
                 f"Unexpected error in background GPX processing for {gpx_file_id}: {e}",
                 exc_info=True,
@@ -403,9 +465,35 @@ async def upload_gpx_file(
         # Determine processing mode based on file size
         ASYNC_THRESHOLD_MB = 1
         async_threshold_bytes = ASYNC_THRESHOLD_MB * 1024 * 1024
+        file_size_mb = file_size / (1024 * 1024)
+
+        # LOG METRIC: GPX Upload Start (for Celery evaluation in Q2 2026)
+        logger.info(
+            "GPX_UPLOAD_START",
+            extra={
+                "metric_type": "gpx_upload",
+                "trip_id": trip_id,
+                "user_id": str(current_user.id),
+                "file_size_mb": round(file_size_mb, 2),
+                "file_name": file.filename,
+                "threshold_mb": ASYNC_THRESHOLD_MB,
+            },
+        )
 
         if file_size <= async_threshold_bytes:
             # Synchronous processing (<1MB files) - SC-002
+            # LOG METRIC: Processing Mode Decision
+            logger.info(
+                "GPX_PROCESSING_MODE",
+                extra={
+                    "metric_type": "gpx_processing_mode",
+                    "trip_id": trip_id,
+                    "processing_mode": "sync",
+                    "file_size_mb": round(file_size_mb, 2),
+                    "reason": f"file_size <= {ASYNC_THRESHOLD_MB}MB threshold",
+                },
+            )
+            processing_start_time = datetime.now(UTC)
             try:
                 # Parse GPX file (T023)
                 parsed_data = await gpx_service.parse_gpx_file(file_content)
@@ -780,10 +868,47 @@ async def upload_gpx_file(
                         processed_at=gpx_file.processed_at,
                     )
 
+                    # LOG METRIC: Synchronous Processing Complete
+                    processing_time_seconds = (
+                        datetime.now(UTC) - processing_start_time
+                    ).total_seconds()
+                    logger.info(
+                        "GPX_PROCESSING_COMPLETE",
+                        extra={
+                            "metric_type": "gpx_processing_complete",
+                            "trip_id": trip_id,
+                            "gpx_file_id": str(gpx_file.gpx_file_id),
+                            "processing_mode": "sync",
+                            "processing_time_seconds": round(processing_time_seconds, 2),
+                            "file_size_mb": round(file_size_mb, 2),
+                            "total_points": gpx_file.total_points,
+                            "simplified_points": gpx_file.simplified_points,
+                            "distance_km": round(gpx_file.distance_km, 2),
+                            "has_elevation": gpx_file.has_elevation,
+                            "status": "success",
+                        },
+                    )
+
                     return GPXUploadSuccessResponse(success=True, data=response_data)
 
                 except ValueError as e:
                     # GPX parsing error
+                    # LOG METRIC: Processing Error
+                    processing_time_seconds = (
+                        datetime.now(UTC) - processing_start_time
+                    ).total_seconds()
+                    logger.error(
+                        "GPX_PROCESSING_ERROR",
+                        extra={
+                            "metric_type": "gpx_processing_error",
+                            "trip_id": trip_id,
+                            "processing_mode": "sync",
+                            "file_size_mb": round(file_size_mb, 2),
+                            "processing_time_seconds": round(processing_time_seconds, 2),
+                            "error_type": "INVALID_GPX_FORMAT",
+                            "error_message": str(e),
+                        },
+                    )
                     logger.warning(f"GPX parsing error for trip {trip_id}: {e}")
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
@@ -799,6 +924,17 @@ async def upload_gpx_file(
 
             else:
                 # PRODUCTION MODE: Process asynchronously with BackgroundTasks
+                # LOG METRIC: Processing Mode Decision
+                logger.info(
+                    "GPX_PROCESSING_MODE",
+                    extra={
+                        "metric_type": "gpx_processing_mode",
+                        "trip_id": trip_id,
+                        "processing_mode": "async",
+                        "file_size_mb": round(file_size_mb, 2),
+                        "reason": f"file_size > {ASYNC_THRESHOLD_MB}MB threshold",
+                    },
+                )
                 # Create GPX file record with "processing" status
                 gpx_file = GPXFile(
                     trip_id=trip_id,
