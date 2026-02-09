@@ -11,6 +11,7 @@ import { FeedItem as FeedItemType } from '../../services/feedService';
 import { LikeButton } from '../likes/LikeButton';
 import { FollowButton } from '../social/FollowButton';
 import { LikesListModal } from '../likes/LikesListModal';
+import { getPhotoUrl } from '../../utils/tripHelpers';
 import './FeedItem.css';
 
 interface FeedItemProps {
@@ -49,24 +50,6 @@ const formatDateRange = (startDate: string, endDate: string | null): string => {
   }
 
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-};
-
-/**
- * Get photo URL with fallback
- *
- * @param url - Photo URL (can be null)
- * @returns Photo URL or placeholder
- */
-const getPhotoUrl = (url: string | null | undefined): string => {
-  if (!url) return '/images/placeholders/trip-placeholder.jpg';
-
-  // Already absolute URL (from backend)
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-
-  // Relative path (development only)
-  return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${url}`;
 };
 
 /**
