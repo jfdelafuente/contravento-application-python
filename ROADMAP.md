@@ -10,8 +10,8 @@
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Completed | 12 features | 71% |
-| 🚧 In Progress | 2 features | 12% |
+| ✅ Completed | 14 features | 82% |
+| 🚧 In Progress | 0 features | 0% |
 | 📋 Planned | 2 features | 12% |
 | ❌ Discarded | 2 features | - |
 
@@ -136,29 +136,34 @@
 
 ---
 
-## 🚧 In Progress
+### Public Features & Marketing
 
 - **[013] Public Trips Feed** (`013-public-trips-feed`)
-  - **Branch**: `remotes/origin/013-public-trips-feed`
-  - **Progress**: Unknown
-  - **Planned Features**:
-    - Browse published trips from all users
-    - Filter by tag, distance, difficulty
-    - Trip detail view for non-owners
-    - Social engagement (likes, comments)
-  - **Status**: Feature branch exists remotely
-  - **Tech**: React 18, FastAPI
+  - Browse published trips from all users
+  - Auth-aware header (login/logout)
+  - Privacy filtering (public profiles only)
+  - Trip detail view for non-owners
+  - Pagination (20 trips per page)
+  - **Status**: ✅ Merged to `develop`
+  - **Progress**: 42/42 tasks (100%)
+  - **Tech**: React 18, FastAPI, PublicUserSummary schemas
 
 - **[014] Landing Page Inspiradora** (`014-landing-page-inspiradora`)
-  - **Branch**: `014-landing-page-inspiradora` (local)
-  - **Progress**: Unknown
-  - **Planned Features**:
-    - Marketing landing page
-    - Hero section with CTA
-    - Feature highlights
-    - User testimonials
-  - **Status**: Feature branch exists locally
-  - **Tech**: React 18, CSS animations
+  - Cinematic hero section with manifesto
+  - Value pillars (Territorio, Comunidad, Ética)
+  - How it works (4-step flow)
+  - CTA registration flow
+  - Footer with social/legal links
+  - SEO optimization with react-helmet-async
+  - **Status**: ✅ Merged to `develop`
+  - **Progress**: 44/71 tasks (62% - MVP complete)
+  - **Tech**: React 18, Heroicons, Playfair Display font
+
+---
+
+## 🚧 In Progress
+
+No features currently in progress.
 
 ---
 
@@ -206,11 +211,11 @@
 
 ## 🎯 Next Milestones
 
-### Q1 2026 (Current)
+### Q1 2026 (Completed)
 
 - ✅ Complete 017-gps-trip-wizard (DONE - merged)
-- 🚧 Complete 013-public-trips-feed (In Progress)
-- 🚧 Complete 014-landing-page-inspiradora (In Progress)
+- ✅ Complete 013-public-trips-feed (DONE - merged)
+- ✅ Complete 014-landing-page-inspiradora (DONE - merged)
 
 ### Q2 2026
 - Start 004-social-network
