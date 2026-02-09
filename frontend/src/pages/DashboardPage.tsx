@@ -5,6 +5,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
+import { useMonthStats } from '../hooks/useMonthStats';
 import StatsSection from '../components/dashboard/StatsSection';
 import RecentTripsSection from '../components/dashboard/RecentTripsSection';
 import QuickActionsSection from '../components/dashboard/QuickActionsSection';
@@ -22,6 +23,7 @@ import './DashboardPage.css';
  */
 export const DashboardPage: React.FC = () => {
   const { user, isLoading } = useAuth();
+  const { monthStats, loading: statsLoading } = useMonthStats(user?.username || '');
 
   if (isLoading) {
     return (
@@ -34,6 +36,14 @@ export const DashboardPage: React.FC = () => {
   if (!user) {
     return null; // ProtectedRoute will handle redirect
   }
+
+  // Format elevation gain for display
+  const formatElevation = (meters: number): string => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)}k m`;
+    }
+    return `${meters} m`;
+  };
 
   return (
     <div className="dashboard-page dashboard-page--route-map">
@@ -149,15 +159,21 @@ export const DashboardPage: React.FC = () => {
               <div className="route-preview__stats">
                 <div className="route-preview__stat">
                   <span className="route-preview__stat-label">Este mes</span>
-                  <span className="route-preview__stat-value">12 rutas</span>
+                  <span className="route-preview__stat-value">
+                    {statsLoading ? '...' : `${monthStats?.tripCount || 0} ${monthStats?.tripCount === 1 ? 'ruta' : 'rutas'}`}
+                  </span>
                 </div>
                 <div className="route-preview__stat">
                   <span className="route-preview__stat-label">Distancia</span>
-                  <span className="route-preview__stat-value">324 km</span>
+                  <span className="route-preview__stat-value">
+                    {statsLoading ? '...' : `${monthStats?.totalDistance || 0} km`}
+                  </span>
                 </div>
                 <div className="route-preview__stat">
                   <span className="route-preview__stat-label">Desnivel</span>
-                  <span className="route-preview__stat-value">4.2k m</span>
+                  <span className="route-preview__stat-value">
+                    {statsLoading ? '...' : formatElevation(monthStats?.totalElevationGain || 0)}
+                  </span>
                 </div>
               </div>
             </div>
