@@ -1,4 +1,6 @@
 // src/pages/DashboardPage.tsx
+// Dashboard "Mapa de Ruta" - ContraVento
+// Diseño: Dashboard como mapa topográfico personal del ciclista
 
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,12 +13,12 @@ import SocialStatsSection from '../components/dashboard/SocialStatsSection';
 import './DashboardPage.css';
 
 /**
- * Protected dashboard page - only accessible to authenticated and verified users
+ * Protected dashboard page - Mapa de Ruta design
  *
- * Features:
- * - Displays user information via UserMenu
- * - Shows logout button with loading state
- * - Placeholder for future dashboard content (trips, stats, etc.)
+ * Design Intent: Dashboard como mapa topográfico de tu actividad ciclista.
+ * Color Palette: Asfalto + Verde musgo + Ámbar (terroso, orgánico)
+ * Layout: Asimétrico 70/30 - Columna principal con hero + actividad, sidebar con quick actions
+ * Signature: Mini perfiles de elevación como indicadores de progreso
  */
 export const DashboardPage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -24,7 +26,7 @@ export const DashboardPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="dashboard-page">
-        <div className="loading-spinner">Cargando...</div>
+        <div className="loading-spinner">Cargando tu ruta...</div>
       </div>
     );
   }
@@ -34,10 +36,12 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-header">
-        <div className="header-content">
-          <h1 className="dashboard-header__logo">
+    <div className="dashboard-page dashboard-page--route-map">
+      {/* Navigation Header - Integrado como parte del mapa */}
+      <header className="dashboard-header dashboard-header--route-map">
+        <div className="dashboard-header__content">
+          <div className="dashboard-header__brand">
+            {/* Logo con estética de señalización de ruta */}
             <svg
               className="dashboard-header__logo-icon"
               viewBox="0 0 24 24"
@@ -46,71 +50,201 @@ export const DashboardPage: React.FC = () => {
               aria-hidden="true"
             >
               <path
-                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10H10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 12 11 11.75 11 15H13C13 12.75 16 12.5 16 10C16 7.79 14.21 6 12 6Z"
-                fill="currentColor"
+                d="M12 2L2 7V17L12 22L22 17V7L12 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <path
+                d="M12 22V12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M2 7L12 12L22 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
-            <span>ContraVento</span>
-          </h1>
+            <div className="dashboard-header__brand-text">
+              <span className="dashboard-header__brand-name">ContraVento</span>
+              <span className="dashboard-header__brand-tagline">Tu mapa de rutas</span>
+            </div>
+          </div>
           <UserMenu />
         </div>
       </header>
 
-      <main className="dashboard-main">
-        <div className="dashboard-content">
-          <div className="welcome-card">
-            <div className="welcome-card__content">
-              <h2>Bienvenido a tu Dashboard</h2>
-              <p>
-                Has iniciado sesión correctamente como <strong>{user.email}</strong>
-              </p>
+      {/* Main Layout - Asimétrico 70/30 */}
+      <div className="dashboard-layout">
+        {/* Columna Principal - Hero + Contenido */}
+        <main className="dashboard-main">
+          {/* Hero Section - "Tu Ruta del Mes" */}
+          <section className="dashboard-hero">
+            <div className="dashboard-hero__header">
+              <div>
+                <h1 className="dashboard-hero__greeting">
+                  Hola, {user.username}
+                </h1>
+                <p className="dashboard-hero__subtitle">
+                  Bienvenido a tu bitácora de rutas
+                </p>
+              </div>
+              {user.is_verified && (
+                <div className="dashboard-hero__badge">
+                  <svg
+                    className="dashboard-hero__badge-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
+                  <span className="dashboard-hero__badge-text">Verificado</span>
+                </div>
+              )}
             </div>
-            {user.is_verified && (
-              <p className="verified-badge">
+
+            {/* Placeholder para visualización de ruta del mes */}
+            <div className="route-preview">
+              <div className="route-preview__map">
+                {/* Aquí iría un mapa de calor o polyline de rutas */}
                 <svg
-                  className="icon"
+                  viewBox="0 0 400 120"
+                  className="route-preview__elevation"
+                  preserveAspectRatio="none"
+                >
+                  {/* Mini perfil de elevación decorativo */}
+                  <path
+                    d="M0,100 L50,90 L100,70 L150,85 L200,60 L250,75 L300,50 L350,65 L400,55"
+                    stroke="var(--accent-amber)"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity="0.6"
+                  />
+                  <path
+                    d="M0,100 L50,90 L100,70 L150,85 L200,60 L250,75 L300,50 L350,65 L400,55 L400,120 L0,120 Z"
+                    fill="url(#elevationGradient)"
+                    opacity="0.2"
+                  />
+                  <defs>
+                    <linearGradient id="elevationGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="var(--accent-amber)" stopOpacity="0.6" />
+                      <stop offset="100%" stopColor="var(--accent-amber)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div className="route-preview__stats">
+                <div className="route-preview__stat">
+                  <span className="route-preview__stat-label">Este mes</span>
+                  <span className="route-preview__stat-value">12 rutas</span>
+                </div>
+                <div className="route-preview__stat">
+                  <span className="route-preview__stat-label">Distancia</span>
+                  <span className="route-preview__stat-value">324 km</span>
+                </div>
+                <div className="route-preview__stat">
+                  <span className="route-preview__stat-label">Desnivel</span>
+                  <span className="route-preview__stat-value">4.2k m</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Stats Section - Hitos del viaje */}
+          <StatsSection />
+
+          {/* Achievements Section */}
+          <AchievementsSection />
+
+          {/* Social Stats Section */}
+          <SocialStatsSection />
+
+          {/* Recent Trips Section */}
+          <RecentTripsSection />
+
+          {/* Próximamente */}
+          <section className="dashboard-upcoming">
+            <h3 className="dashboard-upcoming__title">En el camino</h3>
+            <div className="dashboard-upcoming__grid">
+              <div className="dashboard-upcoming__card">
+                <svg
+                  className="dashboard-upcoming__icon"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                Email verificado
-              </p>
-            )}
-          </div>
+                <h4 className="dashboard-upcoming__card-title">Feed Social</h4>
+                <p className="dashboard-upcoming__card-desc">
+                  Actividad de tu pelotón
+                </p>
+              </div>
+              <div className="dashboard-upcoming__card">
+                <svg
+                  className="dashboard-upcoming__icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <h4 className="dashboard-upcoming__card-title">Galería Avanzada</h4>
+                <p className="dashboard-upcoming__card-desc">
+                  Tus fotos de ruta
+                </p>
+              </div>
+              <div className="dashboard-upcoming__card">
+                <svg
+                  className="dashboard-upcoming__icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+                <h4 className="dashboard-upcoming__card-title">Comparación</h4>
+                <p className="dashboard-upcoming__card-desc">
+                  Analiza tu progreso
+                </p>
+              </div>
+            </div>
+          </section>
+        </main>
 
-          {/* Stats Section - FR-001 */}
-          <StatsSection />
-
-          {/* Achievements Section - FR-003 */}
-          <AchievementsSection />
-
-          {/* Social Stats Section - FR-003 */}
-          <SocialStatsSection />
-
-          {/* Recent Trips Section - FR-002 */}
-          <RecentTripsSection />
-
-          {/* Quick Actions Section - FR-004 */}
+        {/* Sidebar - Quick Actions (30%) */}
+        <aside className="dashboard-sidebar">
           <QuickActionsSection />
-
-          <div className="placeholder-content">
-            <h3>Próximamente</h3>
-            <ul>
-              <li>Feed de actividad social</li>
-              <li>Galería de fotos avanzada</li>
-              <li>Comparación de estadísticas</li>
-            </ul>
-          </div>
-        </div>
-      </main>
+        </aside>
+      </div>
     </div>
   );
 };
