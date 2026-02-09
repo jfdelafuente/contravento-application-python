@@ -133,16 +133,6 @@ npm run dev
 
 # Access: http://localhost:5173
 # Backend must be running separately at http://localhost:8000
-
-# Quick restart (kills all Node.js processes and starts fresh)
-# Windows CMD:
-restart-frontend.bat
-
-# Windows PowerShell:
-.\restart-frontend.ps1
-
-# Linux/Mac:
-./restart-frontend.sh
 ```
 
 **Docker Full (with Backend + Database):**
