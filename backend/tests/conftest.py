@@ -16,7 +16,6 @@ from pathlib import Path
 # This prevents "Field required" validation errors when Settings() is
 # instantiated during module imports (src.main.app, src.database, etc.)
 # ========================================================================
-
 from dotenv import load_dotenv
 
 # Get path to .env.test (backend/.env.test)
