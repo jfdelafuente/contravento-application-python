@@ -12,8 +12,8 @@
 |--------|-------|------------|
 | ✅ Completed | 11 features | 65% |
 | 🚧 In Progress | 3 features | 18% |
-| 📋 Planned | 3 features | 18% |
-| ❌ Discarded | 1 feature | - |
+| 📋 Planned | 2 features | 12% |
+| ❌ Discarded | 2 features | - |
 
 ---
 
@@ -197,25 +197,17 @@
 
 ---
 
-### Dashboard & Analytics
-
-- **[006] Dynamic Dashboard** (`006-dashboard-dynamic`)
-  - Personalized user dashboard
-  - Statistics widgets
-  - Recent activity
-  - Quick actions
-  - **Priority**: Medium
-  - **Dependencies**: 004-social-network (for activity feed)
-  - **Tech**: React 18, Chart.js
-
----
-
 ## ❌ Discarded Features
 
 - **[015] GPX Wizard Integration** (`015-gpx-wizard-integration`)
   - **Reason**: Superseded by 017-gps-trip-wizard (more comprehensive implementation)
   - **Date Discarded**: 2026-01-28
   - **Note**: 017 provides all features of 015 plus enhanced UX and atomic operations
+
+- **[006] Dynamic Dashboard** (`006-dashboard-dynamic`)
+  - **Reason**: Feature deprioritized - Core functionality already covered by user profiles and trips
+  - **Date Discarded**: 2026-02-09
+  - **Note**: Dashboard widgets and statistics are available through existing profile and trips pages. Feature adds complexity without clear user value at current stage.
 
 ---
 
@@ -229,8 +221,8 @@
 
 ### Q2 2026
 - Start 004-social-network
-- Start 006-dynamic-dashboard
 - Evaluate need for 004-celery-async-tasks
+- Performance optimization (caching, query optimization)
 
 ### Future
 - Mobile app (React Native or native)
