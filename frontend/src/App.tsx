@@ -1,6 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/routing/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -46,13 +48,24 @@ const LoadingFallback: React.FC = () => (
   </div>
 );
 
+// React Query client configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60000, // 1 minute
+      retry: 1,
+    },
+  },
+});
+
 function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <Toaster />
-          <Suspense fallback={<LoadingFallback />}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <Toaster />
+            <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
@@ -179,7 +192,11 @@ function App() {
             </Routes>
           </Suspense>
         </AuthProvider>
+
+        {/* React Query DevTools (development only) */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </BrowserRouter>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

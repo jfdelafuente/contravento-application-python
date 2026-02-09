@@ -1,0 +1,708 @@
+openapi: 3.0.3
+info:
+  title: ContraVento Activity Stream Feed API
+  description: |
+    API for social activity feed, likes, and comments.
+
+    **Features**:
+    - Chronological feed from followed users
+    - Like/unlike activities
+    - Comment on activities with XSS-sanitized text
+    - Report offensive comments (Option C: no moderation UI)
+    - Cursor-based pagination for performance
+  version: 1.0.0
+  contact:
+    name: ContraVento Development Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://staging.contravento.com
+    description: Staging environment
+  - url: https://contravento.com
+    description: Production environment
+
+tags:
+  - name: feed
+    description: Activity feed operations
+  - name: likes
+    description: Like operations on activities
+  - name: comments
+    description: Comment operations on activities
+  - name: reports
+    description: Comment reporting (admin moderation via SQL)
+
+paths:
+  /feed:
+    get:
+      summary: Get Activity Feed
+      description: |
+        Retrieve chronological activity feed from followed users with cursor-based pagination.
+
+        **Performance**: <2s for 20 activities (SC-001)
+
+        **Activity Types**:
+        - TRIP_PUBLISHED: User published a new trip
+        - PHOTO_UPLOADED: User uploaded photos to a trip
+        - ACHIEVEMENT_UNLOCKED: User earned an achievement badge
+      operationId: getFeed
+      tags:
+        - feed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          description: |
+            Opaque cursor for pagination (base64-encoded).
+            Format: base64(f"{created_at_timestamp}_{activity_id}")
+          schema:
+            type: string
+          example: "MTcwOTIxMTYwMC4wX2ExYjJjM2Q0LWU1ZjYtNzg5MC1hYmNkLWVmMTIzNDU2Nzg5MA=="
+        - name: limit
+          in: query
+          description: Number of activities to return (max 50)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+        - name: activity_type
+          in: query
+          description: Filter by activity type
+          schema:
+            type: string
+            enum:
+              - TRIP_PUBLISHED
+              - PHOTO_UPLOADED
+              - ACHIEVEMENT_UNLOCKED
+        - name: sort
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum:
+              - recent
+              - popular
+            default: recent
+      responses:
+        '200':
+          description: Successfully retrieved activity feed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /activities/{activity_id}/like:
+    post:
+      summary: Like Activity
+      description: |
+        Like an activity. Idempotent - returns success if already liked.
+
+        **Performance**: <200ms perceived latency (SC-005)
+        **Notification**: Creates LIKE notification for activity author (FR-011)
+      operationId: likeActivity
+      tags:
+        - likes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: activity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Activity liked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Unlike Activity
+      description: |
+        Remove like from activity. Idempotent - returns success if not liked.
+
+        **Performance**: <200ms perceived latency (SC-005)
+      operationId: unlikeActivity
+      tags:
+        - likes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: activity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Activity unliked successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /activities/{activity_id}/likes:
+    get:
+      summary: Get Likes for Activity
+      description: |
+        Retrieve list of users who liked an activity.
+        Used for "X people liked this" modal (FR-009).
+      operationId: getActivityLikes
+      tags:
+        - likes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: activity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successfully retrieved likes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikesListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /activities/{activity_id}/comments:
+    post:
+      summary: Create Comment
+      description: |
+        Add a comment to an activity.
+
+        **Constraints**:
+        - Max 500 characters (FR-012)
+        - HTML sanitized to prevent XSS (FR-018)
+
+        **Notification**: Creates COMMENT notification for activity author (FR-017)
+      operationId: createComment
+      tags:
+        - comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: activity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      summary: Get Comments for Activity
+      description: |
+        Retrieve comments for an activity, ordered chronologically (oldest first).
+
+        **Ordering**: Oldest first (FR-013)
+        **Collapsing**: Frontend shows first 3, rest behind "Ver más" (FR-016)
+      operationId: getActivityComments
+      tags:
+        - comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: activity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successfully retrieved comments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /comments/{comment_id}:
+    delete:
+      summary: Delete Comment
+      description: |
+        Delete a comment (author only).
+
+        **Authorization**: Only comment author can delete (FR-015)
+      operationId: deleteComment
+      tags:
+        - comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: comment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Comment deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - not comment author
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /comments/{comment_id}/report:
+    post:
+      summary: Report Offensive Comment
+      description: |
+        Report a comment as offensive, spam, or harassment.
+
+        **Option C Implementation**: Stores reports in database, no moderation UI.
+        Admins query `comment_reports` table via SQL.
+
+        **Idempotent**: Returns success if already reported by same user.
+      operationId: reportComment
+      tags:
+        - reports
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: comment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentReportRequest'
+      responses:
+        '201':
+          description: Comment reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ========================================================================
+    # Feed Schemas
+    # ========================================================================
+
+    FeedResponse:
+      type: object
+      required:
+        - activities
+        - next_cursor
+        - has_next
+      properties:
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityFeedItem'
+        next_cursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for next page (null if no more pages)
+          example: "MTcwOTIxMTYwMC4wX2ExYjJjM2Q0LWU1ZjYtNzg5MC1hYmNkLWVmMTIzNDU2Nzg5MA=="
+        has_next:
+          type: boolean
+          description: Whether there are more pages available
+
+    ActivityFeedItem:
+      type: object
+      required:
+        - activity_id
+        - user
+        - activity_type
+        - related_id
+        - metadata
+        - created_at
+        - likes_count
+        - comments_count
+        - is_liked
+      properties:
+        activity_id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/PublicUserSummary'
+        activity_type:
+          type: string
+          enum:
+            - TRIP_PUBLISHED
+            - PHOTO_UPLOADED
+            - ACHIEVEMENT_UNLOCKED
+        related_id:
+          type: string
+          format: uuid
+          description: Reference to trip_id, photo_id, or user_achievement_id
+        metadata:
+          type: object
+          description: Type-specific data (trip title, photo URL, achievement name)
+          example:
+            trip_title: "Ruta Bikepacking Pirineos"
+            trip_distance_km: 320.5
+            trip_photo_url: "/storage/trips/2024/06/trip456/cover.jpg"
+        created_at:
+          type: string
+          format: date-time
+        likes_count:
+          type: integer
+          minimum: 0
+        comments_count:
+          type: integer
+          minimum: 0
+        is_liked:
+          type: boolean
+          description: Whether current user has liked this activity
+
+    PublicUserSummary:
+      type: object
+      required:
+        - user_id
+        - username
+        - photo_url
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        photo_url:
+          type: string
+          nullable: true
+
+    # ========================================================================
+    # Like Schemas
+    # ========================================================================
+
+    LikeResponse:
+      type: object
+      required:
+        - like_id
+        - activity_id
+        - user_id
+        - created_at
+      properties:
+        like_id:
+          type: string
+          format: uuid
+        activity_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    LikesListResponse:
+      type: object
+      required:
+        - likes
+        - total_count
+      properties:
+        likes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LikeWithUser'
+        total_count:
+          type: integer
+
+    LikeWithUser:
+      type: object
+      required:
+        - like_id
+        - user
+        - created_at
+      properties:
+        like_id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/PublicUserSummary'
+        created_at:
+          type: string
+          format: date-time
+
+    # ========================================================================
+    # Comment Schemas
+    # ========================================================================
+
+    CommentCreateRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: "¡Increíble ruta! Me encantaría hacerla algún día."
+
+    CommentResponse:
+      type: object
+      required:
+        - comment_id
+        - activity_id
+        - user
+        - text
+        - created_at
+      properties:
+        comment_id:
+          type: string
+          format: uuid
+        activity_id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/PublicUserSummary'
+        text:
+          type: string
+          description: Sanitized comment text (max 500 chars)
+        created_at:
+          type: string
+          format: date-time
+
+    CommentsListResponse:
+      type: object
+      required:
+        - comments
+        - total_count
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentResponse'
+        total_count:
+          type: integer
+
+    # ========================================================================
+    # Report Schemas
+    # ========================================================================
+
+    CommentReportRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          enum:
+            - spam
+            - offensive
+            - harassment
+            - other
+          example: "offensive"
+        notes:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: "Lenguaje ofensivo hacia otros usuarios"
+
+    # ========================================================================
+    # Common Schemas
+    # ========================================================================
+
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Reporte enviado correctamente"
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: "ACTIVITY_NOT_FOUND"
+            message:
+              type: string
+              example: "La actividad solicitada no existe"
+            field:
+              type: string
+              nullable: true
+              description: Field causing validation error (if applicable)
+              example: "text"
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - invalid or missing JWT token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token de autenticación inválido o expirado"
+
+    BadRequest:
+      description: Bad Request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "VALIDATION_ERROR"
+              message: "El comentario excede el límite de 500 caracteres"
+              field: "text"
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "INTERNAL_ERROR"
+              message: "Error interno del servidor. Intenta de nuevo más tarde."

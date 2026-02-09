@@ -927,6 +927,8 @@ See `.specify/` directory for templates and workflows.
 - [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (develop)
 - Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic (backend) | React 18, React Hook Form 7.70, react-leaflet 4.2.1 (frontend) (017-gps-trip-wizard)
 - PostgreSQL (production), SQLite (development) - existing Trip, GPXFile, POI models (017-gps-trip-wizard)
+- Python 3.12 (backend), TypeScript 5 (frontend) + FastAPI, SQLAlchemy 2.0, Pydantic, nh3 0.3.2 (backend) | React 18, TanStack Query 5.x (React Query), Axios (frontend) (018-activity-stream-feed)
+- PostgreSQL (production), SQLite (development) - NEW tables: activity_feed_items, likes, comments, comment_reports (018-activity-stream-feed)
 
 ### Backend (Python/FastAPI)
 - Python 3.12 + FastAPI (001-user-profiles, 002-travel-diary)
