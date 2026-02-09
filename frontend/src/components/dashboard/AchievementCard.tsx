@@ -7,13 +7,12 @@ export interface AchievementCardProps {
 }
 
 /**
- * AchievementCard component - Display individual achievement with icon and details
- * Shows earned state with badge icon or locked state with progress
+ * AchievementCard component - Display individual achievement with icon and status
+ * Compact vertical stack: icon → name → earned date or progress
  */
 const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
   const {
     name,
-    description,
     badge_icon,
     is_earned,
     earned_at,
@@ -22,10 +21,9 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
 
   return (
     <article className={`achievement-card ${is_earned ? 'achievement-card--earned' : 'achievement-card--locked'}`}>
+      {/* Icon wrapper with checkmark badge for earned achievements */}
       <div className="achievement-card__icon-wrapper">
-        <div className="achievement-card__icon">
-          <span className="achievement-card__emoji">{badge_icon}</span>
-        </div>
+        <span className="achievement-card__emoji">{badge_icon}</span>
         {is_earned && (
           <div className="achievement-card__badge">
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -35,18 +33,17 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
         )}
       </div>
 
+      {/* Content */}
       <div className="achievement-card__content">
         <h3 className="achievement-card__name">{name}</h3>
-        <p className="achievement-card__description">{description}</p>
 
         {is_earned && earned_at && (
-          <span className="achievement-card__date">
-            Desbloqueado {new Date(earned_at).toLocaleDateString('es-ES', {
+          <p className="achievement-card__date">
+            {new Date(earned_at).toLocaleDateString('es-ES', {
               day: 'numeric',
               month: 'short',
-              year: 'numeric'
             })}
-          </span>
+          </p>
         )}
 
         {!is_earned && progress !== undefined && progress > 0 && (
@@ -57,8 +54,12 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="achievement-card__progress-text">{progress}%</span>
+            <p className="achievement-card__progress-text">{progress}%</p>
           </div>
+        )}
+
+        {!is_earned && (progress === undefined || progress === 0) && (
+          <p className="achievement-card__locked-text">Bloqueado</p>
         )}
       </div>
     </article>

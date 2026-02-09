@@ -39,23 +39,18 @@ const AchievementsSection: React.FC = () => {
     fetchAchievements();
   }, [user?.username]);
 
-  const earnedCount = achievements.filter(a => a.is_earned).length;
+  // TODO: Use earnedCount for stats display
+  // const earnedCount = achievements.filter(a => a.is_earned).length;
 
   return (
     <section className="achievements-section" aria-labelledby="achievements-heading">
-      <div className="achievements-section__header">
-        <h2 id="achievements-heading" className="achievements-section__title">
-          Logros Desbloqueados
-        </h2>
-        <span className="achievements-section__count">
-          {earnedCount} de {achievements.length}
-        </span>
-      </div>
+      <h2 id="achievements-heading" className="achievements-section__title">
+        Hitos
+      </h2>
 
       {loading && (
         <div className="achievements-section__loading">
           <div className="spinner"></div>
-          <p>Cargando logros...</p>
         </div>
       )}
 
@@ -73,11 +68,10 @@ const AchievementsSection: React.FC = () => {
 
       {!loading && !error && achievements.length > 0 && (
         <div className="achievements-section__grid">
-          {achievements.map((achievement, index) => (
+          {achievements.slice(0, 4).map((achievement, index) => (
             <div
               key={achievement.achievement_id}
               style={{ animationDelay: `${index * 0.05}s` }}
-              className="achievements-section__grid-item"
             >
               <AchievementCard achievement={achievement} />
             </div>

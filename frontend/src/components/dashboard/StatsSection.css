@@ -1,54 +1,29 @@
-/* StatsSection.css - Statistics section with responsive grid */
+/* StatsSection.css - "Bitácora" Stats - Mapa de Ruta Style */
+
+/* Intent: Personal cycling statistics with map-like organic feel
+ * Layout: 2x2 grid for narrow column (35% width)
+ * Depth: Borders-only, subtle hover
+ */
 
 .stats-section {
   width: 100%;
-  margin-bottom: 3rem;
+  box-sizing: border-box;
 }
 
 .stats-section__title {
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 1.5rem 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 var(--space-4) 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  padding: 0 var(--space-2);
 }
 
 .stats-section__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-/* Tablet: 2 columns */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .stats-section__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Desktop: 4 columns */
-@media (min-width: 1024px) {
-  .stats-section__grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Mobile: 1 column */
-@media (max-width: 639px) {
-  .stats-section {
-    margin-bottom: 2rem;
-  }
-
-  .stats-section__title {
-    font-size: 1.5rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .stats-section__grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  width: 100%;
 }
 
 /* Stagger animation for stats cards */
@@ -57,13 +32,25 @@
 }
 
 .stats-section__grid > *:nth-child(2) {
-  animation-delay: 0.1s;
+  animation-delay: 0.05s;
 }
 
 .stats-section__grid > *:nth-child(3) {
-  animation-delay: 0.2s;
+  animation-delay: 0.1s;
 }
 
 .stats-section__grid > *:nth-child(4) {
-  animation-delay: 0.3s;
+  animation-delay: 0.15s;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-section__title {
+    font-size: 18px;
+    margin-bottom: var(--space-3);
+  }
+
+  .stats-section__grid {
+    gap: var(--space-2);
+  }
 }

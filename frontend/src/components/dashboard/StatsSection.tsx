@@ -19,7 +19,7 @@ const StatsSection: React.FC = () => {
   return (
     <section className="stats-section" aria-labelledby="stats-heading">
       <h2 id="stats-heading" className="stats-section__title">
-        Tus Estadísticas
+        Bitácora
       </h2>
       <div className="stats-section__grid">
         {/* Stat 1: Total Trips */}
@@ -34,7 +34,7 @@ const StatsSection: React.FC = () => {
           }
           loading={loading}
           error={error || undefined}
-          color="var(--color-primary)"
+          color="var(--accent-amber)"
         />
 
         {/* Stat 2: Total Distance */}
@@ -49,7 +49,7 @@ const StatsSection: React.FC = () => {
           }
           loading={loading}
           error={error || undefined}
-          color="var(--color-forest)"
+          color="var(--accent-moss)"
         />
 
         {/* Stat 3: Countries Visited */}
@@ -66,7 +66,7 @@ const StatsSection: React.FC = () => {
           }
           loading={loading}
           error={error || undefined}
-          color="var(--color-earth)"
+          color="#dc2626"
         />
 
         {/* Stat 4: Total Photos */}
@@ -82,7 +82,7 @@ const StatsSection: React.FC = () => {
           }
           loading={loading}
           error={error || undefined}
-          color="var(--color-brown)"
+          color="var(--accent-amber)"
         />
       </div>
     </section>

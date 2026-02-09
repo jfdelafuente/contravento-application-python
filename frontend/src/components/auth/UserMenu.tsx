@@ -1,7 +1,7 @@
 // src/components/auth/UserMenu.tsx
 
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './UserMenu.css';
 
@@ -27,11 +27,9 @@ interface UserMenuProps {
 export const UserMenu: React.FC<UserMenuProps> = ({
   className = '',
   showConfirmation = false,
-  showNavigation = true,
 }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -83,76 +81,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({
   return (
     <>
       <div className={`user-menu ${className}`}>
-        {/* Navigation Links */}
-        {showNavigation && (
-          <nav className="user-navigation">
-            <Link
-              to="/"
-              className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-            >
-              <svg
-                className="nav-icon"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                />
-              </svg>
-              Inicio
-            </Link>
-            {/* Show Dashboard link when on /profile or /trips, Profile link otherwise */}
-            {location.pathname === '/profile' || location.pathname === '/trips' ? (
-              <Link
-                to="/dashboard"
-                className="nav-link"
-              >
-                <svg
-                  className="nav-icon"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-                Dashboard
-              </Link>
-            ) : (
-              <Link
-                to="/profile"
-                className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
-              >
-                <svg
-                  className="nav-icon"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Perfil
-              </Link>
-            )}
-          </nav>
-        )}
-
         <div className="user-info">
           <div className="user-avatar">
             {user.username.charAt(0).toUpperCase()}
