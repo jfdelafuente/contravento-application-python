@@ -12,6 +12,7 @@ For detailed documentation beyond this quick reference, see the **[Documentation
 
 ### Quick Links by Topic
 
+- 🗺️ **Roadmap**: [ROADMAP.md](ROADMAP.md) - Product roadmap, feature status, backlog
 - 🚀 **Deployment**: [docs/deployment/README.md](docs/deployment/README.md) - All deployment modes (local-dev, staging, prod)
 - 💻 **API Reference**: [docs/api/README.md](docs/api/README.md) - Endpoints, authentication, contracts
 - 🏗️ **Architecture**: [docs/architecture/README.md](docs/architecture/README.md) - Backend, frontend, database design
@@ -25,6 +26,7 @@ For detailed documentation beyond this quick reference, see the **[Documentation
 
 | Need | Documentation Link |
 |------|-------------------|
+| **See feature status & backlog** | [ROADMAP.md](ROADMAP.md) |
 | **Start coding locally** | [docs/deployment/modes/local-dev.md](docs/deployment/modes/local-dev.md#quick-start) |
 | **Fix common issues** | [docs/development/troubleshooting/](docs/development/troubleshooting/) |
 | **Write tests** | [docs/testing/README.md](docs/testing/README.md) |

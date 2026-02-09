@@ -87,6 +87,7 @@ La forma más rápida de empezar a desarrollar:
 
 ### Para Desarrolladores
 
+- **[🗺️ Product Roadmap](ROADMAP.md)** - Estado de features y backlog
 - **[📘 Documentation Hub](docs/README.md)** - Índice completo de documentación
 - **[🚀 Deployment Guide](docs/deployment/README.md)** - Todos los modos de despliegue
 - **[💻 API Reference](docs/api/README.md)** - Endpoints y autenticación
