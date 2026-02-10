@@ -10,12 +10,13 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
 
 if TYPE_CHECKING:
+    from src.models.activity_like import ActivityLike
     from src.models.user import User
 
 
@@ -74,9 +75,9 @@ class ActivityFeedItem(Base):
     )  # trip_id, photo_id, or user_achievement_id
     activity_metadata: Mapped[dict] = mapped_column(
         "metadata",  # Database column name
-        Text,
+        JSON,
         nullable=False,
-        default="{}",
+        default=dict,
     )  # Stored as JSON string (SQLite) or JSONB (PostgreSQL)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -89,6 +90,12 @@ class ActivityFeedItem(Base):
         "User",
         foreign_keys=[user_id],
         back_populates="activity_feed_items",
+    )
+    likes: Mapped[list["ActivityLike"]] = relationship(
+        "ActivityLike",
+        back_populates="activity",
+        cascade="all, delete-orphan",
+        doc="Likes received by this activity",
     )
 
     # Indexes for performance (FR-027, SC-001)

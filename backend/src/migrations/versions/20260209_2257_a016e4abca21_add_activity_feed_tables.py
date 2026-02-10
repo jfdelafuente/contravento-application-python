@@ -56,7 +56,7 @@ def upgrade() -> None:
             """
             CREATE TABLE activity_feed_items (
                 activity_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 activity_type activity_type NOT NULL,
                 related_id UUID NOT NULL,
                 metadata JSONB DEFAULT '{}',
@@ -72,7 +72,7 @@ def upgrade() -> None:
             """
             CREATE TABLE activity_likes (
                 like_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 activity_id UUID NOT NULL REFERENCES activity_feed_items(activity_id) ON DELETE CASCADE,
                 created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
                 UNIQUE (user_id, activity_id)
@@ -87,7 +87,7 @@ def upgrade() -> None:
             """
             CREATE TABLE activity_comments (
                 comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 activity_id UUID NOT NULL REFERENCES activity_feed_items(activity_id) ON DELETE CASCADE,
                 text TEXT NOT NULL CHECK (LENGTH(text) > 0 AND LENGTH(text) <= 500),
                 created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -103,7 +103,7 @@ def upgrade() -> None:
             CREATE TABLE comment_reports (
                 report_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 comment_id UUID NOT NULL REFERENCES activity_comments(comment_id) ON DELETE CASCADE,
-                reporter_user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                reporter_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 reason comment_report_reason NOT NULL,
                 notes TEXT,
                 created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -132,7 +132,7 @@ def upgrade() -> None:
                 related_id TEXT NOT NULL,
                 metadata TEXT DEFAULT '{}',
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             """
         )
@@ -147,7 +147,7 @@ def upgrade() -> None:
                 user_id TEXT NOT NULL,
                 activity_id TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (activity_id) REFERENCES activity_feed_items(activity_id) ON DELETE CASCADE,
                 UNIQUE (user_id, activity_id)
             );
@@ -165,7 +165,7 @@ def upgrade() -> None:
                 activity_id TEXT NOT NULL,
                 text TEXT NOT NULL CHECK (LENGTH(text) > 0 AND LENGTH(text) <= 500),
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (activity_id) REFERENCES activity_feed_items(activity_id) ON DELETE CASCADE
             );
             """
@@ -184,7 +184,7 @@ def upgrade() -> None:
                 notes TEXT,
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
                 FOREIGN KEY (comment_id) REFERENCES activity_comments(comment_id) ON DELETE CASCADE,
-                FOREIGN KEY (reporter_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                FOREIGN KEY (reporter_user_id) REFERENCES users(id) ON DELETE CASCADE,
                 UNIQUE (comment_id, reporter_user_id)
             );
             """

@@ -23,6 +23,7 @@ from src.database import AsyncSessionLocal
 from src.models.user import User
 from src.models.trip import Trip, TripStatus, TripDifficulty, Tag, TripTag
 from src.services.stats_service import StatsService
+from src.services.feed_service import FeedService
 
 # Import all models to ensure SQLAlchemy relationships are resolved
 from src.models.comment import Comment  # noqa: F401
@@ -267,6 +268,20 @@ async def seed_trips(username: str = "testuser", count: int = None):
                     photos_count=photos_count,
                     trip_date=trip_date,
                 )
+
+                # Create activity feed item for published trip (Feature 018)
+                metadata = {"trip_title": trip.title}
+                if trip.distance_km is not None:
+                    metadata["trip_distance_km"] = float(trip.distance_km)
+
+                await FeedService.create_feed_activity(
+                    db=db,
+                    user_id=user.id,
+                    activity_type="TRIP_PUBLISHED",
+                    related_id=trip.trip_id,
+                    metadata=metadata,
+                )
+
                 published_count += 1
 
             # Show location in output

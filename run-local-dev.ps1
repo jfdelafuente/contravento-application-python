@@ -131,7 +131,7 @@ if ($Verify) {
 
     # Check Backend (port 8000)
     Write-Host "Backend Server (http://localhost:$PORT)" -ForegroundColor Cyan
-    Write-Host "  Port $PORT: " -NoNewline
+    Write-Host "  Port ${PORT}: " -NoNewline
     if (Test-Port -Port $PORT) {
         Write-Host "LISTENING" -ForegroundColor Green
 
@@ -603,7 +603,7 @@ try {
     # Check if backend port is in use
     if (Test-Port -Port $PORT) {
         Write-Host "[ERROR] Port $PORT is already in use!" -ForegroundColor Red
-        Write-Host "[INFO] Kill the process using port $PORT:" -ForegroundColor Blue
+        Write-Host "[INFO] Kill the process using port ${PORT}:" -ForegroundColor Blue
         Write-Host "  Get-Process -Id (Get-NetTCPConnection -LocalPort $PORT).OwningProcess | Stop-Process" -ForegroundColor Blue
         Set-Location ..
         exit 1

@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.social import Follow
 from src.models.trip import Trip, TripStatus
-from src.models.user import User
+from src.models.user import User, UserProfile
 from src.services.feed_service import FeedService
 
 
@@ -650,7 +650,6 @@ async def test_get_user_feed_returns_activities_from_followed_users(db_session: 
     result = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=20,
         cursor=None,
     )
@@ -710,7 +709,6 @@ async def test_get_user_feed_returns_empty_when_following_nobody(db_session: Asy
     result = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=20,
         cursor=None,
     )
@@ -775,7 +773,6 @@ async def test_get_user_feed_cursor_pagination_first_page(db_session: AsyncSessi
     result = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=10,
         cursor=None,
     )
@@ -845,7 +842,6 @@ async def test_get_user_feed_cursor_pagination_second_page(db_session: AsyncSess
     result_page1 = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=10,
         cursor=None,
     )
@@ -854,7 +850,6 @@ async def test_get_user_feed_cursor_pagination_second_page(db_session: AsyncSess
     result_page2 = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=10,
         cursor=result_page1["next_cursor"],
     )
@@ -925,7 +920,6 @@ async def test_get_user_feed_cursor_pagination_last_page(db_session: AsyncSessio
     result = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=10,
         cursor=None,
     )
@@ -985,7 +979,6 @@ async def test_get_user_feed_invalid_cursor_ignored(db_session: AsyncSession):
     result = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=10,
         cursor="invalid_cursor_12345",  # Malformed cursor
     )
@@ -1018,7 +1011,11 @@ async def test_get_user_feed_includes_user_metadata(db_session: AsyncSession):
         username="maria",
         email="maria@example.com",
         hashed_password="hash",
-        photo_url="/storage/profile_photos/maria.jpg",
+    )
+
+    followed_user_profile = UserProfile(
+        user_id=followed_user.id,
+        profile_photo_url="/storage/profile_photos/maria.jpg",
     )
 
     follow = Follow(
@@ -1036,14 +1033,13 @@ async def test_get_user_feed_includes_user_metadata(db_session: AsyncSession):
         created_at=datetime(2024, 6, 15, 10, 0, 0, tzinfo=UTC),
     )
 
-    db_session.add_all([current_user, followed_user, follow, activity])
+    db_session.add_all([current_user, followed_user, followed_user_profile, follow, activity])
     await db_session.commit()
 
     # Get feed
     result = await FeedService.get_user_feed(
         db=db_session,
         user_id=current_user.id,
-
         limit=10,
         cursor=None,
     )

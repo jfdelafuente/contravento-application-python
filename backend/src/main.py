@@ -266,6 +266,7 @@ async def root() -> dict[str, Any]:
 # Include routers (T028)
 from src.api import (
     activity_feed,
+    activity_likes,
     auth,
     comments,
     cycling_types,
@@ -290,7 +291,8 @@ app.include_router(stats.achievements_router)
 app.include_router(social.router)
 app.include_router(feed.router)  # Feature 004: Personalized feed (trips)
 app.include_router(activity_feed.router)  # Feature 018: Activity Stream Feed (activities)
-app.include_router(likes.router)  # Feature 004: Likes/Me Gusta
+app.include_router(activity_likes.router)  # Feature 018: Likes on activity feed items (US2)
+app.include_router(likes.router)  # Feature 004: Likes/Me Gusta (trips)
 app.include_router(comments.router)  # Feature 004: Comments
 app.include_router(notifications.router)  # Feature 018: Activity Stream Notifications
 app.include_router(trip_crud_router.router)  # Trips: CRUD operations and public feed

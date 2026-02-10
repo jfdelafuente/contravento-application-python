@@ -7,12 +7,17 @@ UserProfile: Extended profile information (1-to-1 with User)
 
 import enum
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
+
+if TYPE_CHECKING:
+    from src.models.activity_feed_item import ActivityFeedItem
+    from src.models.activity_like import ActivityLike
 
 
 class UserRole(str, enum.Enum):
@@ -256,6 +261,13 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         doc="Activity feed items created by this user",
+    )
+    activity_likes: Mapped[list["ActivityLike"]] = relationship(
+        "ActivityLike",
+        foreign_keys="ActivityLike.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Likes given to activity feed items by this user",
     )
 
     def __repr__(self) -> str:

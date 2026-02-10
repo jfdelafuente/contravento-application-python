@@ -18,7 +18,8 @@ router = APIRouter(prefix="/activity-feed", tags=["Activity Feed"])
 @router.get("", response_model=ActivityFeedResponseSchema)
 async def get_activity_feed(
     limit: int = Query(default=20, ge=1, le=50, description="Items per page (min 1, max 50)"),
-    cursor: str | None = Query(default=None, description="Cursor for pagination (null for first page)"),
+    cursor: str
+    | None = Query(default=None, description="Cursor for pagination (null for first page)"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ActivityFeedResponseSchema:
@@ -47,7 +48,7 @@ async def get_activity_feed(
     """
     result = await FeedService.get_user_feed(
         db=db,
-        user_id=current_user.user_id,
+        user_id=current_user.id,
         limit=limit,
         cursor=cursor,
     )

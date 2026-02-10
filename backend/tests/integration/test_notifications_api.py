@@ -5,15 +5,16 @@ Tests notification retrieval, unread count, and mark-as-read operations.
 Task: T017
 """
 
+from datetime import UTC, datetime
+from uuid import uuid4
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.notification import Notification, NotificationType
-from src.models.user import User
 from src.models.trip import Trip
-from uuid import uuid4
-from datetime import UTC, datetime
+from src.models.user import User
 
 
 @pytest.mark.asyncio
@@ -114,7 +115,7 @@ async def test_get_unread_count(
     db_session.add(trip)
 
     # Create 3 unread notifications
-    for i in range(3):
+    for _ in range(3):
         notification = Notification(
             id=str(uuid4()),
             user_id=test_user.user_id,
@@ -229,7 +230,7 @@ async def test_mark_all_notifications_read(
 
     # Create 5 unread notifications
     notifications = []
-    for i in range(5):
+    for _ in range(5):
         notification = Notification(
             id=str(uuid4()),
             user_id=test_user.user_id,

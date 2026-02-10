@@ -4,6 +4,8 @@ Database models for ContraVento application.
 Exports all models for Alembic autogenerate.
 """
 
+from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+from src.models.activity_like import ActivityLike
 from src.models.auth import PasswordReset
 from src.models.comment import Comment
 from src.models.cycling_type import CyclingType
@@ -42,4 +44,7 @@ __all__ = [
     "RouteStatistics",
     "PointOfInterest",
     "POIType",
+    "ActivityFeedItem",
+    "ActivityType",
+    "ActivityLike",
 ]

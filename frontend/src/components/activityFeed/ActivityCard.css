@@ -1,0 +1,176 @@
+/* Activity Card Styles (Feature 018 - T038, T039) */
+
+.activity-card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.activity-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Header */
+.activity-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.user-avatar-link {
+  flex-shrink: 0;
+}
+
+.user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+}
+
+.activity-card-meta {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.activity-card-title {
+  font-size: 0.875rem;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.username-link {
+  font-weight: 600;
+  color: #111827;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.username-link:hover {
+  color: #3b82f6;
+}
+
+.activity-action {
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.activity-timestamp {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Body */
+.activity-card-body {
+  margin-bottom: 1rem;
+}
+
+.trip-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.trip-distance {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.trip-photo-container,
+.photo-preview-container {
+  margin-top: 0.75rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.trip-photo,
+.photo-preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  max-height: 24rem; /* 384px */
+}
+
+/* Achievement Display */
+.achievement-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 0.5rem;
+  border: 2px solid #fbbf24;
+}
+
+.achievement-badge {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.achievement-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.activity-card-achievement {
+  border-color: #fbbf24;
+  background: linear-gradient(to bottom right, #fffbeb, #ffffff);
+}
+
+/* Footer */
+.activity-card-footer {
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.interaction-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .activity-card {
+    padding: 1rem;
+    border-radius: 0.375rem;
+  }
+
+  .user-avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .trip-title {
+    font-size: 1rem;
+  }
+
+  .achievement-badge {
+    font-size: 2.5rem;
+  }
+
+  .achievement-name {
+    font-size: 1rem;
+  }
+
+  .interaction-stats {
+    gap: 1rem;
+  }
+}

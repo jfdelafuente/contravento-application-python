@@ -41,6 +41,9 @@ const FeedPage = lazy(() => import('./pages/FeedPage').then(module => ({ default
 // User Profile (Feature 004 - Social Network)
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then(module => ({ default: module.UserProfilePage })));
 
+// Activity Stream Feed (Feature 018)
+const ActivityFeedPage = lazy(() => import('./pages/ActivityFeedPage').then(module => ({ default: module.ActivityFeedPage })));
+
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
   <div className="loading-container">
@@ -116,6 +119,16 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <FeedPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Activity Stream Feed (Feature 018) */}
+              <Route
+                path="/activities"
+                element={
+                  <ProtectedRoute>
+                    <ActivityFeedPage />
                   </ProtectedRoute>
                 }
               />

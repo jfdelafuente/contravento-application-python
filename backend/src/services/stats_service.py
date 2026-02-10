@@ -479,6 +479,12 @@ class StatsService:
             logger.info(f"Achievement {achievement_id} already awarded to user {user_id}")
             return
 
+        # Get achievement details for activity metadata
+        achievement_result = await self.db.execute(
+            select(Achievement).where(Achievement.id == achievement_id)
+        )
+        achievement = achievement_result.scalar_one_or_none()
+
         # Create user achievement
         user_achievement = UserAchievement(
             user_id=user_id,
@@ -494,6 +500,21 @@ class StatsService:
             stats.achievements_count += 1
 
         await self.db.commit()
+
+        # T035: Create activity feed item for achievement unlock (Feature 018)
+        if achievement:
+            from src.services.feed_service import FeedService
+
+            await FeedService.create_feed_activity(
+                db=self.db,
+                user_id=user_id,
+                activity_type="ACHIEVEMENT_UNLOCKED",
+                related_id=user_achievement.id,
+                metadata={
+                    "achievement_name": achievement.name,
+                    "achievement_badge": achievement.badge_icon,
+                },
+            )
 
         logger.info(f"Awarded achievement {achievement_id} to user {user_id}")
 

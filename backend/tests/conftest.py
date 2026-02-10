@@ -90,6 +90,8 @@ async def db_engine():
         Async engine for testing
     """
     # Import Base here (after load_test_env has run)
+    from sqlalchemy import event
+
     from src.database import Base
 
     engine = create_async_engine(
@@ -98,6 +100,13 @@ async def db_engine():
         poolclass=StaticPool,
         echo=False,
     )
+
+    # Enable foreign key constraints for SQLite (required for test integrity)
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
     # Create all tables
     async with engine.begin() as conn:
@@ -174,6 +183,27 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
 
 @pytest.fixture(scope="function")
+async def async_client(client: AsyncClient) -> AsyncClient:
+    """
+    Alias for client fixture.
+
+    Some tests use async_client naming convention for clarity.
+
+    Args:
+        client: Async HTTP client fixture
+
+    Yields:
+        Async HTTP client
+
+    Example:
+        async def test_api(async_client):
+            response = await async_client.get("/health")
+            assert response.status_code == 200
+    """
+    return client
+
+
+@pytest.fixture(scope="function")
 def faker_instance() -> Faker:
     """
     Provide a Faker instance for generating test data.
@@ -191,50 +221,73 @@ def faker_instance() -> Faker:
 
 
 @pytest.fixture(scope="function")
-async def auth_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
+async def auth_headers(client: AsyncClient, db_session: AsyncSession):
     """
-    Provide authentication headers with a valid JWT token for an ADMIN user.
+    Provide authentication headers factory with valid JWT tokens.
 
-    Creates an admin test user, generates token, and returns headers for authenticated requests.
-    Use this for testing admin-protected endpoints.
+    Can be used in two ways:
+    1. Direct call (returns admin headers): `auth_headers`
+    2. Factory call (returns headers for specific user): `await auth_headers(test_user)`
+
+    Creates an admin test user by default, or generates token for provided user.
+    Use this for testing authenticated endpoints.
 
     Args:
         client: Async HTTP client
         db_session: Database session
 
     Returns:
-        Dictionary with Authorization header
+        Callable that generates Authorization headers for a user, or dict with admin headers
 
     Example:
+        # Admin headers (default)
         async def test_admin_endpoint(client, auth_headers):
-            response = await client.post("/admin/cycling-types", headers=auth_headers, json={...})
+            headers = await auth_headers()  # Admin user
+            response = await client.post("/admin/cycling-types", headers=headers, json={...})
             assert response.status_code == 201
+
+        # Custom user headers
+        async def test_user_endpoint(client, auth_headers, test_user):
+            headers = await auth_headers(test_user)
+            response = await client.get("/profile", headers=headers)
+            assert response.status_code == 200
     """
     from src.models.user import User, UserProfile, UserRole
     from src.utils.security import create_access_token, hash_password
 
-    # Create an admin test user in the database
-    user = User(
-        username="admin_user",
-        email="admin@example.com",
-        hashed_password=hash_password("AdminPass123!"),
-        role=UserRole.ADMIN,
-        is_active=True,
-        is_verified=True,
-    )
-    db_session.add(user)
-    await db_session.flush()
+    async def _generate_headers(user: "User" = None) -> dict:
+        """Generate auth headers for the specified user or create admin user."""
+        if user is None:
+            # Create an admin test user in the database
+            from sqlalchemy import select
 
-    # Create profile for user
-    profile = UserProfile(user_id=user.id)
-    db_session.add(profile)
-    await db_session.commit()
-    await db_session.refresh(user)
+            result = await db_session.execute(select(User).where(User.username == "admin_user"))
+            user = result.scalar_one_or_none()
 
-    # Generate token with actual user ID
-    token = create_access_token({"sub": user.id, "username": user.username})
+            if not user:
+                user = User(
+                    username="admin_user",
+                    email="admin@example.com",
+                    hashed_password=hash_password("AdminPass123!"),
+                    role=UserRole.ADMIN,
+                    is_active=True,
+                    is_verified=True,
+                )
+                db_session.add(user)
+                await db_session.flush()
 
-    return {"Authorization": f"Bearer {token}"}
+                # Create profile for user
+                profile = UserProfile(user_id=user.id)
+                db_session.add(profile)
+                await db_session.commit()
+                await db_session.refresh(user)
+
+        # Generate token with actual user ID
+        token = create_access_token({"sub": user.id, "username": user.username})
+
+        return {"Authorization": f"Bearer {token}"}
+
+    return _generate_headers
 
 
 @pytest.fixture(scope="function")
@@ -320,6 +373,59 @@ async def test_user(db_session: AsyncSession) -> "User":
         user = User(
             username="test_user",
             email="test@example.com",
+            hashed_password=hash_password("TestPass123!"),
+            role=UserRole.USER,
+            is_active=True,
+            is_verified=True,
+        )
+        db_session.add(user)
+        await db_session.flush()
+
+        # Create profile for user
+        profile = UserProfile(user_id=user.id)
+        db_session.add(profile)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+    return user
+
+
+@pytest.fixture(scope="function")
+async def test_user2(db_session: AsyncSession) -> "User":
+    """
+    Provide a second test user instance for integration tests.
+
+    Similar to test_user fixture but with different credentials.
+    Use this when tests need to test interactions between multiple users.
+
+    Args:
+        db_session: Database session
+
+    Returns:
+        User instance
+
+    Example:
+        async def test_user_follows_another(client, test_user, test_user2):
+            # test_user follows test_user2
+            response = await client.post(f"/users/{test_user2.username}/follow")
+            assert response.status_code == 200
+    """
+    from sqlalchemy import select
+
+    from src.models.user import User
+
+    # Query the existing test_user2 created by previous test
+    result = await db_session.execute(select(User).where(User.username == "test_user2"))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Create user if it doesn't exist
+        from src.models.user import UserProfile, UserRole
+        from src.utils.security import hash_password
+
+        user = User(
+            username="test_user2",
+            email="test2@example.com",
             hashed_password=hash_password("TestPass123!"),
             role=UserRole.USER,
             is_active=True,

@@ -276,12 +276,15 @@ def test_nh3_performance_benchmark():
     """
     import time
 
-    test_html = """
+    test_html = (
+        """
     <p>This is a <b>test</b> paragraph with <em>emphasis</em>.</p>
     <script>alert('XSS')</script>
     <a href="https://example.com">Safe link</a>
     <a href="javascript:alert(1)">Malicious link</a>
-    """ * 100  # Repeat 100 times for meaningful benchmark
+    """
+        * 100
+    )  # Repeat 100 times for meaningful benchmark
 
     start_time = time.perf_counter()
     for _ in range(100):
@@ -307,7 +310,8 @@ def test_nh3_large_document_performance():
     """
     import time
 
-    large_html = """
+    large_html = (
+        """
     <p>Paragraph text</p>
     <ul>
         <li>Item 1</li>
@@ -315,7 +319,9 @@ def test_nh3_large_document_performance():
         <li>Item 3</li>
     </ul>
     <blockquote>Quote text</blockquote>
-    """ * 1000  # 1000 repetitions (~50KB of HTML)
+    """
+        * 1000
+    )  # 1000 repetitions (~50KB of HTML)
 
     start_time = time.perf_counter()
     result = sanitize_html(large_html)
@@ -353,7 +359,7 @@ def test_nh3_comment_use_case():
     assert '<a href="https://contravento.com"' in result2
 
     # Comment with XSS attempt
-    malicious_comment = 'Great trip! <script>stealCookies()</script>'
+    malicious_comment = "Great trip! <script>stealCookies()</script>"
     result3 = sanitize_html(malicious_comment)
 
     assert "Great trip!" in result3

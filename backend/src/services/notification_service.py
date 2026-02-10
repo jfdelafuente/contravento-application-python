@@ -5,14 +5,13 @@ Handles notification creation, retrieval, and read status management.
 Task: T009
 """
 
-from uuid import uuid4
 from datetime import UTC, datetime
-from typing import List
-from sqlalchemy import select, func
+from uuid import uuid4
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.notification import Notification, NotificationType
-from src.models.user import User
 
 
 class NotificationService:
@@ -80,7 +79,7 @@ class NotificationService:
         user_id: str,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[Notification]:
+    ) -> list[Notification]:
         """
         Retrieve notifications for a user with pagination.
 
@@ -183,12 +182,9 @@ class NotificationService:
         Returns:
             Number of notifications marked as read
         """
-        stmt = (
-            select(Notification)
-            .where(
-                Notification.user_id == user_id,
-                Notification.is_read == False,  # noqa: E712
-            )
+        stmt = select(Notification).where(
+            Notification.user_id == user_id,
+            Notification.is_read == False,  # noqa: E712
         )
 
         result = await db.execute(stmt)

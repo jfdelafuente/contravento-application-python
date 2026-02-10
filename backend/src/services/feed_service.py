@@ -8,6 +8,7 @@ Implements hybrid feed algorithm:
 Success Criteria: SC-001 (<1s p95)
 """
 
+import json
 from typing import Any
 
 from sqlalchemy import and_, desc, func, not_, select
@@ -553,11 +554,13 @@ class FeedService:
 
         Performance: <2s for 20 activities (SC-001)
         """
+        from sqlalchemy.orm import joinedload
+
         from src.models.activity_feed_item import ActivityFeedItem
-        from src.utils.pagination import decode_cursor, encode_cursor
 
         # Import here to avoid circular dependency
         from src.models.user import User
+        from src.utils.pagination import decode_cursor, encode_cursor
 
         # Get list of followed users
         followed_users_stmt = select(Follow.following_id).where(Follow.follower_id == user_id)
@@ -576,6 +579,7 @@ class FeedService:
         query = (
             select(ActivityFeedItem, User)
             .join(User, ActivityFeedItem.user_id == User.id)
+            .options(joinedload(User.profile))
             .where(ActivityFeedItem.user_id.in_(followed_user_ids))
         )
 
@@ -600,7 +604,9 @@ class FeedService:
                 pass
 
         # Order by created_at DESC, activity_id DESC (for stable pagination)
-        query = query.order_by(desc(ActivityFeedItem.created_at), desc(ActivityFeedItem.activity_id))
+        query = query.order_by(
+            desc(ActivityFeedItem.created_at), desc(ActivityFeedItem.activity_id)
+        )
 
         # Fetch limit + 1 to detect if there are more pages
         query = query.limit(limit + 1)
@@ -630,10 +636,20 @@ class FeedService:
                     "user": {
                         "user_id": user.id,
                         "username": user.username,
-                        "photo_url": user.photo_url,
+                        "photo_url": user.profile.profile_photo_url if user.profile else None,
                     },
-                    "activity_type": activity_item.activity_type.value,
-                    "metadata": activity_item.activity_metadata if isinstance(activity_item.activity_metadata, dict) else {},
+                    "activity_type": (
+                        activity_item.activity_type.value
+                        if hasattr(activity_item.activity_type, "value")
+                        else activity_item.activity_type
+                    ),
+                    "metadata": (
+                        json.loads(activity_item.activity_metadata)
+                        if isinstance(activity_item.activity_metadata, str)
+                        else activity_item.activity_metadata
+                        if isinstance(activity_item.activity_metadata, dict)
+                        else {}
+                    ),
                     "created_at": activity_item.created_at,
                     "likes_count": likes_count,
                     "comments_count": comments_count,
@@ -677,10 +693,11 @@ class FeedService:
         Returns:
             None (activity created silently)
         """
+        from datetime import UTC, datetime
+        from uuid import uuid4
+
         from src.models.activity_feed_item import ActivityFeedItem, ActivityType
         from src.models.user import User
-        from uuid import uuid4
-        from datetime import UTC, datetime
 
         # Check if user profile is public
         user_stmt = select(User).where(User.id == user_id)
@@ -700,7 +717,9 @@ class FeedService:
             user_id=user_id,
             activity_type=ActivityType(activity_type),
             related_id=related_id,
-            activity_metadata=str(metadata) if not isinstance(metadata, str) else metadata,  # Store as JSON string for SQLite
+            activity_metadata=json.dumps(metadata)
+            if not isinstance(metadata, str)
+            else metadata,  # Store as JSON string for SQLite
             created_at=datetime.now(UTC),
         )
 

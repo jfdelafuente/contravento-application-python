@@ -1,0 +1,165 @@
+/* Activity Feed Page Styles (Feature 018 - T037) */
+
+.activity-feed-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 2rem 1rem;
+}
+
+.activity-feed-container {
+  max-width: 42rem; /* 672px */
+  margin: 0 auto;
+}
+
+.activity-feed-title {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.activity-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Loading States */
+.load-more-sentinel {
+  padding: 2rem 0;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #6b7280;
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* End of Feed */
+.end-of-feed {
+  padding: 2rem 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Error State */
+.activity-feed-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  font-size: 1rem;
+  color: #dc2626;
+  margin-bottom: 1.5rem;
+}
+
+.retry-button {
+  padding: 0.625rem 1.25rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retry-button:hover {
+  background-color: #2563eb;
+}
+
+/* Skeleton Loaders */
+.activity-card.skeleton {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+}
+
+.skeleton-text {
+  height: 0.875rem;
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-text-short {
+  width: 40%;
+}
+
+.skeleton-text-medium {
+  width: 60%;
+}
+
+.skeleton-text-long {
+  width: 80%;
+}
+
+.activity-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .activity-feed-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .activity-feed-title {
+    font-size: 1.5rem; /* 24px */
+    margin-bottom: 1rem;
+  }
+
+  .activity-feed-list {
+    gap: 0.75rem;
+  }
+}

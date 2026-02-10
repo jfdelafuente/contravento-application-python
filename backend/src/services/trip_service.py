@@ -292,7 +292,8 @@ class TripService:
             trip.status = TripStatus.PUBLISHED
             trip.published_at = datetime.now(UTC)
             await self.db.commit()
-            await self.db.refresh(trip)
+            # Refresh with eager loading to avoid lazy load issues when building activity metadata
+            await self.db.refresh(trip, ["photos"])
 
             # T036: Update user statistics on first publication
             stats_service = StatsService(self.db)
@@ -302,6 +303,35 @@ class TripService:
                 country_code=country_code,
                 photos_count=photos_count,
                 trip_date=trip_date,
+            )
+
+            # T033: Create activity feed item for trip publication (Feature 018)
+            from src.services.feed_service import FeedService
+
+            # Build metadata with trip info
+            metadata = {
+                "trip_title": trip.title,
+            }
+
+            # Add distance if available
+            if trip.distance_km is not None:
+                metadata["trip_distance_km"] = float(trip.distance_km)
+
+            # Add cover photo URL if trip has photos
+            # Note: trip.photos was loaded with selectinload() at line 252
+            # Access it through the list comprehension to avoid lazy loading issues
+            photos_list = list(trip.photos) if trip.photos else []
+            if photos_list:
+                # Get first photo (cover photo)
+                cover_photo = photos_list[0]
+                metadata["trip_photo_url"] = cover_photo.photo_url
+
+            await FeedService.create_feed_activity(
+                db=self.db,
+                user_id=user_id,
+                activity_type="TRIP_PUBLISHED",
+                related_id=trip_id,
+                metadata=metadata,
             )
 
             logger.info(f"Published trip {trip_id} and updated user stats")
@@ -538,6 +568,17 @@ class TripService:
         if trip.status == TripStatus.PUBLISHED:
             await self._update_photo_count_in_stats(user_id, increment=1)
             logger.info(f"Incremented photo count in stats for user {user_id}")
+
+            # T034: Create activity feed item for photo upload (Feature 018)
+            from src.services.feed_service import FeedService
+
+            await FeedService.create_feed_activity(
+                db=self.db,
+                user_id=user_id,
+                activity_type="PHOTO_UPLOADED",
+                related_id=photo.photo_id,
+                metadata={"photo_url": photo.photo_url, "trip_title": trip.title},
+            )
 
         logger.info(f"Uploaded photo {photo.photo_id} to trip {trip_id}")
         return photo

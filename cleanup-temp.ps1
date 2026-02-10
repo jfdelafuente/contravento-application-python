@@ -11,7 +11,7 @@ Write-Host ""
 Write-Host "[1/7] Eliminando archivos de log..." -ForegroundColor Yellow
 $logs = @(Get-ChildItem -Path . -Filter "*.log" -Recurse -File -ErrorAction SilentlyContinue)
 if ($logs.Count -gt 0) {
-    $logs | Remove-Item -Force
+    $logs | Remove-Item -Force -ErrorAction SilentlyContinue
     Write-Host "      -> $($logs.Count) archivo(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron archivos" -ForegroundColor Gray
@@ -24,9 +24,9 @@ $pyc = @(Get-ChildItem -Path . -Filter "*.pyc" -Recurse -File -ErrorAction Silen
 $pyo = @(Get-ChildItem -Path . -Filter "*.pyo" -Recurse -File -ErrorAction SilentlyContinue)
 $totalPy = $pycache.Count + $pyc.Count + $pyo.Count
 if ($totalPy -gt 0) {
-    $pycache | Remove-Item -Recurse -Force
-    $pyc | Remove-Item -Force
-    $pyo | Remove-Item -Force
+    if ($pycache.Count -gt 0) { $pycache | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($pyc.Count -gt 0) { $pyc | Remove-Item -Force -ErrorAction SilentlyContinue }
+    if ($pyo.Count -gt 0) { $pyo | Remove-Item -Force -ErrorAction SilentlyContinue }
     Write-Host "      -> $totalPy elemento(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron archivos" -ForegroundColor Gray
@@ -36,7 +36,7 @@ if ($totalPy -gt 0) {
 Write-Host "[3/7] Eliminando cache de pytest..." -ForegroundColor Yellow
 $pytest = @(Get-ChildItem -Path . -Filter ".pytest_cache" -Recurse -Directory -ErrorAction SilentlyContinue)
 if ($pytest.Count -gt 0) {
-    $pytest | Remove-Item -Recurse -Force
+    $pytest | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "      -> $($pytest.Count) directorio(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron directorios" -ForegroundColor Gray
@@ -46,7 +46,7 @@ if ($pytest.Count -gt 0) {
 Write-Host "[4/7] Eliminando cache de mypy..." -ForegroundColor Yellow
 $mypy = @(Get-ChildItem -Path . -Filter ".mypy_cache" -Recurse -Directory -ErrorAction SilentlyContinue)
 if ($mypy.Count -gt 0) {
-    $mypy | Remove-Item -Recurse -Force
+    $mypy | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "      -> $($mypy.Count) directorio(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron directorios" -ForegroundColor Gray
@@ -59,9 +59,9 @@ $coverageXml = @(Get-ChildItem -Path . -Filter "coverage.xml" -Recurse -File -Er
 $htmlcov = @(Get-ChildItem -Path . -Filter "htmlcov" -Recurse -Directory -ErrorAction SilentlyContinue)
 $totalCov = $coverage.Count + $coverageXml.Count + $htmlcov.Count
 if ($totalCov -gt 0) {
-    $coverage | Remove-Item -Force
-    $coverageXml | Remove-Item -Force
-    $htmlcov | Remove-Item -Recurse -Force
+    if ($coverage.Count -gt 0) { $coverage | Remove-Item -Force -ErrorAction SilentlyContinue }
+    if ($coverageXml.Count -gt 0) { $coverageXml | Remove-Item -Force -ErrorAction SilentlyContinue }
+    if ($htmlcov.Count -gt 0) { $htmlcov | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
     Write-Host "      -> $totalCov elemento(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron archivos" -ForegroundColor Gray
@@ -73,8 +73,8 @@ $eggInfo = @(Get-ChildItem -Path . -Filter "*.egg-info" -Recurse -Directory -Err
 $tmpclaude = @(Get-ChildItem -Path . -Filter "tmpclaude-*" -Recurse -ErrorAction SilentlyContinue)
 $totalTemp = $eggInfo.Count + $tmpclaude.Count
 if ($totalTemp -gt 0) {
-    $eggInfo | Remove-Item -Recurse -Force
-    $tmpclaude | Remove-Item -Recurse -Force
+    if ($eggInfo.Count -gt 0) { $eggInfo | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($tmpclaude.Count -gt 0) { $tmpclaude | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
     Write-Host "      -> $totalTemp elemento(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron archivos" -ForegroundColor Gray
@@ -84,7 +84,7 @@ if ($totalTemp -gt 0) {
 Write-Host "[7/7] Eliminando cache de npm/vite..." -ForegroundColor Yellow
 $vite = @(Get-ChildItem -Path frontend -Filter ".vite" -Recurse -Directory -ErrorAction SilentlyContinue)
 if ($vite.Count -gt 0) {
-    $vite | Remove-Item -Recurse -Force
+    $vite | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "      -> $($vite.Count) directorio(s) eliminado(s)" -ForegroundColor Gray
 } else {
     Write-Host "      -> No se encontraron directorios" -ForegroundColor Gray

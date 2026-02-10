@@ -62,6 +62,39 @@ export const getPhotoUrl = (relativeUrl: string | null | undefined): string => {
   return `${baseUrl}${relativeUrl}`;
 };
 
+/**
+ * Convert relative user avatar URL to absolute URL or use placeholder
+ *
+ * Similar to getPhotoUrl but with different placeholder for user avatars.
+ *
+ * @param relativeUrl - Relative URL from backend (e.g., '/storage/profile_photos/...')
+ * @returns URL for avatar display, or default avatar if null/undefined
+ *
+ * @example
+ * getAvatarUrl('/storage/profile_photos/2024/01/user123.jpg')
+ * // Returns: 'http://localhost:8000/storage/profile_photos/2024/01/user123.jpg' (local dev)
+ *
+ * getAvatarUrl(null)
+ * // Returns: '/images/default-avatar.png'
+ */
+export const getAvatarUrl = (relativeUrl: string | null | undefined): string => {
+  if (!relativeUrl) return '/images/default-avatar.png';
+
+  // If already absolute URL, return as-is
+  if (relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) {
+    return relativeUrl;
+  }
+
+  // If using proxy (Docker/production), return relative path
+  if (import.meta.env.VITE_USE_PROXY === 'true') {
+    return relativeUrl;
+  }
+
+  // Local development without proxy: convert to absolute URL
+  const baseUrl = getApiBaseUrl();
+  return `${baseUrl}${relativeUrl}`;
+};
+
 // ============================================================================
 // Difficulty Helpers
 // ============================================================================

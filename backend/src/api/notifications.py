@@ -15,15 +15,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db
 from src.models.user import User
-from src.services.notification_service import NotificationService
 from src.schemas.notification import (
-    NotificationsListResponse,
-    NotificationResponse,
-    UnreadCountResponse,
     MarkReadResponse,
+    NotificationResponse,
+    NotificationsListResponse,
     PublicUserSummary,
     TripSummary,
+    UnreadCountResponse,
 )
+from src.services.notification_service import NotificationService
 
 router = APIRouter(
     prefix="/notifications",
