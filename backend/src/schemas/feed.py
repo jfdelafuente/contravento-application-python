@@ -147,3 +147,68 @@ class FeedResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ============================================================
+# ACTIVITY STREAM SCHEMAS (Feature 018)
+# ============================================================
+
+
+class PublicUserSummary(BaseModel):
+    """
+    Public user information for activity feed items (Feature 018 - T021).
+
+    Minimal user data for displaying activity authors in the feed.
+    """
+
+    user_id: str = Field(..., description="User UUID")
+    username: str = Field(..., description="Username")
+    photo_url: str | None = Field(None, description="Profile photo URL (nullable)")
+
+    class Config:
+        from_attributes = True
+
+
+class ActivityFeedItemSchema(BaseModel):
+    """
+    Activity feed item schema (Feature 018 - T021).
+
+    Represents a single activity in the feed (trip published, photo uploaded, achievement).
+    """
+
+    activity_id: str = Field(..., description="Activity UUID")
+    user: PublicUserSummary = Field(..., description="Activity author")
+    activity_type: str = Field(
+        ..., description="Activity type (TRIP_PUBLISHED, PHOTO_UPLOADED, ACHIEVEMENT_UNLOCKED)"
+    )
+    metadata: dict = Field(default_factory=dict, description="Activity metadata (JSON)")
+    created_at: datetime = Field(..., description="Activity creation timestamp (ISO 8601)")
+
+    # Social interaction counters (Feature 018 - US2, US3)
+    likes_count: int = Field(default=0, ge=0, description="Number of likes on this activity")
+    comments_count: int = Field(default=0, ge=0, description="Number of comments on this activity")
+
+    # User interaction state (Feature 018 - US2)
+    is_liked_by_me: bool = Field(
+        default=False, description="True if current user has liked this activity"
+    )
+
+    class Config:
+        from_attributes = True
+
+
+class ActivityFeedResponseSchema(BaseModel):
+    """
+    Activity feed response schema with cursor-based pagination (Feature 018 - T021).
+
+    Response for GET /activity-feed endpoint.
+    """
+
+    activities: list[ActivityFeedItemSchema] = Field(
+        default_factory=list, description="Array of activity feed items"
+    )
+    next_cursor: str | None = Field(None, description="Cursor for next page (null if last page)")
+    has_next: bool = Field(..., description="True if more activities exist beyond current page")
+
+    class Config:
+        from_attributes = True

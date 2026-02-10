@@ -75,21 +75,21 @@ This document breaks down Feature 018 (Activity Stream Feed) into executable tas
 
 #### Backend: Models & Services
 
-- [ ] T019 [US1] Create ActivityFeedItem model in `backend/src/models/activity_feed_item.py` with columns: activity_id, user_id, activity_type, related_id, metadata (JSONB), created_at
-- [ ] T020 [US1] Add indexes to ActivityFeedItem: idx_activities_user_created (user_id, created_at DESC), idx_activities_type_created, idx_activities_created
-- [ ] T021 [P] [US1] Create Pydantic schemas in `backend/src/schemas/feed.py`: ActivityFeedItemSchema, FeedResponseSchema, PublicUserSummary
-- [ ] T022 [US1] Create FeedService class in `backend/src/services/feed_service.py` with method: get_user_feed(user_id, limit, cursor) using cursor-based pagination
-- [ ] T023 [US1] Implement feed query in FeedService.get_user_feed() with JOIN on users, LEFT JOIN on likes/comments for counts, WHERE user_id IN (followed_users), cursor filtering
-- [ ] T024 [US1] Implement feed activity creation in FeedService.create_feed_activity(user_id, activity_type, related_id, metadata) with privacy check (skip if user not public)
+- [X] T019 [US1] Create ActivityFeedItem model in `backend/src/models/activity_feed_item.py` with columns: activity_id, user_id, activity_type, related_id, metadata (JSONB), created_at
+- [X] T020 [US1] Add indexes to ActivityFeedItem: idx_activities_user_created (user_id, created_at DESC), idx_activities_type_created, idx_activities_created
+- [X] T021 [P] [US1] Create Pydantic schemas in `backend/src/schemas/feed.py`: ActivityFeedItemSchema, ActivityFeedResponseSchema, PublicUserSummary
+- [X] T022 [US1] Create FeedService class in `backend/src/services/feed_service.py` with method: get_user_feed(user_id, limit, cursor) using cursor-based pagination
+- [X] T023 [US1] Implement feed query in FeedService.get_user_feed() with JOIN on users, LEFT JOIN on likes/comments for counts, WHERE user_id IN (followed_users), cursor filtering
+- [X] T024 [US1] Implement feed activity creation in FeedService.create_feed_activity(user_id, activity_type, related_id, metadata) with privacy check (skip if user not public)
 - [ ] T025 [P] [US1] Add unit test in `backend/tests/unit/test_feed_service.py` to verify feed query returns activities from followed users only, sorted by created_at DESC
 - [ ] T026 [P] [US1] Add unit test in `backend/tests/unit/test_feed_service.py` to verify cursor pagination works correctly and prevents duplicate items
 
 #### Backend: API Endpoints
 
-- [ ] T027 [US1] Create feed API router in `backend/src/api/feed.py` with endpoint: GET /feed (query params: cursor, limit, activity_type, sort)
-- [ ] T028 [US1] Implement GET /feed endpoint to call FeedService.get_user_feed(), return FeedResponseSchema with activities, next_cursor, has_next
-- [ ] T029 [US1] Add authentication dependency to GET /feed endpoint using `Depends(get_current_user)`
-- [ ] T030 [US1] Register feed router in `backend/src/main.py` with `app.include_router(feed.router)`
+- [X] T027 [US1] Create activity feed API router in `backend/src/api/activity_feed.py` with endpoint: GET /activity-feed (query params: cursor, limit)
+- [X] T028 [US1] Implement GET /activity-feed endpoint to call FeedService.get_user_feed(), return ActivityFeedResponseSchema with activities, next_cursor, has_next
+- [X] T029 [US1] Add authentication dependency to GET /activity-feed endpoint using `Depends(get_current_user)`
+- [X] T030 [US1] Register activity feed router in `backend/src/main.py` with `app.include_router(activity_feed.router)`
 - [ ] T031 [P] [US1] Add integration test in `backend/tests/integration/test_feed_api.py` to verify GET /feed returns 200 with activities for authenticated user
 - [ ] T032 [P] [US1] Add integration test in `backend/tests/integration/test_feed_api.py` to verify GET /feed returns empty array when user has no followed users
 

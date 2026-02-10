@@ -250,6 +250,14 @@ class User(Base):
         doc="Travel diary trips created by this user",
     )
 
+    # Activity Stream relationships (018-activity-stream-feed)
+    activity_feed_items: Mapped[list["ActivityFeedItem"]] = relationship(
+        "ActivityFeedItem",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        doc="Activity feed items created by this user",
+    )
+
     def __repr__(self) -> str:
         """String representation for debugging."""
         return f"<User(id={self.id}, username={self.username}, email={self.email}, role={self.role.value})>"

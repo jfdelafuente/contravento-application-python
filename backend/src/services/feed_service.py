@@ -521,3 +521,188 @@ class FeedService:
             "is_liked_by_me": is_liked_by_me,
             "created_at": trip.created_at,
         }
+
+    # ============================================================
+    # ACTIVITY STREAM METHODS (Feature 018)
+    # ============================================================
+
+    @staticmethod
+    async def get_user_feed(
+        db: AsyncSession,
+        user_id: str,
+        limit: int = 20,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        T022, T023: Get activity feed from followed users with cursor pagination.
+
+        Returns chronological feed of activities (trip published, photo uploaded, achievements)
+        from users that current user follows.
+
+        Args:
+            db: Database session
+            user_id: Current user ID
+            limit: Max activities per page (default: 20)
+            cursor: Cursor for pagination (None for first page)
+
+        Returns:
+            Dict with:
+            - activities: List of ActivityFeedItemSchema dicts
+            - next_cursor: Cursor for next page (None if last page)
+            - has_next: True if more activities exist
+
+        Performance: <2s for 20 activities (SC-001)
+        """
+        from src.models.activity_feed_item import ActivityFeedItem
+        from src.utils.pagination import decode_cursor, encode_cursor
+
+        # Import here to avoid circular dependency
+        from src.models.user import User
+
+        # Get list of followed users
+        followed_users_stmt = select(Follow.followed_user_id).where(Follow.user_id == user_id)
+        followed_users_result = await db.execute(followed_users_stmt)
+        followed_user_ids = [row[0] for row in followed_users_result.fetchall()]
+
+        if not followed_user_ids:
+            # User follows nobody - return empty feed
+            return {
+                "activities": [],
+                "next_cursor": None,
+                "has_next": False,
+            }
+
+        # Build base query for activities from followed users
+        query = (
+            select(ActivityFeedItem, User)
+            .join(User, ActivityFeedItem.user_id == User.user_id)
+            .where(ActivityFeedItem.user_id.in_(followed_user_ids))
+        )
+
+        # Apply cursor filtering
+        if cursor:
+            try:
+                cursor_data = decode_cursor(cursor)
+                cursor_created_at = cursor_data["created_at"]
+                cursor_activity_id = cursor_data["activity_id"]
+
+                query = query.where(
+                    (ActivityFeedItem.created_at < cursor_created_at)
+                    | (
+                        and_(
+                            ActivityFeedItem.created_at == cursor_created_at,
+                            ActivityFeedItem.activity_id < cursor_activity_id,
+                        )
+                    )
+                )
+            except ValueError:
+                # Invalid cursor - ignore and start from beginning
+                pass
+
+        # Order by created_at DESC, activity_id DESC (for stable pagination)
+        query = query.order_by(desc(ActivityFeedItem.created_at), desc(ActivityFeedItem.activity_id))
+
+        # Fetch limit + 1 to detect if there are more pages
+        query = query.limit(limit + 1)
+
+        result = await db.execute(query)
+        rows = result.all()
+
+        # Check if there are more pages
+        has_next = len(rows) > limit
+        activities_data = rows[:limit]  # Take only requested limit
+
+        # Build activity list
+        activities = []
+        for activity_item, user in activities_data:
+            # Get counts for likes and comments
+            # TODO: Optimize with LEFT JOIN in query (Phase 4)
+            likes_count = 0  # Placeholder - will be implemented in Phase 4
+            comments_count = 0  # Placeholder - will be implemented in Phase 5
+
+            # is_liked_by_me flag
+            # TODO: Check if current user liked this activity (Phase 4)
+            is_liked_by_me = False
+
+            activities.append(
+                {
+                    "activity_id": activity_item.activity_id,
+                    "user": {
+                        "user_id": user.user_id,
+                        "username": user.username,
+                        "photo_url": user.photo_url,
+                    },
+                    "activity_type": activity_item.activity_type.value,
+                    "metadata": activity_item.metadata if isinstance(activity_item.metadata, dict) else {},
+                    "created_at": activity_item.created_at,
+                    "likes_count": likes_count,
+                    "comments_count": comments_count,
+                    "is_liked_by_me": is_liked_by_me,
+                }
+            )
+
+        # Generate next cursor
+        next_cursor = None
+        if has_next and activities:
+            last_activity = activities_data[-1][0]
+            next_cursor = encode_cursor(last_activity.created_at, last_activity.activity_id)
+
+        return {
+            "activities": activities,
+            "next_cursor": next_cursor,
+            "has_next": has_next,
+        }
+
+    @staticmethod
+    async def create_feed_activity(
+        db: AsyncSession,
+        user_id: str,
+        activity_type: str,
+        related_id: str,
+        metadata: dict,
+    ) -> None:
+        """
+        T024: Create feed activity with privacy check.
+
+        Creates an activity feed item if user's profile is public.
+        Private users don't generate feed activities.
+
+        Args:
+            db: Database session
+            user_id: User who performed the activity
+            activity_type: Type (TRIP_PUBLISHED, PHOTO_UPLOADED, ACHIEVEMENT_UNLOCKED)
+            related_id: Related entity ID (trip_id, photo_id, achievement_id)
+            metadata: Activity metadata (JSON)
+
+        Returns:
+            None (activity created silently)
+        """
+        from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+        from src.models.user import User
+        from uuid import uuid4
+        from datetime import UTC, datetime
+
+        # Check if user profile is public
+        user_stmt = select(User).where(User.user_id == user_id)
+        user_result = await db.execute(user_stmt)
+        user = user_result.scalar_one_or_none()
+
+        if not user:
+            return  # User not found - skip activity creation
+
+        # TODO: Check profile visibility when UserProfile model is available
+        # For now, create activity for all users
+        # Future: if user.profile.profile_visibility != 'public': return
+
+        # Create activity feed item
+        activity = ActivityFeedItem(
+            activity_id=str(uuid4()),
+            user_id=user_id,
+            activity_type=ActivityType(activity_type),
+            related_id=related_id,
+            metadata=str(metadata) if not isinstance(metadata, str) else metadata,  # Store as JSON string for SQLite
+            created_at=datetime.now(UTC),
+        )
+
+        db.add(activity)
+        await db.commit()
