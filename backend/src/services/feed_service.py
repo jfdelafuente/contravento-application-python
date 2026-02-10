@@ -630,6 +630,24 @@ class FeedService:
             # TODO: Check if current user liked this activity (Phase 4)
             is_liked_by_me = False
 
+            # Parse metadata from JSON
+            metadata = (
+                json.loads(activity_item.activity_metadata)
+                if isinstance(activity_item.activity_metadata, str)
+                else activity_item.activity_metadata
+                if isinstance(activity_item.activity_metadata, dict)
+                else {}
+            )
+
+            # Enrich metadata with trip_id from related_id for TRIP_PUBLISHED activities
+            activity_type = (
+                activity_item.activity_type.value
+                if hasattr(activity_item.activity_type, "value")
+                else activity_item.activity_type
+            )
+            if activity_type == "TRIP_PUBLISHED" and activity_item.related_id:
+                metadata["trip_id"] = activity_item.related_id
+
             activities.append(
                 {
                     "activity_id": activity_item.activity_id,
@@ -638,18 +656,8 @@ class FeedService:
                         "username": user.username,
                         "photo_url": user.profile.profile_photo_url if user.profile else None,
                     },
-                    "activity_type": (
-                        activity_item.activity_type.value
-                        if hasattr(activity_item.activity_type, "value")
-                        else activity_item.activity_type
-                    ),
-                    "metadata": (
-                        json.loads(activity_item.activity_metadata)
-                        if isinstance(activity_item.activity_metadata, str)
-                        else activity_item.activity_metadata
-                        if isinstance(activity_item.activity_metadata, dict)
-                        else {}
-                    ),
+                    "activity_type": activity_type,
+                    "metadata": metadata,
                     "created_at": activity_item.created_at,
                     "likes_count": likes_count,
                     "comments_count": comments_count,
@@ -717,9 +725,7 @@ class FeedService:
             user_id=user_id,
             activity_type=ActivityType(activity_type),
             related_id=related_id,
-            activity_metadata=json.dumps(metadata)
-            if not isinstance(metadata, str)
-            else metadata,  # Store as JSON string for SQLite
+            activity_metadata=metadata,  # Pass dict directly - SQLAlchemy JSON handles it
             created_at=datetime.now(UTC),
         )
 

@@ -59,11 +59,11 @@ poetry run python scripts/seeding/seed_trips.py --user testuser --count 2
 
 **Opción 1 - Desde el frontend** (recomendado):
 1. Login como `testuser`
-2. Ir a perfil de `maria_garcia`: `http://localhost:5173/@maria_garcia`
+2. Ir a perfil de `maria_garcia`: `http://localhost:5173/users/maria_garcia`
 3. Click en botón "Seguir"
 4. Logout
 5. Login como `maria_garcia`
-6. Ir a perfil de `testuser`: `http://localhost:5173/@testuser`
+6. Ir a perfil de `testuser`: `http://localhost:5173/users/testuser`
 7. Click en botón "Seguir"
 
 **Opción 2 - Via API directa** (si el botón no existe en UI):
@@ -95,7 +95,7 @@ curl -X POST "http://localhost:8000/users/{MARIA_ID}/follow" \
    - Credenciales: `testuser` / `TestPass123!`
 
 2. **Ir al Activity Feed**
-   - URL: `http://localhost:5173/feed`
+   - URL: `http://localhost:5173/activities`
    - Verificar que aparecen actividades de `maria_garcia`
    - Si no aparecen, verificar pre-requisitos (follow + trips creados)
 
@@ -165,7 +165,7 @@ curl -X POST "http://localhost:8000/users/{MARIA_ID}/follow" \
    - Credenciales: `maria_garcia` / `SecurePass456!`
 
 4. **Ir al feed de maria_garcia**
-   - URL: `http://localhost:5173/feed`
+   - URL: `http://localhost:5173/activities`
    - Buscar una actividad de testuser
 
 5. **Dar like a la actividad de testuser**

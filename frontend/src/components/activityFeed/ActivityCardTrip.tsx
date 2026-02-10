@@ -41,6 +41,7 @@ export const ActivityCardTrip: React.FC<ActivityCardTripProps> = ({ activity }) 
   const { user, metadata, created_at, likes_count, comments_count } = activity;
 
   // Extract trip metadata
+  const tripId = metadata.trip_id;
   const tripTitle = metadata.trip_title || 'Sin título';
   const tripDistance = metadata.trip_distance_km;
   const tripPhotoUrl = metadata.trip_photo_url;
@@ -58,7 +59,7 @@ export const ActivityCardTrip: React.FC<ActivityCardTripProps> = ({ activity }) 
     <article className="activity-card">
       {/* Header: User info and timestamp */}
       <header className="activity-card-header">
-        <Link to={`/profile/${user.username}`} className="user-avatar-link">
+        <Link to={`/users/${user.username}`} className="user-avatar-link">
           <img
             src={profilePhotoUrl}
             alt={`Avatar de ${user.username}`}
@@ -68,7 +69,7 @@ export const ActivityCardTrip: React.FC<ActivityCardTripProps> = ({ activity }) 
 
         <div className="activity-card-meta">
           <div className="activity-card-title">
-            <Link to={`/profile/${user.username}`} className="username-link">
+            <Link to={`/users/${user.username}`} className="username-link">
               {user.username}
             </Link>
             <span className="activity-action">publicó un viaje</span>
@@ -79,27 +80,52 @@ export const ActivityCardTrip: React.FC<ActivityCardTripProps> = ({ activity }) 
         </div>
       </header>
 
-      {/* Body: Trip content */}
-      <div className="activity-card-body">
-        <h3 className="trip-title">{tripTitle}</h3>
+      {/* Body: Trip content - Clickable to navigate to trip detail */}
+      {tripId ? (
+        <Link to={`/trips/${tripId}`} className="activity-card-body-link">
+          <div className="activity-card-body">
+            <h3 className="trip-title">{tripTitle}</h3>
 
-        {tripDistance && (
-          <p className="trip-distance">
-            📍 {tripDistance.toFixed(1)} km
-          </p>
-        )}
+            {tripDistance && (
+              <p className="trip-distance">
+                📍 {tripDistance.toFixed(1)} km
+              </p>
+            )}
 
-        {tripPhotoUrl && (
-          <div className="trip-photo-container">
-            <img
-              src={getPhotoUrl(tripPhotoUrl)}
-              alt={tripTitle}
-              className="trip-photo"
-              loading="lazy"
-            />
+            {tripPhotoUrl && (
+              <div className="trip-photo-container">
+                <img
+                  src={getPhotoUrl(tripPhotoUrl)}
+                  alt={tripTitle}
+                  className="trip-photo"
+                  loading="lazy"
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </Link>
+      ) : (
+        <div className="activity-card-body">
+          <h3 className="trip-title">{tripTitle}</h3>
+
+          {tripDistance && (
+            <p className="trip-distance">
+              📍 {tripDistance.toFixed(1)} km
+            </p>
+          )}
+
+          {tripPhotoUrl && (
+            <div className="trip-photo-container">
+              <img
+                src={getPhotoUrl(tripPhotoUrl)}
+                alt={tripTitle}
+                className="trip-photo"
+                loading="lazy"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer: Social interactions */}
       <footer className="activity-card-footer">

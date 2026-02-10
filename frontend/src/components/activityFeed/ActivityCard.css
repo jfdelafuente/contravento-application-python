@@ -70,6 +70,23 @@
   margin-bottom: 1rem;
 }
 
+.activity-card-body-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+}
+
+.activity-card-body-link:hover .trip-title {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.activity-card-body-link:hover .trip-photo {
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
 .trip-title {
   font-size: 1.125rem;
   font-weight: 600;

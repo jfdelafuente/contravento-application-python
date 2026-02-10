@@ -47,7 +47,7 @@ export const ActivityCardPhoto: React.FC<ActivityCardPhotoProps> = ({ activity }
   return (
     <article className="activity-card">
       <header className="activity-card-header">
-        <Link to={`/profile/${user.username}`} className="user-avatar-link">
+        <Link to={`/users/${user.username}`} className="user-avatar-link">
           <img
             src={profilePhotoUrl}
             alt={`Avatar de ${user.username}`}
@@ -57,7 +57,7 @@ export const ActivityCardPhoto: React.FC<ActivityCardPhotoProps> = ({ activity }
 
         <div className="activity-card-meta">
           <div className="activity-card-title">
-            <Link to={`/profile/${user.username}`} className="username-link">
+            <Link to={`/users/${user.username}`} className="username-link">
               {user.username}
             </Link>
             <span className="activity-action">subió una foto a {tripTitle}</span>

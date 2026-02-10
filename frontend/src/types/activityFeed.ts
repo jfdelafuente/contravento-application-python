@@ -23,6 +23,7 @@ export interface PublicUserSummary {
  */
 export interface ActivityMetadata {
   // TRIP_PUBLISHED metadata
+  trip_id?: string; // Trip UUID for navigation
   trip_title?: string;
   trip_distance_km?: number;
   trip_photo_url?: string;

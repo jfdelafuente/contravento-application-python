@@ -310,6 +310,7 @@ class TripService:
 
             # Build metadata with trip info
             metadata = {
+                "trip_id": trip_id,  # Trip ID for navigation (Feature 018 - T039)
                 "trip_title": trip.title,
             }
 

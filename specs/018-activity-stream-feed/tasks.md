@@ -111,10 +111,17 @@ This document breaks down Feature 018 (Activity Stream Feed) into executable tas
 
 **Status**: ✅ COMPLETE (40/40 tasks)
 
+**Backend Implementation**:
 - Backend: Models, services, API, triggers, tests all implemented and passing
 - Frontend: Components, hooks, page with infinite scroll all implemented
 - Validation: End-to-end validation script created and working
 - Route: `/activities` added to App.tsx
+
+**Testing & Documentation**:
+- Manual testing guide created: `specs/018-activity-stream-feed/MANUAL_TESTING_FEED.md`
+- 7 test scenarios + 4 edge cases documented
+- Known limitations: No real-time updates (requires WebSockets), only TRIP_PUBLISHED activities (PHOTO_UPLOADED and ACHIEVEMENT_UNLOCKED pending)
+- Success criteria: Feed loads <2s, cursor pagination, privacy enforcement
 
 ---
 

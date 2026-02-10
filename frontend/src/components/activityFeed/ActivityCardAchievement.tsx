@@ -49,7 +49,7 @@ export const ActivityCardAchievement: React.FC<ActivityCardAchievementProps> = (
   return (
     <article className="activity-card activity-card-achievement">
       <header className="activity-card-header">
-        <Link to={`/profile/${user.username}`} className="user-avatar-link">
+        <Link to={`/users/${user.username}`} className="user-avatar-link">
           <img
             src={profilePhotoUrl}
             alt={`Avatar de ${user.username}`}
@@ -59,7 +59,7 @@ export const ActivityCardAchievement: React.FC<ActivityCardAchievementProps> = (
 
         <div className="activity-card-meta">
           <div className="activity-card-title">
-            <Link to={`/profile/${user.username}`} className="username-link">
+            <Link to={`/users/${user.username}`} className="username-link">
               {user.username}
             </Link>
             <span className="activity-action">desbloqueó un logro</span>
