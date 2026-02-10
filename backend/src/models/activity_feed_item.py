@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import DateTime, Index, String, Text
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
@@ -60,6 +60,7 @@ class ActivityFeedItem(Base):
     )
     user_id: Mapped[str] = mapped_column(
         String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -71,7 +72,8 @@ class ActivityFeedItem(Base):
         String(36),
         nullable=False,
     )  # trip_id, photo_id, or user_achievement_id
-    metadata: Mapped[dict] = mapped_column(
+    activity_metadata: Mapped[dict] = mapped_column(
+        "metadata",  # Database column name
         Text,
         nullable=False,
         default="{}",

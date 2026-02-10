@@ -73,7 +73,7 @@ async def test_get_personalized_feed_returns_followed_trips(db_session: AsyncSes
     # Get personalized feed
     result = await FeedService.get_personalized_feed(
         db=db_session,
-        user_id=current_user.id,
+        follower_id=current_user.id,
         page=1,
         limit=10,
     )
@@ -144,7 +144,7 @@ async def test_get_followed_trips_excludes_drafts(db_session: AsyncSession):
     # Get feed
     result = await FeedService.get_personalized_feed(
         db=db_session,
-        user_id=current_user.id,
+        follower_id=current_user.id,
         page=1,
         limit=10,
     )
@@ -222,7 +222,7 @@ async def test_get_community_trips_backfill(db_session: AsyncSession):
     # Request limit=10 but only 1 followed trip exists
     result = await FeedService.get_personalized_feed(
         db=db_session,
-        user_id=current_user.id,
+        follower_id=current_user.id,
         page=1,
         limit=10,
     )
@@ -547,3 +547,512 @@ async def test_feed_includes_is_liked_by_me_flag(db_session: AsyncSession):
         feed_item = result["trips"][0]
         assert "is_liked_by_me" in feed_item
         assert isinstance(feed_item["is_liked_by_me"], bool)
+
+
+# ============================================================================
+# Feature 018 - Activity Stream Feed Tests (T025-T026)
+# ============================================================================
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_returns_activities_from_followed_users(db_session: AsyncSession):
+    """
+    T025: Test get_user_feed() returns activities from followed users.
+
+    Business Logic (Feature 018 - FR-001):
+    - Activity stream shows TRIP_PUBLISHED, PHOTO_UPLOADED, ACHIEVEMENT_UNLOCKED
+    - Only from users that current user follows
+    - Ordered chronologically DESC (most recent first)
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # Create users
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+    followed_user1 = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+    )
+    followed_user2 = User(
+        id="user3",
+        username="pedro",
+        email="pedro@example.com",
+        hashed_password="hash",
+    )
+    unfollowed_user = User(
+        id="user4",
+        username="ana",
+        email="ana@example.com",
+        hashed_password="hash",
+    )
+
+    # Current user follows maria and pedro
+    follow1 = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user1.id,
+    )
+    follow2 = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user2.id,
+    )
+
+    # Create activities
+    activity1 = ActivityFeedItem(
+        activity_id="act1",
+        user_id=followed_user1.id,
+        activity_type=ActivityType.TRIP_PUBLISHED,
+        related_id="trip1",
+        activity_metadata='{"trip_title": "Ruta Pirineos"}',
+        created_at=datetime(2024, 6, 15, 10, 0, 0, tzinfo=UTC),
+    )
+    activity2 = ActivityFeedItem(
+        activity_id="act2",
+        user_id=followed_user2.id,
+        activity_type=ActivityType.PHOTO_UPLOADED,
+        related_id="photo1",
+        activity_metadata='{"photo_count": 5}',
+        created_at=datetime(2024, 6, 16, 10, 0, 0, tzinfo=UTC),
+    )
+    # Activity from unfollowed user (should NOT appear)
+    activity3 = ActivityFeedItem(
+        activity_id="act3",
+        user_id=unfollowed_user.id,
+        activity_type=ActivityType.TRIP_PUBLISHED,
+        related_id="trip3",
+        activity_metadata='{"trip_title": "Should not appear"}',
+        created_at=datetime(2024, 6, 17, 10, 0, 0, tzinfo=UTC),
+    )
+
+    db_session.add_all(
+        [
+            current_user,
+            followed_user1,
+            followed_user2,
+            unfollowed_user,
+            follow1,
+            follow2,
+            activity1,
+            activity2,
+            activity3,
+        ]
+    )
+    await db_session.commit()
+
+    # Get activity feed
+    result = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=20,
+        cursor=None,
+    )
+
+    # Should return activities from followed users only
+    assert len(result["activities"]) == 2
+    activity_ids = [act["activity_id"] for act in result["activities"]]
+    assert "act1" in activity_ids  # From followed user maria
+    assert "act2" in activity_ids  # From followed user pedro
+    assert "act3" not in activity_ids  # From unfollowed user (excluded)
+
+    # Should be ordered chronologically DESC (most recent first)
+    assert result["activities"][0]["activity_id"] == "act2"  # Most recent
+    assert result["activities"][1]["activity_id"] == "act1"  # Older
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_returns_empty_when_following_nobody(db_session: AsyncSession):
+    """
+    T025: Test get_user_feed() returns empty feed when user follows nobody.
+
+    Business Logic (Feature 018):
+    - If user follows no one, feed should be empty
+    - Different from Feature 004 personalized feed (which shows community trips)
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # User follows nobody
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+
+    # Other user with activity
+    other_user = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+    )
+
+    activity = ActivityFeedItem(
+        activity_id="act1",
+        user_id=other_user.id,
+        activity_type=ActivityType.TRIP_PUBLISHED,
+        related_id="trip1",
+        activity_metadata='{"trip_title": "Should not appear"}',
+        created_at=datetime(2024, 6, 15, 10, 0, 0, tzinfo=UTC),
+    )
+
+    db_session.add_all([current_user, other_user, activity])
+    await db_session.commit()
+
+    # Get feed
+    result = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=20,
+        cursor=None,
+    )
+
+    # Should return empty feed
+    assert len(result["activities"]) == 0
+    assert result["has_next"] is False
+    assert result["next_cursor"] is None
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_cursor_pagination_first_page(db_session: AsyncSession):
+    """
+    T026: Test cursor-based pagination (first page).
+
+    Business Logic (Feature 018 - FR-002):
+    - First page: cursor=None
+    - Returns up to limit activities
+    - Provides next_cursor for next page
+    - has_next=True if more activities exist
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # Create user and followed user
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+    followed_user = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+    )
+
+    follow = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user.id,
+    )
+
+    # Create 25 activities
+    activities = []
+    base_time = datetime(2024, 6, 1, 10, 0, 0, tzinfo=UTC)
+    for i in range(25):
+        activity = ActivityFeedItem(
+            activity_id=f"act{i}",
+            user_id=followed_user.id,
+            activity_type=ActivityType.TRIP_PUBLISHED,
+            related_id=f"trip{i}",
+            activity_metadata=f'{{"trip_title": "Trip {i}"}}',
+            created_at=base_time + timedelta(hours=i),
+        )
+        activities.append(activity)
+
+    db_session.add_all([current_user, followed_user, follow] + activities)
+    await db_session.commit()
+
+    # Get first page (limit=10, cursor=None)
+    result = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=10,
+        cursor=None,
+    )
+
+    # Should return 10 activities
+    assert len(result["activities"]) == 10
+
+    # Should have next_cursor (more activities exist)
+    assert result["next_cursor"] is not None
+    assert result["has_next"] is True
+
+    # Should be ordered DESC (most recent first)
+    assert result["activities"][0]["activity_id"] == "act24"  # Most recent
+    assert result["activities"][9]["activity_id"] == "act15"  # 10th item
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_cursor_pagination_second_page(db_session: AsyncSession):
+    """
+    T026: Test cursor-based pagination (second page).
+
+    Business Logic (Feature 018 - FR-003):
+    - Second page: use next_cursor from first page
+    - Returns next batch of activities
+    - Cursor contains (created_at, activity_id) for stable sorting
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # Create user and followed user
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+    followed_user = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+    )
+
+    follow = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user.id,
+    )
+
+    # Create 25 activities
+    activities = []
+    base_time = datetime(2024, 6, 1, 10, 0, 0, tzinfo=UTC)
+    for i in range(25):
+        activity = ActivityFeedItem(
+            activity_id=f"act{i}",
+            user_id=followed_user.id,
+            activity_type=ActivityType.TRIP_PUBLISHED,
+            related_id=f"trip{i}",
+            activity_metadata=f'{{"trip_title": "Trip {i}"}}',
+            created_at=base_time + timedelta(hours=i),
+        )
+        activities.append(activity)
+
+    db_session.add_all([current_user, followed_user, follow] + activities)
+    await db_session.commit()
+
+    # Get first page to get cursor
+    result_page1 = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=10,
+        cursor=None,
+    )
+
+    # Get second page using cursor from first page
+    result_page2 = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=10,
+        cursor=result_page1["next_cursor"],
+    )
+
+    # Should return next 10 activities
+    assert len(result_page2["activities"]) == 10
+
+    # Should NOT overlap with first page
+    page1_ids = {act["activity_id"] for act in result_page1["activities"]}
+    page2_ids = {act["activity_id"] for act in result_page2["activities"]}
+    assert len(page1_ids & page2_ids) == 0  # No overlap
+
+    # Second page should have older activities
+    assert result_page2["activities"][0]["activity_id"] == "act14"
+    assert result_page2["activities"][9]["activity_id"] == "act5"
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_cursor_pagination_last_page(db_session: AsyncSession):
+    """
+    T026: Test cursor pagination (last page).
+
+    Business Logic (Feature 018):
+    - Last page: has_next=False
+    - next_cursor=None (no more pages)
+    - Returns remaining activities (< limit)
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # Create user and followed user
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+    followed_user = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+    )
+
+    follow = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user.id,
+    )
+
+    # Create only 5 activities
+    activities = []
+    base_time = datetime(2024, 6, 1, 10, 0, 0, tzinfo=UTC)
+    for i in range(5):
+        activity = ActivityFeedItem(
+            activity_id=f"act{i}",
+            user_id=followed_user.id,
+            activity_type=ActivityType.TRIP_PUBLISHED,
+            related_id=f"trip{i}",
+            activity_metadata=f'{{"trip_title": "Trip {i}"}}',
+            created_at=base_time + timedelta(hours=i),
+        )
+        activities.append(activity)
+
+    db_session.add_all([current_user, followed_user, follow] + activities)
+    await db_session.commit()
+
+    # Get feed with limit=10 (more than available)
+    result = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=10,
+        cursor=None,
+    )
+
+    # Should return all 5 activities
+    assert len(result["activities"]) == 5
+
+    # Should indicate no more pages
+    assert result["has_next"] is False
+    assert result["next_cursor"] is None
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_invalid_cursor_ignored(db_session: AsyncSession):
+    """
+    T026: Test invalid cursor is gracefully ignored.
+
+    Business Logic (Feature 018 - FR-005):
+    - Invalid cursor → fallback to first page (cursor=None)
+    - No exception raised (graceful degradation)
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # Create user and followed user
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+    followed_user = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+    )
+
+    follow = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user.id,
+    )
+
+    activity = ActivityFeedItem(
+        activity_id="act1",
+        user_id=followed_user.id,
+        activity_type=ActivityType.TRIP_PUBLISHED,
+        related_id="trip1",
+        activity_metadata='{"trip_title": "Trip 1"}',
+        created_at=datetime(2024, 6, 15, 10, 0, 0, tzinfo=UTC),
+    )
+
+    db_session.add_all([current_user, followed_user, follow, activity])
+    await db_session.commit()
+
+    # Try with invalid cursor
+    result = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=10,
+        cursor="invalid_cursor_12345",  # Malformed cursor
+    )
+
+    # Should return activities (fallback to first page)
+    assert len(result["activities"]) >= 1
+    assert "act1" in [act["activity_id"] for act in result["activities"]]
+
+
+@pytest.mark.asyncio
+async def test_get_user_feed_includes_user_metadata(db_session: AsyncSession):
+    """
+    T025: Test activity feed includes user metadata (username, photo_url).
+
+    Business Logic (Feature 018 - FR-006):
+    - Each activity includes minimal user data (PublicUserSummary)
+    - username, photo_url for displaying activity author
+    """
+    from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+    # Create users with profile photos
+    current_user = User(
+        id="user1",
+        username="john",
+        email="john@example.com",
+        hashed_password="hash",
+    )
+    followed_user = User(
+        id="user2",
+        username="maria",
+        email="maria@example.com",
+        hashed_password="hash",
+        photo_url="/storage/profile_photos/maria.jpg",
+    )
+
+    follow = Follow(
+        id=str(uuid.uuid4()),
+        follower_id=current_user.id,
+        following_id=followed_user.id,
+    )
+
+    activity = ActivityFeedItem(
+        activity_id="act1",
+        user_id=followed_user.id,
+        activity_type=ActivityType.TRIP_PUBLISHED,
+        related_id="trip1",
+        activity_metadata='{"trip_title": "Ruta Pirineos"}',
+        created_at=datetime(2024, 6, 15, 10, 0, 0, tzinfo=UTC),
+    )
+
+    db_session.add_all([current_user, followed_user, follow, activity])
+    await db_session.commit()
+
+    # Get feed
+    result = await FeedService.get_user_feed(
+        db=db_session,
+        user_id=current_user.id,
+
+        limit=10,
+        cursor=None,
+    )
+
+    # Verify user metadata included
+    assert len(result["activities"]) == 1
+    activity_data = result["activities"][0]
+
+    assert "user" in activity_data
+    assert activity_data["user"]["user_id"] == followed_user.id
+    assert activity_data["user"]["username"] == "maria"
+    assert activity_data["user"]["photo_url"] == "/storage/profile_photos/maria.jpg"

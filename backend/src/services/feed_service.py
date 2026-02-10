@@ -560,7 +560,7 @@ class FeedService:
         from src.models.user import User
 
         # Get list of followed users
-        followed_users_stmt = select(Follow.followed_user_id).where(Follow.user_id == user_id)
+        followed_users_stmt = select(Follow.following_id).where(Follow.follower_id == user_id)
         followed_users_result = await db.execute(followed_users_stmt)
         followed_user_ids = [row[0] for row in followed_users_result.fetchall()]
 
@@ -575,7 +575,7 @@ class FeedService:
         # Build base query for activities from followed users
         query = (
             select(ActivityFeedItem, User)
-            .join(User, ActivityFeedItem.user_id == User.user_id)
+            .join(User, ActivityFeedItem.user_id == User.id)
             .where(ActivityFeedItem.user_id.in_(followed_user_ids))
         )
 
@@ -628,12 +628,12 @@ class FeedService:
                 {
                     "activity_id": activity_item.activity_id,
                     "user": {
-                        "user_id": user.user_id,
+                        "user_id": user.id,
                         "username": user.username,
                         "photo_url": user.photo_url,
                     },
                     "activity_type": activity_item.activity_type.value,
-                    "metadata": activity_item.metadata if isinstance(activity_item.metadata, dict) else {},
+                    "metadata": activity_item.activity_metadata if isinstance(activity_item.activity_metadata, dict) else {},
                     "created_at": activity_item.created_at,
                     "likes_count": likes_count,
                     "comments_count": comments_count,
@@ -683,7 +683,7 @@ class FeedService:
         from datetime import UTC, datetime
 
         # Check if user profile is public
-        user_stmt = select(User).where(User.user_id == user_id)
+        user_stmt = select(User).where(User.id == user_id)
         user_result = await db.execute(user_stmt)
         user = user_result.scalar_one_or_none()
 
@@ -700,7 +700,7 @@ class FeedService:
             user_id=user_id,
             activity_type=ActivityType(activity_type),
             related_id=related_id,
-            metadata=str(metadata) if not isinstance(metadata, str) else metadata,  # Store as JSON string for SQLite
+            activity_metadata=str(metadata) if not isinstance(metadata, str) else metadata,  # Store as JSON string for SQLite
             created_at=datetime.now(UTC),
         )
 

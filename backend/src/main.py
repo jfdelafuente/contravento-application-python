@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.config import settings
+from src.models.activity_feed_item import ActivityFeedItem  # noqa: F401
 from src.models.comment import Comment  # noqa: F401
 from src.models.cycling_type import CyclingType  # noqa: F401
 from src.models.like import Like  # noqa: F401
