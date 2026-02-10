@@ -1919,6 +1919,258 @@ gradient: float | None = Field(
 6. **Don't forget mobile responsiveness**: Use ResponsiveContainer and media queries
 7. **Don't skip gradient color coding**: Visual distinction between uphill/downhill is key UX feature
 
+## Activity Stream Feed (Feature 018)
+
+The Activity Stream Feed enables users to view activities from followed users (trip publications, photo uploads, achievements) in a chronological feed with infinite scroll.
+
+### Activity Feed User Stories
+
+**User Stories**:
+
+1. **US1 - View Feed**: See chronological activities from followed users with infinite scroll
+2. **US2 - Like Activities**: Like/unlike activities with optimistic UI updates
+3. **US3 - Comment** (Future): Add comments to activities
+
+### Activity Feed Architecture
+
+**Backend Architecture**:
+
+- **ActivityFeedItem Model** ([activity_feed_item.py](backend/src/models/activity_feed_item.py)):
+  - Fields: `activity_id`, `user_id`, `activity_type`, `related_id`, `activity_metadata`, `created_at`
+  - `related_id`: Stores the trip_id, photo_id, or achievement_id (critical for navigation)
+  - `activity_metadata`: JSON field (TEXT in SQLite, JSONB in PostgreSQL) with type-specific data
+  - Indexes: `(user_id, created_at)`, `(activity_type, created_at)`, `(created_at)`
+
+- **FeedService** ([feed_service.py](backend/src/services/feed_service.py)):
+  - `get_activity_feed()`: Cursor-based pagination with `limit` and `cursor` parameters
+  - **Metadata enrichment pattern**: Enriches metadata at response time using `related_id`
+
+  ```python
+  # Enrich metadata with trip_id from related_id for TRIP_PUBLISHED activities
+  if activity_type == "TRIP_PUBLISHED" and activity_item.related_id:
+      metadata["trip_id"] = activity_item.related_id
+  ```
+
+  - Returns: `ActivityFeedResponse` with `activities`, `next_cursor`, `has_next`
+
+**Frontend Components**:
+
+- **ActivityFeed.tsx**: Main feed page with infinite scroll
+  - Uses TanStack Query (`useInfiniteQuery`) for data fetching
+  - Cursor-based pagination with `getNextPageParam`
+  - Infinite scroll with intersection observer
+  - Empty state: "No hay actividades. Sigue a otros usuarios..."
+
+- **Activity Cards** (Polymorphic by activity type):
+  - **ActivityCardTrip.tsx**: Displays TRIP_PUBLISHED with trip title, distance, cover photo
+  - **ActivityCardPhoto.tsx**: Displays PHOTO_UPLOADED with photo preview
+  - **ActivityCardAchievement.tsx**: Displays ACHIEVEMENT_UNLOCKED with badge
+
+- **LikeButton.tsx**: Like/unlike with optimistic updates
+  - Immediate UI update (optimistic)
+  - Rollback on error
+  - Authenticated-only (redirects to login if not logged in)
+
+### Implementation Patterns
+
+#### 1. Cursor-Based Pagination Pattern
+
+Efficient pagination for large datasets using `created_at` timestamps:
+
+```typescript
+// Frontend: useInfiniteQuery with cursor
+const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  queryKey: ['activityFeed'],
+  queryFn: ({ pageParam }) => getActivityFeed({ cursor: pageParam, limit: 20 }),
+  getNextPageParam: (lastPage) => lastPage.has_next ? lastPage.next_cursor : undefined,
+  initialPageParam: null,
+});
+
+// Backend: Cursor extraction and next page calculation
+if cursor:
+    cursor_parts = cursor.split('_')
+    cursor_timestamp = datetime.fromisoformat(cursor_parts[0])
+    last_activity_id = cursor_parts[1]
+
+    query = query.filter(
+        or_(
+            ActivityFeedItem.created_at < cursor_timestamp,
+            and_(
+                ActivityFeedItem.created_at == cursor_timestamp,
+                ActivityFeedItem.activity_id < last_activity_id
+            )
+        )
+    )
+```
+
+#### 2. Metadata Enrichment Pattern
+
+**Critical**: Enrich metadata at response time, not at creation time, to avoid database migration:
+
+```python
+# ✅ CORRECT: Enrich in FeedService.get_activity_feed()
+metadata = json.loads(activity_item.activity_metadata) if isinstance(...) else {}
+
+if activity_type == "TRIP_PUBLISHED" and activity_item.related_id:
+    metadata["trip_id"] = activity_item.related_id  # Use existing related_id field
+
+# ❌ WRONG: Don't modify TripService.publish_trip() to add trip_id to metadata
+# This would only affect new trips, breaking navigation for old activities
+```
+
+#### 3. Activity Card Navigation Pattern
+
+Make entire card body clickable for trip activities:
+
+```typescript
+// ActivityCardTrip.tsx
+const tripId = metadata.trip_id;
+
+{tripId ? (
+  <Link to={`/trips/${tripId}`} className="activity-card-body-link">
+    <div className="activity-card-body">
+      <h3 className="trip-title">{tripTitle}</h3>
+      {tripPhotoUrl && (
+        <img src={getPhotoUrl(tripPhotoUrl)} alt={tripTitle} className="trip-photo" />
+      )}
+    </div>
+  </Link>
+) : (
+  <div className="activity-card-body">{/* fallback without link */}</div>
+)}
+```
+
+**CSS hover effects**:
+```css
+.activity-card-body-link:hover .trip-title {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.activity-card-body-link:hover .trip-photo {
+  opacity: 0.9;
+}
+```
+
+#### 4. Profile Navigation Pattern
+
+**CRITICAL**: Use `/users/:username` routes, NOT `/profile/:username`:
+
+```typescript
+// ✅ CORRECT:
+<Link to={`/users/${user.username}`} className="username-link">
+  {user.username}
+</Link>
+
+// ❌ WRONG:
+<Link to={`/profile/${user.username}`}>  // This route doesn't exist
+<Link to={`/@${user.username}`}>        // This route doesn't exist
+```
+
+#### 5. Optimistic Like Updates Pattern
+
+Update UI immediately, rollback on error:
+
+```typescript
+// LikeButton.tsx
+const handleLike = async () => {
+  // Optimistic update
+  setIsLiked(true);
+  setLikesCount(prev => prev + 1);
+
+  try {
+    await likeActivity(activityId);
+  } catch (error) {
+    // Rollback on error
+    setIsLiked(false);
+    setLikesCount(prev => prev - 1);
+    toast.error('Error al dar like');
+  }
+};
+```
+
+### TypeScript Types
+
+**ActivityFeedItem** ([activityFeed.ts](frontend/src/types/activityFeed.ts)):
+
+```typescript
+export interface ActivityFeedItem {
+  activity_id: string;
+  user: PublicUserSummary;
+  activity_type: 'TRIP_PUBLISHED' | 'PHOTO_UPLOADED' | 'ACHIEVEMENT_UNLOCKED';
+  metadata: ActivityMetadata;
+  created_at: string; // ISO 8601 datetime
+  likes_count: number;
+  comments_count: number;
+  is_liked_by_me: boolean;
+}
+
+export interface ActivityMetadata {
+  // TRIP_PUBLISHED metadata
+  trip_id?: string;        // ✅ Enriched from related_id
+  trip_title?: string;
+  trip_distance_km?: number;
+  trip_photo_url?: string;
+
+  // PHOTO_UPLOADED metadata
+  photo_url?: string;
+
+  // ACHIEVEMENT_UNLOCKED metadata
+  achievement_name?: string;
+  achievement_badge?: string;
+}
+```
+
+### Database Schema
+
+**activity_feed_items** table:
+
+```sql
+CREATE TABLE activity_feed_items (
+    activity_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    activity_type TEXT NOT NULL,  -- 'TRIP_PUBLISHED', 'PHOTO_UPLOADED', 'ACHIEVEMENT_UNLOCKED'
+    related_id TEXT NOT NULL,     -- trip_id, photo_id, or user_achievement_id
+    metadata JSON NOT NULL,        -- Type-specific data (TEXT in SQLite, JSONB in PostgreSQL)
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+-- Performance indexes (FR-027, SC-001)
+CREATE INDEX idx_activities_user_created ON activity_feed_items(user_id, created_at);
+CREATE INDEX idx_activities_type_created ON activity_feed_items(activity_type, created_at);
+CREATE INDEX idx_activities_created ON activity_feed_items(created_at);
+```
+
+### Manual Testing
+
+**Test Scenarios** (see [MANUAL_TESTING_FEED.md](specs/018-activity-stream-feed/MANUAL_TESTING_FEED.md)):
+
+1. **Feed Cronológico**: Activities ordered by `created_at DESC`
+2. **Paginación**: Infinite scroll loads more activities
+3. **Actividades de Seguidos**: Only shows activities from followed users
+4. **Tipos de Actividades**: Displays Trip, Photo, Achievement cards correctly
+5. **Navegación**: Avatar/username → `/users/:username`, Trip card → `/trips/:trip_id`
+6. **Estados Vacíos**: "No hay actividades" when not following anyone
+7. **Likes**: Like/unlike with optimistic updates
+
+**Known Issues**:
+- Trip description intentionally NOT shown in feed (only title + photo)
+- Photos only display if trip has photos (expected behavior)
+- Feed requires at least one followed user with published trips
+
+### Common Pitfalls
+
+1. **Don't use `/profile/:username` routes**: Use `/users/:username` (App.tsx routing)
+2. **Don't enrich metadata at creation time**: Use `related_id` field to enrich at response time
+3. **Don't forget trip_id in metadata**: ActivityCardTrip requires `metadata.trip_id` for navigation
+4. **Don't skip optimistic updates**: LikeButton should update UI immediately, rollback on error
+5. **Don't forget activity type filtering**: Backend filters by followed users automatically
+6. **Don't use offset pagination**: Use cursor-based pagination for better performance
+7. **Don't forget empty states**: Show "No hay actividades" when feed is empty
+8. **Don't skip loading states**: Show skeletons during initial load and pagination
+9. **Don't forget Spanish error messages**: All user-facing text must be in Spanish
+10. **Don't modify database schema**: Use existing fields (`related_id`) before adding new columns
+
 ## Recent Changes
 
 - **017-gps-trip-wizard** (2026-02-06): ✅ GPS Trip Creation Wizard - MVP++ Complete (93%, 98/105 tasks)
