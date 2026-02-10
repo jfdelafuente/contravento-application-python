@@ -271,6 +271,7 @@ from src.api import (
     gpx_routes,
     gpx_wizard,
     likes,
+    notifications,
     pois,
     profile,
     social,
@@ -288,6 +289,7 @@ app.include_router(social.router)
 app.include_router(feed.router)  # Feature 004: Personalized feed
 app.include_router(likes.router)  # Feature 004: Likes/Me Gusta
 app.include_router(comments.router)  # Feature 004: Comments
+app.include_router(notifications.router)  # Feature 018: Activity Stream Notifications
 app.include_router(trip_crud_router.router)  # Trips: CRUD operations and public feed
 app.include_router(trip_photos_router.router)  # Trips: Photo management
 app.include_router(trip_user_router.router)  # Trips: User trips and tags

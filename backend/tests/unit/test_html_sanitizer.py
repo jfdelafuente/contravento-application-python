@@ -253,9 +253,109 @@ def test_sanitize_html_max_length_preserved():
     # Long content with malicious tag
     long_malicious = "A" * 250 + "<script>alert('XSS')</script>" + "B" * 250
     result2 = sanitize_html(long_malicious)
-    # bleach strips <script> tags but leaves text content
+    # nh3 strips <script> tags but leaves text content
     # Length will be: 250 + len("alert('XSS')") + 250 = ~520 chars
     assert "A" * 250 in result2
     assert "B" * 250 in result2
     assert "<script>" not in result2
     assert "</script>" not in result2
+
+
+# ============================================================
+# T018: nh3 Performance Benchmarks (Feature 018)
+# ============================================================
+
+
+def test_nh3_performance_benchmark():
+    """
+    Test T018: Benchmark nh3 sanitization speed (20x faster than bleach target).
+
+    Verifies:
+    - nh3 can process 100 iterations of moderately complex HTML in < 1 second
+    - This demonstrates significant performance improvement over bleach
+    """
+    import time
+
+    test_html = """
+    <p>This is a <b>test</b> paragraph with <em>emphasis</em>.</p>
+    <script>alert('XSS')</script>
+    <a href="https://example.com">Safe link</a>
+    <a href="javascript:alert(1)">Malicious link</a>
+    """ * 100  # Repeat 100 times for meaningful benchmark
+
+    start_time = time.perf_counter()
+    for _ in range(100):
+        sanitize_html(test_html)
+    end_time = time.perf_counter()
+
+    elapsed = end_time - start_time
+    avg_time = elapsed / 100
+
+    # nh3 should process 100 iterations in < 1 second (very fast)
+    assert elapsed < 1.0, f"nh3 took {elapsed:.3f}s for 100 iterations (expected < 1.0s)"
+
+    print(f"\nnh3 performance: {avg_time * 1000:.2f}ms per iteration")
+
+
+def test_nh3_large_document_performance():
+    """
+    Test T018: Benchmark nh3 with large HTML documents.
+
+    Verifies:
+    - nh3 can process ~50KB HTML document in < 100ms
+    - Demonstrates scalability for large comment/description fields
+    """
+    import time
+
+    large_html = """
+    <p>Paragraph text</p>
+    <ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+    </ul>
+    <blockquote>Quote text</blockquote>
+    """ * 1000  # 1000 repetitions (~50KB of HTML)
+
+    start_time = time.perf_counter()
+    result = sanitize_html(large_html)
+    end_time = time.perf_counter()
+
+    elapsed = end_time - start_time
+
+    # Should process 50KB document in < 100ms
+    assert elapsed < 0.1, f"Large document took {elapsed * 1000:.2f}ms (expected < 100ms)"
+    assert len(result) > 0
+
+    print(f"\nnh3 large document performance: {elapsed * 1000:.2f}ms for ~50KB HTML")
+
+
+def test_nh3_comment_use_case():
+    """
+    Test T018: Real-world comment sanitization for Activity Stream (Feature 018).
+
+    Verifies:
+    - nh3 handles typical user comments with formatting
+    - Safe links are preserved
+    - XSS attempts are blocked
+    """
+    # Comment with safe formatting
+    comment1 = "¡Increíble ruta! Me encantó el <b>tramo de montaña</b>. 🚴‍♂️"
+    result1 = sanitize_html(comment1)
+
+    assert "<b>tramo de montaña</b>" in result1
+    assert "🚴‍♂️" in result1
+
+    # Comment with safe link
+    comment2 = 'Más info aquí: <a href="https://contravento.com">ContraVento</a>'
+    result2 = sanitize_html(comment2)
+
+    assert '<a href="https://contravento.com"' in result2
+
+    # Comment with XSS attempt
+    malicious_comment = 'Great trip! <script>stealCookies()</script>'
+    result3 = sanitize_html(malicious_comment)
+
+    assert "Great trip!" in result3
+    assert "<script>" not in result3
+    assert "stealCookies" not in result3

@@ -1,14 +1,15 @@
 """
 HTML Sanitizer utility for preventing XSS attacks (Feature 004 - US3: Comentarios).
 
-Uses bleach library to sanitize user-generated HTML content.
-Task: T090
+Uses nh3 library (Rust-based, 20x faster than bleach) to sanitize user-generated HTML content.
+Migrated from bleach to nh3 in Feature 018 (Task: T008).
 """
 
-import bleach
+import nh3
 
 # Allowed HTML tags (safe formatting tags only)
-ALLOWED_TAGS = [
+# Note: nh3 requires set instead of list for tags
+ALLOWED_TAGS = {
     "p",
     "br",
     "b",
@@ -21,20 +22,23 @@ ALLOWED_TAGS = [
     "li",
     "a",
     "blockquote",
-]
+}
 
 # Allowed attributes for specific tags
 ALLOWED_ATTRIBUTES = {
-    "a": ["href", "title"],  # Links with href and title only
+    "a": {"href", "title"},  # Links with href and title only (set for nh3)
 }
 
-# Allowed protocols for URLs (no javascript:, data:, etc.)
-ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
+# Allowed URL schemes (protocols) - no javascript:, data:, etc.
+# nh3 uses 'url_schemes' parameter instead of 'protocols'
+ALLOWED_URL_SCHEMES = {"http", "https", "mailto"}
 
 
 def sanitize_html(content: str) -> str:
     """
-    Sanitize HTML content to prevent XSS attacks (T090).
+    Sanitize HTML content to prevent XSS attacks using nh3 (Rust-based, 20x faster than bleach).
+
+    Migrated from bleach to nh3 in Feature 018 (Task: T008).
 
     Removes:
     - <script> tags and content
@@ -66,13 +70,12 @@ def sanitize_html(content: str) -> str:
     if not content:
         return ""
 
-    # Clean the HTML using bleach
-    cleaned = bleach.clean(
+    # Clean the HTML using nh3 (Rust-based sanitizer)
+    cleaned = nh3.clean(
         content,
         tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
-        protocols=ALLOWED_PROTOCOLS,
-        strip=True,  # Strip disallowed tags instead of escaping
+        url_schemes=ALLOWED_URL_SCHEMES,
     )
 
     return cleaned

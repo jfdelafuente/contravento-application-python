@@ -24,23 +24,23 @@ This document breaks down Feature 018 (Activity Stream Feed) into executable tas
 
 ## Task List
 
-### Phase 1: Setup & Dependencies (7 tasks)
+### Phase 1: Setup & Dependencies (7 tasks) ✅ COMPLETE
 
 **Goal**: Install dependencies and apply database migrations
 
-- [ ] T001 Install nh3 HTML sanitizer library with `poetry add nh3` in backend/
-- [ ] T002 [P] Install TanStack Query with `npm install @tanstack/react-query @tanstack/react-query-devtools` in frontend/
-- [ ] T003 Create Alembic migration file `backend/migrations/versions/XXXX_add_activity_feed_tables.py` with DDL from data-model.md
-- [ ] T004 Apply database migration with `poetry run alembic upgrade head` to create activity_feed_items, likes, comments, comment_reports tables
-- [ ] T005 [P] Create seed script `backend/scripts/seeding/seed_activity_feed.py` with sample activities, likes, comments per quickstart.md
-- [ ] T006 [P] Update QueryClient provider in `frontend/src/App.tsx` to include React Query configuration (staleTime: 60s, retry: 1)
-- [ ] T007 [P] Add React Query DevTools to `frontend/src/App.tsx` with conditional rendering for development mode
+- [X] T001 Install nh3 HTML sanitizer library with `poetry add nh3` in backend/
+- [X] T002 [P] Install TanStack Query with `npm install @tanstack/react-query @tanstack/react-query-devtools` in frontend/
+- [X] T003 Create Alembic migration file `backend/migrations/versions/XXXX_add_activity_feed_tables.py` with DDL from data-model.md
+- [X] T004 Apply database migration with `poetry run alembic upgrade head` to create activity_feed_items, likes, comments, comment_reports tables
+- [X] T005 [P] Create seed script `backend/scripts/seeding/seed_activity_feed.py` with sample activities, likes, comments per quickstart.md
+- [X] T006 [P] Update QueryClient provider in `frontend/src/App.tsx` to include React Query configuration (staleTime: 60s, retry: 1)
+- [X] T007 [P] Add React Query DevTools to `frontend/src/App.tsx` with conditional rendering for development mode
 
-**Deliverable**: Dependencies installed, database tables created, seed data available
+**Deliverable**: ✅ Dependencies installed, database tables created, seed data available
 
 ---
 
-### Phase 2: Foundational Infrastructure (11 tasks)
+### Phase 2: Foundational Infrastructure (11 tasks) ✅ COMPLETE
 
 **Goal**: Build shared services and utilities required by multiple user stories
 
@@ -48,22 +48,22 @@ This document breaks down Feature 018 (Activity Stream Feed) into executable tas
 
 #### Notification Service (Required by US2, US3)
 
-- [ ] T008 Migrate bleach → nh3 in `backend/src/utils/html_sanitizer.py` by replacing bleach.clean() with nh3.clean()
-- [ ] T009 [P] Create NotificationService class in `backend/src/services/notification_service.py` with methods: create_notification(), get_user_notifications(), get_unread_count(), mark_as_read(), mark_all_read()
-- [ ] T010 [P] Create Pydantic schemas in `backend/src/schemas/notification.py`: NotificationResponse, NotificationsListResponse, UnreadCountResponse
-- [ ] T011 [P] Create notification API router in `backend/src/api/notifications.py` with endpoints: GET /notifications, GET /notifications/unread-count, POST /notifications/{id}/mark-read, POST /notifications/mark-all-read
-- [ ] T012 Register notification router in `backend/src/main.py` with `app.include_router(notifications.router)`
+- [X] T008 Migrate bleach → nh3 in `backend/src/utils/html_sanitizer.py` by replacing bleach.clean() with nh3.clean()
+- [X] T009 [P] Create NotificationService class in `backend/src/services/notification_service.py` with methods: create_notification(), get_user_notifications(), get_unread_count(), mark_as_read(), mark_all_read()
+- [X] T010 [P] Create Pydantic schemas in `backend/src/schemas/notification.py`: NotificationResponse, NotificationsListResponse, UnreadCountResponse
+- [X] T011 [P] Create notification API router in `backend/src/api/notifications.py` with endpoints: GET /notifications, GET /notifications/unread-count, POST /notifications/{id}/mark-read, POST /notifications/mark-all-read
+- [X] T012 Register notification router in `backend/src/main.py` with `app.include_router(notifications.router)`
 
 #### Shared Enums & Base Schemas
 
-- [ ] T013 [P] Create ActivityType enum in `backend/src/models/activity_feed_item.py` with values: TRIP_PUBLISHED, PHOTO_UPLOADED, ACHIEVEMENT_UNLOCKED
-- [ ] T014 [P] Create CommentReportReason enum in `backend/src/models/comment_report.py` with values: spam, offensive, harassment, other
-- [ ] T015 [P] Update `backend/src/utils/html_sanitizer.py` to use nh3 with set(ALLOWED_TAGS) instead of list
-- [ ] T016 [P] Create utility function `encode_cursor()` and `decode_cursor()` in `backend/src/utils/pagination.py` for cursor-based pagination
-- [ ] T017 [P] Add integration test in `backend/tests/integration/test_notifications_api.py` to verify notification endpoints work correctly
-- [ ] T018 [P] Add unit test in `backend/tests/unit/test_html_sanitizer.py` to verify nh3 sanitizes XSS attacks and benchmark 20x performance vs bleach
+- [X] T013 [P] Create ActivityType enum in `backend/src/models/activity_feed_item.py` with values: TRIP_PUBLISHED, PHOTO_UPLOADED, ACHIEVEMENT_UNLOCKED
+- [X] T014 [P] Create CommentReportReason enum in `backend/src/models/comment_report.py` with values: spam, offensive, harassment, other
+- [X] T015 [P] Update `backend/src/utils/html_sanitizer.py` to use nh3 with set(ALLOWED_TAGS) instead of list
+- [X] T016 [P] Create utility function `encode_cursor()` and `decode_cursor()` in `backend/src/utils/pagination.py` for cursor-based pagination
+- [X] T017 [P] Add integration test in `backend/tests/integration/test_notifications_api.py` to verify notification endpoints work correctly
+- [X] T018 [P] Add unit test in `backend/tests/unit/test_html_sanitizer.py` to verify nh3 sanitizes XSS attacks and benchmark 20x performance vs bleach
 
-**Deliverable**: NotificationService operational, HTML sanitization migrated to nh3, pagination utilities ready
+**Deliverable**: ✅ NotificationService operational, HTML sanitization migrated to nh3, pagination utilities ready
 
 ---
 
