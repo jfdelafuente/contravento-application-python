@@ -83,7 +83,17 @@ export const UserMenu: React.FC<UserMenuProps> = ({
       <div className={`user-menu ${className}`}>
         <div className="user-info">
           <div className="user-avatar">
-            {user.username.charAt(0).toUpperCase()}
+            {user.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt={`${user.username} profile`}
+                className="user-avatar-photo"
+              />
+            ) : (
+              <span className="user-avatar-initial">
+                {user.username.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
           <div className="user-details">
             <span className="username">@{user.username}</span>

@@ -18,48 +18,10 @@
 }
 
 /* ============================================================================
-   Dashboard Header - Olive Trail Marker
+   Header - Using DashboardPage Header (dashboard-header--route-map)
    ============================================================================ */
 
-.trips-list-page .dashboard-header {
-  background: #6b8e23; /* Olive trail marker */
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.trips-list-page .header-content {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 12px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.trips-list-page .dashboard-header__logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: white;
-  margin: 0;
-  text-decoration: none;
-}
-
-.trips-list-page .dashboard-header__logo-icon {
-  width: 32px;
-  height: 32px;
-  color: white;
-  flex-shrink: 0;
-}
+/* Header styles are imported from DashboardPage.css - no custom styles needed */
 
 /* ============================================================================
    Content Container

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
+import HeaderQuickActions from '../components/dashboard/HeaderQuickActions';
 import { getProfile } from '../services/profileService';
 import { UserProfile } from '../types/profile';
 import { CYCLING_TYPES } from '../types/profile';
@@ -81,9 +82,10 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="profile-page">
-      <header className="profile-header">
-        <div className="header-content">
-          <h1 className="dashboard-header__logo">
+      <header className="dashboard-header dashboard-header--route-map">
+        <div className="dashboard-header__content">
+          <div className="dashboard-header__brand">
+            {/* Logo con estética de señalización de ruta */}
             <svg
               className="dashboard-header__logo-icon"
               viewBox="0 0 24 24"
@@ -92,12 +94,33 @@ export const ProfilePage: React.FC = () => {
               aria-hidden="true"
             >
               <path
-                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10H10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 12 11 11.75 11 15H13C13 12.75 16 12.5 16 10C16 7.79 14.21 6 12 6Z"
-                fill="currentColor"
+                d="M12 2L2 7V17L12 22L22 17V7L12 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <path
+                d="M12 22V12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M2 7L12 12L22 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
-            <span>ContraVento</span>
-          </h1>
+            <div className="dashboard-header__brand-text">
+              <span className="dashboard-header__brand-name">ContraVento</span>
+              <span className="dashboard-header__brand-tagline">Tu mapa de rutas</span>
+            </div>
+          </div>
+
+          <HeaderQuickActions />
           <UserMenu />
         </div>
       </header>
@@ -105,36 +128,52 @@ export const ProfilePage: React.FC = () => {
       <main className="profile-main">
         <div className="profile-content">
           <div className="profile-card">
-            {/* Left Column - Avatar and Edit Button */}
-            <div className="profile-left">
-              <div className="profile-avatar-large">
-                {profile?.photo_url ? (
-                  <img src={profile.photo_url} alt={`${user.username} profile`} className="profile-photo" />
-                ) : (
-                  <span className="profile-avatar-initial">{user.username.charAt(0).toUpperCase()}</span>
+            {/* Identity Band - Avatar + Button Left, Username + Bio Right */}
+            <div className="profile-identity-band">
+              {/* Left Column: Avatar + Button */}
+              <div className="profile-identity-left">
+                <div className="profile-avatar-large">
+                  {profile?.photo_url ? (
+                    <img src={profile.photo_url} alt={`${user.username} profile`} className="profile-photo" />
+                  ) : (
+                    <span className="profile-avatar-initial">{user.username.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <button
+                  className="btn-edit-profile"
+                  onClick={() => navigate('/profile/edit')}
+                  type="button"
+                  aria-label="Editar perfil"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span className="btn-edit-profile-text">Editar Perfil</span>
+                </button>
+              </div>
+
+              {/* Right Column: Username + Bio */}
+              <div className="profile-identity-right">
+                <h2>@{user.username}</h2>
+                {profile?.bio && (
+                  <div className="profile-bio">
+                    <p>{profile.bio}</p>
+                  </div>
                 )}
               </div>
-              <button
-                className="btn-edit-profile"
-                onClick={() => navigate('/profile/edit')}
-                type="button"
-              >
-                Editar Perfil
-              </button>
             </div>
-
-            {/* Right Column - Profile Info */}
-            <div className="profile-right">
-              <div className="profile-header-section">
-                <h2>@{user.username}</h2>
-              </div>
-
-              {/* Profile Bio */}
-              {profile?.bio && (
-                <div className="profile-bio">
-                  <p>{profile.bio}</p>
-                </div>
-              )}
 
               <div className="profile-info">
                 {/* Location */}
@@ -224,7 +263,6 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
       </main>
     </div>
   );

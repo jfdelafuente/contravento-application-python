@@ -2,77 +2,19 @@
  * Public Header Styles - "Trail Discovery Canvas"
  *
  * Intent: Public exploration - welcoming, accessible navigation
+ * Uses DashboardPage header styles with custom login button for anonymous users
  * Palette: Cream parchment (#fff8dc), olive trail marker (#6b8e23), amber accents (#ea580c)
  * Typography: Inter for clarity and warmth
  */
 
 /* ============================================================================
-   Header Container - Olive Trail Marker
+   Header - Using DashboardPage Header (dashboard-header--route-map)
    ============================================================================ */
 
-.public-header {
-  background: #6b8e23; /* Olive trail marker - same as dashboard */
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(107, 142, 35, 0.15);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  padding: 1rem 1.5rem;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.public-header__container {
-  max-width: 1280px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* Header styles are imported from DashboardPage.css - no custom styles needed */
 
 /* ============================================================================
-   Logo Section
-   ============================================================================ */
-
-.public-header__logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: opacity 0.15s ease-in-out;
-}
-
-.public-header__logo:hover {
-  opacity: 0.85;
-}
-
-.public-header__logo-icon {
-  width: 32px;
-  height: 32px;
-  color: #ffffff;
-}
-
-.public-header__logo-text {
-  margin: 0;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  letter-spacing: -0.02em;
-}
-
-/* ============================================================================
-   Auth Section
-   ============================================================================ */
-
-.public-header__auth {
-  display: flex;
-  align-items: center;
-}
-
-/* ============================================================================
-   Login Button (Anonymous State)
+   Login Button (Anonymous State Only)
    ============================================================================ */
 
 .public-header__login-button {
@@ -103,155 +45,14 @@
 }
 
 /* ============================================================================
-   User Section (Authenticated State)
-   ============================================================================ */
-
-.public-header__user-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* ============================================================================
-   Profile Button
-   ============================================================================ */
-
-.public-header__profile-button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 8px;
-  transition: background-color 0.15s ease-in-out;
-}
-
-.public-header__profile-button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.public-header__profile-photo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.public-header__profile-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 1.125rem;
-  font-weight: 700;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.public-header__username {
-  color: #ffffff;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ============================================================================
-   Logout Button
-   ============================================================================ */
-
-.public-header__logout-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  background-color: #ffffff;
-  color: #1c1917;
-  border: 1px solid rgba(210, 180, 140, 0.3);
-  border-radius: 8px;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-  white-space: nowrap;
-}
-
-.public-header__logout-button:hover:not(:disabled) {
-  background-color: rgba(234, 88, 12, 0.08);
-  border-color: rgba(234, 88, 12, 0.4);
-  color: #ea580c;
-}
-
-.public-header__logout-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ============================================================================
    Responsive Design
    ============================================================================ */
 
 /* Mobile (< 768px) */
 @media (max-width: 768px) {
-  .public-header {
-    padding: 0.875rem 1rem;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-  }
-
-  .public-header__container {
-    flex-direction: row;
-    gap: 0.75rem;
-  }
-
-  .public-header__logo-text {
-    font-size: 1.25rem;
-  }
-
-  .public-header__logo-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  /* Hide username text on mobile to save space */
-  .public-header__username {
-    display: none;
-  }
-
-  .public-header__user-section {
-    gap: 0.75rem;
-  }
-
-  /* Smaller buttons on mobile */
   .public-header__login-button {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-  }
-
-  .public-header__logout-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  /* Slightly smaller avatar on mobile */
-  .public-header__profile-photo,
-  .public-header__profile-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
   }
 }
 
@@ -260,28 +61,15 @@
    ============================================================================ */
 
 @media (hover: none) and (pointer: coarse) {
-  /* Larger touch targets */
-  .public-header__login-button,
-  .public-header__logout-button,
-  .public-header__profile-button {
+  .public-header__login-button {
     min-height: 44px;
     min-width: 44px;
   }
 
-  /* Remove hover effects on touch devices */
-  .public-header__logo:hover,
-  .public-header__login-button:hover,
-  .public-header__profile-button:hover,
-  .public-header__logout-button:hover {
-    transform: none;
-    opacity: 1;
-    background-color: transparent;
-  }
-
-  .public-header__login-button:hover:not(:disabled),
-  .public-header__logout-button:hover:not(:disabled) {
+  .public-header__login-button:hover:not(:disabled) {
     background-color: #ffffff;
     border-color: rgba(210, 180, 140, 0.3);
     color: #1c1917;
+    transform: none;
   }
 }
