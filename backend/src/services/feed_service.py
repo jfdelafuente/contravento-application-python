@@ -13,7 +13,7 @@ from typing import Any
 
 from sqlalchemy import and_, desc, func, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.comment import Comment
 from src.models.like import Like
@@ -554,8 +554,6 @@ class FeedService:
 
         Performance: <2s for 20 activities (SC-001)
         """
-        from sqlalchemy.orm import joinedload
-
         from src.models.activity_feed_item import ActivityFeedItem
 
         # Import here to avoid circular dependency
@@ -579,7 +577,10 @@ class FeedService:
         query = (
             select(ActivityFeedItem, User)
             .join(User, ActivityFeedItem.user_id == User.id)
-            .options(joinedload(User.profile))
+            .options(
+                joinedload(User.profile),
+                selectinload(ActivityFeedItem.likes),  # Load likes for counting
+            )
             .where(ActivityFeedItem.user_id.in_(followed_user_ids))
         )
 
@@ -622,13 +623,11 @@ class FeedService:
         activities = []
         for activity_item, user in activities_data:
             # Get counts for likes and comments
-            # TODO: Optimize with LEFT JOIN in query (Phase 4)
-            likes_count = 0  # Placeholder - will be implemented in Phase 4
-            comments_count = 0  # Placeholder - will be implemented in Phase 5
+            likes_count = len(activity_item.likes)
+            comments_count = 0  # TODO: Implement in Phase 5 (Comments)
 
-            # is_liked_by_me flag
-            # TODO: Check if current user liked this activity (Phase 4)
-            is_liked_by_me = False
+            # is_liked_by_me flag - check if current user liked this activity
+            is_liked_by_me = any(like.user_id == user_id for like in activity_item.likes)
 
             # Parse metadata from JSON
             metadata = (

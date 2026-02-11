@@ -1085,6 +1085,9 @@ class TripService:
         result = await self.db.execute(query)
         trips = result.scalars().unique().all()
 
+        # Calculate likes for all trips (Feature 018 integration)
+        await self._calculate_likes_for_trips(list(trips), current_user_id)
+
         logger.debug(
             f"Retrieved {len(trips)} trips for user {user_id} "
             f"(tag={tag}, status={status}, sort_by={sort_by}, limit={limit}, offset={offset})"
@@ -1114,7 +1117,9 @@ class TripService:
 
         return list(tags)
 
-    async def get_public_trips(self, page: int = 1, limit: int = 20) -> tuple[list[Trip], int]:
+    async def get_public_trips(
+        self, page: int = 1, limit: int = 20, current_user_id: str | None = None
+    ) -> tuple[list[Trip], int]:
         """
         T019: Get published trips with public visibility for homepage feed (Feature 013).
 
@@ -1131,6 +1136,7 @@ class TripService:
         Args:
             page: Page number (1-indexed, default 1)
             limit: Items per page (1-50, default 20)
+            current_user_id: ID of user viewing trips (None for public access, Feature 018)
 
         Returns:
             Tuple of (trips list, total count)
@@ -1167,6 +1173,9 @@ class TripService:
         # Execute query
         result = await self.db.execute(query)
         trips = result.scalars().unique().all()
+
+        # Calculate likes for all trips (Feature 018 integration)
+        await self._calculate_likes_for_trips(list(trips), current_user_id)
 
         # Count total (with same privacy filters)
         total = await self.count_public_trips()
@@ -1207,3 +1216,51 @@ class TripService:
         logger.debug(f"Counted {count} public trips")
 
         return count
+
+    async def _calculate_likes_for_trips(
+        self, trips: list[Trip], current_user_id: str | None = None
+    ) -> None:
+        """
+        Calculate like_count and is_liked for a list of trips (Feature 018 integration).
+
+        Efficiently calculates likes for multiple trips using a single query.
+        Sets dynamic attributes on each Trip object:
+        - trip.like_count: Number of likes
+        - trip.is_liked: Whether current user has liked (None if not authenticated)
+
+        Args:
+            trips: List of Trip objects to calculate likes for
+            current_user_id: ID of current user (None for public access)
+
+        Returns:
+            None (modifies trips in place)
+        """
+        if not trips:
+            return
+
+        from src.models.like import Like
+
+        # Extract trip IDs
+        trip_ids = [trip.trip_id for trip in trips]
+
+        # Get all likes for these trips in one query
+        likes_query = select(Like).where(Like.trip_id.in_(trip_ids))
+        likes_result = await self.db.execute(likes_query)
+        likes = likes_result.scalars().all()
+
+        # Group likes by trip_id
+        likes_by_trip: dict[str, list[Like]] = {}
+        for like in likes:
+            if like.trip_id not in likes_by_trip:
+                likes_by_trip[like.trip_id] = []
+            likes_by_trip[like.trip_id].append(like)
+
+        # Calculate like_count and is_liked for each trip
+        for trip in trips:
+            trip_likes = likes_by_trip.get(trip.trip_id, [])
+            trip.like_count = len(trip_likes)
+
+            # Check if current user has liked this trip
+            trip.is_liked = None
+            if current_user_id:
+                trip.is_liked = any(like.user_id == current_user_id for like in trip_likes)

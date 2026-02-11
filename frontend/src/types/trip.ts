@@ -131,6 +131,12 @@ export interface TripListItem {
 
   /** Trip creation timestamp (ISO 8601: YYYY-MM-DDTHH:mm:ssZ) */
   created_at: string;
+
+  /** Like count for this trip (Feature 018 integration) */
+  like_count?: number;
+
+  /** Whether current user has liked this trip (Feature 018 integration, null if not authenticated) */
+  is_liked?: boolean | null;
 }
 
 /**

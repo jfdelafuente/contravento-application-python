@@ -131,6 +131,9 @@ async def get_user_trips(
                 "thumbnail_url": trip.photos[0].thumbnail_url if trip.photos else None,
                 "created_at": trip.created_at.isoformat(),
                 "updated_at": trip.updated_at.isoformat(),
+                # Feature 018 integration - Likes
+                "like_count": getattr(trip, "like_count", 0),
+                "is_liked": getattr(trip, "is_liked", None),
             }
             for trip in trips
         ]

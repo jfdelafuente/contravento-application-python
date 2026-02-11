@@ -109,7 +109,9 @@ async def get_public_trips(
 
     try:
         service = TripService(db)
-        trips, total = await service.get_public_trips(page=page, limit=limit)
+        trips, total = await service.get_public_trips(
+            page=page, limit=limit, current_user_id=current_user.id if current_user else None
+        )
 
         # Calculate total pages
         total_pages = (total + limit - 1) // limit if total > 0 else 0
