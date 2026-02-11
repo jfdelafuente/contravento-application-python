@@ -8,6 +8,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import HeaderQuickActions from '../dashboard/HeaderQuickActions';
 import './PublicHeader.css';
 
 export const PublicHeader: React.FC = () => {
@@ -63,6 +64,9 @@ export const PublicHeader: React.FC = () => {
           </svg>
           <span className="public-header__logo-text">ContraVento</span>
         </div>
+
+        {/* Quick Actions - Only for authenticated users */}
+        {isAuthenticated && <HeaderQuickActions />}
 
         {/* Auth Section */}
         <div className="public-header__auth">
