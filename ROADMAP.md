@@ -1,6 +1,6 @@
 # ContraVento - Product Roadmap
 
-**Last Updated**: 2026-02-09
+**Last Updated**: 2026-02-11
 **Current Version**: MVP + Core Features
 **Active Development Branch**: `develop`
 
@@ -10,9 +10,9 @@
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Completed | 14 features | 82% |
-| 🚧 In Progress | 0 features | 0% |
-| 📋 Planned | 2 features | 12% |
+| ✅ Completed | 14 features | 78% |
+| 🚧 In Progress | 1 feature | 6% |
+| 📋 Planned | 2 features | 11% |
 | ❌ Discarded | 2 features | - |
 
 ---
@@ -163,22 +163,62 @@
 
 ## 🚧 In Progress
 
-No features currently in progress.
+### Social Features
+
+- **[018] Activity Stream Feed** (`018-activity-stream-feed`)
+  - **US1 (P1 - MVP)**: ✅ View activity feed from followed users - COMPLETE
+    - Chronological feed with cursor-based pagination
+    - Infinite scroll with React Query
+    - Route: `/activities`
+  - **US2 (P2)**: ✅ Like activities - COMPLETE
+    - Like/unlike with optimistic updates
+    - Full Travel Diary integration (Feature 002/008)
+    - Like badges in TripCard component
+    - Event synchronization (same-tab working, cross-tab abandoned)
+  - **US3 (P2)**: ⏳ Comment on activities - PENDING
+  - **US4 (P3)**: ⏳ View achievement notifications - PENDING
+  - **US5 (P3)**: ⏳ Filter and sort feed - PENDING
+  - **Status**: 🚧 In Progress (62% complete - 55/89 tasks)
+  - **Progress**:
+    - ✅ Phase 1: Setup (7/7)
+    - ✅ Phase 2: Foundational (11/11)
+    - ✅ Phase 3: US1 - View Feed (22/22)
+    - ✅ Phase 4: US2 - Likes (15/15)
+    - ✅ Phase 4.5: Travel Diary Integration (14/14)
+    - ⏳ Phase 5: US3 - Comments (0/16)
+    - ⏳ Phase 6: US4 - Achievements (0/4)
+    - ⏳ Phase 7: US5 - Filters (0/7)
+    - ⏳ Phase 8: Polish (0/3)
+  - **Tech**:
+    - Backend: FastAPI, SQLAlchemy 2.0, nh3 (HTML sanitizer)
+    - Frontend: React 18, TanStack Query 5.x, BroadcastChannel API
+  - **Integration**: Full integration with Travel Diary (like counts in `/trips` routes)
+  - **Docs**:
+    - [spec.md](specs/018-activity-stream-feed/spec.md)
+    - [tasks.md](specs/018-activity-stream-feed/tasks.md)
+    - [TECHNICAL_DECISIONS.md](specs/018-activity-stream-feed/TECHNICAL_DECISIONS.md)
+    - [MANUAL_TESTING_FEED.md](specs/018-activity-stream-feed/MANUAL_TESTING_FEED.md)
+    - [MANUAL_TESTING_LIKES.md](specs/018-activity-stream-feed/MANUAL_TESTING_LIKES.md)
+  - **Known Limitations**:
+    - Cross-tab synchronization not working (BroadcastChannel attempted but abandoned)
+    - Notifications disabled (Notification model needs extension)
+    - Only TRIP_PUBLISHED activities (PHOTO_UPLOADED and ACHIEVEMENT_UNLOCKED pending)
 
 ---
 
 ## 📋 Planned (Backlog)
 
-### Social Features
+### Social Network (Remaining Components)
 
-- **[004] Social Network** (`004-social-network`)
-  - User following/followers
-  - Activity feed
-  - Social interactions (likes, comments)
-  - Notifications
+- **[004] Social Network - Follow/Followers** (`004-social-network`)
+  - User following/followers system
+  - Following list management
+  - Notifications system (likes, comments, new followers)
+  - Real-time updates (WebSocket/SSE)
   - **Priority**: High
-  - **Dependencies**: 013-public-trips-feed
-  - **Tech**: FastAPI, WebSockets (planned)
+  - **Dependencies**: 018-activity-stream-feed (in progress)
+  - **Note**: Activity feed and likes already implemented in Feature 018
+  - **Tech**: FastAPI, WebSockets/SSE (planned)
 
 ---
 
@@ -211,14 +251,21 @@ No features currently in progress.
 
 ## 🎯 Next Milestones
 
-### Q1 2026 (Completed)
+### Q1 2026
 
 - ✅ Complete 017-gps-trip-wizard (DONE - merged)
 - ✅ Complete 013-public-trips-feed (DONE - merged)
 - ✅ Complete 014-landing-page-inspiradora (DONE - merged)
+- 🚧 Start 018-activity-stream-feed (IN PROGRESS - 62% complete)
+  - ✅ US1: View activity feed (DONE)
+  - ✅ US2: Like activities + Travel Diary integration (DONE)
+  - ⏳ US3: Comments (PENDING)
+  - ⏳ US4: Achievements (PENDING)
+  - ⏳ US5: Filters (PENDING)
 
 ### Q2 2026
-- Start 004-social-network
+- Complete 018-activity-stream-feed (US3-US5)
+- Start 004-social-network (Follow/Followers)
 - Evaluate need for 004-celery-async-tasks
 - Performance optimization (caching, query optimization)
 

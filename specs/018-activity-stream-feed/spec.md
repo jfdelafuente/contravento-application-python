@@ -2,8 +2,131 @@
 
 **Feature Branch**: `018-activity-stream-feed`
 **Created**: 2026-02-09
-**Status**: Draft
+**Status**: In Progress (US1 ✅ Complete, US2 ✅ Complete, US3-US5 Pending)
+**Last Updated**: 2026-02-11
 **Input**: User description: "Activity Stream: Feed con likes, comments y achievements"
+
+---
+
+## Implementation Status & Decisions
+
+### ✅ Completed User Stories
+
+#### User Story 1 - View Activity Feed (P1 - MVP) ✅ COMPLETE
+- Feed displays activities from followed users (TRIP_PUBLISHED)
+- Cursor-based pagination with infinite scroll
+- Activity triggers create feed items on trip publication
+- Route: `/activities` implemented and working
+- **Testing**: Manual testing guide created ([MANUAL_TESTING_FEED.md](MANUAL_TESTING_FEED.md))
+
+#### User Story 2 - Like Activities (P2) ✅ COMPLETE
+- Like/unlike functionality with optimistic UI updates
+- Likes persist after page refresh (**BUG FIX**: hardcoded values replaced with actual calculations)
+- Like count badge integrated in Travel Diary (Feature 002/008 integration)
+- **Backend**: `feed_service.py` calculates likes with `selectinload(ActivityFeedItem.likes)`
+- **Frontend**: `useActivityLike.ts` hook with TanStack Query optimistic updates
+- **Testing**: Manual testing guide created ([MANUAL_TESTING_LIKES.md](MANUAL_TESTING_LIKES.md))
+
+### 🔄 Travel Diary Integration (Feature 002/008)
+
+**Decision: Full Integration (Opción A)**
+
+Likes from Activity Feed (Feature 018) now appear in Travel Diary pages:
+
+**Backend Changes**:
+- `trip_service.py`: Added `_calculate_likes_for_trips()` helper method
+- Modified `get_user_trips()` and `get_public_trips()` to include like counts
+- Modified `get_trip_by_id()` to include likes for trip detail pages
+
+**Frontend Changes**:
+- `TripListItem` type: Added `like_count` and `is_liked` fields
+- `TripCard` component: Added like count badge (bottom-left, red badge with heart icon)
+- CSS styling: `.trip-card__like-count` class added to `TripCard.css`
+
+**Integration Points**:
+1. `/trips?user=...` (user trips list) - Shows like badges
+2. `/trips/{trip_id}` (trip detail) - Shows like count (no button for trip owner)
+3. `/trips/public` (public trips feed) - Shows like badges
+
+**Event Synchronization**:
+- Created `likeEvents.ts` with `emitLikeChanged()` and `subscribeLikeChanged()`
+- Uses **BroadcastChannel API** for cross-tab communication + CustomEvent for same-tab
+- `useTripList.ts` subscribes to like events and refetches trips when likes change
+- `useActivityLike.ts` emits events and invalidates TanStack Query caches
+
+**Known Limitations**:
+- ✅ Same-tab synchronization works correctly
+- ❌ Cross-tab synchronization attempted but **NOT WORKING**
+- **Decision**: Abandoned cross-tab sync approach, will use simpler Feature 004 implementation
+
+### 📝 Technical Decisions
+
+#### Decision 1: Trip Title Sync in Activity Feed
+
+**Problem**: Editing trip titles didn't update in activity feed
+
+**Solution**: Enrich trip title from Trip table at response time (not from stored metadata)
+- `feed_service.py` (lines 622-642): Bulk fetch trips for metadata enrichment
+- Ensures current titles always displayed in feed
+- Works for both old and new trips
+
+**Rationale**: Avoids database migration and ensures consistency without updating activity_metadata on every trip edit
+
+#### Decision 2: Cross-Tab Synchronization
+
+**Problem**: Likes in one browser tab don't update other tabs immediately
+
+**Attempted Solution**: BroadcastChannel API implementation
+- Created in `likeEvents.ts` with fallback to CustomEvent
+- Logs show BroadcastChannel initialized but messages not received across tabs
+
+**Final Decision**: ⛔ Abandon cross-tab synchronization
+- User testing showed BroadcastChannel not working reliably
+- Same-tab synchronization works correctly
+- Will use simpler Feature 004 approach for future iterations
+- Cross-tab sync can be revisited in future (WebSocket/SSE)
+
+**User Feedback**: "no conseguimos solventar este problema. Creo que voy a dejar esta feature para otra ocasion y voy a seguir con la opcion construida en la feature 004 que funciona y es mas simple"
+
+#### Decision 3: Like Count Display Strategy
+
+**Backend**: Calculate likes using SQLAlchemy eager loading
+- `selectinload(ActivityFeedItem.likes)` in `feed_service.py`
+- Count likes with `len(activity_item.likes)`
+- Calculate `is_liked_by_me` by checking if current_user_id in likes
+
+**Frontend**: Display badges in Travel Diary
+- Bottom-left red badge with heart icon
+- Only shown if `like_count > 0`
+- Trip owners see read-only count (no like button on their own trips)
+
+### 🐛 Bugs Fixed
+
+1. **Likes not persisting after page refresh**
+   - Root cause: `likes_count = 0` and `is_liked_by_me = False` hardcoded
+   - Fix: Added `selectinload(ActivityFeedItem.likes)` and calculated actual values
+   - Commit: `feed_service.py` lines 587, 626, 630
+
+2. **Likes not showing in Travel Diary**
+   - Root cause: `TripService` didn't calculate likes
+   - Fix: Created `_calculate_likes_for_trips()` helper in `trip_service.py`
+   - Modified `get_user_trips()` and `get_public_trips()` to call helper
+
+3. **Edited trip titles not updating in feed**
+   - Root cause: `activity_metadata.trip_title` not updated on edit
+   - Fix: Enrich trip_title from Trip table at response time (not from metadata)
+   - `feed_service.py` lines 622-642: Bulk trip fetching for enrichment
+
+4. **Event listener thrashing**
+   - Root cause: `fetchTrips` changes on every render, causing re-subscribe
+   - Fix: Used `useRef` in `useTripList.ts` to maintain stable function reference
+   - Lines 165-168: `fetchTripsRef` with stable reference
+
+### 📋 Pending User Stories
+
+- **US3**: Comment on Activities (P2) - Not started
+- **US4**: View Achievement Notifications (P3) - Not started
+- **US5**: Filter and Sort Feed (P3) - Not started
 
 ---
 

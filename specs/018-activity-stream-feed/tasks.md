@@ -180,6 +180,51 @@ This document breaks down Feature 018 (Activity Stream Feed) into executable tas
 
 ---
 
+### Phase 4.5: Travel Diary Integration (Feature 002/008) ✅ COMPLETE
+
+**Goal**: Likes from Activity Feed appear in Travel Diary pages
+
+**Decision**: Implemented full integration (Opción A)
+
+#### Backend Integration
+
+- [X] T055a [INTEGRATION] Add `_calculate_likes_for_trips()` helper method in `backend/src/services/trip_service.py`
+- [X] T055b [INTEGRATION] Modify `get_user_trips()` to call `_calculate_likes_for_trips()` with current_user_id
+- [X] T055c [INTEGRATION] Modify `get_public_trips()` to accept current_user_id parameter and calculate likes
+- [X] T055d [INTEGRATION] Modify `get_trip_by_id()` to calculate likes for trip detail page
+- [X] T055e [INTEGRATION] Fix feed_service.py to calculate likes_count and is_liked_by_me from database (bug fix)
+- [X] T055f [INTEGRATION] Enrich trip_title from Trip table at response time in feed_service.py (bug fix)
+
+#### Frontend Integration
+
+- [X] T055g [INTEGRATION] Add `like_count` and `is_liked` fields to TripListItem type in `frontend/src/types/trip.ts`
+- [X] T055h [INTEGRATION] Add like count badge to TripCard component in `frontend/src/components/trips/TripCard.tsx`
+- [X] T055i [INTEGRATION] Add CSS styling for `.trip-card__like-count` in `frontend/src/components/trips/TripCard.css`
+- [X] T055j [INTEGRATION] Create likeEvents.ts with `emitLikeChanged()` and `subscribeLikeChanged()` functions
+- [X] T055k [INTEGRATION] Add BroadcastChannel API for cross-tab communication in likeEvents.ts
+- [X] T055l [INTEGRATION] Subscribe to like events in useTripList.ts using useRef for stable reference
+- [X] T055m [INTEGRATION] Emit like events from useActivityLike.ts after successful like/unlike
+- [X] T055n [INTEGRATION] Invalidate TanStack Query caches for ['trips'] and ['publicTrips'] after like/unlike
+
+**Deliverable**: ✅ Travel Diary Integration Complete - Likes from `/activities` appear in `/trips?user=...` and `/trips/{id}`
+
+**Status**: ✅ COMPLETE (14/14 integration tasks)
+
+**Bugs Fixed**:
+1. Likes not persisting after page refresh (feed_service.py hardcoded values)
+2. Likes not showing in Travel Diary (TripService didn't calculate likes)
+3. Edited trip titles not updating in feed (metadata not enriched from Trip table)
+4. Event listener thrashing (useRef for stable fetchTrips reference)
+
+**Known Limitations**:
+- ✅ Same-tab synchronization works correctly
+- ❌ Cross-tab synchronization attempted but **NOT WORKING**
+- **Decision**: Abandoned cross-tab sync, will use simpler Feature 004 approach
+
+**User Decision**: "no conseguimos solventar este problema. Creo que voy a dejar esta feature para otra ocasion y voy a seguir con la opcion construida en la feature 004 que funciona y es mas simple"
+
+---
+
 ### Phase 5: User Story 3 - Comment on Activities (P2) (16 tasks)
 
 **Goal**: Users can add/delete comments with XSS-sanitized text, report offensive comments
