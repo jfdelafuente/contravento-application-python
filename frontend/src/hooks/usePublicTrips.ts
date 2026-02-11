@@ -98,6 +98,19 @@ export const usePublicTrips = (
     };
   }, [page, limit]);
 
+  // Listen for like changes to refetch trips (Feature 018 - US2 integration)
+  useEffect(() => {
+    const handleLikeChange = () => {
+      fetchTrips();
+    };
+
+    window.addEventListener('likeChanged', handleLikeChange);
+
+    return () => {
+      window.removeEventListener('likeChanged', handleLikeChange);
+    };
+  }, [page, limit]);
+
   return {
     trips,
     pagination,

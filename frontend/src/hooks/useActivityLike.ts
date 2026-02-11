@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { likeActivity, unlikeActivity } from '../services/activityLikeService';
 import { ActivityFeedItem } from '../types/activityFeed';
+import { emitLikeChanged } from '../utils/likeEvents';
 
 interface UseActivityLikeOptions {
   activityId: string;
@@ -118,7 +119,7 @@ export const useActivityLike = ({
     },
 
     // Refetch on success to ensure consistency across features
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Invalidate activity feed cache
       queryClient.invalidateQueries({ queryKey: ['activityFeed'] });
 
@@ -126,6 +127,32 @@ export const useActivityLike = ({
       // This ensures likes show up in /trips, /trips/public, /trips?user=...
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       queryClient.invalidateQueries({ queryKey: ['publicTrips'] });
+
+      // Emit like changed event for non-TanStack Query hooks (useTripList, usePublicTrips)
+      // Extract trip_id from activity metadata
+      const queries = queryClient.getQueriesData<{
+        pages: { activities: ActivityFeedItem[] }[];
+      }>({ queryKey: ['activityFeed'] });
+
+      let tripId: string | undefined;
+      for (const [_key, feedData] of queries) {
+        if (!feedData) continue;
+
+        for (const page of feedData.pages) {
+          const activity = page.activities.find((a) => a.activity_id === activityId);
+          if (activity && activity.metadata.trip_id) {
+            tripId = activity.metadata.trip_id;
+            break;
+          }
+        }
+        if (tripId) break;
+      }
+
+      emitLikeChanged({
+        activityId,
+        tripId,
+        action: result.action,
+      });
 
       // Call custom success handler
       if (onSuccess) {

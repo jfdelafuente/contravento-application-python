@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { TripListItem, TripListResponse } from '../types/trip';
 import { getUserTrips } from '../services/tripService';
 import toast from 'react-hot-toast';
+import { subscribeLikeChanged } from '../utils/likeEvents';
 
 interface UseTripListParams {
   /** Username to fetch trips for */
@@ -159,6 +160,17 @@ export const useTripList = ({
   // Fetch trips when params change
   useEffect(() => {
     fetchTrips();
+  }, [fetchTrips]);
+
+  // Subscribe to like events (Feature 018 integration)
+  // Refetch trips when likes change in Activity Feed
+  useEffect(() => {
+    const unsubscribe = subscribeLikeChanged(() => {
+      // Refetch trips silently (no loading spinner)
+      fetchTrips();
+    });
+
+    return unsubscribe; // Cleanup on unmount
   }, [fetchTrips]);
 
   // Calculate pagination values
