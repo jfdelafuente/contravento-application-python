@@ -149,40 +149,86 @@ curl -X POST "http://localhost:8000/users/{MARIA_ID}/follow" \
 
 ---
 
-### 📋 TEST 3: Múltiples usuarios - is_liked_by_me
+### 📋 TEST 3: Múltiples usuarios - is_liked_by_me (Travel Diary Integration)
 
-**Objetivo**: Verificar que cada usuario ve su propio estado de like independientemente.
+**Objetivo**: Verificar que cada usuario ve su propio estado de like independientemente en Travel Diary (Feature 002/008).
+
+**IMPORTANTE**: El feed `/activities` solo muestra actividades de usuarios **seguidos**, NO tus propias actividades. Para ver los likes en tus propios trips, usa las rutas de Travel Diary.
 
 **Pasos**:
 
-1. **Como testuser**: Dar like a una actividad de maria_garcia
-   - Observar: corazón lleno, contador = 1
+1. **Setup: maria_garcia da like a trips de testuser**
 
-2. **Abrir ventana de incógnito** (o navegador diferente)
-
-3. **Login como maria_garcia** en la ventana de incógnito
+   a) **Login como maria_garcia**
    - URL: `http://localhost:5173/login`
    - Credenciales: `maria_garcia` / `SecurePass456!`
 
-4. **Ir al feed de maria_garcia**
+   b) **Ir al feed de actividades**
    - URL: `http://localhost:5173/activities`
-   - Buscar una actividad de testuser
+   - Buscar actividad TRIP_PUBLISHED de testuser (debe aparecer si maria_garcia sigue a testuser)
 
-5. **Dar like a la actividad de testuser**
+   c) **Dar like a la actividad de testuser**
+   - Click en el corazón
+   - **Verificaciones**:
+     - [ ] ✅ El corazón cambia a lleno para maria_garcia
+     - [ ] ✅ El contador aumenta (0 → 1)
+
+2. **Verificar likes en Travel Diary - Lista de Trips**
+
+   a) **Logout de maria_garcia** y **login como testuser**
+   - URL: `http://localhost:5173/login`
+   - Credenciales: `testuser` / `TestPass123!`
+
+   b) **Ir a la lista de trips de testuser**
+   - URL: `http://localhost:5173/trips?user=testuser`
+   - O desde `/profile` → click en "Ver mis viajes"
+
+   **Verificaciones en TripCard** (Feature 018 integration):
+   - [ ] ✅ Las trip cards muestran **badge de likes** (corazón rojo en bottom-left)
+   - [ ] ✅ El contador muestra `1` (maria_garcia dio like)
+   - [ ] ✅ El badge aparece solo si `like_count > 0`
+
+3. **Verificar likes en Travel Diary - Detalle de Trip**
+
+   a) **Click en un trip que maria_garcia likeó**
+   - URL: `http://localhost:5173/trips/{trip_id}`
+
+   **Verificaciones en TripDetailPage**:
+   - [ ] ✅ Como **DUEÑO del trip** (testuser), NO aparece botón de like
+   - [ ] ✅ Aparece contador de likes **read-only** en metadata section
+   - [ ] ✅ El contador muestra `1` (maría_garcia dio like)
+   - [ ] ✅ Testuser NO puede auto-likear su propio trip (correcto)
+
+4. **Verificar is_liked_by_me = false**
+
+   a) **Como testuser, ir al feed de actividades**
+   - URL: `http://localhost:5173/activities`
+   - **Nota**: El feed solo muestra actividades de usuarios que testuser SIGUE (maria_garcia), no las de testuser mismo
+
+   b) **Buscar actividad de maria_garcia**
+   - **Verificaciones**:
+     - [ ] ✅ Las actividades de maria_garcia que testuser NO ha likeado muestran corazón VACÍO
+     - [ ] ✅ Si testuser da like, el corazón se llena (is_liked_by_me = true)
+
+5. **Caso inverso - testuser da like a maria_garcia**
+
+   a) **Como testuser**, dar like a una actividad de maria_garcia en `/activities`
+
+   b) **Abrir ventana incógnito**, login como **maria_garcia**
+
+   c) **Ir a la lista de trips de maria_garcia**
+   - URL: `http://localhost:5173/trips?user=maria_garcia`
 
    **Verificaciones**:
-   - [ ] ✅ El corazón cambia a lleno para maria_garcia
-   - [ ] ✅ El contador aumenta (probablemente de 0 → 1)
+   - [ ] ✅ Las trip cards de maria_garcia muestran badge de likes con contador = 1
+   - [ ] ✅ Maria_garcia ve el contador pero NO puede auto-likear
 
-6. **Volver a la ventana de testuser** (navegador original)
+**Concepto clave**:
 
-7. **Actualizar el feed** (scroll down y scroll up, o F5)
-
-   **Verificaciones**:
-   - [ ] ✅ Las actividades de maria_garcia que testuser ha likeado siguen con corazón lleno
-   - [ ] ✅ Las actividades de testuser que maria_garcia ha likeado muestran contador > 0 pero corazón VACÍO para testuser (porque testuser no las ha likeado)
-
-**Concepto clave**: `is_liked_by_me` es personal - cada usuario ve sus propios likes independientemente.
+- `is_liked_by_me` es personal - cada usuario ve sus propios likes independientemente
+- El feed `/activities` muestra actividades de usuarios seguidos
+- Travel Diary (`/trips?user=...` y `/trips/{id}`) muestra likes recibidos en tus trips
+- Los dueños de trips ven contador read-only, los visitantes ven botón de like
 
 ---
 
