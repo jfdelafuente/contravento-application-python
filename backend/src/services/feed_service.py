@@ -619,6 +619,28 @@ class FeedService:
         has_next = len(rows) > limit
         activities_data = rows[:limit]  # Take only requested limit
 
+        # Collect trip IDs for TRIP_PUBLISHED activities to enrich metadata with current data
+        trip_ids_to_enrich = []
+        for activity_item, _ in activities_data:
+            activity_type = (
+                activity_item.activity_type.value
+                if hasattr(activity_item.activity_type, "value")
+                else activity_item.activity_type
+            )
+            if activity_type == "TRIP_PUBLISHED" and activity_item.related_id:
+                trip_ids_to_enrich.append(activity_item.related_id)
+
+        # Fetch trips in bulk for enrichment (ensures current titles for all trips)
+        trips_by_id = {}
+        if trip_ids_to_enrich:
+            from src.models.trip import Trip
+
+            trips_query = select(Trip).where(Trip.trip_id.in_(trip_ids_to_enrich))
+            trips_result = await db.execute(trips_query)
+            trips = trips_result.scalars().all()
+
+            trips_by_id = {trip.trip_id: trip for trip in trips}
+
         # Build activity list
         activities = []
         for activity_item, user in activities_data:
@@ -638,7 +660,7 @@ class FeedService:
                 else {}
             )
 
-            # Enrich metadata with trip_id from related_id for TRIP_PUBLISHED activities
+            # Enrich metadata with trip_id and trip_title from related_id for TRIP_PUBLISHED activities
             activity_type = (
                 activity_item.activity_type.value
                 if hasattr(activity_item.activity_type, "value")
@@ -646,6 +668,14 @@ class FeedService:
             )
             if activity_type == "TRIP_PUBLISHED" and activity_item.related_id:
                 metadata["trip_id"] = activity_item.related_id
+
+                # Enrich with current trip title from database (handles both old and new trips)
+                trip = trips_by_id.get(activity_item.related_id)
+                if trip:
+                    metadata["trip_title"] = trip.title
+                    # Also enrich other trip fields if they exist in the Trip model
+                    if trip.distance_km is not None:
+                        metadata["trip_distance_km"] = trip.distance_km
 
             activities.append(
                 {
