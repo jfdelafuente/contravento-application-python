@@ -117,10 +117,15 @@ export const useActivityLike = ({
       }
     },
 
-    // Refetch on success to ensure consistency across users
+    // Refetch on success to ensure consistency across features
     onSuccess: () => {
-      // Invalidate queries to refresh feed (fixes multi-user like count sync)
+      // Invalidate activity feed cache
       queryClient.invalidateQueries({ queryKey: ['activityFeed'] });
+
+      // Invalidate Travel Diary caches (Feature 002/008 integration)
+      // This ensures likes show up in /trips, /trips/public, /trips?user=...
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ['publicTrips'] });
 
       // Call custom success handler
       if (onSuccess) {
