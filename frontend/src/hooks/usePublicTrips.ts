@@ -5,7 +5,7 @@
  * Handles loading state, error handling, and pagination.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getPublicTrips } from '../services/tripService';
 import { PublicTripSummary, PaginationInfo } from '../types/trip';
 
@@ -85,10 +85,16 @@ export const usePublicTrips = (
     fetchTrips();
   }, [page, limit]);
 
+  // Keep stable reference to fetchTrips for event listeners
+  const fetchTripsRef = useRef(fetchTrips);
+  useEffect(() => {
+    fetchTripsRef.current = fetchTrips;
+  }, [fetchTrips]);
+
   // Listen for follow status changes to refetch trips (Feature 004 - US1)
   useEffect(() => {
     const handleFollowChange = () => {
-      fetchTrips();
+      fetchTripsRef.current(); // Use ref to avoid re-subscribing
     };
 
     window.addEventListener('followStatusChanged', handleFollowChange);
@@ -96,12 +102,12 @@ export const usePublicTrips = (
     return () => {
       window.removeEventListener('followStatusChanged', handleFollowChange);
     };
-  }, [page, limit]);
+  }, []); // No dependencies - subscribe once
 
   // Listen for like changes to refetch trips (Feature 018 - US2 integration)
   useEffect(() => {
     const handleLikeChange = () => {
-      fetchTrips();
+      fetchTripsRef.current(); // Use ref to avoid re-subscribing
     };
 
     window.addEventListener('likeChanged', handleLikeChange);
@@ -109,7 +115,7 @@ export const usePublicTrips = (
     return () => {
       window.removeEventListener('likeChanged', handleLikeChange);
     };
-  }, [page, limit]);
+  }, []); // No dependencies - subscribe once
 
   return {
     trips,

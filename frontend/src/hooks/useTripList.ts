@@ -9,7 +9,7 @@
  * - ProfilePage (user's recent trips)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { TripListItem, TripListResponse } from '../types/trip';
 import { getUserTrips } from '../services/tripService';
 import toast from 'react-hot-toast';
@@ -162,18 +162,24 @@ export const useTripList = ({
     fetchTrips();
   }, [fetchTrips]);
 
+  // Keep stable reference to fetchTrips for event listener
+  const fetchTripsRef = useRef(fetchTrips);
+  useEffect(() => {
+    fetchTripsRef.current = fetchTrips;
+  }, [fetchTrips]);
+
   // Subscribe to like events (Feature 018 integration)
   // Refetch trips when likes change in Activity Feed
   useEffect(() => {
     console.log('[useTripList] Setting up like event listener for user:', username);
     const unsubscribe = subscribeLikeChanged((event) => {
       console.log('[useTripList] Like event received, refetching trips for:', username, event);
-      // Refetch trips silently (no loading spinner)
-      fetchTrips();
+      // Refetch trips silently (no loading spinner) - use ref to avoid re-subscribing
+      fetchTripsRef.current();
     });
 
     return unsubscribe; // Cleanup on unmount
-  }, [fetchTrips, username]);
+  }, [username]); // Only re-subscribe if username changes
 
   // Calculate pagination values
   const hasMore = offset + limit < total;
