@@ -117,10 +117,10 @@ export const useActivityLike = ({
       }
     },
 
-    // Refetch on success (optional - for consistency)
+    // Refetch on success to ensure consistency across users
     onSuccess: () => {
-      // Optionally refetch to ensure consistency
-      // queryClient.invalidateQueries({ queryKey: ['activityFeed'] });
+      // Invalidate queries to refresh feed (fixes multi-user like count sync)
+      queryClient.invalidateQueries({ queryKey: ['activityFeed'] });
 
       // Call custom success handler
       if (onSuccess) {
