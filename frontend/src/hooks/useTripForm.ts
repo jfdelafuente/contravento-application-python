@@ -17,6 +17,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { createTrip, updateTrip, publishTrip } from '../services/tripService';
 import { uploadTripPhoto, deleteTripPhoto } from '../services/tripPhotoService';
 import { TripCreateInput, Trip } from '../types/trip';
@@ -63,6 +64,7 @@ export const useTripForm = ({
   enablePersistence = true,
 }: UseTripFormOptions = {}): UseTripFormReturn => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   /**
@@ -211,6 +213,9 @@ export const useTripForm = ({
               duration: 3000,
               position: 'top-center',
             });
+
+            // Invalidate activity feed cache to reflect updated trip title (Feature 018 integration)
+            queryClient.invalidateQueries({ queryKey: ['activityFeed'] });
           } catch (error: any) {
             // Handle optimistic locking conflict (409)
             if (error.response?.status === 409) {

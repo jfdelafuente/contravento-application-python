@@ -837,6 +837,42 @@ class TripService:
             )
             logger.info(f"Updated trip {trip_id} and user stats")
 
+        # Feature 018 integration: Update activity feed metadata if trip is published and title changed
+        if was_published and "title" in update_data:
+            from src.models.activity_feed_item import ActivityFeedItem, ActivityType
+
+            # Find TRIP_PUBLISHED activity for this trip
+            activity_result = await self.db.execute(
+                select(ActivityFeedItem).where(
+                    ActivityFeedItem.activity_type == ActivityType.TRIP_PUBLISHED,
+                    ActivityFeedItem.related_id == trip_id,
+                )
+            )
+            activity_item = activity_result.scalar_one_or_none()
+
+            if activity_item:
+                # Parse existing metadata
+                import json
+
+                metadata = (
+                    json.loads(activity_item.activity_metadata)
+                    if isinstance(activity_item.activity_metadata, str)
+                    else activity_item.activity_metadata
+                    if isinstance(activity_item.activity_metadata, dict)
+                    else {}
+                )
+
+                # Update trip_title in metadata
+                metadata["trip_title"] = trip.title
+
+                # Save updated metadata
+                activity_item.activity_metadata = metadata
+                await self.db.commit()
+
+                logger.info(
+                    f"Updated activity feed metadata for trip {trip_id} (new title: {trip.title})"
+                )
+
         await self._load_trip_relationships(trip)
         logger.info(f"Updated trip {trip_id}")
         return trip
