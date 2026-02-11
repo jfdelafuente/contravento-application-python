@@ -29,8 +29,10 @@ export interface LikeChangedEvent {
  * ```
  */
 export function emitLikeChanged(detail: LikeChangedEvent): void {
+  console.log('[likeEvents] Emitting likeChanged event:', detail);
   const event = new CustomEvent('likeChanged', { detail });
   window.dispatchEvent(event);
+  console.log('[likeEvents] Event dispatched successfully');
 }
 
 /**
@@ -54,15 +56,20 @@ export function emitLikeChanged(detail: LikeChangedEvent): void {
 export function subscribeLikeChanged(
   callback: (event: LikeChangedEvent) => void
 ): () => void {
+  console.log('[likeEvents] Subscribing to likeChanged events');
+
   const handler = (event: Event) => {
     const customEvent = event as CustomEvent<LikeChangedEvent>;
+    console.log('[likeEvents] Received likeChanged event:', customEvent.detail);
     callback(customEvent.detail);
   };
 
   window.addEventListener('likeChanged', handler);
+  console.log('[likeEvents] Listener registered successfully');
 
   // Return cleanup function
   return () => {
+    console.log('[likeEvents] Unsubscribing from likeChanged events');
     window.removeEventListener('likeChanged', handler);
   };
 }

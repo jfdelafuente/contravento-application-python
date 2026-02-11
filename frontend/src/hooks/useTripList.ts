@@ -165,13 +165,15 @@ export const useTripList = ({
   // Subscribe to like events (Feature 018 integration)
   // Refetch trips when likes change in Activity Feed
   useEffect(() => {
-    const unsubscribe = subscribeLikeChanged(() => {
+    console.log('[useTripList] Setting up like event listener for user:', username);
+    const unsubscribe = subscribeLikeChanged((event) => {
+      console.log('[useTripList] Like event received, refetching trips for:', username, event);
       // Refetch trips silently (no loading spinner)
       fetchTrips();
     });
 
     return unsubscribe; // Cleanup on unmount
-  }, [fetchTrips]);
+  }, [fetchTrips, username]);
 
   // Calculate pagination values
   const hasMore = offset + limit < total;

@@ -130,6 +130,7 @@ export const useActivityLike = ({
 
       // Emit like changed event for non-TanStack Query hooks (useTripList, usePublicTrips)
       // Extract trip_id from activity metadata
+      console.log('[useActivityLike] Extracting trip_id from activity metadata for:', activityId);
       const queries = queryClient.getQueriesData<{
         pages: { activities: ActivityFeedItem[] }[];
       }>({ queryKey: ['activityFeed'] });
@@ -142,12 +143,14 @@ export const useActivityLike = ({
           const activity = page.activities.find((a) => a.activity_id === activityId);
           if (activity && activity.metadata.trip_id) {
             tripId = activity.metadata.trip_id;
+            console.log('[useActivityLike] Found trip_id:', tripId);
             break;
           }
         }
         if (tripId) break;
       }
 
+      console.log('[useActivityLike] Emitting like changed event with tripId:', tripId);
       emitLikeChanged({
         activityId,
         tripId,
