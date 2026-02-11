@@ -54,9 +54,9 @@ const HeaderQuickActions: React.FC = () => {
           <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24" />
         </svg>
       ),
-      onClick: () => navigate('/settings'),
+      onClick: () => navigate('/dashboard'),
       variant: 'secondary' as const,
-      ariaLabel: 'Configuración de la cuenta',
+      ariaLabel: 'Ir al dashboard',
     },
   ];
 

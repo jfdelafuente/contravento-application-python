@@ -1,28 +1,87 @@
 /**
- * TripsListPage Styles
+ * TripsListPage Styles - "Trail Ribbon Grid" Design
  *
- * Main layout for trips list page with responsive grid.
- * Supports 3-column desktop, 2-column tablet, 1-column mobile.
+ * Intent: Cycling adventure discovery - browsing trail journal
+ * Palette: Cream parchment (#fff8dc), olive markers (#6b8e23), amber golden hour (#ea580c)
+ * Depth: Layered photo stack shadows
+ * Typography: Inter for route data clarity
  */
 
 /* ============================================================================
-   Page Container
+   Page Container - Trail Map Canvas
    ============================================================================ */
 
 .trips-list-page {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  min-height: 100vh;
+  background: #fff8dc; /* Cream parchment - aged trail map */
+  padding: 0; /* Remove padding to allow full-width header */
 }
 
 /* ============================================================================
-   Header Section
+   Dashboard Header - Olive Trail Marker
+   ============================================================================ */
+
+.trips-list-page .dashboard-header {
+  background: #6b8e23; /* Olive trail marker */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.trips-list-page .header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.trips-list-page .dashboard-header__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: white;
+  margin: 0;
+  text-decoration: none;
+}
+
+.trips-list-page .dashboard-header__logo-icon {
+  width: 32px;
+  height: 32px;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   Content Container
+   ============================================================================ */
+
+.trips-list-page > *:not(.dashboard-header) {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* ============================================================================
+   Page Header Section
    ============================================================================ */
 
 .trips-list-page__header {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  margin-top: 32px;
   margin-bottom: 32px;
 }
 
@@ -33,9 +92,9 @@
   padding: 8px 16px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-secondary, #6b7280);
+  color: #78716c; /* Warm tertiary */
   background-color: transparent;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
   border-radius: 8px;
   text-decoration: none;
   cursor: pointer;
@@ -44,9 +103,9 @@
 }
 
 .trips-list-page__back-button:hover {
-  color: var(--primary-color, #2563eb);
-  border-color: var(--primary-color, #2563eb);
-  background-color: var(--primary-light, #eff6ff);
+  color: #ea580c; /* Amber accent */
+  border-color: rgba(234, 88, 12, 0.4);
+  background-color: rgba(234, 88, 12, 0.08); /* Amber glow */
 }
 
 .trips-list-page__back-icon {
@@ -81,19 +140,19 @@
   font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
-  background-color: var(--primary-color, #2563eb);
+  background-color: #ea580c; /* Amber golden hour */
   border: none;
   border-radius: 10px;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25);
 }
 
 .trips-list-page__create-button:hover {
-  background-color: var(--primary-dark, #1d4ed8);
+  background-color: #dc2626; /* Darker amber */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
 }
 
 .trips-list-page__create-icon {
@@ -264,7 +323,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
-  background-color: var(--primary-color, #2563eb);
+  background-color: #ea580c; /* Amber golden hour */
   border: none;
   border-radius: 10px;
   text-decoration: none;
@@ -273,7 +332,7 @@
 }
 
 .trips-list-page__empty-button:hover {
-  background-color: var(--primary-dark, #1d4ed8);
+  background-color: #dc2626; /* Darker amber */
   transform: translateY(-2px);
 }
 
@@ -296,18 +355,18 @@
   padding: 10px 18px;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--text-primary, #111827);
-  background-color: var(--bg-secondary, #ffffff);
-  border: 1px solid var(--border-color, #e5e7eb);
+  color: #1c1917; /* Dark text */
+  background-color: #ffffff;
+  border: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease-in-out;
 }
 
 .trips-list-page__pagination-button:hover:not(:disabled) {
-  background-color: var(--bg-tertiary, #f9fafb);
-  border-color: var(--primary-color, #2563eb);
-  color: var(--primary-color, #2563eb);
+  background-color: rgba(234, 88, 12, 0.08); /* Amber glow */
+  border-color: rgba(234, 88, 12, 0.4);
+  color: #ea580c; /* Amber accent */
 }
 
 .trips-list-page__pagination-button:disabled {
@@ -345,23 +404,23 @@
   padding: 0 12px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
-  background-color: var(--bg-secondary, #ffffff);
-  border: 1px solid var(--border-color, #e5e7eb);
+  color: #78716c; /* Warm tertiary */
+  background-color: #ffffff;
+  border: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease-in-out;
 }
 
 .trips-list-page__pagination-number:hover {
-  background-color: var(--primary-light, #dbeafe);
-  border-color: var(--primary-color, #2563eb);
-  color: var(--primary-color, #2563eb);
+  background-color: rgba(234, 88, 12, 0.12); /* Amber glow */
+  border-color: rgba(234, 88, 12, 0.4);
+  color: #ea580c; /* Amber accent */
 }
 
 .trips-list-page__pagination-number--active {
-  background-color: var(--primary-color, #2563eb);
-  border-color: var(--primary-color, #2563eb);
+  background-color: #ea580c; /* Amber golden hour */
+  border-color: #ea580c;
   color: #ffffff;
 }
 

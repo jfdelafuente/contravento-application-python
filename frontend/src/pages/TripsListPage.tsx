@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from '../components/auth/UserMenu';
+import HeaderQuickActions from '../components/dashboard/HeaderQuickActions';
 import { TripCard } from '../components/trips/TripCard';
 import { TripFilters } from '../components/trips/TripFilters';
 import { TripSortDropdown } from '../components/trips/TripSortDropdown';
@@ -131,6 +132,10 @@ export const TripsListPage: React.FC = () => {
             </svg>
             <span>ContraVento</span>
           </h1>
+
+          {/* Quick Actions - Brújula de Cabecera */}
+          <HeaderQuickActions />
+
           <UserMenu />
         </div>
       </header>
