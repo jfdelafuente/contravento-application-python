@@ -13,6 +13,9 @@ env:
   BACKEND_IMAGE: jfdelafuente/contravento-backend
   FRONTEND_IMAGE: jfdelafuente/contravento-frontend
 
+permissions:
+  contents: write  # Required to create tags and releases
+
 jobs:
   build-and-push:
     name: Build and Push Production Images
