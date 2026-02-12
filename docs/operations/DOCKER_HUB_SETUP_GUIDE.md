@@ -337,18 +337,20 @@ git push origin develop
    ssh staging-server
    cd /opt/contravento
 
-   # NOTA: Este comando fallará porque deploy.sh aún no tiene
-   # la función pull_from_dockerhub(). Esto es esperado.
-   # Por ahora, pull manualmente:
+   # ✅ Deploy usando la función pull_from_dockerhub() de deploy.sh
+   ./deploy.sh staging --pull-latest
 
-   docker pull jfdelafuente/contravento-backend:staging-latest
-   docker pull jfdelafuente/contravento-frontend:staging-latest
+   # Verificar deployment exitoso
+   docker-compose ps
+   docker-compose logs -f --tail=50 backend frontend
 
    # Verificar imágenes descargadas
    docker images | grep contravento
    # Expected:
    # jfdelafuente/contravento-backend    staging-latest   abc123def   2 minutes ago   XMB
+   # jfdelafuente/contravento-backend    latest           abc123def   2 minutes ago   XMB
    # jfdelafuente/contravento-frontend   staging-latest   def456ghi   2 minutes ago   YMB
+   # jfdelafuente/contravento-frontend   latest           def456ghi   2 minutes ago   YMB
    ```
 
 ### Test del Workflow de Production (Opcional)

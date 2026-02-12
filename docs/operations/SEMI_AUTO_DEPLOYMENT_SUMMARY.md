@@ -1,7 +1,7 @@
 # Deployment Semi-Automático - Resumen Ejecutivo
 
 **Fecha**: 2026-02-12
-**Estado**: Propuesta Aprobada
+**Estado**: ✅ Implementado
 **Modelo**: Build Automático + Deploy Manual
 
 ---
@@ -135,12 +135,12 @@ jfdelafuente/contravento-frontend:production-abc123d
 
 ---
 
-## 🛠️ Actualizar deploy.sh
+## 🛠️ deploy.sh - Implementación Completa
 
-### Añadir Función Pull desde Docker Hub
+### ✅ Función Pull desde Docker Hub (Implementada)
 
 ```bash
-# En deploy.sh (nuevo)
+# En deploy.sh (implementado)
 
 pull_from_dockerhub() {
     local env=$1
@@ -381,19 +381,23 @@ jobs:
 - [ ] Añadir secrets a GitHub (DOCKERHUB_USERNAME, DOCKERHUB_TOKEN)
 - [ ] Test: Build local y push manual a Docker Hub
 
-### Semana 3: Implementar Workflows
+### Semana 3: Implementar Workflows ✅ COMPLETO
 
-- [ ] Crear `.github/workflows/build-staging-image.yml`
-- [ ] Crear `.github/workflows/build-production-image.yml`
-- [ ] Test: Push a develop → verificar build automático
-- [ ] Test: Verificar imágenes en Docker Hub
+- [x] Crear `.github/workflows/build-staging-image.yml`
+- [x] Crear `.github/workflows/build-production-image.yml`
+- [x] Añadir explicit Dockerfile paths (fix compilación)
+- [x] Documentar workflows en ci.yml (deployment placeholders)
+- [ ] Test: Push a develop → verificar build automático (pendiente push)
+- [ ] Test: Verificar imágenes en Docker Hub (pendiente push)
 
-### Semana 4: Actualizar deploy.sh
+### Semana 4: Actualizar deploy.sh ✅ COMPLETO
 
-- [ ] Añadir función `pull_from_dockerhub()`
-- [ ] Modificar función `deploy()` con opciones: --pull-latest, --pull-version, --rollback-to
-- [ ] Test en staging server: `./deploy.sh staging --pull-latest`
-- [ ] Documentar en `docs/deployment/manual-deploy-guide.md`
+- [x] Añadir función `pull_from_dockerhub()` en deploy.sh (Bash)
+- [x] Añadir función `Pull-FromDockerHub` en deploy.ps1 (PowerShell)
+- [x] Modificar función `deploy()` con opciones: --pull-latest, --pull-version, --rollback-to
+- [x] Implementar validaciones (staging usa --pull-latest, prod usa --pull-version)
+- [ ] Test en staging server: `./deploy.sh staging --pull-latest` (pendiente servidor)
+- [x] Documentar en `docs/operations/DOCKER_HUB_SETUP_GUIDE.md`
 
 ### Semana 5: Testing End-to-End
 
