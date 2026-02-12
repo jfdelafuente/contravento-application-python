@@ -1,0 +1,135 @@
+/**
+ * MapPreview Component Styles
+ *
+ * Styling for static map preview in Wizard Step 1.
+ * Non-interactive map with route visualization.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 2 (Option C)
+ * Task: T2
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.map-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* ============================================================================
+   Header
+   ========================================================================= */
+
+.map-preview__header {
+  text-align: center;
+}
+
+.map-preview__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.map-preview__hint {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ============================================================================
+   Map Container
+   ========================================================================= */
+
+.map-preview__container {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #f7fafc;
+}
+
+/* Ensure Leaflet tiles load correctly */
+.map-preview__container .leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .map-preview__container {
+    height: 300px;
+    border-radius: 8px;
+  }
+
+  .map-preview__title {
+    font-size: 1.125rem;
+  }
+
+  .map-preview__hint {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-preview__container {
+    height: 250px;
+    border-radius: 8px;
+  }
+
+  .map-preview__title {
+    font-size: 1rem;
+  }
+
+  .map-preview__hint {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ========================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .map-preview__title {
+    color: #f7fafc;
+  }
+
+  .map-preview__hint {
+    color: #cbd5e0;
+  }
+
+  .map-preview__container {
+    background-color: #2d3748;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .map-preview__container {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+  }
+
+  .map-preview__title {
+    color: black;
+  }
+
+  .map-preview__hint {
+    color: #4a5568;
+  }
+}

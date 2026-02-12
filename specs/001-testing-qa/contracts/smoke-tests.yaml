@@ -1,0 +1,389 @@
+openapi: 3.0.3
+info:
+  title: ContraVento Smoke Tests API Contract
+  description: |
+    API contract specification for smoke tests across all deployment modes.
+    Smoke tests validate that critical endpoints are responding correctly
+    and services are healthy before running full test suite.
+  version: 1.0.0
+  contact:
+    name: ContraVento Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development (SQLite)
+  - url: http://localhost:8000
+    description: Local minimal (PostgreSQL)
+  - url: http://localhost:8000
+    description: Local full (Docker)
+  - url: https://staging.contravento.com
+    description: Staging environment
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: |
+        Validates that the API server is running and can respond to requests.
+        This is the first smoke test executed to verify basic connectivity.
+      operationId: healthCheck
+      tags:
+        - Smoke Tests
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - timestamp
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, ok]
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-01-16T10:30:00Z"
+                  version:
+                    type: string
+                    example: "1.0.0"
+              examples:
+                healthy:
+                  value:
+                    status: healthy
+                    timestamp: "2026-01-16T10:30:00Z"
+                    version: "1.0.0"
+
+  /auth/login:
+    post:
+      summary: User Login
+      description: |
+        Validates authentication endpoint is responding correctly.
+        Smoke test sends invalid credentials to verify endpoint returns 401.
+      operationId: login
+      tags:
+        - Smoke Tests
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: smoke-test@test.com
+                password:
+                  type: string
+                  format: password
+                  example: InvalidPassword123
+            examples:
+              invalidCredentials:
+                value:
+                  email: smoke-test@test.com
+                  password: InvalidPassword123
+      responses:
+        '200':
+          description: Login successful (valid credentials)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccess'
+        '401':
+          description: Invalid credentials (expected for smoke test)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCredentials:
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_CREDENTIALS
+                      message: Credenciales inválidas
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/me:
+    get:
+      summary: Get Current User
+      description: |
+        Validates authentication endpoint requires valid token.
+        Smoke test sends request without token to verify endpoint returns 401.
+      operationId: getCurrentUser
+      tags:
+        - Smoke Tests
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized (expected for smoke test without token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                noToken:
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: UNAUTHORIZED
+                      message: Token de autenticación requerido
+
+  /trips/public:
+    get:
+      summary: Public Trips Feed
+      description: |
+        Validates public trips endpoint is responding correctly.
+        Smoke test verifies endpoint returns paginated results without authentication.
+      operationId: getPublicTrips
+      tags:
+        - Smoke Tests
+        - Trips
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+          description: Number of trips per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: Public trips retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    required:
+                      - trips
+                      - total
+                    properties:
+                      trips:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TripSummary'
+                      total:
+                        type: integer
+                        example: 42
+              examples:
+                emptyFeed:
+                  value:
+                    success: true
+                    data:
+                      trips: []
+                      total: 0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginSuccess:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required:
+            - access_token
+            - refresh_token
+            - user
+          properties:
+            access_token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            refresh_token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            user:
+              $ref: '#/components/schemas/User'
+
+    UserResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required:
+        - user_id
+        - email
+        - username
+        - is_verified
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: john_cyclist
+        is_verified:
+          type: boolean
+          example: true
+        photo_url:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+
+    TripSummary:
+      type: object
+      required:
+        - trip_id
+        - title
+        - start_date
+        - user_id
+        - username
+        - status
+      properties:
+        trip_id:
+          type: string
+          format: uuid
+          example: 660e8400-e29b-41d4-a716-446655440000
+        title:
+          type: string
+          example: Ruta Bikepacking Pirineos
+        start_date:
+          type: string
+          format: date
+          example: "2024-06-01"
+        distance_km:
+          type: number
+          format: float
+          nullable: true
+          example: 320.5
+        user_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        username:
+          type: string
+          example: john_cyclist
+        status:
+          type: string
+          enum: [draft, published]
+          example: published
+        thumbnail_url:
+          type: string
+          format: uri
+          nullable: true
+          example: https://example.com/photos/thumbnail.jpg
+
+    Error:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: "null"
+          example: null
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: UNAUTHORIZED
+            message:
+              type: string
+              example: Token de autenticación requerido
+            field:
+              type: string
+              nullable: true
+              example: null
+
+    ValidationError:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: "null"
+          example: null
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Email inválido
+            field:
+              type: string
+              nullable: true
+              example: email

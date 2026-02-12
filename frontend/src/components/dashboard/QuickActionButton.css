@@ -1,0 +1,163 @@
+/* QuickActionButton.css - Quick action button with rustic design */
+
+.quick-action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background-color: var(--color-cream);
+  border: 2px solid rgba(139, 115, 85, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 140px;
+}
+
+/* Subtle texture overlay */
+.quick-action-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(139, 115, 85, 0.02) 10px,
+    rgba(139, 115, 85, 0.02) 20px
+  );
+  pointer-events: none;
+}
+
+.quick-action-button:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(107, 114, 59, 0.15);
+  transform: translateY(-4px);
+}
+
+.quick-action-button:active {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(107, 114, 59, 0.1);
+}
+
+/* Icon */
+.quick-action-button__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.quick-action-button:hover .quick-action-button__icon {
+  transform: scale(1.1);
+}
+
+.quick-action-button__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Label */
+.quick-action-button__label {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  line-height: 1.3;
+}
+
+/* Variants */
+.quick-action-button--primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  border-color: var(--color-primary);
+}
+
+.quick-action-button--primary .quick-action-button__icon {
+  color: white;
+}
+
+.quick-action-button--primary .quick-action-button__label {
+  color: white;
+}
+
+.quick-action-button--primary:hover {
+  border-color: var(--color-forest);
+  box-shadow: 0 6px 16px rgba(107, 114, 59, 0.25);
+}
+
+.quick-action-button--primary::before {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 255, 255, 0.05) 10px,
+    rgba(255, 255, 255, 0.05) 20px
+  );
+}
+
+/* Secondary variant (default) */
+.quick-action-button--secondary {
+  background-color: var(--color-cream);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .quick-action-button {
+    padding: 1.25rem 0.875rem;
+    min-height: 120px;
+  }
+
+  .quick-action-button__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .quick-action-button__label {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Accessibility */
+.quick-action-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.quick-action-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.quick-action-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Animation on mount */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quick-action-button {
+  animation: slideUp 0.4s ease-out;
+}

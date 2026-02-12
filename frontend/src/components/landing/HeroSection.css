@@ -1,0 +1,169 @@
+/* frontend/src/components/landing/HeroSection.css */
+
+/**
+ * HeroSection Styles (Feature 014 - User Story 1)
+ *
+ * Responsive hero section with cinematic image background,
+ * centered content overlay, and CTA button.
+ *
+ * Performance optimizations:
+ * - Eager loading on hero image (LCP < 2.5s)
+ * - WebP with JPG fallback
+ * - Mobile-first responsive breakpoints
+ */
+
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 600px;
+  max-height: 900px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hero Image - Full viewport coverage */
+.hero-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
+}
+
+/* Dark overlay for better text readability */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(27, 38, 33, 0.4) 0%,
+    rgba(27, 38, 33, 0.6) 100%
+  );
+  z-index: 2;
+}
+
+/* Content Overlay */
+.hero-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  max-width: 800px;
+  padding: var(--space-8);
+  color: var(--color-white);
+}
+
+/* Headline - Serif font from theme */
+.hero-title {
+  font-family: var(--landing-font-serif);
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-white);
+  margin-bottom: var(--space-6);
+  text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Subtitle - Sans-serif */
+.hero-subtitle {
+  font-family: var(--landing-font-sans);
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--landing-bg);
+  margin-bottom: var(--space-10);
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* CTA Button - Terracota color */
+.hero-cta {
+  display: inline-block;
+  padding: var(--space-4) var(--space-8);
+  font-family: var(--landing-font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-white);
+  background-color: var(--landing-cta);
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(211, 84, 0, 0.3);
+}
+
+.hero-cta:hover {
+  background-color: var(--landing-cta-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(211, 84, 0, 0.4);
+}
+
+.hero-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(211, 84, 0, 0.3);
+}
+
+/* Tablet Responsive (768px - 1024px) */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 2.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+  }
+
+  .hero-content {
+    max-width: 600px;
+    padding: var(--space-6);
+  }
+}
+
+/* Mobile Responsive (< 768px) */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 500px;
+    max-height: 700px;
+    margin-bottom: var(--space-1);
+  }
+
+  .hero-title {
+    font-size: 2rem;
+    margin-bottom: var(--space-4);
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: var(--space-6);
+  }
+
+  .hero-content {
+    max-width: 90%;
+    padding: var(--space-4);
+  }
+
+  .hero-cta {
+    padding: var(--space-3) var(--space-6);
+    font-size: 1rem;
+  }
+}
+
+/* Small Mobile (< 480px) */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+}

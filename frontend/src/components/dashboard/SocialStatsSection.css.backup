@@ -1,0 +1,159 @@
+/* SocialStatsSection.css - Social statistics section with card layout */
+
+.social-stats-section {
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+.social-stats-section__title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.5px;
+}
+
+.social-stats-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  max-width: 600px;
+}
+
+/* Loading and error states */
+.social-stats-section__loading,
+.social-stats-section__error {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-secondary);
+}
+
+.social-stats-section__loading .spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  border: 3px solid var(--color-background-secondary);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.social-stats-section__error {
+  color: var(--color-error);
+}
+
+/* Social stat card */
+.social-stat-card {
+  background: var(--color-background-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.social-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--color-primary);
+}
+
+.social-stat-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-brown) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.social-stat-card__icon svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+}
+
+/* Specific colors for each social stat */
+.social-stat-card__icon--followers {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.social-stat-card__icon--following {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.social-stat-card__content {
+  flex: 1;
+  text-align: center;
+}
+
+.social-stat-card__label {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.social-stat-card__value {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1;
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 640px) {
+  .social-stats-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 1 column or stacked */
+@media (max-width: 639px) {
+  .social-stats-section {
+    margin-bottom: 2rem;
+  }
+
+  .social-stats-section__title {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .social-stats-section__grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .social-stat-card {
+    padding: 1.25rem;
+  }
+
+  .social-stat-card__icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .social-stat-card__icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .social-stat-card__value {
+    font-size: 1.75rem;
+  }
+}

@@ -1,0 +1,159 @@
+/**
+ * TripSortDropdown Component Styles
+ *
+ * Dropdown for selecting trip sort order.
+ * Matches design system from TripFilters.css
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.trip-sort-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ============================================================================
+   Label
+   ============================================================================ */
+
+.trip-sort-dropdown__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Select Wrapper
+   ============================================================================ */
+
+.trip-sort-dropdown__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 220px;
+}
+
+.trip-sort-dropdown__icon {
+  position: absolute;
+  left: 14px;
+  width: 20px;
+  height: 20px;
+  color: var(--text-tertiary, #9ca3af);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.trip-sort-dropdown__select {
+  width: 100%;
+  padding: 10px 40px 10px 44px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary, #111827);
+  background-color: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.trip-sort-dropdown__select:hover:not(:disabled) {
+  border-color: var(--primary-color, #2563eb);
+  background-color: var(--bg-secondary, #f9fafb);
+}
+
+.trip-sort-dropdown__select:focus {
+  outline: none;
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.trip-sort-dropdown__select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--bg-tertiary, #f3f4f6);
+}
+
+.trip-sort-dropdown__chevron {
+  position: absolute;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  color: var(--text-tertiary, #9ca3af);
+  pointer-events: none;
+  transition: transform 0.2s ease-in-out;
+}
+
+.trip-sort-dropdown__select:focus ~ .trip-sort-dropdown__chevron {
+  transform: rotate(180deg);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) {
+  .trip-sort-dropdown__wrapper {
+    min-width: 200px;
+  }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  .trip-sort-dropdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .trip-sort-dropdown__wrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .trip-sort-dropdown__select {
+    font-size: 1rem; /* Prevent iOS zoom on focus */
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .trip-sort-dropdown__label {
+    color: #d1d5db;
+  }
+
+  .trip-sort-dropdown__icon {
+    color: #6b7280;
+  }
+
+  .trip-sort-dropdown__select {
+    background-color: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .trip-sort-dropdown__select:hover:not(:disabled) {
+    background-color: #1f2937;
+    border-color: #3b82f6;
+  }
+
+  .trip-sort-dropdown__select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .trip-sort-dropdown__chevron {
+    color: #6b7280;
+  }
+}

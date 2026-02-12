@@ -1,0 +1,134 @@
+/**
+ * TelemetrySkeleton Component Styles
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 9 (Polish)
+ * Task: T098
+ */
+
+.telemetry-skeleton {
+  padding: 1.5rem;
+  background-color: var(--background-color, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+}
+
+.telemetry-skeleton__header {
+  margin-bottom: 1.5rem;
+}
+
+.telemetry-skeleton__title {
+  height: 1.5rem;
+  width: 60%;
+  border-radius: 4px;
+}
+
+.telemetry-skeleton__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.telemetry-skeleton__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.telemetry-skeleton__label {
+  height: 1rem;
+  width: 30%;
+  border-radius: 4px;
+}
+
+.telemetry-skeleton__value {
+  height: 1.25rem;
+  width: 25%;
+  border-radius: 4px;
+}
+
+.telemetry-skeleton__badge {
+  height: 1.75rem;
+  width: 35%;
+  border-radius: 12px;
+}
+
+.telemetry-skeleton__footer {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.telemetry-skeleton__text {
+  height: 0.875rem;
+  width: 80%;
+  border-radius: 4px;
+}
+
+/* Shimmer animation */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #f8f8f8 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .telemetry-skeleton {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .telemetry-skeleton__footer {
+    border-color: #374151;
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      #374151 0%,
+      #4b5563 20%,
+      #374151 40%,
+      #374151 100%
+    );
+  }
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .telemetry-skeleton {
+    padding: 1rem;
+  }
+
+  .telemetry-skeleton__content {
+    gap: 1rem;
+  }
+}

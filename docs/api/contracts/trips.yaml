@@ -1,0 +1,839 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - Travel Diary API
+  description: |
+    API endpoints for the Travel Diary feature (Diario de Viajes Digital).
+
+    Allows cyclists to create, edit, and manage trip entries with photos, tags, and locations.
+  version: 0.2.0
+  contact:
+    name: ContraVento API Support
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.contravento.com
+    description: Production server
+
+tags:
+  - name: trips
+    description: Trip CRUD operations
+  - name: photos
+    description: Trip photo management
+  - name: tags
+    description: Tag filtering and discovery
+
+paths:
+  /trips:
+    post:
+      tags: [trips]
+      summary: Create new trip
+      description: |
+        Create a new trip entry. Trip is created as 'draft' by default.
+
+        **Authentication**: Required
+        **Functional Requirements**: FR-001, FR-002, FR-003
+      operationId: create_trip
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripCreateRequest'
+            examples:
+              minimal:
+                summary: Minimal trip (draft)
+                value:
+                  title: "Vía Verde del Aceite"
+                  description: "Un recorrido precioso entre olivos centenarios..."
+                  start_date: "2024-05-15"
+              complete:
+                summary: Complete trip data
+                value:
+                  title: "Transpirenaica en bikepacking"
+                  description: "<p>Increíble aventura cruzando los Pirineos...</p>"
+                  start_date: "2024-07-01"
+                  end_date: "2024-07-15"
+                  distance_km: 850.5
+                  difficulty: "very_hard"
+                  locations:
+                    - name: "Hendaya"
+                      country: "Francia"
+                    - name: "Llansa"
+                      country: "España"
+                  tags: ["bikepacking", "pirineos", "larga distancia"]
+      responses:
+        '201':
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  user_id: "123e4567-e89b-12d3-a456-426614174000"
+                  title: "Vía Verde del Aceite"
+                  description: "Un recorrido precioso..."
+                  start_date: "2024-05-15"
+                  end_date: null
+                  distance_km: null
+                  difficulty: null
+                  status: "draft"
+                  created_at: "2024-12-24T10:30:00Z"
+                  updated_at: "2024-12-24T10:30:00Z"
+                  published_at: null
+                  photos: []
+                  locations: []
+                  tags: []
+                error: null
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /trips/{trip_id}:
+    get:
+      tags: [trips]
+      summary: Get trip by ID
+      description: |
+        Retrieve detailed trip information including photos, tags, and locations.
+
+        **Visibility**:
+        - Published trips: Visible to everyone
+        - Draft trips: Only visible to owner
+
+        **Functional Requirements**: FR-007, FR-008
+      operationId: get_trip
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Trip retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  user_id: "123e4567-e89b-12d3-a456-426614174000"
+                  title: "Vía Verde del Aceite"
+                  description: "<p>Ruta espectacular...</p>"
+                  start_date: "2024-05-15"
+                  end_date: "2024-05-17"
+                  distance_km: 127.3
+                  difficulty: "moderate"
+                  status: "published"
+                  created_at: "2024-12-20T10:30:00Z"
+                  updated_at: "2024-12-22T15:45:00Z"
+                  published_at: "2024-12-22T15:45:00Z"
+                  photos:
+                    - id: "photo-1"
+                      photo_url: "/storage/trip_photos/2024/12/550e.../abc_optimized.jpg"
+                      thumb_url: "/storage/trip_photos/2024/12/550e.../abc_thumb.jpg"
+                      order: 0
+                      width: 1200
+                      height: 800
+                  locations:
+                    - id: "loc-1"
+                      name: "Jaén"
+                      country: "España"
+                      order: 0
+                    - id: "loc-2"
+                      name: "Baeza"
+                      country: "España"
+                      order: 1
+                  tags:
+                    - id: "tag-1"
+                      name: "Vías Verdes"
+                      normalized: "vías verdes"
+                error: null
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [trips]
+      summary: Update trip
+      description: |
+        Update existing trip. Only trip owner can update.
+
+        Supports partial updates - only provided fields are updated.
+        Includes optimistic locking via `client_updated_at`.
+
+        **Authentication**: Required (owner only)
+        **Functional Requirements**: FR-016, FR-020
+      operationId: update_trip
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripUpdateRequest'
+            example:
+              title: "Vía Verde del Aceite - ACTUALIZADO"
+              description: "<p>Actualización con más detalles...</p>"
+              client_updated_at: "2024-12-22T15:45:00Z"
+      responses:
+        '200':
+          description: Trip updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - Not trip owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "FORBIDDEN"
+                  message: "No tienes permiso para editar este viaje"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Trip was modified by another session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "CONCURRENT_MODIFICATION"
+                  message: "Este viaje fue modificado por otra sesión. Por favor recarga la página."
+
+    delete:
+      tags: [trips]
+      summary: Delete trip
+      description: |
+        Permanently delete trip and all associated data (photos, tags, locations).
+
+        **Authentication**: Required (owner only)
+        **Functional Requirements**: FR-017, FR-018
+      operationId: delete_trip
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Trip deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  message: "Viaje eliminado exitosamente"
+                  stats_updated: true
+                error: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - Not trip owner
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips/{trip_id}/publish:
+    post:
+      tags: [trips]
+      summary: Publish trip
+      description: |
+        Change trip status from 'draft' to 'published'.
+
+        Validates that trip meets publication requirements:
+        - Title present
+        - Description ≥ 50 characters
+        - Start date present
+
+        **Authentication**: Required (owner only)
+        **Functional Requirements**: FR-007
+      operationId: publish_trip
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Trip published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  status: "published"
+                  published_at: "2024-12-24T12:00:00Z"
+                error: null
+        '400':
+          description: Validation error - Trip cannot be published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "La descripción debe tener al menos 50 caracteres para publicar el viaje"
+                  field: "description"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips/{trip_id}/photos:
+    post:
+      tags: [photos]
+      summary: Upload photo to trip
+      description: |
+        Upload a new photo to trip gallery.
+
+        **File Requirements**:
+        - Formats: JPG, PNG, WebP
+        - Max size: 10MB per photo
+        - Max 20 photos per trip
+
+        **Processing**: Photo is processed asynchronously (resize, thumbnail generation).
+
+        **Authentication**: Required (owner only)
+        **Functional Requirements**: FR-009, FR-010, FR-011
+        **Success Criteria**: SC-005, SC-006
+      operationId: upload_trip_photo
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: Photo file (JPG, PNG, WebP)
+                order:
+                  type: integer
+                  description: Display order in gallery (optional, defaults to last)
+              required:
+                - photo
+      responses:
+        '201':
+          description: Photo uploaded and processing started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  id: "photo-abc123"
+                  trip_id: "550e8400-e29b-41d4-a716-446655440000"
+                  photo_url: "/storage/trip_photos/2024/12/550e.../abc_optimized.jpg"
+                  thumb_url: "/storage/trip_photos/2024/12/550e.../abc_thumb.jpg"
+                  order: 5
+                  file_size: 1523456
+                  width: 1200
+                  height: 800
+                  uploaded_at: "2024-12-24T12:30:00Z"
+                  processing: true
+                error: null
+        '400':
+          description: Invalid photo file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalid_format:
+                  summary: Unsupported format
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "INVALID_FILE_FORMAT"
+                      message: "Formato de archivo no soportado. Usa JPG, PNG o WebP"
+                too_large:
+                  summary: File too large
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "FILE_TOO_LARGE"
+                      message: "La foto excede el tamaño máximo de 10MB"
+                max_photos:
+                  summary: Too many photos
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: "MAX_PHOTOS_EXCEEDED"
+                      message: "Has alcanzado el límite de 20 fotos por viaje"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips/{trip_id}/photos/{photo_id}:
+    delete:
+      tags: [photos]
+      summary: Delete photo from trip
+      description: |
+        Remove photo from trip gallery and delete files from storage.
+
+        **Authentication**: Required (trip owner only)
+        **Functional Requirements**: FR-013
+      operationId: delete_trip_photo
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+        - $ref: '#/components/parameters/PhotoId'
+      responses:
+        '200':
+          description: Photo deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  message: "Foto eliminada exitosamente"
+                error: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /trips/{trip_id}/photos/reorder:
+    put:
+      tags: [photos]
+      summary: Reorder trip photos
+      description: |
+        Update display order of photos in gallery.
+
+        **Authentication**: Required (trip owner only)
+        **Functional Requirements**: FR-012
+      operationId: reorder_trip_photos
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photo_order:
+                  type: array
+                  description: Array of photo IDs in desired order
+                  items:
+                    type: string
+                  example: ["photo-3", "photo-1", "photo-2"]
+              required:
+                - photo_order
+      responses:
+        '200':
+          description: Photos reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{username}/trips:
+    get:
+      tags: [trips]
+      summary: List user's trips
+      description: |
+        Get paginated list of trips for a user.
+
+        **Visibility Rules**:
+        - If viewing own profile: Returns both published and draft trips
+        - If viewing other user: Returns only published trips
+
+        **Functional Requirements**: FR-008
+        **Success Criteria**: SC-023
+      operationId: list_user_trips
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username of trip author
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [draft, published, all]
+            default: published
+          description: Filter by trip status (requires authentication for 'draft')
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by tag (case-insensitive)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+          description: Number of trips per page
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: Trips retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  trips:
+                    - id: "550e8400-e29b-41d4-a716-446655440000"
+                      title: "Vía Verde del Aceite"
+                      start_date: "2024-05-15"
+                      distance_km: 127.3
+                      status: "published"
+                      photo_count: 12
+                      tags: ["vías verdes", "andalucía"]
+                    - id: "660e8400-e29b-41d4-a716-446655440001"
+                      title: "Camino de Santiago"
+                      start_date: "2024-06-01"
+                      distance_km: 780.0
+                      status: "published"
+                      photo_count: 35
+                      tags: ["camino", "peregrinación"]
+                  total: 15
+                  limit: 20
+                  offset: 0
+                error: null
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "USER_NOT_FOUND"
+                  message: "Usuario no encontrado"
+
+  /tags:
+    get:
+      tags: [tags]
+      summary: List all tags
+      description: |
+        Get list of all tags used in the system, ordered by usage count.
+
+        Useful for tag suggestions and discovery.
+
+        **Functional Requirements**: FR-024
+      operationId: list_tags
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Number of tags to return
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search tags by prefix (case-insensitive)
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  tags:
+                    - id: "tag-1"
+                      name: "Bikepacking"
+                      normalized: "bikepacking"
+                      usage_count: 342
+                    - id: "tag-2"
+                      name: "Camino de Santiago"
+                      normalized: "camino de santiago"
+                      usage_count: 187
+                    - id: "tag-3"
+                      name: "Vías Verdes"
+                      normalized: "vías verdes"
+                      usage_count: 125
+                  total: 156
+                error: null
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /auth/login
+
+  parameters:
+    TripId:
+      name: trip_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique trip identifier
+
+    PhotoId:
+      name: photo_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique photo identifier
+
+  schemas:
+    TripCreateRequest:
+      type: object
+      required:
+        - title
+        - description
+        - start_date
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Trip title
+          example: "Vía Verde del Aceite"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 50000
+          description: Trip description (HTML allowed, will be sanitized)
+          example: "<p>Un recorrido espectacular...</p>"
+        start_date:
+          type: string
+          format: date
+          description: Trip start date (YYYY-MM-DD, cannot be future)
+          example: "2024-05-15"
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          description: Trip end date (must be >= start_date)
+          example: "2024-05-17"
+        distance_km:
+          type: number
+          format: float
+          minimum: 0.1
+          maximum: 10000
+          nullable: true
+          description: Distance in kilometers
+          example: 127.3
+        difficulty:
+          type: string
+          enum: [easy, moderate, hard, very_hard]
+          nullable: true
+          description: Difficulty level
+          example: "moderate"
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationInput'
+          description: Locations visited during trip
+          maxItems: 50
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 30
+          description: Tags for categorization (max 10)
+          maxItems: 10
+          example: ["vías verdes", "andalucía"]
+
+    TripUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          minLength: 1
+          maxLength: 50000
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        distance_km:
+          type: number
+          format: float
+          minimum: 0.1
+          maximum: 10000
+          nullable: true
+        difficulty:
+          type: string
+          enum: [easy, moderate, hard, very_hard]
+          nullable: true
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationInput'
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        client_updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when client loaded the trip (for optimistic locking)
+          example: "2024-12-24T10:30:00Z"
+
+    LocationInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: Location name
+          example: "Baeza"
+        country:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Country name
+          example: "España"
+
+    ApiResponse:
+      type: object
+      required:
+        - success
+        - data
+        - error
+      properties:
+        success:
+          type: boolean
+          description: Whether request succeeded
+        data:
+          type: object
+          nullable: true
+          description: Response data (null on error)
+        error:
+          type: object
+          nullable: true
+          description: Error details (null on success)
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+            message:
+              type: string
+              description: Human-readable error message in Spanish
+            field:
+              type: string
+              nullable: true
+              description: Field name for validation errors
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "VALIDATION_ERROR"
+              message: "El título no puede estar vacío"
+              field: "title"
+
+    Unauthorized:
+      description: Unauthorized - Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token de autenticación inválido o expirado"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: "NOT_FOUND"
+              message: "Viaje no encontrado"

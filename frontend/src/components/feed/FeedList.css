@@ -1,0 +1,187 @@
+/**
+ * FeedList Styles (Feature 004 - T035)
+ *
+ * Styles for feed list container with infinite scroll.
+ * Includes loading states, empty states, and end-of-feed message.
+ */
+
+.feed-list {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Error State */
+.feed-list__error {
+  background: white;
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feed-list__error-icon {
+  width: 64px;
+  height: 64px;
+  color: #e53e3e;
+  margin: 0 auto 1.5rem;
+}
+
+.feed-list__error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 0.75rem 0;
+}
+
+.feed-list__error-message {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Empty State */
+.feed-list__empty {
+  background: white;
+  border-radius: 8px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feed-list__empty-icon {
+  width: 80px;
+  height: 80px;
+  color: #cbd5e0;
+  margin: 0 auto 1.5rem;
+}
+
+.feed-list__empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 0.75rem 0;
+}
+
+.feed-list__empty-message {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Loading More Indicator */
+.feed-list__loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.feed-list__spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.feed-list__loading-text {
+  font-size: 0.9375rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* Sentinel Element (invisible, triggers Intersection Observer) */
+.feed-list__sentinel {
+  height: 1px;
+  visibility: hidden;
+}
+
+/* End of Feed Message */
+.feed-list__end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.feed-list__end-icon {
+  width: 48px;
+  height: 48px;
+  color: #48bb78;
+  margin: 0 auto;
+}
+
+.feed-list__end-message {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .feed-list {
+    padding: 0 0.5rem;
+  }
+
+  .feed-list__error,
+  .feed-list__empty {
+    padding: 3rem 1.5rem;
+  }
+
+  .feed-list__error-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .feed-list__empty-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .feed-list__error-title,
+  .feed-list__empty-title {
+    font-size: 1.25rem;
+  }
+
+  .feed-list__end {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-list {
+    padding: 0;
+  }
+
+  .feed-list__error,
+  .feed-list__empty {
+    padding: 2rem 1rem;
+  }
+
+  .feed-list__error-title,
+  .feed-list__empty-title {
+    font-size: 1.125rem;
+  }
+
+  .feed-list__error-message,
+  .feed-list__empty-message {
+    font-size: 0.9375rem;
+  }
+}

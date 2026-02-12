@@ -1,0 +1,654 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - GPS Trip Creation Wizard API
+  description: |
+    API endpoints for the GPS Trip Creation Wizard feature.
+
+    This contract defines two new endpoints:
+    1. POST /gpx/analyze - Temporary GPX analysis (no DB storage)
+    2. POST /trips/gpx-wizard - Atomic trip creation with GPX + POIs
+
+    Feature: 017-gps-trip-wizard
+    Date: 2026-01-28
+  version: 1.0.0
+  contact:
+    name: ContraVento Development Team
+    url: https://contravento.com
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api-staging.contravento.com
+    description: Staging server
+  - url: https://api.contravento.com
+    description: Production server
+
+tags:
+  - name: GPX Wizard
+    description: GPS Trip Creation Wizard endpoints
+  - name: Trips
+    description: Trip management endpoints
+
+paths:
+  /gpx/analyze:
+    post:
+      summary: Analyze GPX file without storing to database
+      description: |
+        Extract telemetry data (distance, elevation, difficulty) from a GPX file
+        for wizard preview. This endpoint does NOT create a GPXFile record in the
+        database - it's for wizard UI only.
+
+        The actual GPX upload happens when the user publishes the trip via
+        POST /trips/gpx-wizard.
+
+        **Performance**: Returns telemetry in <2s for files up to 10MB.
+
+        **Rate Limit**: 10 requests per minute per user.
+      operationId: analyzeGpxFile
+      tags:
+        - GPX Wizard
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: GPX file (max 10MB)
+            examples:
+              validGpx:
+                summary: Valid GPX file with elevation data
+                value:
+                  file: <binary data>
+      responses:
+        '200':
+          description: GPX analysis successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GPXAnalysisResponse'
+              examples:
+                withElevation:
+                  summary: GPX with elevation data
+                  value:
+                    success: true
+                    data:
+                      distance_km: 42.5
+                      elevation_gain: 1250.0
+                      elevation_loss: 1100.0
+                      max_elevation: 1850.0
+                      min_elevation: 450.0
+                      has_elevation: true
+                      difficulty: difficult
+                    error: null
+
+                withoutElevation:
+                  summary: GPX without elevation data
+                  value:
+                    success: true
+                    data:
+                      distance_km: 28.3
+                      elevation_gain: null
+                      elevation_loss: null
+                      max_elevation: null
+                      min_elevation: null
+                      has_elevation: false
+                      difficulty: easy
+                    error: null
+
+        '400':
+          description: Invalid file (not GPX, corrupted, or no track data)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidFormat:
+                  summary: Non-GPX file uploaded
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_FILE_TYPE
+                      message: "Formato no válido. Solo se aceptan archivos .gpx"
+                      field: file
+
+                corruptedGpx:
+                  summary: Corrupted GPX file
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_GPX_FILE
+                      message: "No se pudo procesar el archivo. Verifica que contenga datos de ruta válidos"
+                      field: file
+
+        '401':
+          description: Unauthorized (no valid JWT token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                noToken:
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: UNAUTHORIZED
+                      message: "Token de autenticación requerido"
+
+        '408':
+          description: Processing timeout (>60s)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                timeout:
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: PROCESSING_TIMEOUT
+                      message: "El procesamiento del archivo GPX excedió el tiempo límite de 60 segundos"
+
+        '413':
+          description: File too large (>10MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                tooLarge:
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: FILE_TOO_LARGE
+                      message: "El archivo GPX es demasiado grande. Tamaño máximo: 10MB"
+                      field: file
+
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                rateLimitExceeded:
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: RATE_LIMIT_EXCEEDED
+                      message: "Demasiadas solicitudes. Intenta de nuevo en 1 minuto"
+
+  /trips/gpx-wizard:
+    post:
+      summary: Create trip with GPX file and POIs atomically
+      description: |
+        Create a trip, upload GPX file, and create POIs in a single atomic transaction.
+        This endpoint is used by the wizard's final "Publish" step (Step 4).
+
+        **Atomic Operation**:
+        1. Create Trip record
+        2. Upload GPX file to storage → Create GPXFile record
+        3. Batch create POIs (max 6)
+        4. Commit transaction or rollback all on error
+
+        **Validation**:
+        - Title: Required, max 200 chars
+        - Description: Required, min 50 chars
+        - GPX file: Required, max 10MB
+        - POIs: Optional, max 6 POIs
+        - Difficulty: Auto-calculated from GPX telemetry (not user-editable)
+
+        **Performance**: Returns trip in <5s (including GPX processing for files ≤1MB).
+        For files >1MB, GPX processing happens asynchronously in background.
+      operationId: createTripViaWizard
+      tags:
+        - Trips
+        - GPX Wizard
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - start_date
+                - gpx_file
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                  description: Trip title
+                  example: "Ruta Bikepacking Pirineos"
+
+                description:
+                  type: string
+                  minLength: 50
+                  description: Trip description (min 50 chars)
+                  example: "Viaje de 5 días por los Pirineos con más de 300km recorridos y 5000m de desnivel acumulado. Ruta circular desde Jaca con pernoctas en refugios de montaña."
+
+                start_date:
+                  type: string
+                  format: date
+                  description: Trip start date (YYYY-MM-DD)
+                  example: "2024-06-01"
+
+                end_date:
+                  type: string
+                  format: date
+                  description: Trip end date (YYYY-MM-DD, optional)
+                  example: "2024-06-05"
+
+                privacy:
+                  type: string
+                  enum: [public, private]
+                  default: public
+                  description: Trip privacy setting
+
+                gpx_file:
+                  type: string
+                  format: binary
+                  description: GPX file (required, max 10MB)
+
+                pois:
+                  type: string
+                  description: |
+                    JSON array of POI objects (max 6).
+                    Each POI must have: name, latitude, longitude.
+                    Optional: description (max 500 chars).
+                  example: |
+                    [
+                      {
+                        "name": "Refugio de Respomuso",
+                        "description": "Refugio de montaña a 2200m de altitud. Capacidad para 50 personas.",
+                        "latitude": 42.7856,
+                        "longitude": -0.2947
+                      },
+                      {
+                        "name": "Ibón de Respomuso",
+                        "description": "Lago glaciar de alta montaña. Aguas cristalinas rodeadas de picos nevados.",
+                        "latitude": 42.7912,
+                        "longitude": -0.2834
+                      }
+                    ]
+            examples:
+              completeTrip:
+                summary: Complete trip with GPX and 3 POIs
+                value:
+                  title: "Ruta Bikepacking Pirineos"
+                  description: "Viaje de 5 días por los Pirineos con más de 300km recorridos y 5000m de desnivel acumulado."
+                  start_date: "2024-06-01"
+                  end_date: "2024-06-05"
+                  privacy: public
+                  gpx_file: <binary data>
+                  pois: '[{"name": "Refugio", "latitude": 42.78, "longitude": -0.29}]'
+
+      responses:
+        '201':
+          description: Trip created successfully with GPX and POIs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDetailResponse'
+              examples:
+                success:
+                  summary: Trip created successfully
+                  value:
+                    success: true
+                    data:
+                      trip_id: "550e8400-e29b-41d4-a716-446655440000"
+                      title: "Ruta Bikepacking Pirineos"
+                      description: "Viaje de 5 días por los Pirineos..."
+                      start_date: "2024-06-01"
+                      end_date: "2024-06-05"
+                      privacy: public
+                      difficulty: very_difficult
+                      status: published
+                      gpx_file:
+                        gpx_file_id: "660e8400-e29b-41d4-a716-446655440001"
+                        total_distance_km: 320.5
+                        elevation_gain: 5250.0
+                        processing_status: completed
+                      pois:
+                        - poi_id: "770e8400-e29b-41d4-a716-446655440002"
+                          name: "Refugio de Respomuso"
+                          latitude: 42.7856
+                          longitude: -0.2947
+                      created_at: "2024-06-01T10:30:00Z"
+                    error: null
+
+        '400':
+          description: Validation error (invalid GPX, missing fields, >6 POIs)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingTitle:
+                  summary: Missing required field
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: VALIDATION_ERROR
+                      message: "El título es obligatorio"
+                      field: title
+
+                descriptionTooShort:
+                  summary: Description too short
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: VALIDATION_ERROR
+                      message: "La descripción debe tener al menos 50 caracteres"
+                      field: description
+
+                tooManyPois:
+                  summary: More than 6 POIs
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: VALIDATION_ERROR
+                      message: "Máximo 6 POIs por viaje"
+                      field: pois
+
+        '401':
+          description: Unauthorized (no valid JWT token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Internal server error (transaction rollback)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                transactionFailed:
+                  summary: Atomic transaction failed
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INTERNAL_ERROR
+                      message: "Error al publicar viaje. Intenta de nuevo."
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token (expires in 15 minutes)
+
+  schemas:
+    TripDifficulty:
+      type: string
+      enum:
+        - easy
+        - moderate
+        - difficult
+        - very_difficult
+        - extreme
+      description: |
+        Trip difficulty calculated from distance and elevation gain.
+
+        Thresholds:
+        - easy: <30km and <500m elevation gain
+        - moderate: 30-60km or 500-1000m gain
+        - difficult: 60-100km or 1000-1500m gain
+        - very_difficult: 100-150km or 1500-2500m gain
+        - extreme: >150km or >2500m gain
+      example: difficult
+
+    GPXTelemetry:
+      type: object
+      required:
+        - distance_km
+        - has_elevation
+        - difficulty
+      properties:
+        distance_km:
+          type: number
+          format: float
+          minimum: 0
+          description: Total distance in kilometers
+          example: 42.5
+
+        elevation_gain:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+          description: Cumulative uphill in meters
+          example: 1250.0
+
+        elevation_loss:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+          description: Cumulative downhill in meters
+          example: 1100.0
+
+        max_elevation:
+          type: number
+          format: float
+          nullable: true
+          description: Maximum altitude in meters
+          example: 1850.0
+
+        min_elevation:
+          type: number
+          format: float
+          nullable: true
+          description: Minimum altitude in meters
+          example: 450.0
+
+        has_elevation:
+          type: boolean
+          description: Whether GPX contains elevation data
+          example: true
+
+        difficulty:
+          $ref: '#/components/schemas/TripDifficulty'
+
+      example:
+        distance_km: 42.5
+        elevation_gain: 1250.0
+        elevation_loss: 1100.0
+        max_elevation: 1850.0
+        min_elevation: 450.0
+        has_elevation: true
+        difficulty: difficult
+
+    GPXAnalysisResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successful
+
+        data:
+          $ref: '#/components/schemas/GPXTelemetry'
+          nullable: true
+
+        error:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+              description: Error code (e.g., INVALID_GPX_FILE)
+              example: INVALID_GPX_FILE
+            message:
+              type: string
+              description: User-friendly error message in Spanish
+              example: "No se pudo procesar el archivo. Verifica que contenga datos de ruta válidos"
+            field:
+              type: string
+              nullable: true
+              description: Field that caused the error (if applicable)
+              example: file
+
+    TripDetailResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+
+        data:
+          type: object
+          nullable: true
+          properties:
+            trip_id:
+              type: string
+              format: uuid
+              example: "550e8400-e29b-41d4-a716-446655440000"
+
+            title:
+              type: string
+              example: "Ruta Bikepacking Pirineos"
+
+            description:
+              type: string
+              example: "Viaje de 5 días por los Pirineos..."
+
+            start_date:
+              type: string
+              format: date
+              example: "2024-06-01"
+
+            end_date:
+              type: string
+              format: date
+              nullable: true
+              example: "2024-06-05"
+
+            privacy:
+              type: string
+              enum: [public, private]
+              example: public
+
+            difficulty:
+              $ref: '#/components/schemas/TripDifficulty'
+
+            status:
+              type: string
+              enum: [draft, published]
+              example: published
+
+            gpx_file:
+              type: object
+              nullable: true
+              properties:
+                gpx_file_id:
+                  type: string
+                  format: uuid
+                total_distance_km:
+                  type: number
+                  format: float
+                elevation_gain:
+                  type: number
+                  format: float
+                  nullable: true
+                processing_status:
+                  type: string
+                  enum: [pending, processing, completed, failed]
+
+            pois:
+              type: array
+              items:
+                type: object
+                properties:
+                  poi_id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  description:
+                    type: string
+                    nullable: true
+                  latitude:
+                    type: number
+                    format: float
+                  longitude:
+                    type: number
+                    format: float
+
+            created_at:
+              type: string
+              format: date-time
+              example: "2024-06-01T10:30:00Z"
+
+        error:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            field:
+              type: string
+              nullable: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: false
+
+        data:
+          type: object
+          nullable: true
+          example: null
+
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              example: VALIDATION_ERROR
+
+            message:
+              type: string
+              description: User-friendly error message in Spanish
+              example: "El título es obligatorio"
+
+            field:
+              type: string
+              nullable: true
+              description: Field that caused the error
+              example: title

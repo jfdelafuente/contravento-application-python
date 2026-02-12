@@ -1,0 +1,193 @@
+/**
+ * CommentForm Component Styles (Feature 004 - US3: Comentarios)
+ *
+ * Styles for the comment creation/editing form.
+ */
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: var(--color-background-secondary, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 12px;
+}
+
+/* ============================================================
+ * Header (shown in edit mode)
+ * ============================================================ */
+
+.comment-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.comment-form-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+/* ============================================================
+ * Textarea with character counter
+ * ============================================================ */
+
+.comment-form-textarea-wrapper {
+  position: relative;
+}
+
+.comment-form-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.5;
+  color: var(--color-text-primary, #111827);
+  background-color: white;
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.comment-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.comment-form-textarea::placeholder {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* Character counter */
+.comment-form-char-counter {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  background-color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.comment-form-char-counter--warning {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.comment-form-char-counter--error {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* ============================================================
+ * Action buttons
+ * ============================================================ */
+
+.comment-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.comment-form-button {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-form-button--submit {
+  color: white;
+  background-color: var(--color-primary, #2563eb);
+}
+
+.comment-form-button--submit:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.comment-form-button--submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.comment-form-button--cancel {
+  color: var(--color-text-secondary, #6b7280);
+  background-color: transparent;
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.comment-form-button--cancel:hover {
+  background-color: var(--color-background-tertiary, #f3f4f6);
+}
+
+/* ============================================================
+ * Error message
+ * ============================================================ */
+
+.comment-form-error {
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  margin-top: -0.25rem;
+}
+
+/* ============================================================
+ * Validation errors
+ * ============================================================ */
+
+.comment-form-textarea--invalid {
+  border-color: #dc2626;
+}
+
+.comment-form-textarea--invalid:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.comment-form-validation-error {
+  font-size: 0.875rem;
+  color: #dc2626;
+  margin-top: -0.5rem;
+}
+
+/* ============================================================
+ * Responsive design
+ * ============================================================ */
+
+@media (max-width: 640px) {
+  .comment-form {
+    padding: 1rem;
+  }
+
+  .comment-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .comment-form-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .comment-form-textarea {
+    min-height: 120px;
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+}

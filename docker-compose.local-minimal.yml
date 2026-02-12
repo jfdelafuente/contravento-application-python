@@ -1,0 +1,152 @@
+# ============================================================================
+# ContraVento - Local Minimal Development Environment
+# ============================================================================
+# Lightweight development setup with only essential services:
+#   - PostgreSQL (database)
+#   - Backend API (FastAPI)
+#
+# This overlay is perfect for:
+#   - Quick development iterations
+#   - Working on features that don't require email/cache
+#   - Testing database changes
+#   - Minimal resource usage
+#
+# NOT included (use docker-compose.local.yml if you need these):
+#   - Redis (cache) - Not currently used in the app
+#   - MailHog (email testing) - Only needed for auth/email features
+#   - pgAdmin (DB UI) - Use DBeaver or psql instead
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.local-minimal.yml up -d
+#   OR use script: ./deploy.sh local-minimal
+#
+# Access:
+#   Backend API:        http://localhost:8000
+#   API Docs:           http://localhost:8000/docs
+#   PostgreSQL:         localhost:5432 (use psql, DBeaver, etc.)
+# ============================================================================
+
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Local Development
+  # ==========================================================================
+  postgres:
+    ports:
+      - "5432:5432"  # Expose for local DB clients (DBeaver, psql, etc.)
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Backend API - Local Development (Minimal)
+  # ==========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development  # Use development stage from Dockerfile
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
+    ports:
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
+    volumes:
+      # Mount source code for hot reload
+      - ./backend/src:/app/src:ro
+      # Mount storage as local directory for easy access
+      - ./backend/storage:/app/storage
+    environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
+      DEBUG: "true"
+      LOG_LEVEL: DEBUG
+      LOG_FORMAT: text  # Human-readable logs for development
+      BCRYPT_ROUNDS: "4"  # Fast hashing for quicker tests
+      # Email: Log to console instead of sending (no MailHog needed)
+      SMTP_HOST: ""
+      SMTP_PORT: "1025"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # NOTE: Redis dependency removed - not needed for basic development
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Frontend - React Vite Dev Server (Disabled by default)
+  # ==========================================================================
+  # Frontend service is disabled by default in minimal setup
+  # Enable with: ./deploy.sh local-minimal --with-frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"  # Vite dev server
+    volumes:
+      # Mount source code for hot reload (HMR)
+      - ./frontend:/app
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+    environment:
+      # Backend API URL (accessible from browser on host machine)
+      VITE_API_URL: ${BACKEND_URL:-http://localhost:8000}
+      VITE_ENV: development
+      VITE_DEBUG: "true"
+      # Use test Turnstile key for development
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      # Proxy configuration for Vite dev server running in Docker
+      VITE_PROXY_TARGET: http://backend:${BACKEND_INTERNAL_PORT:-8000}  # Vite proxy target (Docker service name)
+      VITE_USE_PROXY: "true"  # Enable /api prefix routing
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - contravento-network
+    deploy:
+      replicas: 0  # Disabled by default - use --with-frontend flag to enable
+
+  # ==========================================================================
+  # Redis - Disabled in minimal setup
+  # ==========================================================================
+  # Redis service is disabled by default in minimal setup to save resources
+  # If you need Redis for cache testing, use: ./deploy.sh local
+  redis:
+    image: redis:7-alpine
+    deploy:
+      replicas: 0
+
+  # ==========================================================================
+  # pgAdmin - Database UI (Optional)
+  # ==========================================================================
+  # pgAdmin is disabled by default to keep minimal setup lightweight
+  # To enable: change replicas to 1
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    deploy:
+      replicas: 0
+    ports:
+      - "5050:80"  # Web UI at http://localhost:5050
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@contravento.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+
+# ============================================================================
+# Notes
+# ============================================================================
+# Removed services from full local setup:
+#   - redis: Not currently used in the application
+#   - mailhog: Only needed when testing email functionality
+#   - pgadmin: Use external DB clients (DBeaver, TablePlus, psql)
+#
+# To use the full local environment:
+#   ./deploy.sh local
+#
+# To switch back to minimal:
+#   ./deploy.sh local-minimal down
+#   ./deploy.sh local-minimal
+# ============================================================================

@@ -1,0 +1,90 @@
+# Coverage.py configuration for ContraVento backend
+# See: https://coverage.readthedocs.io/en/latest/config.html
+
+[run]
+# Source code directories to measure
+source = src
+
+# Files to omit from coverage measurement
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */site-packages/*
+    */migrations/*
+    */alembic/*
+    */__init__.py
+    */conftest.py
+    # Exclude main entry point (covered by E2E tests)
+    src/main.py
+
+# Enable branch coverage (measures if/else branches)
+branch = True
+
+# Save coverage data to this file
+data_file = .coverage
+
+# Parallel mode (for concurrent test execution)
+parallel = False
+
+[report]
+# Precision for percentages (2 decimal places)
+precision = 2
+
+# Skip files with 100% coverage in report
+skip_covered = False
+
+# Skip files with no statements
+skip_empty = True
+
+# Show missing line numbers
+show_missing = True
+
+# Lines to exclude from coverage
+exclude_lines =
+    # Standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code
+    def __repr__
+    def __str__
+
+    # Don't complain about unreachable code
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    if sys.version_info
+
+    # Don't complain about defensive programming
+    raise AssertionError
+    raise NotImplementedError
+    raise ValueError
+
+    # Don't complain about abstract methods
+    @abstractmethod
+    @abc.abstractmethod
+
+    # Don't complain about pass statements
+    pass
+
+    # Don't complain about ellipsis in stubs
+    \.\.\.
+
+# Fail if coverage is below this threshold
+fail_under = 90
+
+[html]
+# Directory for HTML report
+directory = htmlcov
+
+# Title for HTML report
+title = ContraVento Backend Coverage Report
+
+[xml]
+# XML report output file
+output = coverage.xml
+
+[json]
+# JSON report output file
+output = coverage.json
+# Pretty print JSON
+pretty_print = True

@@ -1,0 +1,287 @@
+/**
+ * Advanced Stats Component Styles (Feature 003 - User Story 5)
+ *
+ * Responsive design for displaying route statistics.
+ */
+
+.advanced-stats {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin: 24px 0;
+}
+
+/* Header */
+.advanced-stats__header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 16px;
+}
+
+.advanced-stats__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.advanced-stats__subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Grid Layout */
+.advanced-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* Section */
+.advanced-stats__section {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.advanced-stats__section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 16px 0;
+}
+
+.advanced-stats__icon {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+}
+
+/* Metrics */
+.advanced-stats__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.advanced-stats__metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.advanced-stats__metric-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.advanced-stats__metric-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.advanced-stats__metric-value--highlight {
+  color: #3b82f6;
+}
+
+.advanced-stats__metric-value--steep {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+/* Gradient Distribution Section (FR-032) */
+.advanced-stats__gradient {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.advanced-stats__gradient-chart {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.advanced-stats__gradient-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.advanced-stats__gradient-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.advanced-stats__gradient-name {
+  font-weight: 600;
+  color: #334155;
+}
+
+.advanced-stats__gradient-value {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.advanced-stats__gradient-bar-bg {
+  height: 32px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.advanced-stats__gradient-bar-fill {
+  height: 100%;
+  transition: width 0.6s ease-out;
+  border-radius: 6px;
+  position: relative;
+}
+
+.advanced-stats__gradient-bar-fill--llano {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.advanced-stats__gradient-bar-fill--moderado {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.advanced-stats__gradient-bar-fill--empinado {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.advanced-stats__gradient-bar-fill--muy-empinado {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* Climbs Section */
+.advanced-stats__climbs {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.advanced-stats__climbs-table {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.advanced-stats__climbs-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.advanced-stats__climbs-table th {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 12px;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.advanced-stats__climbs-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.9375rem;
+  color: #334155;
+}
+
+.advanced-stats__climbs-table tr:last-child td {
+  border-bottom: none;
+}
+
+.advanced-stats__climbs-rank {
+  font-weight: 700;
+  color: #3b82f6;
+  font-size: 1.125rem;
+}
+
+.advanced-stats__climbs-distance {
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.advanced-stats__climbs-elevation {
+  font-weight: 600;
+  color: #059669;
+}
+
+.advanced-stats__climbs-gradient {
+  font-weight: 600;
+}
+
+.advanced-stats__climbs-gradient--moderate {
+  color: #f59e0b;
+}
+
+.advanced-stats__climbs-gradient--steep {
+  color: #dc2626;
+}
+
+/* Footer */
+.advanced-stats__footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+  background: #eff6ff;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.advanced-stats__footer-icon {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.advanced-stats__footer-text {
+  font-size: 0.875rem;
+  color: #1e40af;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+  .advanced-stats {
+    padding: 16px;
+  }
+
+  .advanced-stats__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .advanced-stats__title {
+    font-size: 1.25rem;
+  }
+
+  .advanced-stats__climbs-table {
+    font-size: 0.8125rem;
+  }
+
+  .advanced-stats__climbs-table th,
+  .advanced-stats__climbs-table td {
+    padding: 8px 6px;
+  }
+}

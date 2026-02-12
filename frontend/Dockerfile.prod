@@ -1,0 +1,49 @@
+# Stage 1: Build static assets
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build with production environment variables
+# VITE_API_URL should be passed as build arg
+ARG VITE_API_URL
+ARG VITE_TURNSTILE_SITE_KEY
+ARG VITE_ENV=production
+ARG VITE_DEBUG=false
+ARG VITE_USE_PROXY=true  # Default to true for production (uses nginx /api/ proxy)
+
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY
+ENV VITE_ENV=$VITE_ENV
+ENV VITE_DEBUG=$VITE_DEBUG
+ENV VITE_USE_PROXY=$VITE_USE_PROXY
+
+# Build optimized static files
+RUN npm run build
+
+# Stage 2: Serve with Nginx
+FROM nginx:alpine
+
+# Copy built static files from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom Nginx config template (NOT static config)
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Expose port 80
+EXPOSE 80
+
+# Use entrypoint to generate nginx.conf from template
+ENTRYPOINT ["/docker-entrypoint.sh"]

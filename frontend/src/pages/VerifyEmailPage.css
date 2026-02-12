@@ -1,0 +1,383 @@
+/* VerifyEmailPage.css - Rustic Travel Aesthetic */
+
+.verify-email-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,
+    var(--color-cream) 0%,
+    var(--color-cream-light) 50%,
+    var(--color-gray-100) 100%
+  );
+  padding: var(--space-8);
+  position: relative;
+}
+
+/* Subtle texture overlay */
+.verify-email-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(139, 115, 85, 0.02) 10px,
+      rgba(139, 115, 85, 0.02) 20px
+    );
+  pointer-events: none;
+}
+
+.verify-email-container {
+  width: 100%;
+  max-width: 550px;
+  position: relative;
+  z-index: 1;
+}
+
+.verify-email-header {
+  background: linear-gradient(135deg,
+    var(--color-primary) 0%,
+    var(--color-forest) 100%
+  );
+  text-align: center;
+  padding: var(--space-8);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  border: 2px solid var(--color-earth-light);
+  border-bottom: none;
+}
+
+.verify-email-header h1 {
+  margin: 0 0 var(--space-2) 0;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--color-cream);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.verify-email-header h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-cream);
+}
+
+/* Loading card */
+.loading-card {
+  background: var(--color-white);
+  padding: var(--space-12) var(--space-8);
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 2px solid var(--color-earth-light);
+  border-top: none;
+  text-align: center;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto var(--space-6) auto;
+  border: 4px solid var(--color-cream);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-card p {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-gray-600);
+  font-size: var(--text-lg);
+}
+
+/* Success card with animation */
+.success-card {
+  background: var(--color-white);
+  padding: var(--space-12) var(--space-8);
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 2px solid var(--color-earth-light);
+  border-top: none;
+  text-align: center;
+  animation: slideDown 0.6s ease-out;
+}
+
+.success-animation {
+  margin-bottom: var(--space-6);
+}
+
+.checkmark {
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto;
+  display: block;
+}
+
+.checkmark-circle {
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.success-card h3 {
+  margin: 0 0 var(--space-4) 0;
+  font-family: var(--font-serif);
+  color: var(--color-primary-dark);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+}
+
+.success-card p {
+  margin: var(--space-2) 0;
+  font-family: var(--font-sans);
+  color: var(--color-gray-600);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+/* Error card */
+.error-card {
+  background: var(--color-white);
+  padding: var(--space-12) var(--space-8);
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 2px solid var(--color-earth-light);
+  border-top: none;
+  text-align: center;
+  animation: slideDown 0.6s ease-out;
+}
+
+.error-card .icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto var(--space-6) auto;
+  color: var(--color-error);
+}
+
+.error-card.token-error {
+  background: var(--color-warning-light);
+  border-color: var(--color-warning);
+}
+
+.error-card.token-error .icon {
+  color: var(--color-secondary);
+}
+
+.error-card h3 {
+  margin: 0 0 var(--space-4) 0;
+  font-family: var(--font-serif);
+  color: var(--color-forest);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+}
+
+.error-card p {
+  margin: var(--space-2) 0;
+  font-family: var(--font-sans);
+  color: var(--color-gray-600);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.error-card .resend-success {
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  background: var(--color-success-light);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  color: var(--color-forest);
+}
+
+.error-card .resend-success p {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-forest);
+}
+
+.resend-button {
+  margin-top: var(--space-6);
+  padding: var(--space-4) var(--space-8);
+  background: linear-gradient(135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-cream);
+  border: 2px solid var(--color-primary-dark);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.resend-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-forest) 100%
+  );
+}
+
+.resend-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-gray-400);
+  border-color: var(--color-gray-500);
+}
+
+/* Info card */
+.info-card {
+  background: var(--color-white);
+  padding: var(--space-12) var(--space-8);
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 2px solid var(--color-earth-light);
+  border-top: none;
+  text-align: center;
+  animation: slideDown 0.6s ease-out;
+}
+
+.info-card .icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto var(--space-6) auto;
+  color: var(--color-primary);
+}
+
+.info-card h3 {
+  margin: 0 0 var(--space-4) 0;
+  font-family: var(--font-serif);
+  color: var(--color-forest);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+}
+
+.info-card p {
+  margin: var(--space-3) 0;
+  font-family: var(--font-sans);
+  color: var(--color-gray-600);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.info-card .help-text {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 2px solid var(--color-earth-light);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+}
+
+/* Page footer */
+.page-footer {
+  margin-top: var(--space-8);
+  text-align: center;
+}
+
+.page-footer a {
+  color: var(--color-forest);
+  background: var(--color-cream);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  display: inline-block;
+}
+
+.page-footer a:hover {
+  background: var(--color-cream-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .verify-email-page {
+    padding: var(--space-4);
+  }
+
+  .verify-email-header {
+    padding: var(--space-6);
+  }
+
+  .verify-email-header h1 {
+    font-size: var(--text-3xl);
+  }
+
+  .verify-email-header h2 {
+    font-size: var(--text-xl);
+  }
+
+  .success-card,
+  .error-card,
+  .info-card,
+  .loading-card {
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .checkmark {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .error-card .icon,
+  .info-card .icon {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,895 @@
+/**
+ * TripMap Component Styles
+ *
+ * Styles for interactive map component with OpenStreetMap.
+ * Responsive design with mobile-friendly controls.
+ */
+
+/* ============================================================================
+   Map Container
+   ============================================================================ */
+
+.trip-map {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Wrapper for map + fullscreen button (required for absolute positioning) */
+.trip-map__map-wrapper {
+  position: relative; /* Required for absolute positioned fullscreen button */
+  width: 100%;
+}
+
+.trip-map__container {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e5e7eb);
+  z-index: 0; /* Ensure map doesn't overlap other content */
+}
+
+/* ============================================================================
+   Popup Customization
+   ============================================================================ */
+
+.trip-map__popup {
+  padding: 4px;
+  min-width: 150px;
+}
+
+.trip-map__popup-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin-bottom: 4px;
+}
+
+.trip-map__popup-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Location List
+   ============================================================================ */
+
+.trip-map__locations {
+  padding: 16px;
+  background-color: var(--bg-secondary, #f9fafb);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.trip-map__locations-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px 0;
+}
+
+.trip-map__locations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trip-map__location-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background-color: var(--bg-primary, #ffffff);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.trip-map__location-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.trip-map__location-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trip-map__location-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.trip-map__location-no-gps {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary, #9ca3af);
+  font-style: italic;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.trip-map--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  padding: 40px 24px;
+  background-color: var(--bg-tertiary, #f9fafb);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color, #e5e7eb);
+}
+
+.trip-map__empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+.trip-map__empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.trip-map__empty-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Leaflet Map Customization
+   ============================================================================ */
+
+/* Override Leaflet styles for better integration */
+.trip-map__container .leaflet-control-zoom {
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.trip-map__container .leaflet-control-zoom a {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 18px;
+  color: var(--text-primary, #111827);
+  background-color: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.trip-map__container .leaflet-control-zoom a:hover {
+  background-color: var(--bg-secondary, #f9fafb);
+  color: var(--primary-color, #2563eb);
+}
+
+.trip-map__container .leaflet-control-zoom a:last-child {
+  border-bottom: none;
+}
+
+/* Attribution styling */
+.trip-map__container .leaflet-control-attribution {
+  background-color: rgba(255, 255, 255, 0.9);
+  font-size: 0.6875rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.trip-map__container .leaflet-control-attribution a {
+  color: var(--primary-color, #2563eb);
+  text-decoration: none;
+}
+
+.trip-map__container .leaflet-control-attribution a:hover {
+  text-decoration: underline;
+}
+
+/* Popup styling */
+.trip-map__container .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.trip-map__container .leaflet-popup-tip {
+  background-color: #ffffff;
+}
+
+/* ============================================================================
+   Draggable Markers (Feature 010 - User Story 2)
+   ============================================================================ */
+
+/* Draggable marker cursor feedback */
+.trip-map__container .leaflet-marker-draggable {
+  cursor: move;
+  cursor: grab;
+}
+
+.trip-map__container .leaflet-marker-draggable:active {
+  cursor: grabbing;
+}
+
+/* Visual feedback during drag */
+.trip-map__container .leaflet-marker-draggable:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Reset transform after drag */
+.trip-map__container .leaflet-marker-draggable:not(:hover) {
+  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) {
+  .trip-map__container {
+    height: 350px;
+    border-radius: 10px;
+  }
+
+  .trip-map__locations {
+    padding: 14px;
+  }
+
+  .trip-map__location-item {
+    padding: 6px 10px;
+  }
+
+  .trip-map__location-number {
+    width: 22px;
+    height: 22px;
+    font-size: 0.6875rem;
+  }
+
+  .trip-map__location-name {
+    font-size: 0.875rem;
+  }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  .trip-map__container {
+    height: 300px;
+    border-radius: 8px;
+  }
+
+  .trip-map__locations {
+    padding: 12px;
+  }
+
+  .trip-map__locations-title {
+    font-size: 0.9375rem;
+  }
+
+  .trip-map__location-item {
+    padding: 6px 8px;
+    gap: 10px;
+  }
+
+  .trip-map__location-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.625rem;
+  }
+
+  .trip-map__location-name {
+    font-size: 0.8125rem;
+  }
+
+  .trip-map--empty {
+    height: 250px;
+    padding: 30px 20px;
+  }
+
+  .trip-map__empty-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .trip-map__empty-text {
+    font-size: 0.9375rem;
+  }
+
+  /* Adjust Leaflet controls for mobile */
+  .trip-map__container .leaflet-control-zoom a {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    font-size: 16px;
+  }
+
+  .trip-map__container .leaflet-control-attribution {
+    font-size: 0.625rem;
+    padding: 1px 4px;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .trip-map__container {
+    border-color: #374151;
+  }
+
+  .trip-map__popup-title {
+    color: #111827;
+  }
+
+  .trip-map__popup-subtitle {
+    color: #6b7280;
+  }
+
+  .trip-map__locations {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-map__locations-title {
+    color: #f9fafb;
+  }
+
+  .trip-map__location-item {
+    background-color: #111827;
+    border-color: #374151;
+  }
+
+  .trip-map__location-name {
+    color: #f9fafb;
+  }
+
+  .trip-map--empty {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-map__empty-icon {
+    color: #6b7280;
+  }
+
+  .trip-map__empty-text {
+    color: #d1d5db;
+  }
+
+  /* Dark mode for Leaflet controls */
+  .trip-map__container .leaflet-control-zoom {
+    border-color: #374151;
+  }
+
+  .trip-map__container .leaflet-control-zoom a {
+    background-color: #1f2937;
+    color: #f9fafb;
+    border-bottom-color: #374151;
+  }
+
+  .trip-map__container .leaflet-control-zoom a:hover {
+    background-color: #111827;
+    color: #93c5fd;
+  }
+
+  .trip-map__container .leaflet-control-attribution {
+    background-color: rgba(31, 41, 55, 0.9);
+    color: #d1d5db;
+  }
+
+  .trip-map__container .leaflet-control-attribution a {
+    color: #93c5fd;
+  }
+
+  /* Dark mode for custom numbered markers */
+  .custom-numbered-marker .numbered-marker-badge {
+    background-color: #1e40af;
+    border-color: #1e3a8a;
+    color: #ffffff;
+  }
+
+  .custom-numbered-marker .numbered-marker-pin {
+    background-color: #1e40af;
+  }
+
+  .custom-numbered-marker .numbered-marker-pin::after {
+    border-top-color: #1e40af;
+  }
+}
+
+/* ============================================================================
+   Custom Numbered Markers (Phase 5.1)
+   ============================================================================ */
+
+/* Hide default Leaflet marker icon class */
+.custom-numbered-marker {
+  background: none !important;
+  border: none !important;
+}
+
+/* Marker wrapper container */
+.numbered-marker-wrapper {
+  position: relative;
+  width: 32px;
+  height: 42px;
+}
+
+/* Numbered badge (circle with number) */
+.numbered-marker-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+/* Pin/pointer below badge */
+.numbered-marker-pin {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 10px solid var(--primary-color, #2563eb);
+  z-index: 1;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
+}
+
+/* Hover effect for markers */
+.numbered-marker-wrapper:hover .numbered-marker-badge {
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+/* Active/selected marker state */
+.numbered-marker-wrapper.marker-active .numbered-marker-badge {
+  background-color: #1e40af;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.5);
+}
+
+/* ============================================================================
+   Error State UI (Phase 5.2)
+   ============================================================================ */
+
+.trip-map__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 40px 24px;
+  background-color: var(--bg-tertiary, #fef2f2);
+  border-radius: 12px;
+  border: 2px solid #fecaca;
+  text-align: center;
+}
+
+.trip-map__error-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: #dc2626;
+}
+
+.trip-map__error-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.trip-map__error-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 8px 0;
+}
+
+.trip-map__error-message {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 20px 0;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.trip-map__error-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.trip-map__error-button:hover {
+  background-color: #1e40af;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.trip-map__error-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.trip-map__error-button:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Dark mode for error state */
+@media (prefers-color-scheme: dark) {
+  .trip-map__error {
+    background-color: #7f1d1d;
+    border-color: #991b1b;
+  }
+
+  .trip-map__error-icon {
+    color: #fca5a5;
+  }
+
+  .trip-map__error-title {
+    color: #fef2f2;
+  }
+
+  .trip-map__error-message {
+    color: #fecaca;
+  }
+
+  .trip-map__error-button {
+    background-color: #1e40af;
+  }
+
+  .trip-map__error-button:hover {
+    background-color: #1e3a8a;
+  }
+}
+
+/* Responsive error UI */
+@media (max-width: 767px) {
+  .trip-map__error {
+    min-height: 300px;
+    padding: 30px 20px;
+  }
+
+  .trip-map__error-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .trip-map__error-title {
+    font-size: 1.125rem;
+  }
+
+  .trip-map__error-message {
+    font-size: 0.875rem;
+  }
+
+  .trip-map__error-button {
+    padding: 10px 20px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================================================
+   Fullscreen Mode (Phase 5.3)
+   ============================================================================ */
+
+/* Fullscreen toggle button - positioned at bottom-right to avoid conflict with LayersControl */
+.trip-map__fullscreen-button {
+  position: absolute;
+  bottom: 40px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background-color: #ffffff;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.trip-map__fullscreen-button svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-primary, #111827);
+}
+
+.trip-map__fullscreen-button:hover {
+  background-color: var(--bg-secondary, #f9fafb);
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+  transform: translateY(-1px);
+}
+
+.trip-map__fullscreen-button:hover svg {
+  color: var(--primary-color, #2563eb);
+}
+
+.trip-map__fullscreen-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trip-map__fullscreen-button:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Fullscreen mode container */
+.trip-map--fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: var(--bg-primary, #ffffff);
+  padding: 0;
+  margin: 0;
+}
+
+.trip-map--fullscreen .trip-map__container {
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+/* Hide location list in fullscreen */
+.trip-map--fullscreen .trip-map__locations {
+  display: none;
+}
+
+/* Adjust fullscreen button position in fullscreen mode */
+.trip-map--fullscreen .trip-map__fullscreen-button {
+  bottom: 50px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+}
+
+.trip-map--fullscreen .trip-map__fullscreen-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Smooth transitions for fullscreen */
+.trip-map {
+  transition: all 0.3s ease;
+}
+
+.trip-map__container {
+  transition: height 0.3s ease, border-radius 0.3s ease;
+}
+
+/* Dark mode for fullscreen button */
+@media (prefers-color-scheme: dark) {
+  .trip-map__fullscreen-button {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .trip-map__fullscreen-button svg {
+    color: #f9fafb;
+  }
+
+  .trip-map__fullscreen-button:hover {
+    background-color: #111827;
+    border-color: #60a5fa;
+  }
+
+  .trip-map__fullscreen-button:hover svg {
+    color: #60a5fa;
+  }
+
+  .trip-map--fullscreen {
+    background-color: #111827;
+  }
+
+  .trip-map--fullscreen .trip-map__fullscreen-button {
+    background-color: rgba(31, 41, 55, 0.95);
+  }
+}
+
+/* Responsive fullscreen button */
+@media (max-width: 767px) {
+  .trip-map__fullscreen-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .trip-map__fullscreen-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .trip-map--fullscreen .trip-map__fullscreen-button {
+    bottom: 40px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .trip-map--fullscreen .trip-map__fullscreen-button svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ============================================================================
+   Active Profile Point Marker Animation (Feature 003 - User Story 3)
+   ============================================================================ */
+
+/* Pulsating animation for the active point marker */
+@keyframes pulse-marker {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* Apply animation to active profile point circle */
+.leaflet-interactive[fill="#fbbf24"] {
+  animation: pulse-marker 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ============================================================================
+   Map Layer Control (T061 - Feature 003 - User Story 2)
+   ============================================================================ */
+
+/**
+ * LayersControl styling and positioning
+ * Positioned at top-right corner (fullscreen button is at bottom-right to avoid overlap)
+ */
+.leaflet-control-layers {
+  z-index: 1000 !important; /* Ensure visibility above map elements */
+}
+
+/* Ensure layers control is visible in fullscreen mode */
+.trip-map--fullscreen .leaflet-control-layers {
+  z-index: 10000 !important; /* Higher than fullscreen container (z-index: 9999) */
+}
+
+/* Style improvements for layer control */
+.leaflet-control-layers {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-control-layers-toggle {
+  width: 40px;
+  height: 40px;
+  background-size: 20px 20px;
+}
+
+/* Fix text alignment in expanded layer control panel */
+.leaflet-control-layers-expanded {
+  padding: 10px 14px !important;
+  min-width: 160px !important;
+  width: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Force horizontal layout for layer selector labels */
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 4px !important;
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  white-space: normal !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Radio button stays inline at center */
+.leaflet-control-layers-base label input,
+.leaflet-control-layers-overlays label input {
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Text wraps if needed, aligned with radio button */
+.leaflet-control-layers-base label span,
+.leaflet-control-layers-overlays label span {
+  flex: 1 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Dark mode for layer control */
+@media (prefers-color-scheme: dark) {
+  .leaflet-control-layers {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .leaflet-control-layers-base label,
+  .leaflet-control-layers-overlays label {
+    color: #f9fafb;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .leaflet-control-layers {
+    margin-right: 8px;
+    margin-top: 8px;
+  }
+
+  .leaflet-control-layers-toggle {
+    width: 36px;
+    height: 36px;
+    background-size: 18px 18px;
+  }
+}

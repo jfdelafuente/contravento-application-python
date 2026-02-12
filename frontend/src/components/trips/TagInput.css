@@ -1,0 +1,262 @@
+/**
+ * TagInput Styles
+ *
+ * Styles for autocomplete tag input component.
+ * Responsive design with accessible keyboard navigation.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.tag-input {
+  position: relative;
+  width: 100%;
+}
+
+/* ============================================================================
+   Selected Tags
+   ============================================================================ */
+
+.tag-input__selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tag-input__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  background-color: #eff6ff;
+  color: var(--primary-color, #2563eb);
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.tag-input__tag:hover {
+  background-color: #dbeafe;
+  border-color: var(--primary-color, #2563eb);
+}
+
+.tag-input__tag-name {
+  line-height: 1;
+}
+
+.tag-input__tag-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--primary-color, #2563eb);
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  line-height: 1;
+}
+
+.tag-input__tag-remove:hover {
+  background-color: var(--primary-color, #2563eb);
+  color: #ffffff;
+}
+
+.tag-input__tag-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Input Field
+   ============================================================================ */
+
+.tag-input__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tag-input__input {
+  flex: 1;
+  padding: 12px 60px 12px 16px;
+  font-size: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: border-color 0.2s ease-in-out;
+  width: 100%;
+}
+
+.tag-input__input:focus {
+  outline: none;
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.tag-input__input:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.tag-input__input::placeholder {
+  color: #9ca3af;
+}
+
+/* ============================================================================
+   Tag Counter
+   ============================================================================ */
+
+.tag-input__counter {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.tag-input__counter-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.tag-input__counter-text--max {
+  color: #ef4444;
+}
+
+/* ============================================================================
+   Autocomplete Dropdown
+   ============================================================================ */
+
+.tag-input__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.tag-input__dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.tag-input__dropdown-item:hover,
+.tag-input__dropdown-item--highlighted {
+  background-color: #f3f4f6;
+}
+
+.tag-input__dropdown-item--loading,
+.tag-input__dropdown-item--empty {
+  color: #6b7280;
+  font-style: italic;
+  cursor: default;
+}
+
+.tag-input__dropdown-item--empty {
+  color: var(--primary-color, #2563eb);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.tag-input__dropdown-name {
+  font-size: 0.9375rem;
+  color: var(--text-primary, #111827);
+  font-weight: 500;
+}
+
+.tag-input__dropdown-count {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+/* ============================================================================
+   Help Text
+   ============================================================================ */
+
+.tag-input__help {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   Scrollbar Styles (for dropdown)
+   ============================================================================ */
+
+.tag-input__dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tag-input__dropdown::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+  border-radius: 8px;
+}
+
+.tag-input__dropdown::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 8px;
+}
+
+.tag-input__dropdown::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .tag-input__input {
+    padding: 10px 50px 10px 12px;
+    font-size: 0.9375rem;
+  }
+
+  .tag-input__tag {
+    padding: 5px 6px 5px 10px;
+    font-size: 0.8125rem;
+  }
+
+  .tag-input__tag-remove {
+    width: 18px;
+    height: 18px;
+    font-size: 1.125rem;
+  }
+
+  .tag-input__dropdown-item {
+    padding: 10px 12px;
+  }
+
+  .tag-input__dropdown-name {
+    font-size: 0.875rem;
+  }
+
+  .tag-input__dropdown-count {
+    font-size: 0.75rem;
+  }
+
+  .tag-input__help {
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,505 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - Profile API
+  description: |
+    API de gestión de perfiles de usuario para ContraVento.
+
+    Incluye creación, lectura, actualización de perfiles, carga de fotos,
+    configuración de privacidad y visualización pública de perfiles.
+
+    **Spec**: 001-user-profiles
+    **Version**: 1.0.0
+  version: 1.0.0
+
+servers:
+  - url: https://api.contravento.com/v1
+    description: Producción
+  - url: http://localhost:8000/v1
+    description: Desarrollo local
+
+tags:
+  - name: profiles
+    description: Gestión de perfiles de usuario
+
+paths:
+  /users/{username}/profile:
+    get:
+      summary: Obtener perfil de usuario
+      description: |
+        Retorna el perfil público del usuario.
+        Respeta configuraciones de privacidad (show_email, show_location).
+
+        **Functional Requirements**: FR-011, FR-017, FR-018
+        **Success Criteria**: SC-003 (<200ms p95)
+      tags:
+        - profiles
+      operationId: getUserProfile
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Perfil del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProfileResponse'
+                  error:
+                    type: object
+                    nullable: true
+              examples:
+                public_profile:
+                  summary: Perfil público
+                  value:
+                    success: true
+                    data:
+                      username: maria_garcia
+                      full_name: María García
+                      bio: Amante del ciclismo de montaña 🚵‍♀️
+                      photo_url: https://api.contravento.com/storage/profile_photos/2025/12/user123_a7b3c2d1.jpg
+                      location: Barcelona, España
+                      cycling_type: mountain
+                      show_email: false
+                      show_location: true
+                      followers_count: 42
+                      following_count: 58
+                      created_at: "2025-01-15T10:30:00Z"
+                    error: null
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+    put:
+      summary: Actualizar perfil
+      description: |
+        Actualiza la información del perfil del usuario autenticado.
+        Solo el propietario puede actualizar su perfil.
+
+        **Functional Requirements**: FR-014, FR-015, FR-017, FR-018
+      tags:
+        - profiles
+      operationId: updateUserProfile
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+            examples:
+              update_bio:
+                summary: Actualizar bio
+                value:
+                  bio: Ciclista de ruta apasionada. Explorando el mundo sobre dos ruedas.
+                  cycling_type: road
+              update_privacy:
+                summary: Cambiar privacidad
+                value:
+                  show_email: true
+                  show_location: false
+      responses:
+        '200':
+          description: Perfil actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProfileResponse'
+                  message:
+                    type: string
+                    example: Perfil actualizado correctamente
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: VALIDATION_ERROR
+                  message: La biografía no puede superar 500 caracteres
+                  field: bio
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: No autorizado para actualizar este perfil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: FORBIDDEN
+                  message: No tienes permiso para actualizar este perfil
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /users/{username}/profile/photo:
+    post:
+      summary: Subir foto de perfil
+      description: |
+        Carga una nueva foto de perfil.
+        - Tamaño máximo: 5MB
+        - Formatos aceptados: JPEG, PNG
+        - Se redimensiona automáticamente a 400x400px
+
+        **Functional Requirements**: FR-012, FR-013
+        **Success Criteria**: SC-006 (<2s para uploads)
+      tags:
+        - profiles
+      operationId: uploadProfilePhoto
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - photo
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: Archivo de imagen (JPEG o PNG, max 5MB)
+      responses:
+        '200':
+          description: Foto subida y procesada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      photo_url:
+                        type: string
+                        example: https://api.contravento.com/storage/profile_photos/2025/12/user123_a7b3c2d1.jpg
+                      photo_width:
+                        type: integer
+                        example: 400
+                      photo_height:
+                        type: integer
+                        example: 400
+                  message:
+                    type: string
+                    example: Foto de perfil actualizada correctamente
+        '400':
+          description: Archivo inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_format:
+                  summary: Formato no permitido
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_FILE_FORMAT
+                      message: Solo se permiten archivos JPEG y PNG
+                      field: photo
+                file_too_large:
+                  summary: Archivo demasiado grande
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: FILE_TOO_LARGE
+                      message: El archivo no puede superar 5MB
+                      field: photo
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      summary: Eliminar foto de perfil
+      description: |
+        Elimina la foto de perfil actual del usuario.
+        Establece photo_url a null.
+
+        **Functional Requirements**: FR-016
+      tags:
+        - profiles
+      operationId: deleteProfilePhoto
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Foto eliminada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Foto de perfil eliminada correctamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{username}/profile/privacy:
+    put:
+      summary: Actualizar configuración de privacidad
+      description: |
+        Actualiza las preferencias de privacidad del usuario.
+        Controla la visibilidad de email y ubicación en el perfil público.
+
+        **Functional Requirements**: FR-017, FR-018
+      tags:
+        - profiles
+      operationId: updatePrivacySettings
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                show_email:
+                  type: boolean
+                  description: Mostrar email en perfil público
+                  example: false
+                show_location:
+                  type: boolean
+                  description: Mostrar ubicación en perfil público
+                  example: true
+      responses:
+        '200':
+          description: Privacidad actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      show_email:
+                        type: boolean
+                      show_location:
+                        type: boolean
+                  message:
+                    type: string
+                    example: Configuración de privacidad actualizada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    UsernameParam:
+      name: username
+      in: path
+      required: true
+      description: Nombre de usuario
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_]{3,30}$'
+        example: maria_garcia
+
+  schemas:
+    ProfileResponse:
+      type: object
+      properties:
+        username:
+          type: string
+          example: maria_garcia
+        full_name:
+          type: string
+          nullable: true
+          example: María García
+        bio:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: Amante del ciclismo de montaña 🚵‍♀️
+        photo_url:
+          type: string
+          nullable: true
+          example: https://api.contravento.com/storage/profile_photos/2025/12/user123_a7b3c2d1.jpg
+        location:
+          type: string
+          nullable: true
+          example: Barcelona, España
+        cycling_type:
+          type: string
+          nullable: true
+          enum: [road, mountain, gravel, touring, commuting]
+          example: mountain
+          description: |
+            Tipo de ciclismo preferido:
+            - road: Carretera
+            - mountain: Montaña
+            - gravel: Gravel
+            - touring: Turismo
+            - commuting: Urbano/Commuting
+        show_email:
+          type: boolean
+          description: Si el email es visible públicamente
+          example: false
+        show_location:
+          type: boolean
+          description: Si la ubicación es visible públicamente
+          example: true
+        followers_count:
+          type: integer
+          description: Número de seguidores
+          example: 42
+        following_count:
+          type: integer
+          description: Número de usuarios seguidos
+          example: 58
+        created_at:
+          type: string
+          format: date-time
+          description: Fecha de creación de la cuenta
+          example: "2025-01-15T10:30:00Z"
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+          maxLength: 100
+          nullable: true
+          example: María García López
+        bio:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: Ciclista de montaña. Explorando senderos y compartiendo aventuras.
+        location:
+          type: string
+          maxLength: 100
+          nullable: true
+          example: Barcelona, España
+        cycling_type:
+          type: string
+          enum: [road, mountain, gravel, touring, commuting]
+          nullable: true
+          example: mountain
+        show_email:
+          type: boolean
+          example: false
+        show_location:
+          type: boolean
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - INVALID_FILE_FORMAT
+                - FILE_TOO_LARGE
+                - USER_NOT_FOUND
+                - UNAUTHORIZED
+                - FORBIDDEN
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: La biografía no puede superar 500 caracteres
+            field:
+              type: string
+              example: bio
+
+  responses:
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: UNAUTHORIZED
+              message: Debes iniciar sesión para realizar esta acción
+
+    Forbidden:
+      description: Sin permisos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: FORBIDDEN
+              message: No tienes permiso para realizar esta acción
+
+    UserNotFound:
+      description: Usuario no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: USER_NOT_FOUND
+              message: El usuario no existe

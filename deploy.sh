@@ -1,0 +1,674 @@
+#!/bin/bash
+# ============================================================================
+# ContraVento - Multi-Environment Deployment Script
+# ============================================================================
+# 📖 Documentation: docs/deployment/README.md
+#    Complete guide with decision tree, troubleshooting, and mode details
+#
+# Simplified deployment for all environments:
+#   ./deploy.sh local                   - Start local development
+#   ./deploy.sh local --with-frontend   - Start local + frontend
+#   ./deploy.sh local-prod              - Start local production build (test Nginx)
+#   ./deploy.sh local --rebuild         - Force rebuild (ignore cache)
+#   ./deploy.sh dev                     - Start development/integration
+#   ./deploy.sh staging                 - Start staging/pre-production
+#   ./deploy.sh prod                    - Start production
+#
+# Additional commands:
+#   ./deploy.sh <env> down  - Stop environment
+#   ./deploy.sh <env> logs  - View logs
+#   ./deploy.sh <env> ps    - View running containers
+# ============================================================================
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Functions
+print_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+print_header() {
+    echo ""
+    echo -e "${BLUE}============================================${NC}"
+    echo -e "${BLUE}  $1${NC}"
+    echo -e "${BLUE}============================================${NC}"
+    echo ""
+}
+
+# Pull images from Docker Hub
+pull_from_dockerhub() {
+    local env=$1
+    local tag=$2
+
+    print_info "🐳 Pulling images from Docker Hub..."
+    echo "  - Backend: jfdelafuente/contravento-backend:${tag}"
+    echo "  - Frontend: jfdelafuente/contravento-frontend:${tag}"
+    echo ""
+
+    # Pull images with specified tag
+    docker pull jfdelafuente/contravento-backend:${tag} || {
+        print_error "Failed to pull backend image with tag: ${tag}"
+        print_info "Make sure the image exists on Docker Hub: https://hub.docker.com/r/jfdelafuente/contravento-backend/tags"
+        exit 1
+    }
+
+    docker pull jfdelafuente/contravento-frontend:${tag} || {
+        print_error "Failed to pull frontend image with tag: ${tag}"
+        print_info "Make sure the image exists on Docker Hub: https://hub.docker.com/r/jfdelafuente/contravento-frontend/tags"
+        exit 1
+    }
+
+    # Re-tag as latest for docker-compose compatibility
+    print_info "Tagging images as latest for docker-compose..."
+    docker tag jfdelafuente/contravento-backend:${tag} jfdelafuente/contravento-backend:latest
+    docker tag jfdelafuente/contravento-frontend:${tag} jfdelafuente/contravento-frontend:latest
+
+    print_success "✅ Images pulled and tagged successfully"
+    echo ""
+}
+
+# Check if docker-compose is installed
+check_docker_compose() {
+    if ! command -v docker-compose &> /dev/null; then
+        print_error "docker-compose not found. Please install Docker Compose."
+        exit 1
+    fi
+}
+
+# Validate environment
+validate_env() {
+    local env=$1
+    case $env in
+        local|local-minimal|local-prod|dev|staging|prod)
+            return 0
+            ;;
+        *)
+            print_error "Invalid environment: $env"
+            echo "Valid environments: local, local-minimal, local-prod, dev, staging, prod"
+            exit 1
+            ;;
+    esac
+}
+
+# Get the appropriate .env file for an environment
+get_env_file() {
+    local env=$1
+    # local-prod uses the same .env as local
+    if [ "$env" = "local-prod" ]; then
+        echo ".env.local"
+    else
+        echo ".env.${env}"
+    fi
+}
+
+# Check if .env file exists
+check_env_file() {
+    local env=$1
+    local env_file=$(get_env_file "$env")
+
+    if [ ! -f "$env_file" ]; then
+        print_warning ".env file not found: $env_file"
+        print_info "Creating from example file..."
+
+        if [ -f "${env_file}.example" ]; then
+            cp "${env_file}.example" "$env_file"
+
+            # Auto-generate SECRET_KEY for local/local-minimal environments only
+            if [ "$env" = "local" ] || [ "$env" = "local-minimal" ]; then
+                print_info "Auto-generating SECRET_KEY for local development..."
+
+                # Generate a random SECRET_KEY using Python
+                if command -v python3 &> /dev/null; then
+                    local secret_key=$(python3 -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || echo "")
+                elif command -v python &> /dev/null; then
+                    local secret_key=$(python -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || echo "")
+                else
+                    print_warning "Python not found, using default SECRET_KEY"
+                    local secret_key=""
+                fi
+
+                # Replace SECRET_KEY in .env file if generated successfully
+                if [ -n "$secret_key" ]; then
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        # macOS
+                        sed -i '' "s/SECRET_KEY=.*/SECRET_KEY=${secret_key}/" "$env_file"
+                    else
+                        # Linux
+                        sed -i "s/SECRET_KEY=.*/SECRET_KEY=${secret_key}/" "$env_file"
+                    fi
+                    print_success "Auto-generated SECRET_KEY for local development"
+                fi
+
+                print_success "Created $env_file with auto-generated SECRET_KEY"
+            else
+                # For staging/prod, require manual configuration
+                print_warning "⚠️  IMPORTANT: Edit $env_file and configure all variables!"
+                print_warning "⚠️  Generate strong SECRET_KEY with: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
+                print_warning "⚠️  Press Ctrl+C to abort, or Enter to continue with example values (NOT RECOMMENDED)"
+                read -p ""
+            fi
+        else
+            print_error "Example file not found: ${env_file}.example"
+            exit 1
+        fi
+    fi
+}
+
+# Start environment
+start_env() {
+    local env=$1
+    local with_frontend=$2  # --with-frontend flag
+    local rebuild=$3        # --rebuild flag
+    local pull_option=$4    # --pull-latest, --pull-version, --rollback-to
+    local version=$5        # version for --pull-version or --rollback-to
+    local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
+
+    print_header "Starting $env environment"
+
+    check_env_file "$env"
+
+    # Handle Docker Hub pull options for staging/prod
+    if [ -n "$pull_option" ]; then
+        case "$pull_option" in
+            --pull-latest)
+                if [ "$env" = "staging" ]; then
+                    pull_from_dockerhub "$env" "staging-latest"
+                elif [ "$env" = "prod" ]; then
+                    print_error "❌ Error: Use --pull-version for production deployments"
+                    print_info "Example: ./deploy.sh prod --pull-version v1.3.0"
+                    exit 1
+                else
+                    print_warning "ℹ️  --pull-latest is only for staging/prod environments"
+                    print_info "Ignoring flag for $env environment"
+                fi
+                ;;
+            --pull-version)
+                if [ -z "$version" ]; then
+                    print_error "❌ Error: --pull-version requires a version argument"
+                    print_info "Example: ./deploy.sh prod --pull-version v1.3.0"
+                    exit 1
+                fi
+
+                if [ "$env" = "prod" ] || [ "$env" = "staging" ]; then
+                    pull_from_dockerhub "$env" "$version"
+                else
+                    print_warning "ℹ️  --pull-version is only for staging/prod environments"
+                    print_info "Ignoring flag for $env environment"
+                fi
+                ;;
+            --rollback-to)
+                if [ -z "$version" ]; then
+                    print_error "❌ Error: --rollback-to requires a version argument"
+                    print_info "Example: ./deploy.sh prod --rollback-to v1.2.0"
+                    exit 1
+                fi
+
+                if [ "$env" = "prod" ] || [ "$env" = "staging" ]; then
+                    print_warning "⚠️  ROLLBACK: Deploying version $version"
+                    pull_from_dockerhub "$env" "$version"
+                else
+                    print_warning "ℹ️  --rollback-to is only for staging/prod environments"
+                    print_info "Ignoring flag for $env environment"
+                fi
+                ;;
+            *)
+                print_error "Invalid pull option: $pull_option"
+                echo "Valid options: --pull-latest, --pull-version <version>, --rollback-to <version>"
+                exit 1
+                ;;
+        esac
+    fi
+
+    print_info "Using configuration:"
+    echo "  - Base: docker-compose.yml"
+    echo "  - Overlay: $compose_file"
+    echo "  - Env file: $env_file"
+    if [ "$with_frontend" = "true" ]; then
+        echo "  - Frontend: ENABLED (Vite dev server)"
+    fi
+    if [ -n "$pull_option" ]; then
+        echo "  - Deploy mode: Docker Hub ($pull_option)"
+    fi
+    echo ""
+
+    # Confirmation for production
+    if [ "$env" = "prod" ]; then
+        print_warning "⚠️  You are about to deploy to PRODUCTION!"
+        if [ -n "$version" ]; then
+            print_info "Version: $version"
+        fi
+        read -p "Are you sure? (yes/no): " confirm
+        if [ "$confirm" != "yes" ]; then
+            print_info "Deployment cancelled"
+            exit 0
+        fi
+    fi
+
+    # Build frontend for staging/prod environments (skip if pulling from Docker Hub)
+    if [ -z "$pull_option" ] && ([ "$env" = "staging" ] || [ "$env" = "prod" ]); then
+        print_info "Building frontend for $env..."
+        cd frontend
+
+        # Install dependencies if needed
+        if [ ! -d "node_modules" ]; then
+            print_warning "node_modules not found, running npm install..."
+            npm install
+        fi
+
+        # Run production build
+        if [ "$env" = "staging" ]; then
+            npm run build:staging
+        else
+            npm run build:prod
+        fi
+
+        cd ..
+        print_success "Frontend build complete!"
+    fi
+
+    # Pull latest images (skip if already pulled from Docker Hub)
+    if [ -z "$pull_option" ]; then
+        print_info "Pulling latest images..."
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" pull
+    fi
+
+    # Build services (skip if using Docker Hub images)
+    if [ -z "$pull_option" ]; then
+        if [ "$rebuild" = "true" ]; then
+            print_info "Building services (--no-cache - forced rebuild)..."
+            docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build --no-cache
+        else
+            print_info "Building services..."
+            docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build
+        fi
+    else
+        print_info "Skipping build (using pre-built images from Docker Hub)"
+    fi
+
+    # Start services (enable frontend if flag is set)
+    print_info "Starting services..."
+    if [ "$with_frontend" = "true" ]; then
+        # Scale frontend to 1 replica to enable it
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" up -d --scale frontend=1
+    else
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" up -d
+    fi
+
+    # Wait for services to be healthy
+    print_info "Waiting for services to be healthy..."
+    sleep 10
+
+    # Show status
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" ps
+
+    print_success "$env environment started successfully!"
+
+    # Get backend port (priority: env var > .env file > default 8000)
+    backend_port=${BACKEND_PORT:-}
+    port_source=""
+
+    if [ -n "$backend_port" ]; then
+        # Port set via environment variable
+        port_source="environment variable"
+    elif [ -f "$env_file" ]; then
+        # Try to read from .env file
+        backend_port=$(grep "^BACKEND_PORT=" "$env_file" 2>/dev/null | cut -d'=' -f2 | tr -d ' "' || echo "")
+        if [ -n "$backend_port" ]; then
+            port_source="$env_file"
+        fi
+    fi
+
+    # Fallback to 8000 if still not set
+    if [ -z "$backend_port" ]; then
+        backend_port=8000
+        port_source="default"
+    fi
+
+    # Environment-specific messages
+    case $env in
+        local-minimal)
+            echo ""
+            print_info "Access your minimal local environment:"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
+            if [ "$with_frontend" = "true" ]; then
+                echo "  Frontend:        http://localhost:5173"
+            fi
+            echo "  PostgreSQL:      localhost:5432 (use DBeaver, psql, etc.)"
+            echo ""
+            if [ "$with_frontend" = "true" ]; then
+                print_info "Frontend + Backend + PostgreSQL running"
+            else
+                print_warning "ℹ️  Minimal setup (PostgreSQL + Backend only)"
+                print_info "Add frontend with: ./deploy.sh local-minimal --with-frontend"
+            fi
+            print_info "For MailHog, Redis, pgAdmin → use: ./deploy.sh local"
+            ;;
+        local)
+            echo ""
+            print_info "Access your full local environment:"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
+            if [ "$with_frontend" = "true" ]; then
+                echo "  Frontend:        http://localhost:5173"
+            fi
+            echo "  MailHog UI:      http://localhost:8025"
+            echo "  pgAdmin:         http://localhost:5050"
+            echo "  PostgreSQL:      localhost:5432"
+            echo "  Redis:           localhost:6379"
+            echo ""
+            if [ "$with_frontend" = "true" ]; then
+                print_info "Frontend + Backend + All Services running"
+            else
+                print_warning "ℹ️  Full setup without frontend"
+                print_info "Add frontend with: ./deploy.sh local --with-frontend"
+            fi
+            print_info "For lighter setup → use: ./deploy.sh local-minimal"
+            ;;
+        local-prod)
+            echo ""
+            print_info "Access your local production build:"
+            echo "  Frontend (Nginx): http://localhost:8080"
+            echo "  Backend API:     http://localhost:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://localhost:${backend_port}/docs"
+            echo "  MailHog UI:      http://localhost:8025"
+            echo "  pgAdmin:         http://localhost:5050"
+            echo "  PostgreSQL:      localhost:5432"
+            echo "  Redis:           localhost:6379"
+            echo ""
+            print_warning "Frontend uses production build (Nginx + static files)"
+            print_info "No hot reload - rebuild frontend with: ./deploy.sh local-prod --rebuild"
+            print_info "For development with hot reload → use: ./deploy.sh local --with-frontend"
+            ;;
+        dev)
+            echo ""
+            print_info "Access your dev environment:"
+            echo "  Backend API:     http://dev.contravento.local:${backend_port} (port from: ${port_source})"
+            echo "  API Docs:        http://dev.contravento.local:${backend_port}/docs"
+            ;;
+        staging)
+            echo ""
+            print_info "Access your staging environment:"
+            echo "  Backend API:     https://staging.contravento.com"
+            echo "  Monitoring:      http://localhost:3000"
+            ;;
+        prod)
+            echo ""
+            print_success "Production deployment complete!"
+            echo "  Backend API:     https://api.contravento.com"
+            echo "  Monitoring:      https://monitoring.contravento.com"
+            ;;
+    esac
+
+    echo ""
+    print_info "View logs with: ./deploy.sh $env logs"
+    print_info "Stop with: ./deploy.sh $env down"
+}
+
+# Stop environment
+stop_env() {
+    local env=$1
+    local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
+
+    print_header "Stopping $env environment"
+
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" down
+
+    print_success "$env environment stopped"
+}
+
+# View logs
+view_logs() {
+    local env=$1
+    local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
+
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" logs -f
+}
+
+# Show running containers
+show_ps() {
+    local env=$1
+    local compose_file="docker-compose.${env}.yml"
+    local env_file=$(get_env_file "$env")
+
+    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" ps
+}
+
+# Restart environment
+restart_env() {
+    local env=$1
+    local with_frontend=$2
+    local rebuild=$3
+    local pull_option=$4
+    local version=$5
+
+    print_header "Restarting $env environment"
+
+    stop_env "$env"
+    sleep 2
+    start_env "$env" "$with_frontend" "$rebuild" "$pull_option" "$version"
+}
+
+# Main
+main() {
+    check_docker_compose
+
+    if [ $# -eq 0 ]; then
+        echo ""
+        echo -e "${BLUE}╔════════════════════════════════════════════════════════════════════════╗${NC}"
+        echo -e "${BLUE}║                   ContraVento - Deployment Script                      ║${NC}"
+        echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
+        echo ""
+        echo "Multi-environment deployment script for ContraVento cycling platform."
+        echo "Manages Docker Compose deployments across local, staging, and production."
+        echo ""
+        echo -e "${GREEN}USAGE:${NC}"
+        echo "  $0 <environment> [flags] [command]"
+        echo ""
+        echo -e "${GREEN}ENVIRONMENTS:${NC}"
+        echo ""
+        echo -e "  ${BLUE}local-minimal${NC}  ⚡ FASTEST - Minimal setup for rapid development"
+        echo "                 Components: PostgreSQL + Backend"
+        echo "                 Use case: Quick iterations, backend-only work"
+        echo "                 Startup: ~10 seconds"
+        echo ""
+        echo -e "  ${BLUE}local${NC}          Full local development environment"
+        echo "                 Components: PostgreSQL + Backend + Redis + MailHog + pgAdmin"
+        echo "                 Use case: Full-stack development, email testing"
+        echo "                 Startup: ~20 seconds"
+        echo ""
+        echo -e "  ${BLUE}local-prod${NC}     Local production build testing"
+        echo "                 Components: Same as 'local' + Nginx serving static frontend"
+        echo "                 Use case: Test production builds before deployment"
+        echo "                 Frontend: http://localhost:8080 (no hot reload)"
+        echo ""
+        echo -e "  ${BLUE}dev${NC}            Development/Integration environment"
+        echo "                 Components: Production-like setup with real SMTP"
+        echo "                 Use case: Integration testing, team collaboration"
+        echo ""
+        echo -e "  ${BLUE}staging${NC}        Staging/Pre-production mirror"
+        echo "                 Components: Full production stack + monitoring"
+        echo "                 Use case: Final validation before production release"
+        echo ""
+        echo -e "  ${BLUE}prod${NC}           Production environment"
+        echo "                 Components: High-availability, SSL/TLS, monitoring"
+        echo "                 Use case: Live application serving real users"
+        echo ""
+        echo -e "${GREEN}FLAGS:${NC}"
+        echo "  --with-frontend    Enable Vite dev server (local-minimal and local only)"
+        echo "                     Access at: http://localhost:5173"
+        echo ""
+        echo "  --rebuild          Force rebuild all Docker images (ignore cache)"
+        echo "                     Useful after: Dockerfile changes, dependency updates"
+        echo ""
+        echo -e "${GREEN}DOCKER HUB DEPLOYMENT FLAGS (staging/prod only):${NC}"
+        echo "  --pull-latest                    Pull staging-latest images from Docker Hub"
+        echo "                                   Only for staging environment"
+        echo ""
+        echo "  --pull-version <version>         Pull specific version from Docker Hub"
+        echo "                                   Example: --pull-version v1.3.0"
+        echo "                                   Required for production deployments"
+        echo ""
+        echo "  --rollback-to <version>          Rollback to previous version"
+        echo "                                   Example: --rollback-to v1.2.0"
+        echo "                                   Works for staging and production"
+        echo ""
+        echo -e "${GREEN}COMMANDS:${NC}"
+        echo "  (none)             Start environment (default action)"
+        echo "  down               Stop environment and remove containers"
+        echo "  logs               View logs in follow mode (Ctrl+C to exit)"
+        echo "  ps                 Show running containers status"
+        echo "  restart            Restart environment (down + up)"
+        echo ""
+        echo -e "${GREEN}PORT CONFIGURATION:${NC}"
+        echo "  Backend port can be configured via (priority order):"
+        echo "    1. Environment variable:  export BACKEND_PORT=9000"
+        echo "    2. .env file:             BACKEND_PORT=9000 in .env.<environment>"
+        echo "    3. Default fallback:      8000"
+        echo ""
+        echo "  Startup messages show: (port from: environment variable/file/default)"
+        echo ""
+        echo -e "${GREEN}EXAMPLES:${NC}"
+        echo "  # Quick local development (fastest)"
+        echo "  $0 local-minimal"
+        echo ""
+        echo "  # Local development with frontend"
+        echo "  $0 local-minimal --with-frontend"
+        echo ""
+        echo "  # Full local environment with all services"
+        echo "  $0 local"
+        echo ""
+        echo "  # Test production build locally"
+        echo "  $0 local-prod"
+        echo ""
+        echo "  # Force rebuild after Dockerfile changes"
+        echo "  $0 local --rebuild"
+        echo ""
+        echo "  # Custom backend port"
+        echo "  export BACKEND_PORT=9000 && $0 local"
+        echo ""
+        echo "  # Deploy to staging (pull latest images from Docker Hub)"
+        echo "  $0 staging --pull-latest"
+        echo ""
+        echo "  # Deploy to production (pull specific version from Docker Hub)"
+        echo "  $0 prod --pull-version v1.3.0"
+        echo ""
+        echo "  # Rollback production to previous version"
+        echo "  $0 prod --rollback-to v1.2.0"
+        echo ""
+        echo "  # View logs"
+        echo "  $0 local logs"
+        echo ""
+        echo "  # Stop environment"
+        echo "  $0 local down"
+        echo ""
+        echo -e "${GREEN}DOCUMENTATION:${NC}"
+        echo "  📖 Complete guide: docs/deployment/README.md"
+        echo "  🔧 Troubleshooting: docs/deployment/TROUBLESHOOTING.md"
+        echo "  📋 Mode details: docs/deployment/modes/"
+        echo ""
+        exit 1
+    fi
+
+    # Parse arguments
+    local env=$1
+    local with_frontend=false
+    local rebuild=false
+    local command="up"
+    local pull_option=""
+    local version=""
+
+    # Check for flags in any position
+    shift  # Remove first argument (env)
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --with-frontend)
+                with_frontend=true
+                shift
+                ;;
+            --rebuild)
+                rebuild=true
+                shift
+                ;;
+            --pull-latest)
+                pull_option="--pull-latest"
+                shift
+                ;;
+            --pull-version)
+                pull_option="--pull-version"
+                shift
+                if [ $# -gt 0 ] && [[ ! "$1" =~ ^-- ]]; then
+                    version="$1"
+                    shift
+                fi
+                ;;
+            --rollback-to)
+                pull_option="--rollback-to"
+                shift
+                if [ $# -gt 0 ] && [[ ! "$1" =~ ^-- ]]; then
+                    version="$1"
+                    shift
+                fi
+                ;;
+            up|start|down|stop|logs|ps|status|restart)
+                command="$1"
+                shift
+                ;;
+            *)
+                print_error "Unknown argument: $1"
+                echo "Valid flags: --with-frontend, --rebuild, --pull-latest, --pull-version <version>, --rollback-to <version>"
+                echo "Valid commands: up, down, logs, ps, restart"
+                exit 1
+                ;;
+        esac
+    done
+
+    validate_env "$env"
+
+    case $command in
+        up|start)
+            start_env "$env" "$with_frontend" "$rebuild" "$pull_option" "$version"
+            ;;
+        down|stop)
+            stop_env "$env"
+            ;;
+        logs)
+            view_logs "$env"
+            ;;
+        ps|status)
+            show_ps "$env"
+            ;;
+        restart)
+            restart_env "$env" "$with_frontend" "$rebuild" "$pull_option" "$version"
+            ;;
+        *)
+            print_error "Invalid command: $command"
+            echo "Valid commands: up, down, logs, ps, restart"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

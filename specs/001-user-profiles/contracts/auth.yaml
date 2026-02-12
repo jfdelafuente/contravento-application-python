@@ -1,0 +1,697 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - Authentication API
+  description: |
+    API de autenticación para ContraVento, la plataforma social de ciclismo.
+
+    Incluye registro de usuarios, verificación de email, inicio de sesión con JWT,
+    gestión de tokens de refresco y restablecimiento de contraseña.
+
+    **Spec**: 001-user-profiles
+    **Version**: 1.0.0
+  version: 1.0.0
+  contact:
+    name: ContraVento API Support
+    email: api@contravento.com
+
+servers:
+  - url: https://api.contravento.com/v1
+    description: Producción
+  - url: http://localhost:8000/v1
+    description: Desarrollo local
+
+tags:
+  - name: auth
+    description: Operaciones de autenticación
+
+paths:
+  /auth/register:
+    post:
+      summary: Registrar nuevo usuario
+      description: |
+        Crea una nueva cuenta de usuario con email y contraseña.
+        Envía un correo de verificación automáticamente.
+
+        **Functional Requirements**: FR-001, FR-002
+        **Success Criteria**: SC-001, SC-003
+      tags:
+        - auth
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              valid:
+                summary: Registro válido
+                value:
+                  username: maria_garcia
+                  email: maria@example.com
+                  password: SecurePass123!
+      responses:
+        '201':
+          description: Usuario creado exitosamente. Email de verificación enviado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      user_id: 550e8400-e29b-41d4-a716-446655440000
+                      username: maria_garcia
+                      email: maria@example.com
+                      is_verified: false
+                      created_at: "2025-12-23T10:30:00Z"
+                    error: null
+                    message: "Usuario registrado. Revisa tu email para verificar tu cuenta."
+        '400':
+          description: Datos de registro inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                username_taken:
+                  summary: Nombre de usuario ya existe
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: USERNAME_TAKEN
+                      message: El nombre de usuario 'maria_garcia' ya está en uso
+                      field: username
+                email_taken:
+                  summary: Email ya registrado
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: EMAIL_TAKEN
+                      message: El email 'maria@example.com' ya está registrado
+                      field: email
+                weak_password:
+                  summary: Contraseña débil
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: WEAK_PASSWORD
+                      message: La contraseña debe tener al menos 8 caracteres
+                      field: password
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/verify-email:
+    post:
+      summary: Verificar email con token
+      description: |
+        Verifica la dirección de email del usuario usando el token enviado por correo.
+        El token expira en 24 horas.
+
+        **Functional Requirements**: FR-002
+      tags:
+        - auth
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Token de verificación recibido por email
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Email verificado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Tu cuenta ha sido verificada correctamente"
+        '400':
+          description: Token inválido o expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                expired:
+                  summary: Token expirado
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: TOKEN_EXPIRED
+                      message: El enlace de verificación ha expirado
+                invalid:
+                  summary: Token inválido
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_TOKEN
+                      message: Enlace de verificación inválido
+
+  /auth/resend-verification:
+    post:
+      summary: Reenviar email de verificación
+      description: |
+        Envía un nuevo email de verificación al usuario.
+        Rate limited a 3 solicitudes por hora.
+
+        **Functional Requirements**: FR-002
+      tags:
+        - auth
+      operationId: resendVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: maria@example.com
+      responses:
+        '200':
+          description: Email de verificación reenviado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Email de verificación enviado"
+        '429':
+          description: Demasiadas solicitudes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: RATE_LIMIT_EXCEEDED
+                  message: Demasiados intentos. Intenta de nuevo en 45 minutos.
+
+  /auth/login:
+    post:
+      summary: Iniciar sesión
+      description: |
+        Autentica al usuario con email/username y contraseña.
+        Retorna access token (15 min) y refresh token (30 días).
+
+        **Functional Requirements**: FR-003, FR-004, FR-009, FR-010
+        **Success Criteria**: SC-003 (<500ms p95)
+      tags:
+        - auth
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              with_email:
+                summary: Login con email
+                value:
+                  login: maria@example.com
+                  password: SecurePass123!
+              with_username:
+                summary: Login con username
+                value:
+                  login: maria_garcia
+                  password: SecurePass123!
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                success: true
+                data:
+                  access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC...
+                  refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC...
+                  token_type: bearer
+                  expires_in: 900
+                  user:
+                    user_id: 550e8400-e29b-41d4-a716-446655440000
+                    username: maria_garcia
+                    email: maria@example.com
+                    is_verified: true
+                error: null
+        '400':
+          description: Email no verificado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: EMAIL_NOT_VERIFIED
+                  message: Debes verificar tu email antes de iniciar sesión
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: Email/usuario o contraseña incorrectos
+        '429':
+          description: Cuenta bloqueada por intentos fallidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: ACCOUNT_LOCKED
+                  message: Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos.
+
+  /auth/refresh:
+    post:
+      summary: Refrescar access token
+      description: |
+        Genera un nuevo access token usando el refresh token.
+        Invalida el refresh token anterior y retorna uno nuevo.
+
+        **Functional Requirements**: FR-010
+      tags:
+        - auth
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token obtenido en login
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Tokens actualizados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Refresh token inválido o expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: INVALID_REFRESH_TOKEN
+                  message: Token de refresco inválido o expirado
+
+  /auth/logout:
+    post:
+      summary: Cerrar sesión
+      description: |
+        Invalida el refresh token del usuario.
+        El access token sigue siendo válido hasta su expiración (15 min).
+
+        **Functional Requirements**: FR-005
+      tags:
+        - auth
+      operationId: logout
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token a invalidar
+      responses:
+        '200':
+          description: Sesión cerrada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Sesión cerrada correctamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/password-reset/request:
+    post:
+      summary: Solicitar restablecimiento de contraseña
+      description: |
+        Envía un email con enlace para restablecer contraseña.
+        El enlace expira en 1 hora.
+
+        **Functional Requirements**: FR-006
+      tags:
+        - auth
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: maria@example.com
+      responses:
+        '200':
+          description: Email enviado (siempre retorna 200 por seguridad)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Si el email existe, recibirás un enlace de restablecimiento
+
+  /auth/password-reset/confirm:
+    post:
+      summary: Confirmar restablecimiento de contraseña
+      description: |
+        Restablece la contraseña usando el token recibido por email.
+
+        **Functional Requirements**: FR-007
+      tags:
+        - auth
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - new_password
+              properties:
+                token:
+                  type: string
+                  description: Token de restablecimiento recibido por email
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Nueva contraseña (mín 8 caracteres)
+                  example: NewSecurePass456!
+      responses:
+        '200':
+          description: Contraseña restablecida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Contraseña actualizada correctamente
+        '400':
+          description: Token inválido o contraseña débil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      summary: Obtener usuario actual
+      description: |
+        Retorna la información del usuario autenticado.
+
+        **Functional Requirements**: FR-004
+      tags:
+        - auth
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Usuario actual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT access token obtenido en login.
+        Header: `Authorization: Bearer {token}`
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-zA-Z0-9_]+$'
+          description: Nombre de usuario (3-30 caracteres, alfanumérico y guiones bajos)
+          example: maria_garcia
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Dirección de email válida
+          example: maria@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Contraseña (mínimo 8 caracteres)
+          example: SecurePass123!
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user_id:
+              type: string
+              format: uuid
+            username:
+              type: string
+            email:
+              type: string
+            is_verified:
+              type: boolean
+            created_at:
+              type: string
+              format: date-time
+        error:
+          type: object
+          nullable: true
+        message:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          description: Username o email
+          example: maria_garcia
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+              description: JWT access token (expira en 15 minutos)
+            refresh_token:
+              type: string
+              description: JWT refresh token (expira en 30 días)
+            token_type:
+              type: string
+              enum: [bearer]
+            expires_in:
+              type: integer
+              description: Segundos hasta expiración del access token
+              example: 900
+            user:
+              $ref: '#/components/schemas/UserResponse'
+        error:
+          type: object
+          nullable: true
+
+    UserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        is_verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Código de error
+              enum:
+                - USERNAME_TAKEN
+                - EMAIL_TAKEN
+                - WEAK_PASSWORD
+                - INVALID_CREDENTIALS
+                - EMAIL_NOT_VERIFIED
+                - ACCOUNT_LOCKED
+                - TOKEN_EXPIRED
+                - INVALID_TOKEN
+                - INVALID_REFRESH_TOKEN
+                - RATE_LIMIT_EXCEEDED
+              example: INVALID_CREDENTIALS
+            message:
+              type: string
+              description: Mensaje de error en español
+              example: Email/usuario o contraseña incorrectos
+            field:
+              type: string
+              description: Campo que causó el error (opcional)
+              example: password
+
+  responses:
+    Unauthorized:
+      description: No autenticado o token inválido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: UNAUTHORIZED
+              message: Token de autenticación inválido o expirado
+
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: INTERNAL_ERROR
+              message: Ha ocurrido un error. Intenta de nuevo más tarde.

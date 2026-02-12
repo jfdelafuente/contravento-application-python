@@ -1,0 +1,1016 @@
+# E2E Test Results Tracking
+
+Documento de seguimiento de resultados de tests E2E para la rama `fix/e2e-auth-frontend-backend-mismatch`.
+
+---
+
+## 📊 Resumen de Ejecuciones
+
+### Ejecución #1 - Baseline (Antes de los Fixes)
+
+**Fecha**: 2026-01-20 (inicial)
+**Archivo**: `docs/errores_e2e.txt`
+**Commits base**: Hasta `4e3ca90`
+
+**Resultados**:
+```
+✅ 10 passed (11%)
+✘ 80 failed (89%)
+⏭ 0 skipped
+Total: 90 tests ejecutados
+```
+
+**Principales problemas identificados**:
+1. 🔴 **CRÍTICO**: Estructura de respuesta del backend (70% de tests bloqueados)
+2. 🟡 **MEDIO**: Redirección post-registro no funciona
+3. 🟡 **MEDIO**: Redirección post-login no funciona
+4. 🟢 **BAJO**: Duplicación de heading en Landing Page
+
+---
+
+### Ejecución #2 - Después de Fixes Iniciales
+
+**Fecha**: 2026-01-20 (11:47 UTC)
+**Archivo**: `docs/errores_e2e_1.txt`
+**Commits aplicados**: `3acde93`, `e193a61`, `5c31c1d`, `7639042`, `ac189a3`
+
+**Fixes implementados**:
+1. ✅ Auto-verificación de usuarios en testing environment (`4e3ca90`)
+2. ✅ Fix duplicate heading - cambio "El camino es el destino" → "El viaje importa más" (`3acde93`)
+3. ✅ Formateo Black en auth.py y auth_service.py (`e193a61`)
+4. ✅ Variables de entorno SECRET_KEY + APP_ENV en CI workflows (`5c31c1d`)
+5. ✅ Detección de auto-verificación en RegisterPage → redirige a /login (`7639042`)
+6. ✅ LoginPage redirige a /dashboard en lugar de / (`ac189a3`)
+
+**Resultados**:
+```
+✅ 14 passed (20% de tests ejecutados) → +40% vs Ejecución #1
+✘ 53 failed (76% de tests ejecutados) → -34% reducción de fallos
+⏭ 1 skipped
+🔴 2 interrupted (timeout)
+⏸ 143 did not run (timeout a 10 minutos)
+Total: 70/213 tests ejecutados (33%)
+Tiempo: 10.0 minutos (límite alcanzado)
+```
+
+**Mejoras confirmadas**:
+
+| Área | Antes | Ahora | Mejora |
+|------|-------|-------|--------|
+| **Login Flow** | 0/3 ✘ | 2/3 ✅ | +67% |
+| `should login with valid credentials` | ✘ | ✅ | ✓ |
+| `should login with email instead of username` | ✘ | ✅ | ✓ |
+| **Session Persistence** | 0/1 ✘ | 1/1 ✅ | +100% |
+| `should maintain session across page refreshes` | ✘ | ✅ | ✓ |
+| **Landing Page - CTA Journey** | 6/6 ✅ | 6/6 ✅ | Mantenido |
+| **Landing Page - Complete Journey** | 0/1 ✘ | 1/1 ✅ | +100% |
+| `should complete full visitor journey` | ✘ | ✅ | ✓ |
+| **Registration Flow** | 0/4 ✘ | 1/4 ✅ | +25% |
+| `should show validation errors` | ✅ | ✅ | Mantenido |
+
+**Problemas persistentes**:
+
+1. **Registration Workflow** - Test desactualizado
+   ```
+   Error: expect(page).toHaveURL(/\/verify-email/)
+   Received: "http://localhost:5173/register"
+   ```
+   - **Causa**: Test espera `/verify-email` pero con auto-verificación debe esperar `/login`
+   - **Archivo**: `frontend/tests/e2e/auth.spec.ts:44`
+   - **Solución**: Actualizar test para detectar auto-verificación
+
+2. **Mobile Heading Duplicate** - Nuevo error descubierto
+   ```
+   Error: strict mode violation: getByRole('heading', { name: /el camino es el destino/i })
+   resolved to 2 elements
+   ```
+   - **Causa**: Posible versión mobile del heading duplicado
+   - **Archivo**: `frontend/tests/e2e/landing.spec.ts:128`
+   - **Solución**: Investigar versiones responsive del componente
+
+3. **Location Editing Tests** - 21 tests fallando
+   - Todos fallan rápido (~2.3s cada uno)
+   - Probablemente problema de autenticación no propagado
+   - Requiere investigación adicional
+
+4. **Timeout General**
+   - Suite completo excede 10 minutos
+   - Solo se ejecutan 70/213 tests (33%)
+   - Opciones:
+     - Aumentar timeout global
+     - Reducir retries de 3 → 1
+     - Reducir timeout individual de 10s → 5s
+
+---
+
+## 🎯 Estado de Problemas Identificados
+
+### ✅ RESUELTOS
+
+| ID | Problema | Commit | Estado |
+|----|----------|--------|--------|
+| P1 | Estructura respuesta backend incorrecta | N/A | ✅ Ya estaba correcto |
+| P2 | Auto-verificación en testing | `4e3ca90` | ✅ Resuelto |
+| P3 | Duplicate heading desktop | `3acde93` | ✅ Resuelto |
+| P4 | Formateo Black | `e193a61` | ✅ Resuelto |
+| P5 | Variables entorno CI | `5c31c1d` | ✅ Resuelto |
+| P6 | Redirección post-registro (código) | `7639042` | ✅ Resuelto |
+| P7 | Redirección post-login | `ac189a3` | ✅ Resuelto |
+| P8 | Test registro espera /verify-email | `9a86db2` | ✅ Resuelto |
+| P9 | Mobile layout gap (sections touching) | `6337735` | ✅ Resuelto |
+| P11 | Login duplicate locator (strict mode) | `2dfb0da` | ✅ Resuelto |
+| P12 | POST /trips retorna null data | `1580d1a` | ✅ Resuelto |
+| P13 | CSS selector regex syntax error | `49aaa68` | ✅ Resuelto |
+| P15 | Mensaje "registro exitoso" no encontrado | (pendiente) | ✅ Resuelto |
+| P16 | Mensaje "nombre de usuario ya existe" no encontrado | (pendiente) | ✅ Resuelto |
+| P17 | Mensaje "credenciales incorrectas" no encontrado | (pendiente) | ✅ Resuelto |
+| P18 | User menu button no encontrado (logout) | (pendiente) | ✅ Resuelto |
+| P19 | Protected routes no redirigen a /login | (pendiente) | ✅ Resuelto |
+| P20 | Test de rutas públicas mal escrito | (pendiente) | ✅ Resuelto |
+| P21 | Landing page no redirige usuarios autenticados | (pendiente) | ✅ Resuelto |
+| P22 | Registro sin checkbox de términos | (pendiente) | ✅ Resuelto |
+| P23 | Logout no espera navegación | (pendiente) | ✅ Resuelto |
+| P24 | Public routes timeout con networkidle | (pendiente) | ✅ Resuelto |
+| P25 | Test reliability improvements | (pendiente) | ✅ Resuelto |
+| P26 | Turnstile widget no inicializado antes de envío | (pendiente) | ✅ Resuelto |
+| P27 | Turnstile callback timing (P26 continuación) | (pendiente) | ✅ Resuelto |
+
+### 🔴 PENDIENTES
+
+| ID  | Problema                                      | Prioridad | Dificultad | Archivo                    |
+|-----|-----------------------------------------------|-----------|------------|----------------------------|
+| P29 | Duplicate username no muestra error banner | 🔴 Alta | Media | `frontend/tests/e2e/auth.spec.ts:70` |
+| P28 | Logout no redirige a /login | 🔴 Alta | Media | `frontend/tests/e2e/auth.spec.ts:211` |
+|-----|-----------------------------------------------|-----------|------------|----------------------------|
+| P14 | Timeout general del suite                     | 🟢 Baja   | Baja       | `playwright.config.ts`     |
+
+---
+
+## 📈 Métricas de Progreso
+
+### Tasa de Éxito por Categoría
+
+| Suite de Tests | Ejecución #1 | Ejecución #2 | Progreso |
+|----------------|--------------|--------------|----------|
+| **Auth** | 1/9 (11%) | 4/9 (44%) | +33% ✅ |
+| **Landing** | 9/13 (69%) | 10/13 (77%) | +8% ✅ |
+| **Location Editing** | 0/11 (0%) | 0/11 (0%) | Sin cambio |
+| **Public Feed** | 0/16 (0%) | 0/16 (0%) | Sin cambio |
+| **Trip Creation** | 0/39 (0%) | 0/39 (0%) | Sin ejecutar (timeout) |
+| **TOTAL** | 10/90 (11%) | 14/70 (20%) | +9% ✅ |
+
+**Nota**: Ejecución #2 solo ejecutó 70 tests vs 90 de Ejecución #1 debido a timeout.
+
+### Evolución de Tests Pasando
+
+```
+Ejecución #1: ██░░░░░░░░ 10/90  (11%)
+Ejecución #2: ████░░░░░░ 14/70  (20%)
+```
+
+**Proyección**: Si los 143 tests restantes se ejecutaran, estimamos ~35-40 tests pasando (16-18% total).
+
+---
+
+## 🔍 Análisis de Errores Comunes
+
+### Error Pattern #1: Redirección Fallida
+
+**Frecuencia**: 6 tests
+**Ejemplo**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected: /\/verify-email/
+Received: "http://localhost:5173/register"
+```
+
+**Causa raíz**: Tests no actualizados para flujo de auto-verificación
+
+**Tests afectados**:
+- `auth.spec.ts:29` - should complete full registration workflow
+- `auth.spec.ts:60` - should prevent duplicate username registration
+
+---
+
+### Error Pattern #2: Elementos Duplicados
+
+**Frecuencia**: 1 test
+**Ejemplo**:
+```
+Error: strict mode violation: getByRole('heading', { name: /el camino es el destino/i })
+resolved to 2 elements
+```
+
+**Causa raíz**: Versiones responsive del mismo contenido
+
+**Tests afectados**:
+- `landing.spec.ts:128` - should stack sections vertically on mobile
+
+---
+
+### Error Pattern #3: Timeout Rápido (~2.3s)
+
+**Frecuencia**: 21 tests
+**Ejemplo**: Todos los tests de Location Editing fallan en ~2.3s
+
+**Causa raíz**: Probablemente no se puede crear usuario autenticado correctamente
+
+**Tests afectados**: Todos en `location-editing.spec.ts`
+
+---
+
+## 🛠️ Próximas Acciones Recomendadas
+
+### Prioridad ALTA 🔴
+
+1. **Actualizar test de registro para soportar auto-verificación**
+   - Archivo: `frontend/tests/e2e/auth.spec.ts`
+   - Cambio: Detectar `is_verified` en respuesta y esperar `/login` o `/verify-email` según corresponda
+   - Impacto estimado: +2-3 tests pasando
+
+### Prioridad MEDIA 🟡
+
+2. **Investigar duplicate heading en mobile**
+   - Archivo: `frontend/src/components/landing/*`
+   - Búsqueda: Versiones responsive del texto "El camino es el destino"
+   - Impacto estimado: +1 test pasando
+
+3. **Diagnosticar fallos de Location Editing**
+   - Agregar logging en helper `createAuthenticatedUser()`
+   - Verificar que el usuario se crea y autentica correctamente
+   - Impacto estimado: +21 tests pasando si se resuelve la autenticación
+
+### Prioridad BAJA 🟢
+
+4. **Optimizar timeouts para ejecutar más tests**
+   - Opción A: Aumentar timeout global de 10min → 15min
+   - Opción B: Reducir retries de 3 → 1
+   - Opción C: Reducir timeout individual de 10s → 5s
+   - Impacto estimado: +143 tests ejecutados
+
+---
+
+## 📝 Notas de Desarrollo
+
+### Decisiones Tomadas
+
+1. **Auto-verificación en Testing** (`4e3ca90`)
+   - Decisión: Auto-verificar usuarios cuando `APP_ENV=testing`
+   - Razón: Simplifica flujo E2E, evita dependencia de email
+   - Trade-off: No testea flujo completo de verificación por email
+
+2. **Redirección post-login a /dashboard** (`ac189a3`)
+   - Decisión: Cambiar destino por defecto de `/` a `/dashboard`
+   - Razón: Evita loop de redirección con LandingPage
+   - Trade-off: Cambia experiencia de usuario autenticado
+
+### Lecciones Aprendidas
+
+1. **CI Workflows necesitan SECRET_KEY explícito**
+   - Pydantic Settings requiere variables de entorno incluso en tests
+   - Solución: Agregar env vars a todos los jobs de test
+
+2. **Tests E2E deben adaptarse a entorno de testing**
+   - Los tests asumen flujo de producción (verificación por email)
+   - Necesitan lógica condicional para testing vs production
+
+3. **Heading duplicados causan strict mode violations**
+   - Playwright en modo strict no permite seleccionar elementos duplicados
+   - Solución: Usar nombres únicos o selectores más específicos
+
+---
+
+## 🔗 Referencias
+
+- **Archivo de errores Ejecución #1**: `docs/errores_e2e.txt`
+- **Archivo de errores Ejecución #2**: `docs/errores_e2e_1.txt`
+- **Guía de CI**: `docs/CI_GUIDE.md`
+- **Rama de trabajo**: `fix/e2e-auth-frontend-backend-mismatch`
+- **Commits**: Ver `git log --oneline -n 10`
+
+---
+
+---
+
+### Ejecución #3 - Regresión Detectada
+
+**Fecha**: 2026-01-20 (13:00 UTC aprox)
+**Archivo**: `docs/errores_e2e_2.txt`
+**Commits**: Mismos que Ejecución #2 (sin cambios en código)
+
+**Resultados**:
+```
+✅ 15 passed (8% de 186 ejecutados) → +1 vs Ejecución #2
+✘ 171 failed (92% de 186 ejecutados) → +118 tests fallando
+⏭ 1 skipped
+Total: 186/213 tests ejecutados (87%) vs 70/213 en Ejecución #2
+Tiempo: No reportado (probablemente <10 min por completarse)
+```
+
+**🔴 REGRESIÓN CRÍTICA**: Tests que pasaban ahora fallan
+
+| Test | Ejecución #2 | Ejecución #3 | Cambio |
+|------|--------------|--------------|--------|
+| should login with valid credentials | ✅ | ✘ | 🔴 REGRESIÓN |
+| should maintain session across page refreshes | ✅ | ✘ | 🔴 REGRESIÓN |
+| Location Editing (21 tests) | No ejecutado | ✘ (todos) | Nuevo fallo |
+| Public Feed (16 tests) | No ejecutado | ✘ (todos) | Nuevo fallo |
+| Trip Creation (39 tests) | No ejecutado | ✘ (todos) | Nuevo fallo |
+
+**Nuevos errores descubiertos**:
+
+1. **Login Flow - Duplicate Username Locator**
+   ```
+   Error: strict mode violation: locator('text=loginuser_1768911555722') resolved to 2 elements:
+     1) <span class="username">@loginuser_1768911555722</span>
+     2) <strong>loginuser_1768911555722@example.com</strong>
+   ```
+   - **Archivo**: `auth.spec.ts:128`
+   - **Problema**: Test usa selector demasiado genérico
+   - **Solución**: Usar selector más específico (ej: `.username`, role-based selector)
+
+2. **Create Trip Returns Null Data** (CRÍTICO - bloquea 76 tests)
+   ```
+   TypeError: Cannot destructure property 'trip_id' of '(intermediate value).data' as it is null.
+   ```
+   - **Archivo**: `location-editing.spec.ts:82` (helper `createUserWithTrip`)
+   - **Endpoint**: `POST /trips`
+   - **Problema**: Backend retorna `{ success: true, data: null }` en lugar de trip data
+   - **Causa raíz**: `_load_trip_relationships()` no cargaba relación `user` ni `user.profile`
+   - **Impacto**: Bloquea todos los tests de Location Editing, Public Feed, Trip Creation (76 tests)
+   - **Solución**: Agregar `selectinload(Trip.user).selectinload(User.profile)` en trip_service.py
+
+**Análisis de Progreso**:
+- Más tests ejecutados (186 vs 70) → timeout resuelto ✅
+- Pero tasa de éxito bajó dramáticamente (20% → 8%)
+- Problemas de backend no detectados antes ahora visibles
+
+---
+
+### Ejecución #4 - Fixes Críticos (POST /trips + Registration Test)
+
+**Fecha**: 2026-01-20 (14:00 UTC aprox)
+
+**Commits**:
+
+- `1580d1a` - Fix `_load_trip_relationships` to load `user` and `user.profile` relationships
+- `9a86db2` - Fix E2E registration test to support auto-verification flow
+
+**Problemas resueltos**:
+
+1. **P12 - POST /trips retorna null data** (backend)
+   - `POST /trips` ahora retorna trip data completo con `author` field
+   - TripResponse.model_validate() puede serializar correctamente el Trip con user data
+
+2. **P8 - Test registro espera /verify-email** (E2E test)
+   - Test ahora detecta auto-verificación y espera redirect correcto
+   - Funciona en testing (→ /login) y producción (→ /verify-email)
+
+**Impacto esperado**:
+
+- +76 tests desbloqueados (Location Editing, Public Feed, Trip Creation)
+- +2-3 tests de registro arreglados
+
+**Resultados reales** (archivo: `errores_e2e_e5445f5.txt`):
+
+```text
+✅ 16 passed (11% de ~140 ejecutados) → +1 vs Ejecución #3
+✘ 124 failed tests únicos (~197 con retries)
+⏭ 1 skipped
+Total: ~140/213 tests ejecutados (66%)
+```
+
+**✅ Validación de fixes**:
+
+- **P12 (POST /trips)**: ✅ CONFIRMADO - Tests de Location Editing ahora SE EJECUTAN (endpoint funciona)
+- **P8 (Test registro)**: ✅ CONFIRMADO - Lógica de auto-verificación detectada correctamente
+
+**🔴 Nuevo bloqueador identificado**:
+
+- **P13 - CSS Selector Regex Syntax Error**: 18 tests de Location Editing fallaban con syntax error de Playwright
+  - Causa: `button:has-text(/regex/i)` no es soportado
+  - Solución: Usar `getByRole()` y `filter()` APIs
+
+---
+
+### Ejecución #5 - Fix CSS Selector Syntax (P13)
+
+**Fecha**: 2026-01-20 (15:00 UTC aprox)
+
+**Commit**:
+
+- `49aaa68` - Fix CSS selector regex syntax in location-editing.spec.ts
+
+**Problema resuelto**:
+
+- **P13 - CSS Selector Regex Syntax Error** (E2E test)
+  - Reemplazadas 18 ocurrencias de selectores CSS inválidos
+  - Ahora usa APIs semánticas de Playwright (getByRole, getByTestId, filter)
+- **P11 - Login Duplicate Locator** (E2E test)
+  - Reemplazadas 2 ocurrencias de selector genérico `text=${username}`
+  - Ahora usa `.username` class selector específico
+  - Evita strict mode violation (2 elementos con el mismo texto)
+
+**Impacto esperado**:
+
+- +18 tests de Location Editing desbloqueados (P13)
+- +2 tests de Auth desbloqueados (P11 - login y session persistence)
+
+---
+
+### Ejecución #6 - Fix Login Duplicate Locator (P11)
+
+**Fecha**: 2026-01-20 (15:15 UTC aprox)
+
+**Commit**:
+
+- `2dfb0da` - Fix generic text selector in auth.spec.ts
+
+**Problema resuelto**:
+
+- **P11 - Login Duplicate Locator** (E2E test)
+  - Selector genérico `text=${username}` coincidía con 2 elementos:
+    1. `<span class="username">@username</span>`
+    2. `<strong>username@example.com</strong>`
+  - Causaba strict mode violation en Playwright
+  - Solución: usar `.username` class selector específico
+  - Afectaba 2 tests: login y session persistence
+
+**Impacto esperado**:
+
+- +2 tests de Auth desbloqueados
+
+---
+
+### Ejecución #7 - Fix Mobile Layout Gap (P9)
+
+**Fecha**: 2026-01-20 (15:30 UTC aprox)
+
+**Commit**:
+
+- `6337735` - Add bottom margin to hero section on mobile
+
+**Problema resuelto**:
+
+- **P9 - Duplicate heading mobile / Mobile layout gap** (E2E test)
+  - Test "should stack sections vertically on mobile" fallaba porque las secciones se tocaban exactamente
+  - Error: `manifestoBox.y === heroBox.y + heroBox.height` (812.390625 === 812.390625)
+  - Test esperaba: `manifestoBox.y > heroBox.y + heroBox.height` (debe haber gap)
+  - Solución: Agregar `margin-bottom: var(--space-1)` a `.hero-section` en viewport móvil (< 768px)
+  - Archivo: `frontend/src/components/landing/HeroSection.css`
+
+**Impacto esperado**:
+
+- +1 test de Landing Page desbloqueado (mobile responsive behavior)
+
+---
+
+## 🆕 Nuevos Problemas Identificados (Post Push P9, P11, P13)
+
+### P15 - Mensaje "registro exitoso" no encontrado
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:44`
+**Test afectado**: `should complete full registration workflow`
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('text=/registro exitoso/i')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+```
+
+**Análisis**:
+- El test busca el texto "registro exitoso" con regex case-insensitive
+- El mensaje NO aparece en el DOM durante los 10 segundos de timeout
+- RegisterPage tiene el mensaje: `'Registro exitoso! Tu cuenta ha sido verificada automáticamente...'`
+- Posibles causas:
+  1. El mensaje está en `.success-banner` pero el selector no lo encuentra
+  2. Timing issue - el mensaje aparece y desaparece muy rápido (redirect después de 3s)
+  3. El banner no se renderiza correctamente
+
+**Solución propuesta**:
+- Verificar que RegisterPage renderiza el banner con clase correcta
+- Ajustar selector del test para usar clase específica: `.success-banner`
+- Considerar aumentar timeout o esperar antes del redirect
+
+---
+
+### P16 - Mensaje "nombre de usuario ya existe" no encontrado
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:95`
+**Test afectado**: `should prevent duplicate username registration`
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('text=/nombre de usuario.*ya existe/i')
+Expected: visible
+```
+
+**Análisis**:
+- El test espera mensaje de error cuando se intenta registrar username duplicado
+- Backend retorna error pero frontend no lo muestra o usa texto diferente
+- Necesita verificar:
+  1. Qué mensaje exacto retorna el backend
+  2. Cómo RegisterForm maneja y muestra errores del backend
+  3. Si el mensaje se muestra en `.error-banner`
+
+**Solución propuesta**:
+- Verificar mensaje exacto del backend en endpoint `/auth/register`
+- Asegurar que RegisterForm muestra error en banner visible
+- Ajustar test para buscar mensaje exacto del backend
+
+---
+
+### P17 - Mensaje "credenciales incorrectas" no encontrado
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:153`
+**Test afectado**: `should show error for invalid credentials`
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('text=/credenciales.*incorrectas/i')
+Expected: visible
+```
+
+**Análisis**:
+- Similar a P16 - mensaje de error de login no encontrado
+- Backend retorna error de credenciales inválidas
+- LoginPage tiene `errorMessage` state pero el banner no aparece
+- Verificar LoginForm y cómo maneja errores
+
+**Solución propuesta**:
+- Verificar que LoginForm llama `onError()` callback correctamente
+- Verificar que LoginPage renderiza `.error-banner` con el mensaje
+- Ajustar test para usar selector de clase específico
+
+---
+
+### P18 - User menu button no encontrado (logout)
+
+**Prioridad**: 🟡 Media
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:209`
+**Test afectado**: `should logout and clear session`
+
+**Error**:
+```
+TimeoutError: page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('button[aria-label="User menu"]')
+```
+
+**Análisis**:
+- El test busca botón con `aria-label="User menu"`
+- Ese botón no existe en el DOM (diferente aria-label o no tiene)
+- Probablemente el navbar/header usa un selector diferente
+
+**Solución propuesta**:
+- Inspeccionar componente Navbar/Header para encontrar aria-label correcto
+- Opciones: `"Menú de usuario"`, `"User options"`, o usar data-testid
+- Actualizar test con el selector correcto
+
+---
+
+### P19 - Protected routes no redirigen a /login
+
+**Prioridad**: 🔴 Alta (Seguridad)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:285`
+**Test afectado**: `should redirect unauthenticated users to login`
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected pattern: /\/login/
+Received string:  "http://localhost:5173/"
+```
+
+**Análisis**:
+- Usuario NO autenticado intenta acceder a rutas protegidas (`/trips/new`, `/profile`, `/settings`)
+- Esperado: redirect a `/login`
+- Recibido: se queda en `/` (landing page)
+- **CRÍTICO**: Las rutas protegidas NO están funcionando correctamente
+
+**Causas posibles**:
+1. ProtectedRoute component no redirige correctamente
+2. useAuth() no detecta que usuario no está autenticado
+3. Router config no usa ProtectedRoute wrapper
+
+**Solución propuesta**:
+- Verificar implementación de ProtectedRoute component
+- Asegurar que verifica autenticación y redirige a `/login` con `state.from`
+- Verificar que Router usa ProtectedRoute en rutas sensibles
+
+---
+
+### P20 - Test de rutas públicas mal escrito
+
+**Prioridad**: 🟡 Media
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:301`
+**Test afectado**: `should allow access to public routes`
+
+**Error**:
+```
+Error: expect(page).not.toHaveURL(expected) failed
+Expected pattern: not /\/login/
+Received string: "http://localhost:5173/login"
+```
+
+**Análisis**:
+- El test visita `/login` y espera que NO esté en `/login`
+- Esto es ilógico - `/login` es una ruta pública y DEBERÍA estar en `/login`
+- El test está MAL ESCRITO
+
+**Código del test**:
+```typescript
+const publicRoutes = ['/', '/login', '/register', '/trips/public'];
+for (const route of publicRoutes) {
+  await page.goto(`${FRONTEND_URL}${route}`);
+  // Should NOT redirect to login
+  await expect(page).not.toHaveURL(/\/login/);
+}
+```
+
+**Problema**: Cuando visita `/login`, el test espera `not.toHaveURL(/\/login/)` pero obviamente SÍ está en `/login`
+
+**Solución propuesta**:
+- Cambiar lógica del test para verificar que rutas públicas NO redirigen a OTRA parte
+- Opción 1: Verificar que URL coincide con la ruta visitada
+- Opción 2: Verificar que NO redirige a una página de error/404
+
+**Fix sugerido**:
+```typescript
+for (const route of publicRoutes) {
+  await page.goto(`${FRONTEND_URL}${route}`);
+  // Should stay on the same route (not redirect away)
+  await expect(page).toHaveURL(new RegExp(route));
+}
+```
+
+---
+
+### P21 - Landing page no redirige usuarios autenticados
+
+**Prioridad**: 🟡 Media (UX)
+**Archivo**: `frontend/tests/e2e/landing.spec.ts:88`
+**Test afectado**: `should redirect authenticated users to /trips/public`
+
+**Error**:
+```
+Error: expect(page).toHaveURL(expected) failed
+Expected: "http://localhost:5173/trips/public"
+Received: "http://localhost:5173/"
+```
+
+**Análisis**:
+- Usuario autenticado visita `/` (landing page)
+- Esperado: redirect automático a `/trips/public`
+- Recibido: se queda en `/`
+- Esto es UX - usuarios autenticados no deberían ver landing page
+
+**Solución propuesta**:
+- Agregar lógica en LandingPage para detectar usuario autenticado
+- Usar useAuth() hook y useEffect para redirigir
+- Ejemplo:
+```typescript
+const { user } = useAuth();
+useEffect(() => {
+  if (user) {
+    navigate('/trips/public');
+  }
+}, [user, navigate]);
+```
+
+---
+
+### P22 - Registro sin checkbox de términos
+
+**Prioridad**: 🔴 Alta (Validación)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:39`
+**Tests afectados**: `should complete full registration workflow`, `should prevent duplicate username registration`
+
+**Error**:
+```
+alert [ref=e36]: Debes aceptar los términos y condiciones
+```
+
+**Análisis**:
+- Tests llenaban formulario de registro pero NO marcaban checkbox de términos y condiciones
+- Formulario tiene validación que previene envío sin checkbox marcado
+- Test intentaba enviar → validación bloqueaba → no navegaba
+
+**Solución implementada**:
+```typescript
+await page.check('input[type="checkbox"]'); // Accept terms and conditions
+```
+
+**Commit**: `b978e04`
+
+---
+
+### P23 - Logout no espera navegación
+
+**Prioridad**: 🔴 Alta (Timing)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:210`
+**Test afectado**: `should logout and clear session`
+
+**Error**:
+```
+TimeoutError: page.waitForURL: Timeout 10000ms exceeded
+```
+
+**Análisis**:
+- Test hacía click en logout y verificaba URL inmediatamente
+- Operación de logout es asíncrona (API call + redirect)
+- `expect()` se ejecutaba antes de que navegación completara
+
+**Solución implementada**:
+```typescript
+await authenticatedPage.click('text=/cerrar sesión|logout/i');
+await authenticatedPage.waitForURL(/\/login/, { timeout: 10000 }); // Wait for navigation
+await expect(authenticatedPage).toHaveURL(/\/login/);
+```
+
+**Commit**: `b978e04`
+
+---
+
+### P24 - Public routes timeout con networkidle
+
+**Prioridad**: 🟡 Media (Timing)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:298`
+**Test afectado**: `should allow access to public routes`
+
+**Error**:
+```
+TimeoutError: page.goto: Timeout 15000ms exceeded
+```
+
+**Análisis**:
+- Test usaba `waitUntil: 'networkidle'` en navegación a rutas públicas
+- `networkidle` espera 500ms sin actividad de red
+- Demasiado estricto - websockets/polling pueden prevenir que se cumpla
+
+**Solución implementada**:
+- Removido `waitUntil: 'networkidle'` (usa default `'load'` event)
+
+**Commit**: `b978e04`
+
+---
+
+### P25 - Test reliability improvements
+
+**Prioridad**: 🔴 Alta (Reliability)
+**Archivos**: `frontend/tests/e2e/auth.spec.ts` (múltiples tests)
+**Tests afectados**: Registration workflow, duplicate username, varios
+
+**Problemas encontrados**:
+1. Success banner aparece solo 3 segundos antes de redirect → race condition
+2. Error banners con timeouts muy cortos → false negatives
+3. Estrategia de espera incorrecta (DOM elements vs navigation)
+
+**Solución implementada**:
+- **P15 fix**: Cambiar de esperar banner a esperar navegación
+  ```typescript
+  // Antes:
+  await expect(page.locator('.success-banner')).toBeVisible({ timeout: 10000 });
+
+  // Después:
+  const finalUrl = await page.waitForURL(/\/(login|verify-email)/, { timeout: 10000 }).then(() => page.url());
+  ```
+- **P16, P17 fix**: Aumentar timeouts a 10s para error banners
+- Aumentar timeouts en general para operaciones asíncronas
+
+**Commit**: `fa936ad`
+
+---
+
+### P26 - Turnstile widget no inicializado antes de envío
+
+**Prioridad**: 🔴 Alta (CAPTCHA)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:42, 90`
+**Tests afectados**: `should complete full registration workflow`, `should prevent duplicate username registration`
+
+**Error**:
+```
+TimeoutError: page.waitForURL: Timeout 10000ms exceeded
+Expected pattern: /\/(login|verify-email)/
+Actual value: "http://localhost:5173/register"
+```
+
+**Análisis**:
+1. RegisterForm requiere `turnstileToken` (Zod validation línea 31)
+2. Tests usan clave de prueba Cloudflare `1x00000000000000000000AA` (auto-pasa)
+3. Widget de Turnstile necesita tiempo para inicializar y generar token
+4. Tests llenaban formulario y enviaban INMEDIATAMENTE → sin token → validación bloqueaba
+
+**Investigación realizada**:
+- ✅ Backend retorna `is_verified=true` en modo testing
+- ✅ Frontend renderiza banners correctamente
+- ✅ Checkbox de términos se marca correctamente (P22)
+- ✅ Clave de prueba configurada en `.env.development`
+- ❌ Widget no tenía tiempo para inicializar antes de submit
+
+**Solución implementada**:
+```typescript
+// Después de llenar formulario y marcar checkbox
+await page.waitForTimeout(2000); // Wait for Turnstile widget initialization
+
+await page.click('button[type="submit"]');
+```
+
+**Commit**: `27c59bb`
+
+**Alternativas consideradas**:
+- Esperar elemento específico del iframe de Turnstile (más robusto pero complejo)
+- Mockear Turnstile completamente (menos realista)
+- Auto-inyectar token via Playwright (no testa flujo real)
+
+**Decisión**: 2 segundos de wait es suficiente para widget con clave de prueba (auto-pasa inmediatamente después de cargar)
+
+---
+
+### P27 - Turnstile callback no ejecuta confiablemente en E2E (Continuación de P26)
+
+**Prioridad**: 🔴 Alta (Blocker para registration tests)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:44, 93`
+**Tests afectados**:
+- User Registration Flow (T046) - should complete full registration workflow
+- User Registration Flow (T046) - should prevent duplicate username registration
+
+**Problema**:
+Widget de Cloudflare Turnstile muestra "Success" ✓ visualmente pero el callback `onSuccess` NO se ejecuta confiablemente en tests E2E de Playwright.
+
+**Investigación realizada**:
+1. ✅ Backend retorna `is_verified=true` en testing mode
+2. ✅ Frontend renderiza banners correctamente
+3. ✅ Checkbox marcado, formulario lleno
+4. ✅ Testing key `1x00000000000000000000AA` configurada
+5. ✅ Widget carga y muestra "Success" en <2s
+6. ❌ Callback `onSuccess` NO ejecuta → `setValue('turnstileToken', token)` no ocurre → validación falla → form no envía
+
+**Intentos fallidos**:
+- ❌ `waitForTimeout(2000)` - Insuficiente
+- ❌ `waitForTimeout(3000)` - Insuficiente
+- ❌ Manual token injection con `document.createElement('input')` - React Hook Form no lee inputs dinámicos
+- ❌ Buscar callbacks en `window.turnstile` y llamarlos - Demasiado frágil, callbacks no expuestos
+- ⏳ `waitForTimeout(5000)` - **Pendiente validación**
+
+**Evidencia**:
+- Screenshot muestra: widget con ✓ "Success", checkbox marcado, botón activo
+- Pero: URL sigue en `/register` (no navega), error context muestra form sin enviar
+
+**Diferencia entre navegadores**:
+- ✅ WebKit: PASA el registration workflow (callback ejecuta eventualmente)
+- ❌ Chromium: FALLA consistentemente (callback nunca ejecuta o tarda >5s)
+- ❌ Firefox: Timeouts en múltiples tests (problemas generales de performance)
+
+**Solución recomendada**:
+Deshabilitar Turnstile completamente en modo E2E:
+
+```typescript
+// frontend/src/components/auth/TurnstileWidget.tsx
+export const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
+  onVerify,
+  onError,
+  action = 'register',
+}) => {
+  // Auto-verify in E2E mode
+  useEffect(() => {
+    if (import.meta.env.VITE_E2E_MODE === 'true') {
+      onVerify('e2e_bypass_token');
+    }
+  }, [onVerify]);
+
+  // Skip rendering widget in E2E
+  if (import.meta.env.VITE_E2E_MODE === 'true') {
+    return <div className="turnstile-widget">E2E Mode - Auto-verified</div>;
+  }
+
+  // Normal widget for production
+  return (
+    <Turnstile
+      siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+      onSuccess={onVerify}
+      onError={handleError}
+      ...
+    />
+  );
+};
+```
+
+```typescript
+// playwright.config.ts
+use: {
+  ...
+  env: {
+    VITE_E2E_MODE: 'true',
+  },
+},
+```
+
+**Solución final implementada**:
+```typescript
+await page.waitForTimeout(5000); // 5 segundos
+```
+
+**Resultado**: ✅ **RESUELTO**
+- Tests de registro pasan en Chromium, Firefox y WebKit
+- 5 segundos es suficiente para que callback ejecute
+- No necesita bypass de Turnstile para workflow principal
+
+**Commit**: `d202ddf` - "increase Turnstile wait to 5s"
+
+---
+
+### P29 - Duplicate username no muestra error banner
+
+**Prioridad**: 🔴 Alta
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:70`
+**Test afectado**: User Registration Flow (T046) - should prevent duplicate username registration
+
+**Error**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('.error-banner')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+```
+
+**Descripción**:
+Test intenta registrar usuario con username duplicado pero el banner de error NO aparece.
+
+**Análisis pendiente**:
+- Verificar que backend retorna error 400 con field-specific error
+- Verificar que frontend muestra error banner para errores de duplicado
+- Posible que el mismo problema de Turnstile callback afecte este test
+- Investigar si formulario se envía correctamente con username duplicado
+
+**Estado**: Pendiente investigación
+
+---
+
+### P28 - Logout no redirige a /login
+
+**Prioridad**: 🔴 Alta (Seguridad)
+**Archivo**: `frontend/tests/e2e/auth.spec.ts:241`
+**Test afectado**: Logout Flow (T047) - should logout and clear session
+
+**Error**:
+```
+TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+Expected: /\/login/
+```
+
+**Descripción**:
+Usuario autenticado hace click en "Cerrar sesión" pero NO redirige a `/login`.
+
+**Screenshot evidence**:
+Error context muestra que botón "Cerrar sesión" existe y es visible, pero después de click no ocurre navegación.
+
+**Análisis pendiente**:
+- Verificar implementación del botón logout en frontend
+- Verificar que `onClick` llama correctamente a `authService.logout()`
+- Verificar que logout hace `navigate('/login')` después de invalidar token
+- Verificar que no hay errores de JavaScript bloqueando navegación
+
+**Estado**: Pendiente investigación (problema diferente a Turnstile)
+
+---
+
+**Última actualización**: 2026-01-20 18:10
+**Próxima acción**: Investigar P29 (duplicate username) y P28 (logout)
+
+## 📊 Resumen Final de Sesión
+
+**Tests E2E Auth**: 24/33 passing (72.7%)
+- Chromium: 9/11 passing (81.8%) ✅
+- Firefox: 8/11 passing (72.7%) ✅
+- WebKit: 9/11 passing (81.8%) ✅
+
+**Progreso de la sesión**:
+- Inicio: 19/33 passing (57.6%)
+- Final: 24/33 passing (72.7%)
+- **Mejora: +5 tests** (+15.1%)
+
+**Problemas totales**: 15 identificados (P15-P29)
+- ✅ **Resueltos**: 12 (P15-P27)
+  - P15-P17: Banners de éxito/error
+  - P18-P21: Auth routing y protected routes
+  - P22-P24: Checkbox, logout wait, networkidle
+  - P25: Test reliability improvements
+  - P26-P27: **Turnstile callback timing (5s wait)**
+- 🔴 **Pendientes**: 3 (P28, P29, P14)
+  - P29: Duplicate username error banner (nuevo)
+  - P28: Logout redirect
+  - P14: Timeout general (baja prioridad)
+
+**Commits de la sesión**: 14 commits en `fix/e2e-auth-frontend-backend-mismatch`
+
+**Logro principal**: ✅ Turnstile resuelto con 5s wait - registration workflow funciona en todos los navegadores

@@ -1,0 +1,75 @@
+{
+  "tags": [
+    {
+      "name": "bikepacking",
+      "normalized": "bikepacking",
+      "usage_count": 10,
+      "description": "Viajes de varios días con equipaje completo"
+    },
+    {
+      "name": "montaña",
+      "normalized": "montana",
+      "usage_count": 8,
+      "description": "Rutas de alta montaña con desnivel significativo"
+    },
+    {
+      "name": "road",
+      "normalized": "road",
+      "usage_count": 6,
+      "description": "Ciclismo de carretera en asfalto"
+    },
+    {
+      "name": "pirineos",
+      "normalized": "pirineos",
+      "usage_count": 5,
+      "description": "Rutas en la cordillera de los Pirineos"
+    },
+    {
+      "name": "gravel",
+      "normalized": "gravel",
+      "usage_count": 4,
+      "description": "Rutas mixtas de asfalto y caminos sin asfaltar"
+    },
+    {
+      "name": "touring",
+      "normalized": "touring",
+      "usage_count": 3,
+      "description": "Cicloturismo de larga distancia"
+    },
+    {
+      "name": "costa",
+      "normalized": "costa",
+      "usage_count": 3,
+      "description": "Rutas costeras con vistas al mar"
+    },
+    {
+      "name": "camino",
+      "normalized": "camino",
+      "usage_count": 2,
+      "description": "Rutas relacionadas con el Camino de Santiago"
+    },
+    {
+      "name": "pilgrimage",
+      "normalized": "pilgrimage",
+      "usage_count": 1,
+      "description": "Rutas de peregrinación"
+    },
+    {
+      "name": "urbano",
+      "normalized": "urbano",
+      "usage_count": 2,
+      "description": "Rutas urbanas por ciudades"
+    }
+  ],
+  "notes": {
+    "usage": "Load these tags in tests with load_json_fixture('tags.json')",
+    "normalized_note": "normalized field is lowercase version used for case-insensitive matching",
+    "usage_count_note": "usage_count is automatically updated when tags are assigned to trips",
+    "test_scenarios": [
+      "Test case-insensitive tag matching: 'BIKEPACKING' matches 'bikepacking'",
+      "Test tag filtering: GET /trips?tag=montana returns trips with montaña tag",
+      "Test popular tags: GET /tags returns tags sorted by usage_count DESC",
+      "Test tag creation: POST /trips with new tag auto-creates tag record"
+    ]
+  }
+}

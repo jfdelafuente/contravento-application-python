@@ -1,0 +1,176 @@
+/* frontend/src/components/landing/CTASection.css */
+
+/**
+ * CTASection Styles (Feature 014 - User Story 4)
+ *
+ * Requirements:
+ * - FR-014-018: Prominent CTA button styling
+ * - SC-014-007: Terracota color (#D35400) for CTA button
+ * - SC-014-008: Centered layout, visible on all viewports
+ */
+
+.cta-section {
+  padding: 100px 24px;
+  background-color: var(--landing-bg);
+  text-align: center;
+}
+
+.cta-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.cta-title {
+  font-family: var(--landing-font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--landing-title);
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.cta-subtitle {
+  font-family: var(--landing-font-sans);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--landing-text);
+  margin-bottom: 40px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 18px 48px;
+  font-family: var(--landing-font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  background-color: var(--landing-cta);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 12px rgba(211, 84, 0, 0.25);
+}
+
+.cta-button:hover {
+  background-color: var(--landing-cta-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(211, 84, 0, 0.35);
+}
+
+.cta-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(211, 84, 0, 0.3);
+}
+
+.cta-button:focus {
+  outline: 3px solid rgba(211, 84, 0, 0.4);
+  outline-offset: 2px;
+}
+
+.cta-login-text {
+  font-family: var(--landing-font-sans);
+  font-size: 1rem;
+  color: var(--landing-text);
+  margin-top: 32px;
+}
+
+.cta-login-link {
+  color: var(--landing-title);
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.cta-login-link:hover {
+  color: var(--landing-cta);
+}
+
+.cta-login-link:focus {
+  outline: 2px solid var(--landing-cta);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Tablet breakpoint (768px - 1023px) */
+@media (max-width: 1023px) {
+  .cta-section {
+    padding: 80px 20px;
+  }
+
+  .cta-title {
+    font-size: 2rem;
+  }
+
+  .cta-subtitle {
+    font-size: 1.0625rem;
+  }
+
+  .cta-button {
+    padding: 16px 40px;
+    font-size: 1.0625rem;
+  }
+}
+
+/* Mobile breakpoint (<768px) */
+@media (max-width: 768px) {
+  .cta-section {
+    padding: 64px 16px;
+  }
+
+  .cta-title {
+    font-size: 1.75rem;
+    margin-bottom: 16px;
+  }
+
+  .cta-subtitle {
+    font-size: 1rem;
+    margin-bottom: 32px;
+  }
+
+  .cta-button {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 16px 32px;
+    font-size: 1rem;
+    min-height: 48px; /* Touch-friendly target size */
+  }
+
+  .cta-login-text {
+    font-size: 0.9375rem;
+    margin-top: 28px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .cta-button {
+    transition: none;
+  }
+
+  .cta-button:hover {
+    transform: none;
+  }
+
+  .cta-login-link {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .cta-button {
+    border: 2px solid currentColor;
+  }
+
+  .cta-login-link {
+    text-decoration-thickness: 2px;
+  }
+}

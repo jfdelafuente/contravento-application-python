@@ -1,0 +1,245 @@
+/**
+ * TripEditPage Styles
+ *
+ * Styles for trip editing page with wizard layout.
+ * Includes loading and error states.
+ * Reuses most styles from TripCreatePage with edit-specific additions.
+ */
+
+/* ============================================================================
+   Page Container
+   ============================================================================ */
+
+.trip-edit-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 24px 16px;
+}
+
+/* ============================================================================
+   Page Header
+   ============================================================================ */
+
+.trip-edit-page__header {
+  max-width: 800px;
+  margin: 0 auto 32px;
+}
+
+.trip-edit-page__header-content {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.trip-edit-page__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.trip-edit-page__subtitle {
+  font-size: 1.0625rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ============================================================================
+   Main Content
+   ============================================================================ */
+
+.trip-edit-page__main {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+/* ============================================================================
+   Loading State
+   ============================================================================ */
+
+.trip-edit-page__loading {
+  max-width: 500px;
+  margin: 80px auto;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.trip-edit-page__loading-spinner {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.trip-edit-page__loading-spinner .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: var(--primary-color, #2563eb);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.trip-edit-page__loading-text {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ============================================================================
+   Error State
+   ============================================================================ */
+
+.trip-edit-page__error {
+  max-width: 500px;
+  margin: 80px auto;
+  text-align: center;
+  padding: 48px 24px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.trip-edit-page__error-icon {
+  width: 64px;
+  height: 64px;
+  color: #ef4444;
+  margin: 0 auto 24px;
+}
+
+.trip-edit-page__error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+}
+
+.trip-edit-page__error-text {
+  font-size: 1rem;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.6;
+  margin: 0 0 32px 0;
+}
+
+.trip-edit-page__error-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary-color, #2563eb);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.trip-edit-page__error-button:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Mobile: Smaller padding and font sizes */
+@media (max-width: 640px) {
+  .trip-edit-page {
+    padding: 16px 8px;
+  }
+
+  .trip-edit-page__header {
+    margin: 0 auto 24px;
+  }
+
+  .trip-edit-page__header-content {
+    padding: 16px 0;
+  }
+
+  .trip-edit-page__title {
+    font-size: 1.5rem;
+    margin: 0 0 8px 0;
+  }
+
+  .trip-edit-page__subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .trip-edit-page__main {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .trip-edit-page__loading,
+  .trip-edit-page__error {
+    margin: 40px auto;
+    padding: 32px 16px;
+  }
+
+  .trip-edit-page__error-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .trip-edit-page__error-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Tablet: Medium layout */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .trip-edit-page {
+    padding: 20px 12px;
+  }
+
+  .trip-edit-page__title {
+    font-size: 1.75rem;
+  }
+
+  .trip-edit-page__main {
+    padding: 28px 24px;
+  }
+}
+
+/* Desktop: Larger content area */
+@media (min-width: 1024px) {
+  .trip-edit-page {
+    padding: 32px 24px;
+  }
+
+  .trip-edit-page__header {
+    margin: 0 auto 40px;
+  }
+
+  .trip-edit-page__header-content {
+    padding: 32px 0;
+  }
+
+  .trip-edit-page__title {
+    font-size: 2.25rem;
+  }
+
+  .trip-edit-page__subtitle {
+    font-size: 1.125rem;
+  }
+
+  .trip-edit-page__main {
+    padding: 40px;
+    border-radius: 20px;
+  }
+}

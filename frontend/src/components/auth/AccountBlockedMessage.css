@@ -1,0 +1,81 @@
+/* AccountBlockedMessage.css */
+
+.account-blocked-container {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.account-blocked-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.account-blocked-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.account-blocked-header h3 {
+  color: #991b1b;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.account-blocked-message {
+  color: #7f1d1d;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.account-blocked-message p {
+  margin: 0.5rem 0;
+}
+
+.account-blocked-countdown {
+  background-color: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.countdown-label {
+  color: #991b1b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.countdown-timer {
+  color: #dc2626;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-blocked-help {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #fecaca;
+  font-size: 0.875rem;
+  color: #7f1d1d;
+}
+
+.account-blocked-help a {
+  color: #dc2626;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.account-blocked-help a:hover {
+  color: #991b1b;
+}

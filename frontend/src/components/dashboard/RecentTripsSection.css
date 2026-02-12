@@ -1,0 +1,233 @@
+/* RecentTripsSection.css - "Desplegando el Mapa" - Route Ribbons Full Width */
+
+/* Intent: Horizontal route ribbons mimicking unrolled map sections
+ * Palette: Amber #ea580c (accent), Moss #059669, Cream #fafaf9 (base)
+ * Depth: Borders-only (map-like), no shadows
+ * Spacing: --space-4 base unit
+ */
+
+.recent-trips-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.recent-trips-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  padding: 0 var(--space-2);
+}
+
+.recent-trips-section__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.recent-trips-section__view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent-amber);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.recent-trips-section__view-all:hover {
+  background: rgba(234, 88, 12, 0.08);
+  color: #dc4c07;
+}
+
+.recent-trips-section__view-all svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.recent-trips-section__view-all:hover svg {
+  transform: translateX(2px);
+}
+
+/* Vertical Stack (not grid) */
+.recent-trips-section__grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.recent-trips-section__grid-item {
+  animation: slideInFromLeft 0.4s ease-out both;
+}
+
+.recent-trips-section__grid-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.recent-trips-section__grid-item:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.recent-trips-section__grid-item:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.recent-trips-section__grid-item:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+/* Skeleton cards - Horizontal format */
+.recent-trips-section__skeleton-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 40% 60%;
+  height: 160px;
+}
+
+/* Empty state */
+.recent-trips-section__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+}
+
+.recent-trips-section__empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-4);
+  color: var(--text-tertiary);
+}
+
+.recent-trips-section__empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.recent-trips-section__empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: -0.01em;
+}
+
+.recent-trips-section__empty-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-6) 0;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.recent-trips-section__empty-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--accent-amber);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.recent-trips-section__empty-button:hover {
+  background: #dc4c07;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+}
+
+/* Error state */
+.recent-trips-section__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-6);
+  background: rgba(220, 38, 38, 0.05);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.recent-trips-section__error svg {
+  width: 40px;
+  height: 40px;
+  color: #dc2626;
+  margin-bottom: var(--space-3);
+}
+
+.recent-trips-section__error p {
+  font-size: 14px;
+  color: #dc2626;
+  margin: 0;
+}
+
+/* Animations */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .recent-trips-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .recent-trips-section__title {
+    font-size: 18px;
+  }
+
+  .recent-trips-section__grid {
+    gap: var(--space-3);
+  }
+
+  .recent-trips-section__skeleton-card {
+    height: 140px;
+  }
+
+  .recent-trips-section__empty {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .recent-trips-section__empty-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .recent-trips-section__empty-title {
+    font-size: 16px;
+  }
+
+  .recent-trips-section__empty-text {
+    font-size: 13px;
+  }
+}

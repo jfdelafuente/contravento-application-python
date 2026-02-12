@@ -2,7 +2,7 @@
 
 **Fecha**: 2026-02-12
 **Autor**: Development Team
-**Estado**: Draft → Para Aprobación
+**Estado**: ✅ Implementado (Workflows + deploy.sh completados)
 
 ---
 

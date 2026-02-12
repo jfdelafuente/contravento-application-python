@@ -1,0 +1,190 @@
+/**
+ * FormStepIndicator Styles
+ *
+ * Visual styles for multi-step progress indicator.
+ * Responsive design with horizontal layout on desktop, vertical on mobile.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.form-step-indicator {
+  width: 100%;
+  padding: 24px 0;
+}
+
+.form-step-indicator__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+
+/* ============================================================================
+   Step Item
+   ============================================================================ */
+
+.form-step-indicator__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  max-width: 200px;
+}
+
+/* ============================================================================
+   Step Circle
+   ============================================================================ */
+
+.form-step-indicator__circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Completed Step */
+.form-step-indicator__step--completed .form-step-indicator__circle {
+  background-color: var(--primary-color, #2563eb);
+  color: #ffffff;
+  border: 2px solid var(--primary-color, #2563eb);
+}
+
+/* Active Step */
+.form-step-indicator__step--active .form-step-indicator__circle {
+  background-color: #ffffff;
+  color: var(--primary-color, #2563eb);
+  border: 3px solid var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* Pending Step */
+.form-step-indicator__step--pending .form-step-indicator__circle {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  border: 2px solid #e5e7eb;
+}
+
+/* ============================================================================
+   Check Icon (for completed steps)
+   ============================================================================ */
+
+.form-step-indicator__check-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================================================
+   Step Number
+   ============================================================================ */
+
+.form-step-indicator__number {
+  display: block;
+}
+
+/* ============================================================================
+   Step Label (optional)
+   ============================================================================ */
+
+.form-step-indicator__label {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  transition: color 0.3s ease-in-out;
+}
+
+/* Completed Label */
+.form-step-indicator__step--completed .form-step-indicator__label {
+  color: var(--primary-color, #2563eb);
+}
+
+/* Active Label */
+.form-step-indicator__step--active .form-step-indicator__label {
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+/* Pending Label */
+.form-step-indicator__step--pending .form-step-indicator__label {
+  color: var(--text-secondary, #6b7280);
+}
+
+/* ============================================================================
+   Connector Line
+   ============================================================================ */
+
+.form-step-indicator__line {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background-color: #e5e7eb;
+  z-index: 1;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.form-step-indicator__line--completed {
+  background-color: var(--primary-color, #2563eb);
+}
+
+/* ============================================================================
+   Current Step Text
+   ============================================================================ */
+
+.form-step-indicator__text {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Mobile: Smaller circles and labels */
+@media (max-width: 640px) {
+  .form-step-indicator__circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .form-step-indicator__check-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .form-step-indicator__label {
+    font-size: 0.75rem;
+    max-width: 80px;
+  }
+
+  .form-step-indicator__line {
+    top: 16px;
+  }
+
+  .form-step-indicator__text {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Tablet and up: Show full labels */
+@media (min-width: 641px) {
+  .form-step-indicator__step {
+    max-width: 250px;
+  }
+}

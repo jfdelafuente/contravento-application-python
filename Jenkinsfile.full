@@ -1,0 +1,335 @@
+// ============================================================================
+// ContraVento - Jenkins Pipeline
+// ============================================================================
+// Pipeline for building, testing, and deploying ContraVento application
+//
+// Prerequisites (Jenkins Credentials):
+//   - dockerhub_id: Docker Hub credentials (username + password)
+//   - vite_api_url: Frontend API URL (e.g., http://localhost:8000)
+//   - vite_turnstile_site_key: Cloudflare Turnstile site key
+//
+// Stages:
+//   1. Run Backend Tests - Execute pytest suite in Docker container
+//   2. Build Images - Build backend and frontend Docker images (parallel)
+//   3. Push to Docker Hub - Push images to registry
+//   4. Deploy to Preproduction - Deploy using docker-compose.preproduction.yml
+//   5. Validate Deployment - Run smoke tests and health checks
+//
+// Note: Git checkout is automatic (done by Jenkins SCM)
+// ============================================================================
+
+pipeline {
+    agent any
+
+    environment {
+        // Docker Hub credentials
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_id')
+
+        // Frontend build arguments
+        VITE_API_URL = credentials('vite_api_url')
+        VITE_TURNSTILE_SITE_KEY = credentials('vite_turnstile_site_key')
+
+        // Docker image names
+        BACKEND_IMAGE = 'jfdelafuente/contravento-backend:latest'
+        FRONTEND_IMAGE = 'jfdelafuente/contravento-frontend:latest'
+
+        // Compose file
+        COMPOSE_FILE = 'docker-compose.preproduction.yml'
+        // TEMPORAL: Overlay para usar imágenes locales en lugar de pull desde Docker Hub
+        COMPOSE_FILES_WITH_BUILD = '-f docker-compose.preproduction.yml -f docker-compose.preproduction.build.yml'
+    }
+
+    options {
+        // Keep only last 10 builds
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+
+        // Timeout after 30 minutes
+        timeout(time: 30, unit: 'MINUTES')
+
+        // Don't run concurrent builds
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Run Backend Tests') {
+            steps {
+                echo '========================================='
+                echo 'Stage: Run Backend Tests'
+                echo '========================================='
+
+                script {
+                    // Run tests inside Python 3.12 Docker container
+                    // No need to install Python on Jenkins host
+                    echo '🐍 Ejecutando tests en contenedor Docker (python:3.12-slim)'
+                    sh 'echo "📂 Directorio de trabajo: $(pwd)/backend"'
+                    echo '📦 Instalando Poetry y dependencias...'
+
+                    sh '''
+                        set -x  # Enable command echoing for debugging
+
+                        echo "=== Iniciando contenedor de tests ==="
+                        docker run --rm \
+                          -v $(pwd)/backend:/app \
+                          -w /app \
+                          python:3.12-slim \
+                          bash -c "
+                            echo '📦 Instalando Poetry...' && \
+                            pip install --quiet poetry && \
+                            echo '✓ Poetry instalado' && \
+                            \
+                            echo '📥 Instalando dependencias del proyecto...' && \
+                            poetry install --no-interaction && \
+                            echo '✓ Dependencias instaladas' && \
+                            \
+                            echo '🧪 Ejecutando pytest con coverage...' && \
+                            poetry run pytest --cov=src --cov-report=term --cov-report=html -v
+                          "
+
+                        echo "=== Tests completados ==="
+                    '''
+
+                    echo '✅ Tests ejecutados exitosamente'
+                    echo '📊 Coverage report generado en: backend/htmlcov/'
+                }
+
+                echo '✅ Backend Tests Passed'
+            }
+        }
+
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build Backend Image') {
+                    steps {
+                        echo '========================================='
+                        echo 'Stage: Build Backend Image'
+                        echo '========================================='
+
+                        echo "🐳 Construyendo imagen: ${BACKEND_IMAGE}"
+                        echo '📄 Dockerfile: backend/Dockerfile'
+                        echo '📂 Contexto: backend/'
+
+                        sh """
+                            set -x
+                            docker build -t ${BACKEND_IMAGE} \
+                              -f backend/Dockerfile \
+                              backend/
+                        """
+
+                        echo "✅ Imagen construida: ${BACKEND_IMAGE}"
+                    }
+                }
+
+                stage('Build Frontend Image') {
+                    steps {
+                        echo '========================================='
+                        echo 'Stage: Build Frontend Image'
+                        echo '========================================='
+
+                        echo "🐳 Construyendo imagen: ${FRONTEND_IMAGE}"
+                        echo '📄 Dockerfile: frontend/Dockerfile.prod'
+                        echo '📂 Contexto: frontend/'
+                        echo '🔧 Build args:'
+                        echo "   - VITE_API_URL: ${VITE_API_URL}"
+                        echo "   - VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY.substring(0, 10)}..."
+                        echo '   - VITE_ENV: production'
+                        echo '   - VITE_DEBUG: false'
+
+                        script {
+                            // Use single quotes to prevent shell interpolation
+                            // Variables are passed safely through environment
+                            sh '''
+                                set -x
+                                docker build -t ${FRONTEND_IMAGE} \
+                                  --build-arg VITE_API_URL="${VITE_API_URL}" \
+                                  --build-arg VITE_TURNSTILE_SITE_KEY="${VITE_TURNSTILE_SITE_KEY}" \
+                                  --build-arg VITE_ENV=production \
+                                  --build-arg VITE_DEBUG=false \
+                                  --build-arg VITE_USE_PROXY=true \
+                                  -f frontend/Dockerfile.prod \
+                                  frontend/
+                            '''
+                        }
+
+                        echo "✅ Imagen construida: ${FRONTEND_IMAGE}"
+                    }
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                echo '========================================='
+                echo 'Stage: Push to Docker Hub'
+                echo '========================================='
+
+                script {
+                    // Login to Docker Hub
+                    echo "🔐 Autenticando en Docker Hub como: ${DOCKERHUB_CREDENTIALS_USR}"
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    echo '✅ Login exitoso'
+
+                    // Push backend image
+                    echo "📤 Subiendo imagen backend: ${BACKEND_IMAGE}"
+                    sh """
+                        set -x
+                        docker push ${BACKEND_IMAGE}
+                    """
+                    echo '✅ Backend image subida correctamente'
+
+                    // Push frontend image
+                    echo "📤 Subiendo imagen frontend: ${FRONTEND_IMAGE}"
+                    sh """
+                        set -x
+                        docker push ${FRONTEND_IMAGE}
+                    """
+                    echo '✅ Frontend image subida correctamente'
+                }
+
+                echo '✅ Todas las imágenes subidas a Docker Hub'
+            }
+        }
+
+        stage('Deploy to Preproduction') {
+            steps {
+                echo '========================================='
+                echo 'Stage: Deploy to Preproduction'
+                echo '========================================='
+
+                script {
+                    echo "📄 Archivo docker-compose: ${COMPOSE_FILE}"
+                    echo "📦 Usando overlay de build: ${COMPOSE_FILES_WITH_BUILD}"
+
+                    // Stop any existing containers
+                    echo '🛑 Deteniendo contenedores existentes...'
+                    sh """
+                        set -x
+                        docker compose -f ${COMPOSE_FILE} down -v || true
+                    """
+                    echo '✅ Contenedores detenidos'
+
+                    // TEMPORAL: No pull - usar imágenes locales construidas en stage anterior
+                    // echo '📥 Descargando últimas imágenes desde Docker Hub...'
+                    // sh """
+                    //     set -x
+                    //     docker compose -f ${COMPOSE_FILE} pull
+                    // """
+                    // echo '✅ Imágenes descargadas'
+                    echo '📦 Usando imágenes locales construidas en stage anterior (con cambios temporales)'
+
+                    // Start services (usando overlay para forzar uso de imágenes locales)
+                    echo '🚀 Iniciando servicios de preproducción...'
+                    sh """
+                        set -x
+                        docker compose ${COMPOSE_FILES_WITH_BUILD} up -d
+                    """
+                    echo '✅ Servicios iniciados'
+
+                    // Wait for services to be healthy
+                    echo '⏳ Esperando a que los servicios estén saludables (30s)...'
+                    sh """
+                        sleep 30
+                        echo '📊 Estado de los servicios:'
+                        docker compose -f ${COMPOSE_FILE} ps
+                    """
+                }
+
+                echo '✅ Deployment a Preproducción completado'
+                echo '🌐 Acceso:'
+                echo '   - Frontend: http://localhost:5173'
+                echo '   - Backend API: http://localhost:8000'
+                echo '   - API Docs: http://localhost:8000/docs'
+                echo '   - pgAdmin: http://localhost:5050'
+            }
+        }
+
+        stage('Validate Deployment') {
+            steps {
+                echo '========================================='
+                echo 'Stage: Validate Deployment'
+                echo '========================================='
+
+                script {
+                    // Check backend health
+                    echo '🏥 Verificando health check del backend...'
+                    echo '🔗 Endpoint: http://localhost:8000/health'
+                    sh '''
+                        set -x
+                        for i in {1..10}; do
+                            echo "Intento $i/10..."
+                            if curl -f http://localhost:8000/health; then
+                                echo '✅ Backend está saludable'
+                                break
+                            else
+                                echo "⏳ Reintentando en 5 segundos..."
+                                sleep 5
+                            fi
+                        done
+                    '''
+
+                    // Check frontend
+                    echo '🌐 Verificando accesibilidad del frontend...'
+                    echo '🔗 URL: http://localhost:5173'
+                    sh '''
+                        set -x
+                        if curl -f http://localhost:5173; then
+                            echo '✅ Frontend es accesible'
+                        else
+                            echo '❌ Frontend no es accesible'
+                            exit 1
+                        fi
+                    '''
+
+                    // Display logs
+                    echo '📋 Mostrando logs recientes del backend:'
+                    sh """
+                        docker compose -f ${COMPOSE_FILE} logs --tail=50 backend
+                    """
+                }
+
+                echo '✅ Validación del deployment completada exitosamente'
+                echo '🎉 Entorno de preproducción listo para pruebas'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '========================================='
+            echo '✅ Pipeline Completed Successfully!'
+            echo '========================================='
+            echo 'Access preproduction environment:'
+            echo '  - Frontend: http://localhost:5173'
+            echo '  - Backend API: http://localhost:8000'
+            echo '  - API Docs: http://localhost:8000/docs'
+            echo '  - pgAdmin: http://localhost:5050'
+            echo '========================================='
+        }
+
+        failure {
+            echo '========================================='
+            echo '❌ Pipeline Failed!'
+            echo '========================================='
+
+            // Display logs for debugging
+            sh """
+                echo 'Backend logs:'
+                docker compose -f ${COMPOSE_FILE} logs --tail=100 backend || true
+
+                echo 'Frontend logs:'
+                docker compose -f ${COMPOSE_FILE} logs --tail=100 frontend || true
+            """
+        }
+
+        always {
+            echo 'Cleaning up...'
+
+            // Logout from Docker Hub
+            sh 'docker logout || true'
+
+            // Optional: Stop containers after build (comment out if you want to keep them running)
+            // sh "docker compose -f ${COMPOSE_FILE} down || true"
+
+            echo 'Cleanup completed'
+        }
+    }
+}

@@ -1,0 +1,482 @@
+/**
+ * Step3Review Component Styles
+ *
+ * Styling for review and publish step of GPS Trip Creation Wizard.
+ * Mobile-first responsive design with accessible touch targets.
+ *
+ * Feature: 017-gps-trip-wizard
+ * Phase: 6 (US6)
+ * Task: T070
+ */
+
+.step3-review {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Header */
+.step3-review__header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.step3-review__title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step3-review__description {
+  font-size: 1rem;
+  color: #dbeafe;
+  margin: 0;
+}
+
+/* Summary Container - Single Column Layout */
+.step3-review__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Section */
+.step3-review__section {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.step3-review__section:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.step3-review__section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid #dbeafe;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Telemetry Row (2 fields per row) */
+.step3-review__telemetry-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Field */
+.step3-review__field {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Telemetry fields with icons - adjust layout */
+.step3-review__field--telemetry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.step3-review__field--telemetry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Telemetry icon */
+.step3-review__telemetry-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Remove border for fields inside telemetry rows */
+.step3-review__telemetry-row .step3-review__field {
+  border-bottom: none;
+  padding: 0.875rem 1rem;
+}
+
+/* Adjust label and value layout inside telemetry fields */
+.step3-review__field--telemetry .step3-review__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.step3-review__field--telemetry .step3-review__value {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-left: auto;
+}
+
+/* Color themes for each metric */
+
+/* Distance - Blue theme */
+.step3-review__value--distance {
+  color: #2563eb;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Elevation Gain - Green theme (uphill) */
+.step3-review__value--gain {
+  color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Elevation Loss - Cyan theme (downhill) */
+.step3-review__value--loss {
+  color: #0891b2;
+  background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Max Elevation - Purple theme (mountain peak) */
+.step3-review__value--max-elevation {
+  color: #7c3aed;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Min Elevation - Indigo theme */
+.step3-review__value--min-elevation {
+  color: #4f46e5;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Difficulty - Dynamic colors based on level */
+.step3-review__value--difficulty {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.step3-review__value--difficulty-easy {
+  color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.step3-review__value--difficulty-moderate {
+  color: #d97706;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.step3-review__value--difficulty-difficult {
+  color: #ea580c;
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+}
+
+.step3-review__value--difficulty-very_difficult {
+  color: #dc2626;
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+}
+
+.step3-review__field:last-child {
+  border-bottom: none;
+}
+
+.step3-review__label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.step3-review__value {
+  color: #111827;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.step3-review__value--multiline {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.step3-review__value--difficulty {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Actions */
+.step3-review__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+.step3-review__actions-right {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Buttons */
+.step3-review__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.step3-review__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.step3-review__button--primary {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.step3-review__button--primary:hover:not(:disabled) {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+.step3-review__button--primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.step3-review__button--secondary {
+  background: #ffffff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.step3-review__button--secondary:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Loading Spinner */
+.step3-review__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* POI Summary Section (Feature 017 - Phase 8) */
+.step3-review__pois {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.step3-review__poi-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.15);
+}
+
+.step3-review__poi-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(251, 191, 36, 0.25);
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+}
+
+.step3-review__poi-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.step3-review__poi-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.step3-review__poi-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0;
+}
+
+.step3-review__poi-type {
+  font-size: 0.875rem;
+  color: #b45309;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.step3-review__poi-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.5;
+}
+
+/* No Elevation Message (Phase 2 - Option C) */
+.step3-review__no-elevation {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-left: 4px solid #6366f1;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
+}
+
+.step3-review__no-elevation p {
+  color: #4338ca;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Tablet and Desktop */
+@media (min-width: 640px) {
+  .step3-review__field {
+    grid-template-columns: 160px 1fr;
+  }
+}
+
+/* Mobile Touch Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .step3-review__button {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .step3-review__button:hover {
+    transform: none;
+  }
+
+  .step3-review__field {
+    padding: 1rem 0;
+  }
+}
+
+/* Tablet Layout - Stack telemetry rows */
+@media (max-width: 767px) {
+  .step3-review__telemetry-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Mobile Stacked Layout */
+@media (max-width: 639px) {
+  .step3-review {
+    padding: 1rem;
+  }
+
+  .step3-review__actions {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .step3-review__actions-right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .step3-review__button {
+    width: 100%;
+  }
+
+  .step3-review__telemetry-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .step3-review__field {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .step3-review__field--telemetry {
+    flex-wrap: wrap;
+  }
+
+  .step3-review__label {
+    font-weight: 700;
+  }
+}

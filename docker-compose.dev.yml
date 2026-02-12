@@ -1,0 +1,86 @@
+# ============================================================================
+# ContraVento - Development/Integration Environment
+# ============================================================================
+# This overlay configures the integration/testing environment:
+#   - Production-like build (no hot reload)
+#   - Real SMTP server for email testing
+#   - Nginx reverse proxy
+#   - SSL/TLS ready
+#   - Moderate security (bcrypt 10)
+#   - Healthchecks enabled
+#   - Auto-restart policies
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   OR use script: ./deploy.sh dev
+#
+# Access:
+#   Backend API:        http://dev.contravento.local (or configured domain)
+#   API Docs:           http://dev.contravento.local/docs
+# ============================================================================
+
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Development
+  # ==========================================================================
+  postgres:
+    # No exposed ports in dev - only accessible via internal network
+    environment:
+      # Increase connection pool for concurrent integration tests
+      POSTGRES_MAX_CONNECTIONS: "100"
+
+  # ==========================================================================
+  # Redis - Development
+  # ==========================================================================
+  redis:
+    # No exposed ports - internal network only
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # ==========================================================================
+  # Backend API - Development
+  # ==========================================================================
+  backend:
+    build:
+      target: production  # Use production build
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
+    ports:
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
+    environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
+      DEBUG: "false"
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json  # Structured logs for easier parsing
+      BCRYPT_ROUNDS: "10"  # Moderate security, faster than prod
+
+  # ==========================================================================
+  # Nginx - Reverse Proxy (Development)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: contravento-nginx-dev
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/dev/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/dev/ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - contravento-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ============================================================================
+# Volumes (Development)
+# ============================================================================
+volumes:
+  nginx_cache:
+    driver: local

@@ -1,0 +1,84 @@
+/* QuickActionsSection.css - Quick actions grid with responsive layout */
+
+.quick-actions-section {
+  width: 100%;
+  margin-bottom: 3rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.quick-actions-section__title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.5px;
+}
+
+.quick-actions-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-actions-section__grid-item {
+  animation: slideUp 0.4s ease-out both;
+}
+
+/* Tablet: 2x2 grid */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .quick-actions-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 4 columns */
+@media (min-width: 1024px) {
+  .quick-actions-section__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Mobile: 2 columns for better space usage */
+@media (max-width: 639px) {
+  .quick-actions-section {
+    margin-bottom: 2rem;
+  }
+
+  .quick-actions-section__title {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .quick-actions-section__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Very small mobile: stack vertically if needed */
+@media (max-width: 400px) {
+  .quick-actions-section__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Stagger animation for action buttons */
+.quick-actions-section__grid-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.quick-actions-section__grid-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.quick-actions-section__grid-item:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.quick-actions-section__grid-item:nth-child(4) {
+  animation-delay: 0.3s;
+}

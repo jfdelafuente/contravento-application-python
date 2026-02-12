@@ -1,0 +1,774 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - GPS Routes Interactive API
+  description: |
+    API endpoints for Feature 003 - GPS Routes Interactive.
+
+    Provides functionality for uploading GPX files, visualizing routes on maps,
+    displaying elevation profiles, and managing points of interest along cycling routes.
+
+    **Feature Scope**:
+    - Phase 1: GPX upload, processing, track visualization, elevation profiles
+    - Phase 2: Points of Interest (POI) management, advanced statistics
+
+    **Authentication**: JWT Bearer token required for write operations
+  version: 1.0.0
+  contact:
+    name: ContraVento API Support
+    email: api@contravento.com
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+  - url: https://staging.contravento.com/api
+    description: Staging server
+  - url: https://api.contravento.com/api
+    description: Production server
+
+tags:
+  - name: GPX Files
+    description: Upload and manage GPX files for trips
+  - name: Track Visualization
+    description: Retrieve trackpoints for map rendering and elevation profiles
+  - name: Points of Interest
+    description: Manage points of interest along routes (Phase 2)
+
+paths:
+  /trips/{trip_id}/gpx:
+    post:
+      tags:
+        - GPX Files
+      summary: Upload GPX file to trip (US1 - FR-001)
+      description: |
+        Upload a GPX file to a trip and process it asynchronously to extract:
+        - Distance, elevation, and altitude statistics
+        - Simplified trackpoints for map rendering (Douglas-Peucker algorithm)
+        - Start and end coordinates
+
+        **Processing**:
+        - Files <1MB: Processed synchronously (response includes full track data)
+        - Files 1-10MB: Processed asynchronously (response includes status_url for polling)
+
+        **Performance Targets**:
+        - SC-002: <3 seconds for files <1MB
+        - SC-003: <15 seconds for files 5-10MB
+
+        **Requirements**:
+        - User must be trip owner (authenticated)
+        - File must be valid GPX format (XML)
+        - File size ≤10MB
+        - Trip can have at most 1 GPX file
+      operationId: uploadGPXFile
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID to attach GPX file to
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: GPX file (max 10MB)
+      responses:
+        '201':
+          description: GPX file uploaded and processed successfully (synchronous)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GPXUploadResponse'
+              examples:
+                synchronous_success:
+                  summary: Small file processed immediately
+                  value:
+                    success: true
+                    data:
+                      gpx_file_id: "123e4567-e89b-12d3-a456-426614174000"
+                      trip_id: "987e6543-e21b-12d3-a456-426614174000"
+                      processing_status: "completed"
+                      distance_km: 45.3
+                      elevation_gain: 1200.5
+                      elevation_loss: 1150.2
+                      max_elevation: 1850.0
+                      min_elevation: 650.0
+                      has_elevation: true
+                      has_timestamps: true
+                      total_points: 1250
+                      simplified_points: 320
+                      uploaded_at: "2026-01-21T10:30:00Z"
+                      processed_at: "2026-01-21T10:30:02Z"
+        '202':
+          description: GPX file uploaded, processing in background (asynchronous)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GPXUploadResponse'
+              examples:
+                async_processing:
+                  summary: Large file being processed
+                  value:
+                    success: true
+                    data:
+                      gpx_file_id: "123e4567-e89b-12d3-a456-426614174000"
+                      trip_id: "987e6543-e21b-12d3-a456-426614174000"
+                      processing_status: "processing"
+                      uploaded_at: "2026-01-21T10:30:00Z"
+                    message: "Archivo GPX en procesamiento. Consulta /api/gpx/{gpx_file_id}/status para ver el progreso."
+        '400':
+          description: Validation error (invalid file, wrong format, file too large)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                file_too_large:
+                  summary: File exceeds 10MB limit
+                  value:
+                    success: false
+                    error:
+                      code: "FILE_TOO_LARGE"
+                      message: "El archivo GPX no puede exceder 10MB. Tamaño actual: 12.5MB"
+                invalid_format:
+                  summary: Invalid GPX format
+                  value:
+                    success: false
+                    error:
+                      code: "INVALID_GPX_FORMAT"
+                      message: "El archivo no es un GPX válido. Asegúrate de que sea un archivo .gpx con formato XML correcto."
+                trip_already_has_gpx:
+                  summary: Trip already has a GPX file
+                  value:
+                    success: false
+                    error:
+                      code: "TRIP_ALREADY_HAS_GPX"
+                      message: "Este viaje ya tiene un archivo GPX. Elimínalo primero si deseas subir uno nuevo."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User is not trip owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_owner:
+                  value:
+                    success: false
+                    error:
+                      code: "FORBIDDEN"
+                      message: "Solo el propietario del viaje puede subir archivos GPX."
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - GPX Files
+      summary: Get GPX file metadata for trip
+      description: |
+        Retrieve metadata about the GPX file associated with a trip.
+        Includes processing status, statistics, and simplified point count.
+
+        **Public endpoint** - No authentication required.
+      operationId: getGPXFileMetadata
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: GPX file metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/GPXFileMetadata'
+        '404':
+          description: Trip not found or trip has no GPX file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - GPX Files
+      summary: Delete GPX file from trip (FR-036)
+      description: |
+        Remove the GPX file and all associated trackpoints from a trip.
+        Also deletes the original GPX file from storage.
+
+        **Requirements**:
+        - User must be trip owner (authenticated)
+        - Cascade deletes: trackpoints, POIs, route statistics
+      operationId: deleteGPXFile
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: GPX file deleted successfully (no content)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User is not trip owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Trip not found or trip has no GPX file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /gpx/{gpx_file_id}/status:
+    get:
+      tags:
+        - GPX Files
+      summary: Get GPX processing status
+      description: |
+        Poll the processing status of an uploaded GPX file.
+        Used for async uploads (files >1MB) to check when processing completes.
+
+        **Polling Strategy**:
+        - Poll every 2 seconds until status = "completed" or "error"
+        - Maximum polling time: 30 seconds
+      operationId: getGPXProcessingStatus
+      parameters:
+        - name: gpx_file_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Processing status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GPXStatusResponse'
+              examples:
+                still_processing:
+                  summary: File still being processed
+                  value:
+                    success: true
+                    data:
+                      gpx_file_id: "123e4567-e89b-12d3-a456-426614174000"
+                      processing_status: "processing"
+                      uploaded_at: "2026-01-21T10:30:00Z"
+                completed:
+                  summary: Processing completed
+                  value:
+                    success: true
+                    data:
+                      gpx_file_id: "123e4567-e89b-12d3-a456-426614174000"
+                      processing_status: "completed"
+                      distance_km: 75.8
+                      elevation_gain: 2100.0
+                      simplified_points: 650
+                      uploaded_at: "2026-01-21T10:30:00Z"
+                      processed_at: "2026-01-21T10:30:12Z"
+                processing_error:
+                  summary: Processing failed
+                  value:
+                    success: true
+                    data:
+                      gpx_file_id: "123e4567-e89b-12d3-a456-426614174000"
+                      processing_status: "error"
+                      error_message: "Archivo GPX corrupto: falta la etiqueta <trk>"
+                      uploaded_at: "2026-01-21T10:30:00Z"
+        '404':
+          description: GPX file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /gpx/{gpx_file_id}/track:
+    get:
+      tags:
+        - Track Visualization
+      summary: Get simplified trackpoints for map rendering (US2 - FR-009)
+      description: |
+        Retrieve simplified GPS trackpoints for rendering the route on a map.
+
+        **Simplification**:
+        - Points reduced using Douglas-Peucker algorithm (epsilon=0.0001°)
+        - Typical reduction: 10,000 original points → 500-1000 simplified points
+        - Maintains visual accuracy (<5% distortion)
+
+        **Performance**: SC-007 (<3s load time for 1000 points)
+
+        **Public endpoint** - No authentication required.
+      operationId: getTrackPoints
+      parameters:
+        - name: gpx_file_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trackpoints retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackDataResponse'
+              examples:
+                track_with_elevation:
+                  summary: Track with elevation data
+                  value:
+                    success: true
+                    data:
+                      gpx_file_id: "123e4567-e89b-12d3-a456-426614174000"
+                      trip_id: "987e6543-e21b-12d3-a456-426614174000"
+                      distance_km: 45.3
+                      elevation_gain: 1200.5
+                      simplified_points_count: 320
+                      has_elevation: true
+                      start_point:
+                        latitude: 41.6488
+                        longitude: -0.8891
+                      end_point:
+                        latitude: 41.9794
+                        longitude: -1.2575
+                      trackpoints:
+                        - point_id: "p1"
+                          latitude: 41.6488
+                          longitude: -0.8891
+                          elevation: 245.0
+                          distance_km: 0.0
+                          sequence: 0
+                          gradient: 0.0
+                        - point_id: "p2"
+                          latitude: 41.6512
+                          longitude: -0.8920
+                          elevation: 265.0
+                          distance_km: 0.3
+                          sequence: 1
+                          gradient: 6.7
+        '404':
+          description: GPX file not found or not yet processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /gpx/{gpx_file_id}/download:
+    get:
+      tags:
+        - GPX Files
+      summary: Download original GPX file (FR-039)
+      description: |
+        Download the original unmodified GPX file.
+
+        **Public endpoint** - Anyone can download GPX files from public trips.
+
+        **Performance**: SC-028 (<2s for files up to 10MB)
+      operationId: downloadOriginalGPX
+      parameters:
+        - name: gpx_file_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: GPX file download
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="Camino_del_Cid.gpx"'
+            Content-Type:
+              schema:
+                type: string
+                example: 'application/gpx+xml'
+          content:
+            application/gpx+xml:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: GPX file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token from /auth/login endpoint
+
+  schemas:
+    GPXUploadResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required:
+            - gpx_file_id
+            - trip_id
+            - processing_status
+            - uploaded_at
+          properties:
+            gpx_file_id:
+              type: string
+              format: uuid
+              description: Unique GPX file identifier
+            trip_id:
+              type: string
+              format: uuid
+              description: Associated trip ID
+            processing_status:
+              type: string
+              enum: [pending, processing, completed, error]
+              description: Current processing status
+            distance_km:
+              type: number
+              format: float
+              nullable: true
+              description: Total distance (only if status=completed)
+            elevation_gain:
+              type: number
+              format: float
+              nullable: true
+              description: Total elevation gain in meters
+            elevation_loss:
+              type: number
+              format: float
+              nullable: true
+              description: Total elevation loss in meters
+            max_elevation:
+              type: number
+              format: float
+              nullable: true
+              description: Maximum altitude in meters
+            min_elevation:
+              type: number
+              format: float
+              nullable: true
+              description: Minimum altitude in meters
+            has_elevation:
+              type: boolean
+              nullable: true
+              description: True if GPX contains elevation data
+            has_timestamps:
+              type: boolean
+              nullable: true
+              description: True if GPX contains timestamp data
+            total_points:
+              type: integer
+              nullable: true
+              description: Original point count before simplification
+            simplified_points:
+              type: integer
+              nullable: true
+              description: Reduced point count after Douglas-Peucker
+            uploaded_at:
+              type: string
+              format: date-time
+              description: Upload timestamp (ISO 8601)
+            processed_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Processing completion timestamp
+            error_message:
+              type: string
+              nullable: true
+              description: Error details if status=error
+        message:
+          type: string
+          description: Optional message (for async uploads)
+          example: "Archivo GPX en procesamiento..."
+
+    GPXStatusResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          allOf:
+            - $ref: '#/components/schemas/GPXUploadResponse/properties/data'
+
+    GPXFileMetadata:
+      type: object
+      required:
+        - gpx_file_id
+        - trip_id
+        - processing_status
+        - distance_km
+        - uploaded_at
+      properties:
+        gpx_file_id:
+          type: string
+          format: uuid
+        trip_id:
+          type: string
+          format: uuid
+        file_name:
+          type: string
+          example: "Camino_del_Cid.gpx"
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 2547823
+        distance_km:
+          type: number
+          format: float
+          example: 45.3
+        elevation_gain:
+          type: number
+          format: float
+          nullable: true
+          example: 1200.5
+        elevation_loss:
+          type: number
+          format: float
+          nullable: true
+          example: 1150.2
+        max_elevation:
+          type: number
+          format: float
+          nullable: true
+          example: 1850.0
+        min_elevation:
+          type: number
+          format: float
+          nullable: true
+          example: 650.0
+        total_points:
+          type: integer
+          example: 8500
+        simplified_points:
+          type: integer
+          example: 750
+        has_elevation:
+          type: boolean
+          example: true
+        has_timestamps:
+          type: boolean
+          example: true
+        processing_status:
+          type: string
+          enum: [pending, processing, completed, error]
+        error_message:
+          type: string
+          nullable: true
+        uploaded_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    TrackDataResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required:
+            - gpx_file_id
+            - trip_id
+            - distance_km
+            - simplified_points_count
+            - has_elevation
+            - start_point
+            - end_point
+            - trackpoints
+          properties:
+            gpx_file_id:
+              type: string
+              format: uuid
+            trip_id:
+              type: string
+              format: uuid
+            distance_km:
+              type: number
+              format: float
+              example: 45.3
+            elevation_gain:
+              type: number
+              format: float
+              nullable: true
+              example: 1200.5
+            simplified_points_count:
+              type: integer
+              description: Number of points in trackpoints array
+              example: 320
+            has_elevation:
+              type: boolean
+              description: True if trackpoints contain elevation data
+              example: true
+            start_point:
+              $ref: '#/components/schemas/Coordinate'
+            end_point:
+              $ref: '#/components/schemas/Coordinate'
+            trackpoints:
+              type: array
+              description: Simplified trackpoints ordered by sequence
+              items:
+                $ref: '#/components/schemas/TrackPoint'
+
+    TrackPoint:
+      type: object
+      required:
+        - point_id
+        - latitude
+        - longitude
+        - distance_km
+        - sequence
+      properties:
+        point_id:
+          type: string
+          format: uuid
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 41.6488
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: -0.8891
+        elevation:
+          type: number
+          format: double
+          nullable: true
+          description: Altitude in meters (NULL if not available)
+          example: 245.0
+        distance_km:
+          type: number
+          format: double
+          description: Cumulative distance from start
+          example: 12.5
+        sequence:
+          type: integer
+          description: Order in track (0-indexed)
+          example: 42
+        gradient:
+          type: number
+          format: double
+          nullable: true
+          description: Percentage slope (e.g., 5.2 = 5.2% uphill)
+          example: 6.7
+
+    Coordinate:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 41.6488
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: -0.8891
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              example: "FILE_TOO_LARGE"
+            message:
+              type: string
+              description: Human-readable error message in Spanish
+              example: "El archivo GPX no puede exceder 10MB"
+            field:
+              type: string
+              nullable: true
+              description: Field that caused the error (for validation errors)
+              example: "file"
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - Missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token de autenticación inválido o ausente"

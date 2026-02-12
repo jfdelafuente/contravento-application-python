@@ -1,0 +1,141 @@
+/* frontend/src/components/landing/ManifestoSection.css */
+
+/**
+ * ManifestoSection Styles (Feature 014 - User Story 1)
+ *
+ * 4-pillar manifesto with 2-column grid on desktop,
+ * stacked layout on mobile, using rustic minimalist aesthetic.
+ */
+
+.manifesto-section {
+  background-color: var(--landing-bg);
+  padding: var(--space-16) var(--space-8);
+}
+
+/* Section Title */
+.manifesto-title {
+  font-family: var(--landing-font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--landing-title);
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+/* 2-Column Grid on Desktop */
+.manifesto-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-10);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Individual Pillar Card */
+.manifesto-pillar {
+  background-color: var(--color-white);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.manifesto-pillar:hover {
+  background-color: var(--landing-pillar-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+/* Pillar Title - Serif Font */
+.manifesto-pillar-title {
+  font-family: var(--landing-font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--landing-title);
+  margin-bottom: var(--space-4);
+  line-height: 1.3;
+}
+
+/* Pillar Description - Sans-serif */
+.manifesto-pillar-description {
+  font-family: var(--landing-font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--landing-text);
+}
+
+/* Tablet Responsive (768px - 1024px) */
+@media (max-width: 1024px) {
+  .manifesto-section {
+    padding: var(--space-12) var(--space-6);
+  }
+
+  .manifesto-title {
+    font-size: 2rem;
+    margin-bottom: var(--space-10);
+  }
+
+  .manifesto-grid {
+    gap: var(--space-8);
+  }
+
+  .manifesto-pillar {
+    padding: var(--space-6);
+  }
+
+  .manifesto-pillar-title {
+    font-size: 1.375rem;
+  }
+}
+
+/* Mobile Responsive (< 768px) - Stacked Layout */
+@media (max-width: 768px) {
+  .manifesto-section {
+    padding: var(--space-10) var(--space-4);
+  }
+
+  .manifesto-title {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-8);
+  }
+
+  /* Single column stack on mobile */
+  .manifesto-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  .manifesto-pillar {
+    padding: var(--space-5);
+  }
+
+  .manifesto-pillar-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+  }
+
+  .manifesto-pillar-description {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  /* Remove hover effect on mobile (touch devices) */
+  .manifesto-pillar:hover {
+    transform: none;
+  }
+}
+
+/* Small Mobile (< 480px) */
+@media (max-width: 480px) {
+  .manifesto-section {
+    padding: var(--space-8) var(--space-3);
+  }
+
+  .manifesto-title {
+    font-size: 1.5rem;
+  }
+
+  .manifesto-grid {
+    gap: var(--space-5);
+  }
+}

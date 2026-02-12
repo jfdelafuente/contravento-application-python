@@ -1,0 +1,203 @@
+/**
+ * LocationInput Component Styles
+ *
+ * Styling for GPS coordinate input fields in trip creation/editing forms.
+ * Follows ContraVento design system with cycling theme colors.
+ */
+
+/* Container */
+.location-input {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.location-input--error {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+/* Header */
+.location-input__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.location-input__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c5f2d;
+  margin: 0;
+}
+
+.location-input__remove-btn {
+  background-color: transparent;
+  border: 1px solid #dc3545;
+  color: #dc3545;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  max-width: 15%;
+  flex-shrink: 0;
+}
+
+.location-input__remove-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.location-input__remove-btn:focus {
+  outline: 2px solid #dc3545;
+  outline-offset: 2px;
+}
+
+/* Fields */
+.location-input__field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.location-input__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.375rem;
+}
+
+.location-input__input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #212529;
+  background-color: white;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.location-input__input:focus {
+  border-color: #97cc04;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(151, 204, 4, 0.25);
+}
+
+.location-input__input--error {
+  border-color: #dc3545;
+}
+
+.location-input__input--error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.location-input__input--number {
+  font-family: 'Courier New', monospace;
+}
+
+/* Error and Hint Messages */
+.location-input__error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.location-input__error::before {
+  content: '⚠️';
+  margin-right: 0.25rem;
+}
+
+.location-input__hint {
+  color: #6c757d;
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Coordinates Section */
+.location-input__coordinates {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.location-input__coordinates-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.25rem;
+}
+
+.location-input__coordinates-hint {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.location-input__coordinates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .location-input__coordinates-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .location-input {
+    padding: 0.75rem;
+  }
+
+  .location-input__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .location-input__remove-btn {
+    width: 100%;
+  }
+}
+
+/* Accessibility - High Contrast Mode */
+@media (prefers-contrast: high) {
+  .location-input {
+    border-width: 2px;
+  }
+
+  .location-input__input {
+    border-width: 2px;
+  }
+
+  .location-input__input:focus {
+    border-width: 2px;
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .location-input__remove-btn {
+    display: none;
+  }
+
+  .location-input {
+    border: 1px solid black;
+    page-break-inside: avoid;
+  }
+}

@@ -1,0 +1,398 @@
+openapi: 3.0.3
+info:
+  title: ContraVento - Statistics & Achievements API
+  description: |
+    API de estadísticas y logros para ContraVento.
+
+    Incluye estadísticas de ciclismo (kilómetros, viajes, países visitados),
+    sistema de logros/badges y visualización en perfiles.
+
+    **Spec**: 001-user-profiles
+    **Version**: 1.0.0
+  version: 1.0.0
+
+servers:
+  - url: https://api.contravento.com/v1
+    description: Producción
+  - url: http://localhost:8000/v1
+    description: Desarrollo local
+
+tags:
+  - name: stats
+    description: Estadísticas de usuario
+  - name: achievements
+    description: Sistema de logros
+
+paths:
+  /users/{username}/stats:
+    get:
+      summary: Obtener estadísticas de usuario
+      description: |
+        Retorna las estadísticas de ciclismo del usuario:
+        - Total de viajes publicados
+        - Kilómetros acumulados
+        - Países visitados
+        - Fotos subidas
+        - Fecha del último viaje
+
+        Las estadísticas se actualizan automáticamente cuando se publica,
+        edita o elimina un viaje.
+
+        **Functional Requirements**: FR-019
+        **Success Criteria**: SC-003 (<200ms p95)
+      tags:
+        - stats
+      operationId: getUserStats
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Estadísticas del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StatsResponse'
+                  error:
+                    type: object
+                    nullable: true
+              example:
+                success: true
+                data:
+                  total_trips: 12
+                  total_kilometers: 1547.85
+                  countries_visited:
+                    - code: ES
+                      name: España
+                    - code: FR
+                      name: Francia
+                    - code: IT
+                      name: Italia
+                  total_photos: 48
+                  achievements_count: 5
+                  last_trip_date: "2025-12-15"
+                  updated_at: "2025-12-20T14:30:00Z"
+                error: null
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /users/{username}/achievements:
+    get:
+      summary: Obtener logros de usuario
+      description: |
+        Retorna todos los logros/badges desbloqueados por el usuario,
+        ordenados por fecha de obtención (más recientes primero).
+
+        **Functional Requirements**: FR-020, FR-021, FR-022
+      tags:
+        - achievements
+      operationId: getUserAchievements
+      parameters:
+        - $ref: '#/components/parameters/UsernameParam'
+      responses:
+        '200':
+          description: Lista de logros del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      achievements:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AchievementResponse'
+                      total_count:
+                        type: integer
+                        example: 5
+                  error:
+                    type: object
+                    nullable: true
+              example:
+                success: true
+                data:
+                  achievements:
+                    - code: VOYAGER
+                      name: Viajero
+                      description: Acumulaste 1000 km
+                      badge_icon: 🌍
+                      requirement_type: distance
+                      requirement_value: 1000
+                      awarded_at: "2025-12-15T18:20:00Z"
+                    - code: EXPLORER
+                      name: Explorador
+                      description: Visitaste 5 países
+                      badge_icon: 🗺️
+                      requirement_type: countries
+                      requirement_value: 5
+                      awarded_at: "2025-11-28T10:15:00Z"
+                    - code: CENTURY
+                      name: Centurión
+                      description: Recorriste 100 km en total
+                      badge_icon: 💯
+                      requirement_type: distance
+                      requirement_value: 100
+                      awarded_at: "2025-03-10T14:30:00Z"
+                  total_count: 3
+                error: null
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /achievements:
+    get:
+      summary: Listar todos los logros disponibles
+      description: |
+        Retorna la lista completa de logros/badges disponibles en la plataforma.
+        Útil para mostrar objetivos al usuario.
+
+        **Functional Requirements**: FR-024
+      tags:
+        - achievements
+      operationId: listAchievements
+      responses:
+        '200':
+          description: Lista de todos los logros disponibles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      achievements:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AchievementDefinition'
+                      total_count:
+                        type: integer
+                        example: 9
+              example:
+                success: true
+                data:
+                  achievements:
+                    - code: FIRST_TRIP
+                      name: Primer Viaje
+                      description: Publicaste tu primer viaje
+                      badge_icon: 🚴
+                      requirement_type: trips
+                      requirement_value: 1
+                    - code: CENTURY
+                      name: Centurión
+                      description: Recorriste 100 km en total
+                      badge_icon: 💯
+                      requirement_type: distance
+                      requirement_value: 100
+                    - code: VOYAGER
+                      name: Viajero
+                      description: Acumulaste 1000 km
+                      badge_icon: 🌍
+                      requirement_type: distance
+                      requirement_value: 1000
+                    - code: EXPLORER
+                      name: Explorador
+                      description: Visitaste 5 países
+                      badge_icon: 🗺️
+                      requirement_type: countries
+                      requirement_value: 5
+                    - code: PHOTOGRAPHER
+                      name: Fotógrafo
+                      description: Subiste 50 fotos
+                      badge_icon: 📷
+                      requirement_type: photos
+                      requirement_value: 50
+                    - code: GLOBETROTTER
+                      name: Trotamundos
+                      description: Visitaste 10 países
+                      badge_icon: ✈️
+                      requirement_type: countries
+                      requirement_value: 10
+                    - code: MARATHONER
+                      name: Maratonista
+                      description: Recorriste 5000 km
+                      badge_icon: 🏃
+                      requirement_type: distance
+                      requirement_value: 5000
+                    - code: INFLUENCER
+                      name: Influencer
+                      description: Tienes 100 seguidores
+                      badge_icon: ⭐
+                      requirement_type: followers
+                      requirement_value: 100
+                    - code: PROLIFIC
+                      name: Prolífico
+                      description: Publicaste 25 viajes
+                      badge_icon: 📝
+                      requirement_type: trips
+                      requirement_value: 25
+                  total_count: 9
+
+components:
+  parameters:
+    UsernameParam:
+      name: username
+      in: path
+      required: true
+      description: Nombre de usuario
+      schema:
+        type: string
+        example: maria_garcia
+
+  schemas:
+    StatsResponse:
+      type: object
+      properties:
+        total_trips:
+          type: integer
+          description: Número total de viajes publicados
+          example: 12
+        total_kilometers:
+          type: number
+          format: float
+          description: Kilómetros totales recorridos
+          example: 1547.85
+        countries_visited:
+          type: array
+          description: Lista de países visitados
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Código ISO del país
+                example: ES
+              name:
+                type: string
+                description: Nombre del país en español
+                example: España
+        total_photos:
+          type: integer
+          description: Número total de fotos subidas en viajes
+          example: 48
+        achievements_count:
+          type: integer
+          description: Número total de logros desbloqueados
+          example: 5
+        last_trip_date:
+          type: string
+          format: date
+          nullable: true
+          description: Fecha del último viaje publicado
+          example: "2025-12-15"
+        updated_at:
+          type: string
+          format: date-time
+          description: Última actualización de las estadísticas
+          example: "2025-12-20T14:30:00Z"
+
+    AchievementResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Código único del logro
+          example: VOYAGER
+        name:
+          type: string
+          description: Nombre del logro en español
+          example: Viajero
+        description:
+          type: string
+          description: Descripción del logro
+          example: Acumulaste 1000 km
+        badge_icon:
+          type: string
+          description: Icono o emoji del badge
+          example: 🌍
+        requirement_type:
+          type: string
+          enum: [distance, trips, countries, photos, followers]
+          description: |
+            Tipo de requisito:
+            - distance: Kilómetros acumulados
+            - trips: Número de viajes
+            - countries: Países visitados
+            - photos: Fotos subidas
+            - followers: Seguidores
+          example: distance
+        requirement_value:
+          type: number
+          description: Valor requerido para desbloquear
+          example: 1000
+        awarded_at:
+          type: string
+          format: date-time
+          description: Fecha y hora en que se desbloqueó el logro
+          example: "2025-12-15T18:20:00Z"
+
+    AchievementDefinition:
+      type: object
+      properties:
+        code:
+          type: string
+          example: CENTURY
+        name:
+          type: string
+          example: Centurión
+        description:
+          type: string
+          example: Recorriste 100 km en total
+        badge_icon:
+          type: string
+          example: 💯
+        requirement_type:
+          type: string
+          enum: [distance, trips, countries, photos, followers]
+          example: distance
+        requirement_value:
+          type: number
+          example: 100
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: USER_NOT_FOUND
+            message:
+              type: string
+              example: El usuario no existe
+
+  responses:
+    UserNotFound:
+      description: Usuario no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: USER_NOT_FOUND
+              message: El usuario no existe

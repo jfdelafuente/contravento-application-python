@@ -1,0 +1,328 @@
+/* PhotoCropModal.css - Rustic modal styling for photo cropping */
+
+.photo-crop-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.photo-crop-modal {
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.photo-crop-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  padding: var(--space-5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.photo-crop-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-earth) 0px,
+    var(--color-earth) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  opacity: 0.3;
+}
+
+.photo-crop-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-cream);
+}
+
+.photo-crop-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--color-cream);
+  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  padding: 0;
+}
+
+.photo-crop-close svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-cream);
+}
+
+.photo-crop-close:hover:not(:disabled) {
+  background: var(--color-cream);
+  transform: rotate(90deg);
+}
+
+.photo-crop-close:hover:not(:disabled) svg {
+  color: var(--color-forest);
+}
+
+.photo-crop-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Crop Container */
+.photo-crop-container {
+  position: relative;
+  height: 300px; /* Reduced from 400px to fit buttons on screen */
+  background: var(--color-cream);
+  flex-shrink: 0;
+}
+
+/* Controls */
+.photo-crop-controls {
+  padding: var(--space-6);
+  background: #fafaf8;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.control-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  min-width: 100px;
+}
+
+.control-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+}
+
+.control-slider {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-cream);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.control-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.control-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-lg);
+}
+
+.control-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.control-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-lg);
+}
+
+.control-slider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-value {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Action Buttons */
+.photo-crop-actions {
+  padding: var(--space-5) var(--space-6);
+  background: white;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0; /* Prevent buttons from being hidden */
+  z-index: 10; /* Ensure buttons are on top */
+}
+
+.btn-crop-cancel,
+.btn-crop-save {
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn-crop-cancel {
+  background: white;
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border);
+}
+
+.btn-crop-cancel:hover:not(:disabled) {
+  background: var(--color-cream);
+  border-color: var(--color-earth-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-crop-save {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
+  color: var(--color-cream);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-crop-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-crop-save:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-crop-save:disabled,
+.btn-crop-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .photo-crop-modal-overlay {
+    padding: 0;
+  }
+
+  .photo-crop-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .photo-crop-container {
+    height: 300px;
+  }
+
+  .photo-crop-header {
+    padding: var(--space-4);
+  }
+
+  .photo-crop-title {
+    font-size: var(--text-xl);
+  }
+
+  .photo-crop-controls {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .control-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
+  .control-label {
+    min-width: auto;
+  }
+
+  .control-value {
+    text-align: left;
+  }
+
+  .photo-crop-actions {
+    padding: var(--space-4);
+    flex-direction: column-reverse;
+  }
+
+  .btn-crop-cancel,
+  .btn-crop-save {
+    width: 100%;
+    justify-content: center;
+  }
+}

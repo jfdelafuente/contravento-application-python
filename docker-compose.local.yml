@@ -1,0 +1,153 @@
+# ============================================================================
+# ContraVento - Local Full Development Environment
+# ============================================================================
+# Complete development setup with all services:
+#   - PostgreSQL (database)
+#   - Redis (cache/sessions) - Optional, not currently used in app
+#   - Backend API (FastAPI with hot reload)
+#   - Frontend (React + Vite dev server) - Optional, disabled by default
+#   - MailHog (email testing) - Use when developing auth/email features
+#   - pgAdmin (database UI) - Use when you need visual DB management
+#
+# Use this when:
+#   - Working on authentication/email features (needs MailHog)
+#   - Implementing cache/sessions (needs Redis)
+#   - Prefer visual database tools (needs pgAdmin)
+#   - Testing full-stack integration with all services
+#
+# For lighter/faster setup use:
+#   ./deploy.sh local-minimal (only PostgreSQL + Backend + optionally Frontend)
+#
+# Usage:
+#   ./deploy.sh local                   # Start without frontend (5 services)
+#   ./deploy.sh local --with-frontend   # Start with frontend (6 services)
+#
+# Access:
+#   Frontend:           http://localhost:5173 (when enabled with --with-frontend)
+#   Backend API:        http://localhost:8000
+#   API Docs:           http://localhost:8000/docs
+#   MailHog UI:         http://localhost:8025 (email testing)
+#   pgAdmin:            http://localhost:5050 (database management)
+#   PostgreSQL:         localhost:5432 (direct connection)
+#   Redis:              localhost:6379 (direct connection)
+# ============================================================================
+
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Local Development
+  # ==========================================================================
+  postgres:
+    ports:
+      - "5432:5432"  # Expose for local DB clients (DBeaver, psql, etc.)
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Redis - Local Development (Optional)
+  # ==========================================================================
+  # NOTE: Redis is included but NOT currently used by the application.
+  # It's here for future features like caching, rate limiting, or sessions.
+  # If you don't need it, use local-minimal instead: ./deploy.sh local-minimal
+  redis:
+    ports:
+      - "6379:6379"  # Expose for local Redis clients
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Backend API - Local Development
+  # ==========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development  # Use development stage from Dockerfile
+      args:
+        PORT: ${BACKEND_INTERNAL_PORT:-8000}
+    ports:
+      - "${BACKEND_PORT:-8000}:${BACKEND_INTERNAL_PORT:-8000}"
+    volumes:
+      # Mount source code for hot reload (override production volume)
+      - ./backend/src:/app/src:ro
+      # Mount storage as local directory for easy access
+      - ./backend/storage:/app/storage
+    environment:
+      PORT: ${BACKEND_INTERNAL_PORT:-8000}
+      DEBUG: "true"
+      LOG_LEVEL: DEBUG
+      LOG_FORMAT: text  # Human-readable logs for development
+      BCRYPT_ROUNDS: "4"  # Fast hashing for quicker tests
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # MailHog - Email Testing (Optional - Use when testing email features)
+  # ==========================================================================
+  # NOTE: MailHog captures emails sent by the app for testing.
+  # Only needed when developing:
+  #   - User registration/verification
+  #   - Password reset
+  #   - Email notifications
+  # If you don't need email testing, use: ./deploy.sh local-minimal
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: contravento-mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI at http://localhost:8025
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Frontend - React Vite Dev Server (Disabled by default)
+  # ==========================================================================
+  # Frontend service is disabled by default in full setup
+  # Enable with: ./deploy.sh local --with-frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"  # Vite dev server
+    volumes:
+      # Mount source code for hot reload (HMR)
+      - ./frontend:/app
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+    environment:
+      # Backend API URL (accessible from browser on host machine)
+      VITE_API_URL: ${BACKEND_URL:-http://localhost:8000}
+      VITE_ENV: development
+      VITE_DEBUG: "true"
+      # Use test Turnstile key for development
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      # Proxy configuration for Vite dev server running in Docker
+      VITE_PROXY_TARGET: http://backend:8000  # Vite proxy target (Docker service name)
+      VITE_USE_PROXY: "true"  # Enable /api prefix routing
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      replicas: 0  # Disabled by default - use --with-frontend flag to enable
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # pgAdmin - Database UI (Optional - Use if you prefer visual DB tools)
+  # ==========================================================================
+  # NOTE: pgAdmin provides web-based database management.
+  # Alternatives: DBeaver, TablePlus, psql command line, VS Code extensions
+  # If you prefer external tools, use: ./deploy.sh local-minimal
+  pgadmin:
+    ports:
+      - "5050:80"  # Web UI at http://localhost:5050
+    networks:
+      - contravento-network

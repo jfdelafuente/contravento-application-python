@@ -1,0 +1,174 @@
+/* SocialStatsSection.css - "Pelotón" Social Stats - Mapa de Ruta Style */
+
+/* Intent: Compact social connection stats with organic, map-like feel
+ * Palette: Amber #ea580c (warm), Moss #059669 (organic)
+ * Depth: Borders-only, subtle hover lift
+ * Layout: Horizontal 2-column for desktop, stacked for mobile
+ */
+
+.social-stats-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.social-stats-section__title {
+  margin: 0 0 var(--space-4) 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  padding: 0 var(--space-2);
+}
+
+.social-stats-section__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* Loading and error states */
+.social-stats-section__loading,
+.social-stats-section__error {
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+}
+
+.social-stats-section__loading .spinner {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border: 2px solid var(--border-soft);
+  border-top-color: var(--accent-amber);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.social-stats-section__error {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.05);
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+/* Social stat card - Compact horizontal */
+.social-stat-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.social-stat-card:hover {
+  border-color: var(--border-emphasis);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.social-stat-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.social-stat-card__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Followers - Amber accent (warm connection) */
+.social-stat-card__icon--followers {
+  background: rgba(234, 88, 12, 0.1);
+  color: var(--accent-amber);
+}
+
+.social-stat-card:hover .social-stat-card__icon--followers {
+  background: rgba(234, 88, 12, 0.15);
+}
+
+/* Following - Moss accent (organic growth) */
+.social-stat-card__icon--following {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--accent-moss);
+}
+
+.social-stat-card:hover .social-stat-card__icon--following {
+  background: rgba(5, 150, 105, 0.15);
+}
+
+.social-stat-card__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.social-stat-card__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.social-stat-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .social-stats-section__title {
+    font-size: 18px;
+    margin-bottom: var(--space-3);
+  }
+
+  .social-stats-section__grid {
+    gap: var(--space-2);
+  }
+
+  .social-stat-card {
+    padding: var(--space-3);
+  }
+
+  .social-stat-card__icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .social-stat-card__icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .social-stat-card__value {
+    font-size: 24px;
+  }
+
+  .social-stat-card__label {
+    font-size: 10px;
+  }
+}

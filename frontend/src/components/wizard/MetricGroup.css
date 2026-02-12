@@ -1,0 +1,79 @@
+/**
+ * MetricGroup Component Styles
+ *
+ * Feature: 017-gps-trip-wizard (Phase 1 Optimization)
+ * Task: T003
+ */
+
+/* ============================================================================
+   Container
+   ========================================================================= */
+
+.metric-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================================================
+   Header
+   ========================================================================= */
+
+.metric-group__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.metric-group__icon {
+  display: flex;
+  align-items: center;
+  color: #667eea;
+  font-size: 1.25rem;
+}
+
+.metric-group__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   Content
+   ========================================================================= */
+
+.metric-group__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.metric-group__content--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+/* ============================================================================
+   Responsive Design
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .metric-group {
+    margin-bottom: 1rem;
+  }
+
+  .metric-group__content--grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-group__title {
+    font-size: 0.875rem;
+  }
+}

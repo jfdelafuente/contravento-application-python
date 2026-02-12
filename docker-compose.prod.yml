@@ -1,0 +1,376 @@
+# ============================================================================
+# ContraVento - Production Environment
+# ============================================================================
+# This overlay configures the production environment:
+#   - Maximum security (bcrypt 12-14)
+#   - SSL/TLS enforced
+#   - No debug mode
+#   - Resource limits and reservations
+#   - Auto-restart always
+#   - Monitoring and alerting
+#   - Automated backups
+#   - Rate limiting
+#   - Log aggregation
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   OR use script: ./deploy.sh prod
+#
+# Access:
+#   Backend API:        https://api.contravento.com (or configured domain)
+#   Monitoring:         https://monitoring.contravento.com
+#
+# IMPORTANT:
+#   - Use strong SECRET_KEY (min 64 chars recommended)
+#   - Use strong database passwords
+#   - Configure real SMTP server
+#   - Set up SSL certificates (Let's Encrypt recommended)
+#   - Configure backups to external storage
+#   - Set up log aggregation (ELK, Datadog, etc.)
+# ============================================================================
+
+
+services:
+  # ==========================================================================
+  # PostgreSQL - Production
+  # ==========================================================================
+  postgres:
+    # No exposed ports - only accessible via internal network
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+        reservations:
+          cpus: '2.0'
+          memory: 2G
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+    environment:
+      POSTGRES_MAX_CONNECTIONS: "300"
+      # Production-grade settings
+      POSTGRES_SHARED_BUFFERS: "1GB"
+      POSTGRES_EFFECTIVE_CACHE_SIZE: "3GB"
+      POSTGRES_WORK_MEM: "16MB"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_backups:/backups
+      - ./postgresql/prod/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Redis - Production
+  # ==========================================================================
+  redis:
+    # No exposed ports
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Backend API - Production
+  # ==========================================================================
+  backend:
+    build:
+      target: production
+      args:
+        APP_ENV: production
+    # No direct port exposure - only via Nginx
+    deploy:
+      replicas: 3  # Run 3 instances for high availability
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+    environment:
+      DEBUG: "false"
+      LOG_LEVEL: WARNING  # Only warnings and errors in production
+      LOG_FORMAT: json
+      BCRYPT_ROUNDS: "12"  # Maximum security
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        labels: "production"
+
+  # ==========================================================================
+  # Frontend - React Production Build (Production)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.contravento.com}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
+        VITE_ENV: production
+        VITE_DEBUG: "false"
+        VITE_USE_PROXY: "true"  # Use nginx /api/ proxy in production
+    # No direct port exposure - only via Nginx
+    deploy:
+      replicas: 3  # Run 3 instances for high availability (matches backend)
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+    restart: always
+    networks:
+      - contravento-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        labels: "production"
+
+  # ==========================================================================
+  # Nginx - Reverse Proxy & Load Balancer (Production)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: contravento-nginx-prod
+    ports:
+      - "80:80"    # HTTP (redirects to HTTPS)
+      - "443:443"  # HTTPS only
+    volumes:
+      - ./nginx/prod/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/prod/ssl:/etc/nginx/ssl:ro
+      - ./nginx/prod/conf.d:/etc/nginx/conf.d:ro
+      - nginx_cache:/var/cache/nginx
+      - nginx_logs:/var/log/nginx
+      - certbot_webroot:/var/www/certbot:ro  # Let's Encrypt validation
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - contravento-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ==========================================================================
+  # Certbot - SSL Certificate Automation (Production)
+  # ==========================================================================
+  certbot:
+    image: certbot/certbot:latest
+    container_name: contravento-certbot
+    volumes:
+      - ./nginx/prod/ssl:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Prometheus - Monitoring (Production)
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: contravento-prometheus-prod
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    # Internal only - accessed via Nginx proxy
+    restart: always
+    networks:
+      - contravento-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Grafana - Dashboards (Production)
+  # ==========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: contravento-grafana-prod
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: https://monitoring.contravento.com
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    # Internal only - accessed via Nginx proxy
+    depends_on:
+      - prometheus
+    restart: always
+    networks:
+      - contravento-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Node Exporter - System Metrics (Production)
+  # ==========================================================================
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: contravento-node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Postgres Exporter - Database Metrics (Production)
+  # ==========================================================================
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: contravento-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+  # ==========================================================================
+  # Redis Exporter - Cache Metrics (Production)
+  # ==========================================================================
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: contravento-redis-exporter
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - contravento-network
+
+# ============================================================================
+# Volumes (Production)
+# ============================================================================
+volumes:
+  postgres_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/backups/postgres  # Mount external backup storage
+  nginx_cache:
+    driver: local
+  nginx_logs:
+    driver: local
+  certbot_webroot:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

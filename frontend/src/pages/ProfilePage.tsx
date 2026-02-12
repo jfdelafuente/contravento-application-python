@@ -1,0 +1,231 @@
+// src/pages/ProfilePage.tsx
+
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { UserMenu } from '../components/auth/UserMenu';
+import { getProfile } from '../services/profileService';
+import { UserProfile } from '../types/profile';
+import { CYCLING_TYPES } from '../types/profile';
+import './ProfilePage.css';
+import './DashboardPage.css'; // For dashboard-header__logo styles
+
+/**
+ * User profile page displaying user information
+ *
+ * Features:
+ * - View profile information (bio, location, cycling type)
+ * - Navigate to profile edit page
+ * - Display profile photo
+ * - Show verification status
+ */
+export const ProfilePage: React.FC = () => {
+  const { user, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  // Fetch profile data when component mounts or when user photo changes
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+
+      try {
+        setIsLoadingProfile(true);
+        const profileData = await getProfile(user.username);
+        setProfile(profileData);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, user?.photo_url]); // Re-fetch when photo_url changes
+
+  if (authLoading || isLoadingProfile) {
+    return (
+      <div className="profile-page">
+        <div className="loading-spinner">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // ProtectedRoute will handle redirect
+  }
+
+  // Get cycling type label
+  const cyclingTypeLabel = profile?.cycling_type
+    ? CYCLING_TYPES.find((type) => type.value === profile.cycling_type)?.label || profile.cycling_type
+    : null;
+
+  // Get privacy settings labels (Feature 013)
+  const getProfileVisibilityLabel = (visibility: 'public' | 'private') => {
+    return visibility === 'public' ? 'Público' : 'Privado';
+  };
+
+  const getTripVisibilityLabel = (visibility: 'public' | 'followers' | 'private') => {
+    switch (visibility) {
+      case 'public':
+        return 'Público';
+      case 'followers':
+        return 'Solo seguidores';
+      case 'private':
+        return 'Privado';
+      default:
+        return visibility;
+    }
+  };
+
+  return (
+    <div className="profile-page">
+      <header className="profile-header">
+        <div className="header-content">
+          <h1 className="dashboard-header__logo">
+            <svg
+              className="dashboard-header__logo-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10H10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 12 11 11.75 11 15H13C13 12.75 16 12.5 16 10C16 7.79 14.21 6 12 6Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span>ContraVento</span>
+          </h1>
+          <UserMenu />
+        </div>
+      </header>
+
+      <main className="profile-main">
+        <div className="profile-content">
+          <div className="profile-card">
+            {/* Left Column - Avatar and Edit Button */}
+            <div className="profile-left">
+              <div className="profile-avatar-large">
+                {profile?.photo_url ? (
+                  <img src={profile.photo_url} alt={`${user.username} profile`} className="profile-photo" />
+                ) : (
+                  <span className="profile-avatar-initial">{user.username.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <button
+                className="btn-edit-profile"
+                onClick={() => navigate('/profile/edit')}
+                type="button"
+              >
+                Editar Perfil
+              </button>
+            </div>
+
+            {/* Right Column - Profile Info */}
+            <div className="profile-right">
+              <div className="profile-header-section">
+                <h2>@{user.username}</h2>
+              </div>
+
+              {/* Profile Bio */}
+              {profile?.bio && (
+                <div className="profile-bio">
+                  <p>{profile.bio}</p>
+                </div>
+              )}
+
+              <div className="profile-info">
+                {/* Location */}
+                {profile?.location && (
+                  <div className="info-item">
+                    <span className="info-label">Ubicación:</span>
+                    <span className="info-value">{profile.location}</span>
+                  </div>
+                )}
+
+                {/* Cycling Type */}
+                {cyclingTypeLabel && (
+                  <div className="info-item">
+                    <span className="info-label">Tipo de ciclismo:</span>
+                    <span className="info-value">{cyclingTypeLabel}</span>
+                  </div>
+                )}
+
+                {/* Email */}
+                <div className="info-item">
+                  <span className="info-label">Email:</span>
+                  <span className="info-value">{user.email}</span>
+                  {user.is_verified && (
+                    <span className="verified-badge" title="Email verificado">
+                      <svg
+                        className="verified-icon"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+
+                {/* Member Since */}
+                <div className="info-item">
+                  <span className="info-label">Miembro desde:</span>
+                  <span className="info-value">
+                    {new Date(user.created_at).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Privacy Settings Section (Feature 013) */}
+              <div className="profile-privacy-section">
+                <h3 className="privacy-section-title">Configuración de Privacidad</h3>
+                <div className="profile-info">
+                  {/* Profile Visibility */}
+                  <div className="info-item">
+                    <span className="info-label">Visibilidad del perfil:</span>
+                    <span className="info-value privacy-badge" data-visibility={user.profile_visibility || 'public'}>
+                      {getProfileVisibilityLabel(user.profile_visibility || 'public')}
+                    </span>
+                  </div>
+
+                  {/* Trip Visibility */}
+                  <div className="info-item">
+                    <span className="info-label">Visibilidad de viajes:</span>
+                    <span className="info-value privacy-badge" data-visibility={user.trip_visibility || 'public'}>
+                      {getTripVisibilityLabel(user.trip_visibility || 'public')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-placeholder">
+                <h3>Próximamente</h3>
+                <ul>
+                  <li>Editar perfil de usuario</li>
+                  <li>Subir foto de perfil</li>
+                  <li>Preferencias de ciclismo</li>
+                  <li>Estadísticas personales</li>
+                  <li>Historial de viajes</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
