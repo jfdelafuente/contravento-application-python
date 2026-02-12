@@ -25,7 +25,16 @@ param(
     [string]$Command = "up",
 
     [Parameter(Mandatory=$false)]
-    [switch]$WithFrontend
+    [switch]$WithFrontend,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$PullLatest,
+
+    [Parameter(Mandatory=$false)]
+    [string]$PullVersion,
+
+    [Parameter(Mandatory=$false)]
+    [string]$RollbackTo
 )
 
 # Functions
@@ -55,6 +64,42 @@ function Print-Header {
     Write-Host "============================================" -ForegroundColor Blue
     Write-Host "  $Message" -ForegroundColor Blue
     Write-Host "============================================" -ForegroundColor Blue
+    Write-Host ""
+}
+
+# Pull images from Docker Hub
+function Pull-FromDockerHub {
+    param(
+        [string]$Env,
+        [string]$Tag
+    )
+
+    Print-Info "🐳 Pulling images from Docker Hub..."
+    Write-Host "  - Backend: jfdelafuente/contravento-backend:$Tag"
+    Write-Host "  - Frontend: jfdelafuente/contravento-frontend:$Tag"
+    Write-Host ""
+
+    # Pull images with specified tag
+    docker pull "jfdelafuente/contravento-backend:$Tag"
+    if ($LASTEXITCODE -ne 0) {
+        Print-Error "Failed to pull backend image with tag: $Tag"
+        Print-Info "Make sure the image exists on Docker Hub: https://hub.docker.com/r/jfdelafuente/contravento-backend/tags"
+        exit 1
+    }
+
+    docker pull "jfdelafuente/contravento-frontend:$Tag"
+    if ($LASTEXITCODE -ne 0) {
+        Print-Error "Failed to pull frontend image with tag: $Tag"
+        Print-Info "Make sure the image exists on Docker Hub: https://hub.docker.com/r/jfdelafuente/contravento-frontend/tags"
+        exit 1
+    }
+
+    # Re-tag as latest for docker-compose compatibility
+    Print-Info "Tagging images as latest for docker-compose..."
+    docker tag "jfdelafuente/contravento-backend:$Tag" "jfdelafuente/contravento-backend:latest"
+    docker tag "jfdelafuente/contravento-frontend:$Tag" "jfdelafuente/contravento-frontend:latest"
+
+    Print-Success "✅ Images pulled and tagged successfully"
     Write-Host ""
 }
 
@@ -133,7 +178,10 @@ function Check-EnvFile {
 function Start-Env {
     param(
         [string]$Env,
-        [bool]$WithFrontend
+        [bool]$WithFrontend,
+        [bool]$PullLatest,
+        [string]$PullVersion,
+        [string]$RollbackTo
     )
 
     $composeFile = "docker-compose.$Env.yml"
@@ -142,6 +190,47 @@ function Start-Env {
 
     Check-EnvFile $Env
 
+    # Handle Docker Hub pull options for staging/prod
+    $pullOption = $null
+    $version = $null
+
+    if ($PullLatest) {
+        $pullOption = "pull-latest"
+        if ($Env -eq "staging") {
+            Pull-FromDockerHub -Env $Env -Tag "staging-latest"
+        } elseif ($Env -eq "prod") {
+            Print-Error "❌ Error: Use -PullVersion for production deployments"
+            Print-Info "Example: .\deploy.ps1 prod -PullVersion v1.3.0"
+            exit 1
+        } else {
+            Print-Warning "ℹ️  -PullLatest is only for staging/prod environments"
+            Print-Info "Ignoring flag for $Env environment"
+        }
+    }
+
+    if ($PullVersion) {
+        $pullOption = "pull-version"
+        $version = $PullVersion
+        if ($Env -eq "prod" -or $Env -eq "staging") {
+            Pull-FromDockerHub -Env $Env -Tag $PullVersion
+        } else {
+            Print-Warning "ℹ️  -PullVersion is only for staging/prod environments"
+            Print-Info "Ignoring flag for $Env environment"
+        }
+    }
+
+    if ($RollbackTo) {
+        $pullOption = "rollback"
+        $version = $RollbackTo
+        if ($Env -eq "prod" -or $Env -eq "staging") {
+            Print-Warning "⚠️  ROLLBACK: Deploying version $RollbackTo"
+            Pull-FromDockerHub -Env $Env -Tag $RollbackTo
+        } else {
+            Print-Warning "ℹ️  -RollbackTo is only for staging/prod environments"
+            Print-Info "Ignoring flag for $Env environment"
+        }
+    }
+
     Print-Info "Using configuration:"
     Write-Host "  - Base: docker-compose.yml"
     Write-Host "  - Overlay: $composeFile"
@@ -149,11 +238,17 @@ function Start-Env {
     if ($WithFrontend) {
         Write-Host "  - Frontend: ENABLED (Vite dev server)"
     }
+    if ($pullOption) {
+        Write-Host "  - Deploy mode: Docker Hub ($pullOption)"
+    }
     Write-Host ""
 
     # Confirmation for production
     if ($Env -eq "prod") {
-        Print-Warning "You are about to deploy to PRODUCTION!"
+        Print-Warning "⚠️  You are about to deploy to PRODUCTION!"
+        if ($version) {
+            Print-Info "Version: $version"
+        }
         $confirm = Read-Host "Are you sure? (yes/no)"
         if ($confirm -ne "yes") {
             Print-Info "Deployment cancelled"
@@ -161,8 +256,8 @@ function Start-Env {
         }
     }
 
-    # Build frontend for staging/prod environments
-    if ($Env -eq "staging" -or $Env -eq "prod") {
+    # Build frontend for staging/prod environments (skip if pulling from Docker Hub)
+    if (!$pullOption -and ($Env -eq "staging" -or $Env -eq "prod")) {
         Print-Info "Building frontend for $Env..."
         Set-Location frontend
 
@@ -183,13 +278,19 @@ function Start-Env {
         Print-Success "Frontend build complete!"
     }
 
-    # Pull latest images
-    Print-Info "Pulling latest images..."
-    docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" pull
+    # Pull latest images (skip if already pulled from Docker Hub)
+    if (!$pullOption) {
+        Print-Info "Pulling latest images..."
+        docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" pull
+    }
 
-    # Build services
-    Print-Info "Building services..."
-    docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" build
+    # Build services (skip if using Docker Hub images)
+    if (!$pullOption) {
+        Print-Info "Building services..."
+        docker-compose -f docker-compose.yml -f $composeFile --env-file ".env.$Env" build
+    } else {
+        Print-Info "Skipping build (using pre-built images from Docker Hub)"
+    }
 
     # Start services (enable frontend if flag is set)
     Print-Info "Starting services..."
@@ -310,14 +411,17 @@ function Show-Ps {
 function Restart-Env {
     param(
         [string]$Env,
-        [bool]$WithFrontend
+        [bool]$WithFrontend,
+        [bool]$PullLatest,
+        [string]$PullVersion,
+        [string]$RollbackTo
     )
 
     Print-Header "Restarting $Env environment"
 
     Stop-Env $Env
     Start-Sleep -Seconds 2
-    Start-Env $Env $WithFrontend
+    Start-Env -Env $Env -WithFrontend $WithFrontend -PullLatest $PullLatest -PullVersion $PullVersion -RollbackTo $RollbackTo
 }
 
 # Main
@@ -326,7 +430,7 @@ Validate-Env $Environment
 
 switch ($Command.ToLower()) {
     {$_ -in "up", "start"} {
-        Start-Env $Environment $WithFrontend.IsPresent
+        Start-Env -Env $Environment -WithFrontend $WithFrontend.IsPresent -PullLatest $PullLatest.IsPresent -PullVersion $PullVersion -RollbackTo $RollbackTo
     }
     {$_ -in "down", "stop"} {
         Stop-Env $Environment
@@ -338,7 +442,7 @@ switch ($Command.ToLower()) {
         Show-Ps $Environment
     }
     "restart" {
-        Restart-Env $Environment
+        Restart-Env -Env $Environment -WithFrontend $WithFrontend.IsPresent -PullLatest $PullLatest.IsPresent -PullVersion $PullVersion -RollbackTo $RollbackTo
     }
     default {
         Print-Error "Invalid command: $Command"
