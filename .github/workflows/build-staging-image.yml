@@ -1,7 +1,10 @@
 name: Build Staging Images
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
     branches: [develop]
   workflow_dispatch:
 
@@ -14,7 +17,8 @@ jobs:
   build-and-push:
     name: Build and Push Staging Images
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # Only run if CI passed successfully or if manually triggered
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout code
