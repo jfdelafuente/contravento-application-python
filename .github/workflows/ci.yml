@@ -406,8 +406,34 @@ jobs:
           name: production-build
           path: frontend/dist/
 
+  # ============================================================================
+  # DEPLOYMENT JOBS - SEMI-AUTOMATIC MODEL
+  # ============================================================================
+  # These jobs are PLACEHOLDERS for tracking deployment status in GitHub UI.
+  # Actual deployment is MANUAL via SSH to servers.
+  #
+  # Workflow:
+  # 1. Docker images are built automatically by separate workflows:
+  #    - build-staging-image.yml (triggered on push to develop)
+  #    - build-production-image.yml (triggered on push to main)
+  # 2. Images are pushed to Docker Hub registry
+  # 3. Deployment to servers is MANUAL via SSH:
+  #    - Staging: ssh staging-server && ./deploy.sh staging --pull-latest
+  #    - Production: ssh production-server && ./deploy.sh prod --pull-version v1.3.0
+  #
+  # Why manual deployment?
+  # - More control over when deployments happen
+  # - No need for SSH keys in GitHub Actions
+  # - Easier rollback if issues occur
+  # - Better for small teams without complex automation needs
+  #
+  # See documentation:
+  # - docs/operations/SEMI_AUTO_DEPLOYMENT_SUMMARY.md
+  # - docs/operations/BRANCHING_STRATEGY_CICD.md
+  # ============================================================================
+
   deploy-staging:
-    name: Deploy to Staging
+    name: Deploy to Staging (Manual)
     runs-on: ubuntu-latest
     needs: [build-and-validate]
     # TODO: Re-añadir e2e-tests cuando coverage > 80%
@@ -417,17 +443,29 @@ jobs:
       url: https://staging.contravento.com
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to staging
+      - name: Deployment instructions
         run: |
-          echo "🚀 Deploying to staging environment..."
-          # Add actual deployment commands here
-          # e.g., docker-compose, kubectl, terraform, etc.
+          echo "============================================"
+          echo "  📦 Staging Images Ready for Deployment"
+          echo "============================================"
+          echo ""
+          echo "Docker images have been built and pushed to Docker Hub by:"
+          echo "  Workflow: build-staging-image.yml"
+          echo "  Images:"
+          echo "    - jfdelafuente/contravento-backend:staging-latest"
+          echo "    - jfdelafuente/contravento-frontend:staging-latest"
+          echo ""
+          echo "🚀 To deploy to staging (MANUAL STEP):"
+          echo ""
+          echo "  ssh staging-server"
+          echo "  cd /opt/contravento"
+          echo "  ./deploy.sh staging --pull-latest"
+          echo ""
+          echo "📖 Documentation: docs/operations/SEMI_AUTO_DEPLOYMENT_SUMMARY.md"
+          echo "============================================"
 
   deploy-production:
-    name: Deploy to Production
+    name: Deploy to Production (Manual)
     runs-on: ubuntu-latest
     needs: [build-and-validate]
     # TODO: Re-añadir e2e-tests cuando coverage > 80%
@@ -437,11 +475,31 @@ jobs:
       url: https://contravento.com
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to production
+      - name: Deployment instructions
         run: |
-          echo "🚀 Deploying to production environment..."
-          # Add actual deployment commands here
-          # Requires manual approval in GitHub environments settings
+          echo "============================================"
+          echo "  📦 Production Images Ready for Deployment"
+          echo "============================================"
+          echo ""
+          echo "Docker images have been built and pushed to Docker Hub by:"
+          echo "  Workflow: build-production-image.yml"
+          echo "  Images:"
+          echo "    - jfdelafuente/contravento-backend:latest"
+          echo "    - jfdelafuente/contravento-backend:v[VERSION]"
+          echo "    - jfdelafuente/contravento-frontend:latest"
+          echo "    - jfdelafuente/contravento-frontend:v[VERSION]"
+          echo ""
+          echo "⚠️  IMPORTANT: Use specific version tag, NOT 'latest'"
+          echo ""
+          echo "🚀 To deploy to production (MANUAL STEP):"
+          echo ""
+          echo "  ssh production-server"
+          echo "  cd /opt/contravento"
+          echo "  ./deploy.sh prod --pull-version v1.3.0"
+          echo ""
+          echo "🔄 To rollback if issues occur:"
+          echo ""
+          echo "  ./deploy.sh prod --rollback-to v1.2.0"
+          echo ""
+          echo "📖 Documentation: docs/operations/SEMI_AUTO_DEPLOYMENT_SUMMARY.md"
+          echo "============================================"
