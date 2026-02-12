@@ -37,6 +37,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          file: ./backend/Dockerfile
+          target: production
           push: true
           tags: |
             ${{ env.BACKEND_IMAGE }}:staging-latest
@@ -48,6 +50,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile.prod
           push: true
           build-args: |
             VITE_API_URL=https://staging.contravento.com/api
