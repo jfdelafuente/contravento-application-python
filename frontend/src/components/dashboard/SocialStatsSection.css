@@ -9,6 +9,7 @@
 .social-stats-section {
   width: 100%;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .social-stats-section__title {
@@ -25,6 +26,7 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
   width: 100%;
+  overflow: visible;
 }
 
 /* Loading and error states */
@@ -70,6 +72,7 @@
   gap: var(--space-2);
   transition: all 0.2s ease;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .social-stat-card:hover {
