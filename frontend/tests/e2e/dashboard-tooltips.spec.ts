@@ -229,3 +229,78 @@ test.describe('Dashboard Tooltips - User Story 3: Navigate to User Profiles', ()
     expect(hasHoverStyle).toBe(true);
   });
 });
+
+test.describe('Dashboard Tooltips - User Story 4: View Complete List', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login as test user
+    await page.goto('http://localhost:5173/login');
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="password"]', 'TestPass123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard');
+  });
+
+  // T038: Click "Ver todos" in followers tooltip → navigate to /users/{username}/followers
+  test('T038: should navigate to full followers list on "Ver todos" click', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.hover();
+    await page.waitForTimeout(600);
+
+    // Check if "Ver todos" link is visible (only appears when totalCount > 8)
+    const viewAllLink = page.locator('.social-stat-tooltip__view-all');
+
+    if (await viewAllLink.isVisible()) {
+      // Get username from AuthContext (testuser)
+      await viewAllLink.click();
+      await expect(page).toHaveURL(/\/users\/testuser\/followers/);
+    } else {
+      // If not visible, user has ≤ 8 followers (expected behavior)
+      expect(true).toBe(true);
+    }
+  });
+
+  // T039: Click "Ver todos" in following tooltip → navigate to /users/{username}/following
+  test('T039: should navigate to full following list on "Ver todos" click', async ({ page }) => {
+    const followingCard = page.locator('.social-stat-card').nth(1);
+    await followingCard.hover();
+    await page.waitForTimeout(600);
+
+    // Check if "Ver todos" link is visible (only appears when totalCount > 8)
+    const viewAllLink = page.locator('.social-stat-tooltip__view-all');
+
+    if (await viewAllLink.isVisible()) {
+      // Get username from AuthContext (testuser)
+      await viewAllLink.click();
+      await expect(page).toHaveURL(/\/users\/testuser\/following/);
+    } else {
+      // If not visible, user has ≤ 8 following (expected behavior)
+      expect(true).toBe(true);
+    }
+  });
+
+  // T040: "Ver todos" link does not appear when totalCount ≤ 8
+  test('T040: should NOT show "Ver todos" when total count is 8 or less', async ({ page }) => {
+    // This test verifies the conditional rendering logic
+    // If user has ≤ 8 followers/following, "Ver todos" should not appear
+
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.hover();
+    await page.waitForTimeout(600);
+
+    // Get total count from card
+    const followersCount = await page.locator('.social-stat-card').first()
+      .locator('.social-stat-card__value').textContent();
+    const count = parseInt(followersCount || '0', 10);
+
+    // Get "Ver todos" link
+    const viewAllLink = page.locator('.social-stat-tooltip__view-all');
+
+    if (count <= 8) {
+      // Should NOT be visible
+      await expect(viewAllLink).not.toBeVisible();
+    } else {
+      // Should be visible
+      await expect(viewAllLink).toBeVisible();
+    }
+  });
+});

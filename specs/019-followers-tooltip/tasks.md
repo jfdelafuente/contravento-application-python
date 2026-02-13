@@ -173,13 +173,13 @@
 
 ### Tests for User Story 4 (TDD - Write FIRST)
 
-- [ ] T038 [P] [US4] E2E test: Click "Ver todos" in followers tooltip → navigate to `/users/{username}/followers` in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T039 [P] [US4] E2E test: Click "Ver todos" in following tooltip → navigate to `/users/{username}/following` in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T040 [P] [US4] E2E test: "Ver todos" link does not appear when totalCount ≤ 8 in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T038 [P] [US4] E2E test: Click "Ver todos" in followers tooltip → navigate to `/users/{username}/followers` in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T039 [P] [US4] E2E test: Click "Ver todos" in following tooltip → navigate to `/users/{username}/following` in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T040 [P] [US4] E2E test: "Ver todos" link does not appear when totalCount ≤ 8 in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T041 [US4] Verify "Ver todos" link is correctly implemented in SocialStatTooltip component (already done in T020)
+- [X] T041 [US4] Verify "Ver todos" link is correctly implemented in SocialStatTooltip component (already done in T020)
   - Conditional render: only show when remaining > 0
   - Calculate remaining: totalCount - users.length
   - Link text: "+ {remaining} más · Ver todos"
