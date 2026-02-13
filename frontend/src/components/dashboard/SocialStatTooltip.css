@@ -24,10 +24,10 @@
   top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-emphasis);
+  background: #ffffff;
+  border: 2px solid #2d3748;
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: var(--space-3);
   min-width: 220px;
   max-width: 280px;
@@ -35,8 +35,29 @@
   animation: tooltip-fade-in 150ms ease-out;
 }
 
+/* Portal variant (rendered via createPortal) */
+.social-stat-tooltip--portal {
+  background: #ffffff;
+  border: 2px solid #2d3748;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Arrow pointing up (border) */
 .social-stat-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #2d3748;
+}
+
+/* Arrow pointing up (fill) */
+.social-stat-tooltip::after {
   content: '';
   position: absolute;
   top: -8px;
@@ -44,23 +65,9 @@
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid var(--border-emphasis);
-}
-
-/* Arrow pointing up (fill) */
-.social-stat-tooltip::after {
-  content: '';
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid var(--surface-elevated);
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 9px solid #ffffff;
 }
 
 /* Fade-in animation */
@@ -86,13 +93,13 @@
 .social-stat-tooltip__header {
   margin-bottom: var(--space-2);
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border-soft);
+  border-bottom: 1px solid #d1d5db;
 }
 
 .social-stat-tooltip__title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #4b5563;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
@@ -105,7 +112,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-4);
-  color: var(--text-tertiary);
+  color: #6b7280;
 }
 
 .social-stat-tooltip__loading .spinner {
@@ -133,7 +140,7 @@
 .social-stat-tooltip__empty {
   padding: var(--space-3);
   text-align: center;
-  color: var(--text-tertiary);
+  color: #6b7280;
   font-size: 13px;
 }
 
@@ -162,12 +169,12 @@
   padding: var(--space-2);
   border-radius: var(--radius-sm);
   text-decoration: none;
-  color: var(--text-primary);
+  color: #1f2937;
   transition: background 0.15s ease;
 }
 
 .social-stat-tooltip__user-link:hover {
-  background: var(--surface-hover);
+  background: #f3f4f6;
 }
 
 /* Avatar */
@@ -193,7 +200,7 @@
 .social-stat-tooltip__username {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #1f2937;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
