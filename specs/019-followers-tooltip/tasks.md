@@ -99,7 +99,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T027 [US1] Modify SocialStatsSection in `frontend/src/components/dashboard/SocialStatsSection.tsx` to add hover handlers for "Seguidores" card (see IMPLEMENTATION_GUIDE.md § Task 4.1)
+- [X] T027 [US1] Modify SocialStatsSection in `frontend/src/components/dashboard/SocialStatsSection.tsx` to add hover handlers for "Seguidores" card (see IMPLEMENTATION_GUIDE.md § Task 4.1)
   - Import useFollowersTooltip and SocialStatTooltip
   - State: activeTooltip ('followers' | 'following' | null), hoverTimeout (useRef)
   - handleMouseEnter('followers'): Set 500ms timeout, call followersTooltip.fetchUsers()
