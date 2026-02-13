@@ -148,15 +148,15 @@
 
 ### Tests for User Story 3 (TDD - Write FIRST)
 
-- [ ] T034 [P] [US3] E2E test: Click username in tooltip → navigate to `/users/{username}` in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T035 [P] [US3] E2E test: Hover over username → row highlights with background color in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T034 [P] [US3] E2E test: Click username in tooltip → navigate to `/users/{username}` in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T035 [P] [US3] E2E test: Hover over username → row highlights with background color in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Add username links to SocialStatTooltip component in `frontend/src/components/dashboard/SocialStatTooltip.tsx`
+- [X] T036 [US3] Add username links to SocialStatTooltip component in `frontend/src/components/dashboard/SocialStatTooltip.tsx`
   - Wrap username with React Router Link to `/users/${user.username}`
   - Style links with hover effects (see CSS)
-- [ ] T037 [US3] Add hover effects to username rows in `frontend/src/components/dashboard/SocialStatTooltip.css`
+- [X] T037 [US3] Add hover effects to username rows in `frontend/src/components/dashboard/SocialStatTooltip.css`
   - Background color change on hover (--surface-hover or rgba)
   - Cursor: pointer
   - Smooth transition (150ms)
