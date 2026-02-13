@@ -259,16 +259,16 @@
   - Add: React 18 + React Router 6 + Axios (existing)
   - Add: Uses existing /users/{username}/followers endpoints
   - Add tooltip implementation patterns section (already done in planning)
-- [ ] T054 [P] Run axe-core accessibility validation in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T054 [P] Run axe-core accessibility validation in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
   - Install @axe-core/playwright if not present
   - Add accessibility scan to E2E test: await new AxeBuilder({ page }).analyze()
   - Assert: No violations with WCAG 2.1 AA rules
   - Fix any accessibility issues found
-- [ ] T055 [P] Performance validation: Verify tooltip display <1s in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T055 [P] Performance validation: Verify tooltip display <1s in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
   - Measure time from hover to tooltip visible
   - Assert: <1000ms total (500ms delay + <500ms API)
   - Use Playwright performance timing API
-- [ ] T056 [P] Performance validation: Verify no layout shift (CLS = 0) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T056 [P] Performance validation: Verify no layout shift (CLS = 0) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
   - Measure Cumulative Layout Shift during tooltip appearance
   - Assert: CLS = 0 (tooltip uses absolute positioning)
 - [X] T057 Code cleanup: Remove console.log statements and debug code from all new files

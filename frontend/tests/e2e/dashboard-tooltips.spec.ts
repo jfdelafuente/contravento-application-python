@@ -441,3 +441,79 @@ test.describe('Dashboard Tooltips - User Story 6: Keyboard Navigation', () => {
     await expect(page).toHaveURL(new RegExp(`/users/${username}`));
   });
 });
+
+test.describe('Dashboard Tooltips - Validation Tests (Phase 9)', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login as test user
+    await page.goto('http://localhost:5173/login');
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="password"]', 'TestPass123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard');
+  });
+
+  // T054: Accessibility validation with axe-core (WCAG 2.1 AA)
+  test('T054: should have no accessibility violations (WCAG 2.1 AA)', async ({ page }) => {
+    const { AxeBuilder } = await import('@axe-core/playwright');
+
+    // Trigger tooltip to test accessibility of both card and tooltip
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.hover();
+    await page.waitForTimeout(600); // Wait for tooltip to appear
+
+    // Run accessibility scan
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+
+    // Assert no violations
+    expect(accessibilityScanResults.violations).toEqual([]);
+  });
+
+  // T055: Performance validation - Tooltip display <1s (SC-001)
+  test('T055: should display tooltip in less than 1 second', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+
+    // Measure time from hover to tooltip visible
+    const startTime = Date.now();
+
+    await followersCard.hover();
+
+    // Wait for tooltip to appear
+    const tooltip = page.locator('.social-stat-tooltip');
+    await tooltip.waitFor({ state: 'visible' });
+
+    const endTime = Date.now();
+    const displayTime = endTime - startTime;
+
+    // Assert <1000ms (500ms delay + <500ms API response)
+    expect(displayTime).toBeLessThan(1000);
+  });
+
+  // T056: Performance validation - No layout shift (CLS = 0)
+  test('T056: should not cause layout shift when tooltip appears', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+
+    // Get initial position of card
+    const initialBox = await followersCard.boundingBox();
+    expect(initialBox).not.toBeNull();
+
+    // Trigger tooltip
+    await followersCard.hover();
+    await page.waitForTimeout(600);
+
+    // Verify tooltip is visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+
+    // Get card position after tooltip appears
+    const finalBox = await followersCard.boundingBox();
+    expect(finalBox).not.toBeNull();
+
+    // Assert card position hasn't changed (CLS = 0)
+    expect(finalBox?.x).toBe(initialBox?.x);
+    expect(finalBox?.y).toBe(initialBox?.y);
+    expect(finalBox?.width).toBe(initialBox?.width);
+    expect(finalBox?.height).toBe(initialBox?.height);
+  });
+});
