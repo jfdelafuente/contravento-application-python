@@ -9,7 +9,8 @@
  * @see specs/ANALISIS_TOOLTIP_FOLLOWERS.md lines 203-291
  */
 
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import type { UserSummaryForFollow } from '../../types/follow';
 import './SocialStatTooltip.css';
@@ -22,6 +23,7 @@ interface SocialStatTooltipProps {
   isLoading: boolean;
   error: string | null;
   visible: boolean;
+  triggerRef?: React.RefObject<HTMLDivElement>;
 }
 
 const SocialStatTooltip: React.FC<SocialStatTooltipProps> = ({
@@ -32,7 +34,20 @@ const SocialStatTooltip: React.FC<SocialStatTooltipProps> = ({
   isLoading,
   error,
   visible,
+  triggerRef,
 }) => {
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (visible && triggerRef?.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX + rect.width / 2,
+      });
+    }
+  }, [visible, triggerRef]);
+
   if (!visible) return null;
 
   const remaining = totalCount - users.length;
@@ -42,11 +57,17 @@ const SocialStatTooltip: React.FC<SocialStatTooltipProps> = ({
       ? 'No tienes seguidores aún'
       : 'No sigues a nadie aún';
 
-  return (
+  const tooltipContent = (
     <div
-      className="social-stat-tooltip"
+      className="social-stat-tooltip social-stat-tooltip--portal"
       role="tooltip"
       aria-live="polite"
+      style={{
+        position: 'fixed',
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        transform: 'translateX(-50%)',
+      }}
     >
       {isLoading ? (
         <div className="social-stat-tooltip__loading">
@@ -105,6 +126,8 @@ const SocialStatTooltip: React.FC<SocialStatTooltipProps> = ({
       )}
     </div>
   );
+
+  return createPortal(tooltipContent, document.body);
 };
 
 export default SocialStatTooltip;

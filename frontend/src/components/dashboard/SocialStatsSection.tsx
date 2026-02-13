@@ -18,6 +18,8 @@ const SocialStatsSection: React.FC = () => {
   const [activeTooltip, setActiveTooltip] = useState<'followers' | 'following' | null>(null);
   const hoverTimeout = useRef<number | null>(null);
   const leaveTimeout = useRef<number | null>(null);
+  const followersCardRef = useRef<HTMLDivElement>(null);
+  const followingCardRef = useRef<HTMLDivElement>(null);
 
   // Initialize tooltip hooks
   const followersTooltip = useFollowersTooltip(user?.username || '', 'followers');
@@ -91,6 +93,7 @@ const SocialStatsSection: React.FC = () => {
         <div className="social-stats-section__grid">
           {/* Followers - Heart icon representing people who follow you */}
           <div
+            ref={followersCardRef}
             className={`social-stat-card ${activeTooltip === 'followers' ? 'social-stat-card--with-tooltip' : ''}`}
             onMouseEnter={() => handleMouseEnter('followers')}
             onMouseLeave={handleMouseLeave}
@@ -117,11 +120,13 @@ const SocialStatsSection: React.FC = () => {
               isLoading={followersTooltip.isLoading}
               error={followersTooltip.error}
               visible={activeTooltip === 'followers'}
+              triggerRef={followersCardRef}
             />
           </div>
 
           {/* Following - User with plus icon representing people you follow */}
           <div
+            ref={followingCardRef}
             className={`social-stat-card ${activeTooltip === 'following' ? 'social-stat-card--with-tooltip' : ''}`}
             onMouseEnter={() => handleMouseEnter('following')}
             onMouseLeave={handleMouseLeave}
@@ -151,6 +156,7 @@ const SocialStatsSection: React.FC = () => {
               isLoading={followingTooltip.isLoading}
               error={followingTooltip.error}
               visible={activeTooltip === 'following'}
+              triggerRef={followingCardRef}
             />
           </div>
         </div>
