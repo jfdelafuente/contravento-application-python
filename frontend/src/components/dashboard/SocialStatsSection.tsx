@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStats } from '../../hooks/useStats';
 import { useFollowersTooltip } from '../../hooks/useFollowersTooltip';
@@ -13,6 +14,7 @@ import './SocialStatTooltip.css';
 const SocialStatsSection: React.FC = () => {
   const { user } = useAuth();
   const { stats, loading, error } = useStats(user?.username || '');
+  const navigate = useNavigate();
 
   // State for tooltip visibility
   const [activeTooltip, setActiveTooltip] = useState<'followers' | 'following' | null>(null);
@@ -20,6 +22,21 @@ const SocialStatsSection: React.FC = () => {
   const leaveTimeout = useRef<number | null>(null);
   const followersCardRef = useRef<HTMLDivElement>(null);
   const followingCardRef = useRef<HTMLDivElement>(null);
+
+  // Detect touch device (T044 - Progressive enhancement)
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    // Detect touch device using media query
+    const touchQuery = window.matchMedia('(hover: none)');
+    setIsTouchDevice(touchQuery.matches);
+
+    // Listen for changes (e.g., external monitor connected)
+    const handleChange = (e: MediaQueryListEvent) => setIsTouchDevice(e.matches);
+    touchQuery.addEventListener('change', handleChange);
+
+    return () => touchQuery.removeEventListener('change', handleChange);
+  }, []);
 
   // Initialize tooltip hooks
   const followersTooltip = useFollowersTooltip(user?.username || '', 'followers');
@@ -71,6 +88,13 @@ const SocialStatsSection: React.FC = () => {
     }, 200);
   };
 
+  // Handle click on touch devices (T044 - Direct navigation)
+  const handleCardClick = (type: 'followers' | 'following') => {
+    if (isTouchDevice && user?.username) {
+      navigate(`/users/${user.username}/${type}`);
+    }
+  };
+
   return (
     <section className="social-stats-section" aria-labelledby="social-stats-heading">
       <h2 id="social-stats-heading" className="social-stats-section__title">
@@ -95,8 +119,10 @@ const SocialStatsSection: React.FC = () => {
           <div
             ref={followersCardRef}
             className={`social-stat-card ${activeTooltip === 'followers' ? 'social-stat-card--with-tooltip' : ''}`}
-            onMouseEnter={() => handleMouseEnter('followers')}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={!isTouchDevice ? () => handleMouseEnter('followers') : undefined}
+            onMouseLeave={!isTouchDevice ? handleMouseLeave : undefined}
+            onClick={() => handleCardClick('followers')}
+            style={isTouchDevice ? { cursor: 'pointer' } : undefined}
             aria-describedby={activeTooltip === 'followers' ? 'followers-tooltip' : undefined}
           >
             <div className="social-stat-card__icon social-stat-card__icon--followers">
@@ -128,8 +154,10 @@ const SocialStatsSection: React.FC = () => {
           <div
             ref={followingCardRef}
             className={`social-stat-card ${activeTooltip === 'following' ? 'social-stat-card--with-tooltip' : ''}`}
-            onMouseEnter={() => handleMouseEnter('following')}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={!isTouchDevice ? () => handleMouseEnter('following') : undefined}
+            onMouseLeave={!isTouchDevice ? handleMouseLeave : undefined}
+            onClick={() => handleCardClick('following')}
+            style={isTouchDevice ? { cursor: 'pointer' } : undefined}
             aria-describedby={activeTooltip === 'following' ? 'following-tooltip' : undefined}
           >
             <div className="social-stat-card__icon social-stat-card__icon--following">

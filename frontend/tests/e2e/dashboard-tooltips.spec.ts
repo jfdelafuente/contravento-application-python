@@ -304,3 +304,47 @@ test.describe('Dashboard Tooltips - User Story 4: View Complete List', () => {
     }
   });
 });
+
+test.describe('Dashboard Tooltips - User Story 5: Mobile Touch Device Fallback', () => {
+  // Use mobile viewport to simulate touch device
+  test.use({
+    viewport: { width: 375, height: 667 }, // iPhone SE size
+    hasTouch: true,
+    isMobile: true,
+  });
+
+  test.beforeEach(async ({ page }) => {
+    // Login as test user
+    await page.goto('http://localhost:5173/login');
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="password"]', 'TestPass123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard');
+  });
+
+  // T042: On touch device, tap "Seguidores" card → navigate to /users/{username}/followers
+  test('T042: should navigate to followers list on tap (touch device)', async ({ page }) => {
+    // Locate followers card
+    const followersCard = page.locator('.social-stat-card').first();
+    await expect(followersCard).toBeVisible();
+
+    // Tap followers card (simulates touch)
+    await followersCard.click();
+
+    // Should navigate directly to full followers list (no tooltip on touch devices)
+    await expect(page).toHaveURL(/\/users\/testuser\/followers/);
+  });
+
+  // T043: On touch device, tap "Siguiendo" card → navigate to /users/{username}/following
+  test('T043: should navigate to following list on tap (touch device)', async ({ page }) => {
+    // Locate following card
+    const followingCard = page.locator('.social-stat-card').nth(1);
+    await expect(followingCard).toBeVisible();
+
+    // Tap following card (simulates touch)
+    await followingCard.click();
+
+    // Should navigate directly to full following list (no tooltip on touch devices)
+    await expect(page).toHaveURL(/\/users\/testuser\/following/);
+  });
+});

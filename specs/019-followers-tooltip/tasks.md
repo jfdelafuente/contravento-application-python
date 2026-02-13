@@ -198,17 +198,17 @@
 
 ### Tests for User Story 5 (TDD - Write FIRST)
 
-- [ ] T042 [P] [US5] E2E test: On touch device, tap "Seguidores" card → navigate to `/users/{username}/followers` in `frontend/tests/e2e/dashboard-tooltips.spec.ts` (use Playwright mobile viewport)
-- [ ] T043 [P] [US5] E2E test: On touch device, tap "Siguiendo" card → navigate to `/users/{username}/following` in `frontend/tests/e2e/dashboard-tooltips.spec.ts` (use Playwright mobile viewport)
+- [X] T042 [P] [US5] E2E test: On touch device, tap "Seguidores" card → navigate to `/users/{username}/followers` in `frontend/tests/e2e/dashboard-tooltips.spec.ts` (use Playwright mobile viewport)
+- [X] T043 [P] [US5] E2E test: On touch device, tap "Siguiendo" card → navigate to `/users/{username}/following` in `frontend/tests/e2e/dashboard-tooltips.spec.ts` (use Playwright mobile viewport)
 
 ### Implementation for User Story 5
 
-- [ ] T044 [US5] Add touch device detection in `frontend/src/components/dashboard/SocialStatsSection.tsx` (see research.md § 4)
+- [X] T044 [US5] Add touch device detection in `frontend/src/components/dashboard/SocialStatsSection.tsx` (see research.md § 4)
   - Detect touch device: `window.matchMedia('(hover: none)').matches`
   - On touch devices: onClick handler navigates directly to full list page
   - On hover devices: Use hover handlers (existing implementation)
   - Alternative: Use CSS `@media (hover: none)` to hide tooltip, make card clickable
-- [ ] T045 [US5] Add responsive CSS for touch devices in `frontend/src/components/dashboard/SocialStatTooltip.css`
+- [X] T045 [US5] Add responsive CSS for touch devices in `frontend/src/components/dashboard/SocialStatTooltip.css`
   - `@media (hover: none)`: Hide tooltip entirely
   - Make cards clickable on touch devices with visual feedback
 

@@ -225,6 +225,26 @@
   text-decoration: underline;
 }
 
+/* Touch Device Fallback (T045 - Progressive Enhancement) */
+@media (hover: none) {
+  /* Hide tooltips on touch devices - users tap cards for direct navigation */
+  .social-stat-tooltip {
+    display: none !important;
+  }
+
+  /* Make cards clearly tappable on touch devices */
+  .social-stat-card--with-tooltip {
+    cursor: pointer;
+  }
+
+  /* Active state for touch feedback */
+  .social-stat-card:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+    transition: all 0.1s ease;
+  }
+}
+
 /* Responsive (Mobile) */
 @media (max-width: 768px) {
   .social-stat-tooltip {
