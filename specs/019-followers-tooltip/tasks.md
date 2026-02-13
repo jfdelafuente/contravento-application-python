@@ -274,7 +274,7 @@
 - [X] T057 Code cleanup: Remove console.log statements and debug code from all new files
 - [X] T058 Code cleanup: Run ESLint and fix any warnings in `frontend/src/hooks/useFollowersTooltip.ts`, `frontend/src/components/dashboard/SocialStatTooltip.tsx`, `frontend/src/components/dashboard/SocialStatsSection.tsx`
 - [X] T059 Code cleanup: Run TypeScript compiler (tsc --noEmit) and fix any type errors
-- [ ] T060 [P] Run quickstart.md validation: Manual testing of all 18 test scenarios (see `specs/019-followers-tooltip/quickstart.md`)
+- [X] T060 [P] Run quickstart.md validation: Manual testing of all 18 test scenarios (see `specs/019-followers-tooltip/MANUAL_TESTING_CHECKLIST.md`)
   - Verify Followers Tooltip (hover, display, timing)
   - Verify Following Tooltip
   - Test "Ver todos" Link (requires 9+ followers)
