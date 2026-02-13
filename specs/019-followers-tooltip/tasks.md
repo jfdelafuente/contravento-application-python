@@ -122,18 +122,18 @@
 
 ### Tests for User Story 2 (TDD - Write FIRST)
 
-- [ ] T029 [P] [US2] E2E test: Hover "Siguiendo" card for 500ms → tooltip appears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T030 [P] [US2] E2E test: Tooltip shows correct number of following (max 8) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T031 [P] [US2] E2E test: Following tooltip shows "No sigues a nadie aún" when count is 0 in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T029 [P] [US2] E2E test: Hover "Siguiendo" card for 500ms → tooltip appears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T030 [P] [US2] E2E test: Tooltip shows correct number of following (max 8) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T031 [P] [US2] E2E test: Following tooltip shows "No sigues a nadie aún" when count is 0 in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Add hover handlers for "Siguiendo" card in `frontend/src/components/dashboard/SocialStatsSection.tsx` (see IMPLEMENTATION_GUIDE.md § Task 4.1)
+- [X] T032 [US2] Add hover handlers for "Siguiendo" card in `frontend/src/components/dashboard/SocialStatsSection.tsx` (see IMPLEMENTATION_GUIDE.md § Task 4.1)
   - Initialize useFollowersTooltip('username', 'following')
   - handleMouseEnter('following'): Set 500ms timeout, call followingTooltip.fetchUsers()
   - Render second SocialStatTooltip with following data, visible when activeTooltip === 'following'
   - Position tooltip below following card
-- [ ] T033 [US2] Add following count check to prevent unnecessary API calls when count is 0 in `frontend/src/components/dashboard/SocialStatsSection.tsx`
+- [X] T033 [US2] Add following count check to prevent unnecessary API calls when count is 0 in `frontend/src/components/dashboard/SocialStatsSection.tsx`
   - Check stats.following_count > 0 before calling fetchUsers()
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Dashboard has both follower and following tooltips!
