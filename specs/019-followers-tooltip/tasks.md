@@ -106,7 +106,7 @@
   - handleMouseLeave: Set 200ms timeout, clear activeTooltip
   - Render SocialStatTooltip with followers data, visible when activeTooltip === 'followers'
   - Position tooltip below followers card using CSS
-- [ ] T028 [US1] Add follower count check to prevent unnecessary API calls when count is 0 in `frontend/src/components/dashboard/SocialStatsSection.tsx`
+- [X] T028 [US1] Add follower count check to prevent unnecessary API calls when count is 0 in `frontend/src/components/dashboard/SocialStatsSection.tsx`
   - Check stats.followers_count > 0 before calling fetchUsers()
   - Show tooltip immediately with empty state if count === 0
 
