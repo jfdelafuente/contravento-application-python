@@ -12,7 +12,7 @@
 
 import { useState, useCallback } from 'react';
 import { getFollowers, getFollowing } from '../services/followService';
-import type { UserSummaryForFollow } from '../types/follow';
+import type { UserSummaryForFollow } from '../services/followService';
 
 interface UseFollowersTooltipReturn {
   users: UserSummaryForFollow[];
@@ -38,17 +38,18 @@ export function useFollowersTooltip(
     setError(null);
 
     try {
-      const response =
-        type === 'followers'
-          ? await getFollowers(username)
-          : await getFollowing(username);
-
-      // Solo primeros 8 para tooltip
-      const userList = type === 'followers' ? response.followers : response.following;
-      const topUsers = (userList || []).slice(0, 8);
-
-      setUsers(topUsers);
-      setTotalCount(response.total_count || 0);
+      // Handle followers and following separately for proper type narrowing
+      if (type === 'followers') {
+        const response = await getFollowers(username);
+        const topUsers = (response.followers || []).slice(0, 8);
+        setUsers(topUsers);
+        setTotalCount(response.total_count || 0);
+      } else {
+        const response = await getFollowing(username);
+        const topUsers = (response.following || []).slice(0, 8);
+        setUsers(topUsers);
+        setTotalCount(response.total_count || 0);
+      }
     } catch (err: any) {
       // Always use Spanish error message
       setError('Error al cargar usuarios');

@@ -9,7 +9,7 @@
  * @see specs/ANALISIS_TOOLTIP_FOLLOWERS.md lines 203-291
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import type { UserSummaryForFollow } from '../../services/followService';
