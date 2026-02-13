@@ -348,3 +348,96 @@ test.describe('Dashboard Tooltips - User Story 5: Mobile Touch Device Fallback',
     await expect(page).toHaveURL(/\/users\/testuser\/following/);
   });
 });
+
+test.describe('Dashboard Tooltips - User Story 6: Keyboard Navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login as test user
+    await page.goto('http://localhost:5173/login');
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="password"]', 'TestPass123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard');
+  });
+
+  // T046: Tab to followers card + focus → tooltip appears after 500ms
+  test('T046: should show tooltip on keyboard focus after 500ms', async ({ page }) => {
+    // Navigate to dashboard and find followers card
+    const followersCard = page.locator('.social-stat-card').first();
+
+    // Tab to focus on followers card
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab'); // May need multiple tabs depending on page structure
+
+    // Alternative: Direct focus
+    await followersCard.focus();
+
+    // Wait for 500ms focus delay + buffer
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('Seguidores');
+  });
+
+  // T047: Tab through tooltip → focus moves to username links
+  test('T047: should allow tabbing through username links in tooltip', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.focus();
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+
+    // Tab to first username link
+    await page.keyboard.press('Tab');
+
+    // First username link should be focused
+    const firstUserLink = page.locator('.social-stat-tooltip__user-link').first();
+    await expect(firstUserLink).toBeFocused();
+
+    // Tab to second username link
+    await page.keyboard.press('Tab');
+    const secondUserLink = page.locator('.social-stat-tooltip__user-link').nth(1);
+    await expect(secondUserLink).toBeFocused();
+  });
+
+  // T048: Press Escape → tooltip closes immediately
+  test('T048: should close tooltip on Escape key', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.focus();
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+
+    // Press Escape
+    await page.keyboard.press('Escape');
+
+    // Tooltip should close immediately (no 200ms delay)
+    await page.waitForTimeout(100); // Small buffer
+    await expect(tooltip).not.toBeVisible();
+  });
+
+  // T049: Press Enter on username link → navigate to profile
+  test('T049: should navigate to profile on Enter key', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.focus();
+    await page.waitForTimeout(600);
+
+    // Tab to first username link
+    await page.keyboard.press('Tab');
+
+    // Get username text before navigating
+    const firstUserLink = page.locator('.social-stat-tooltip__user-link').first();
+    const username = await firstUserLink.locator('.social-stat-tooltip__username').textContent();
+
+    // Press Enter to navigate
+    await page.keyboard.press('Enter');
+
+    // Should navigate to user profile
+    await expect(page).toHaveURL(new RegExp(`/users/${username}`));
+  });
+});

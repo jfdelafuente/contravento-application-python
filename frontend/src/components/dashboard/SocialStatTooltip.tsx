@@ -118,6 +118,7 @@ const SocialStatTooltip: React.FC<SocialStatTooltipProps> = ({
             <Link
               to={`/users/${username}/${type}`}
               className="social-stat-tooltip__view-all"
+              aria-label={`Ver todos los ${type === 'followers' ? 'seguidores' : 'siguiendo'} (${totalCount} total)`}
             >
               + {remaining} más · Ver todos
             </Link>

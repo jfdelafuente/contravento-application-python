@@ -224,24 +224,24 @@
 
 ### Tests for User Story 6 (TDD - Write FIRST)
 
-- [ ] T046 [P] [US6] E2E test: Tab to followers card + focus → tooltip appears after 500ms in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T047 [P] [US6] E2E test: Tab through tooltip → focus moves to username links in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T048 [P] [US6] E2E test: Press Escape → tooltip closes immediately in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T049 [P] [US6] E2E test: Press Enter on username link → navigate to profile in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T046 [P] [US6] E2E test: Tab to followers card + focus → tooltip appears after 500ms in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T047 [P] [US6] E2E test: Tab through tooltip → focus moves to username links in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T048 [P] [US6] E2E test: Press Escape → tooltip closes immediately in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T049 [P] [US6] E2E test: Press Enter on username link → navigate to profile in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
 
 ### Implementation for User Story 6
 
-- [ ] T050 [US6] Add keyboard event handlers in `frontend/src/components/dashboard/SocialStatsSection.tsx` (see research.md § 3)
+- [X] T050 [US6] Add keyboard event handlers in `frontend/src/components/dashboard/SocialStatsSection.tsx` (see research.md § 3)
   - onFocus handler on cards: Trigger tooltip after 500ms (same as hover)
   - onBlur handler: Close tooltip after 200ms
   - onKeyDown (Escape key): Close tooltip immediately
   - Make cards focusable: tabIndex={0}
-- [ ] T051 [US6] Add ARIA attributes to SocialStatTooltip component in `frontend/src/components/dashboard/SocialStatTooltip.tsx` (see research.md § 3)
+- [X] T051 [US6] Add ARIA attributes to SocialStatTooltip component in `frontend/src/components/dashboard/SocialStatTooltip.tsx` (see research.md § 3)
   - role="tooltip"
   - aria-live="polite" (announces loading/error states)
   - aria-describedby on trigger card (references tooltip ID)
   - aria-label on "Ver todos" link with descriptive text
-- [ ] T052 [US6] Add keyboard focus styles in `frontend/src/components/dashboard/SocialStatTooltip.css`
+- [X] T052 [US6] Add keyboard focus styles in `frontend/src/components/dashboard/SocialStatTooltip.css`
   - Visible focus ring on cards (outline: 2px solid --accent-amber)
   - Focus visible on username links
   - Skip-link for screen readers (optional enhancement)

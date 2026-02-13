@@ -177,6 +177,24 @@
   background: #f3f4f6;
 }
 
+/* Keyboard Focus Styles for Username Links (T052 - WCAG 2.1 AA) */
+.social-stat-tooltip__user-link:focus {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 1px;
+  background: #fef3c7;
+}
+
+.social-stat-tooltip__user-link:focus:not(:focus-visible) {
+  outline: none;
+  background: transparent;
+}
+
+.social-stat-tooltip__user-link:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 1px;
+  background: #fef3c7;
+}
+
 /* Avatar */
 .social-stat-tooltip__avatar {
   width: 28px;
@@ -223,6 +241,21 @@
 .social-stat-tooltip__view-all:hover {
   color: var(--accent-amber-hover);
   text-decoration: underline;
+}
+
+/* Keyboard Focus for "Ver todos" Link (T052) */
+.social-stat-tooltip__view-all:focus {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 2px;
+}
+
+.social-stat-tooltip__view-all:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.social-stat-tooltip__view-all:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 2px;
 }
 
 /* Touch Device Fallback (T045 - Progressive Enhancement) */

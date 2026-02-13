@@ -95,6 +95,34 @@ const SocialStatsSection: React.FC = () => {
     }
   };
 
+  // Handle keyboard focus (T050 - Accessibility)
+  const handleFocus = (type: 'followers' | 'following') => {
+    // Same behavior as hover for keyboard users
+    handleMouseEnter(type);
+  };
+
+  // Handle keyboard blur (T050 - Accessibility)
+  const handleBlur = () => {
+    // Same behavior as mouse leave for keyboard users
+    handleMouseLeave();
+  };
+
+  // Handle keyboard events (T050 - Escape to close)
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      // Close tooltip immediately (no delay)
+      if (hoverTimeout.current) {
+        clearTimeout(hoverTimeout.current);
+        hoverTimeout.current = null;
+      }
+      if (leaveTimeout.current) {
+        clearTimeout(leaveTimeout.current);
+        leaveTimeout.current = null;
+      }
+      setActiveTooltip(null);
+    }
+  };
+
   return (
     <section className="social-stats-section" aria-labelledby="social-stats-heading">
       <h2 id="social-stats-heading" className="social-stats-section__title">
@@ -119,8 +147,14 @@ const SocialStatsSection: React.FC = () => {
           <div
             ref={followersCardRef}
             className={`social-stat-card ${activeTooltip === 'followers' ? 'social-stat-card--with-tooltip' : ''}`}
+            tabIndex={0}
+            role="button"
+            aria-label="Ver seguidores"
             onMouseEnter={!isTouchDevice ? () => handleMouseEnter('followers') : undefined}
             onMouseLeave={!isTouchDevice ? handleMouseLeave : undefined}
+            onFocus={() => handleFocus('followers')}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
             onClick={() => handleCardClick('followers')}
             style={isTouchDevice ? { cursor: 'pointer' } : undefined}
             aria-describedby={activeTooltip === 'followers' ? 'followers-tooltip' : undefined}
@@ -154,8 +188,14 @@ const SocialStatsSection: React.FC = () => {
           <div
             ref={followingCardRef}
             className={`social-stat-card ${activeTooltip === 'following' ? 'social-stat-card--with-tooltip' : ''}`}
+            tabIndex={0}
+            role="button"
+            aria-label="Ver siguiendo"
             onMouseEnter={!isTouchDevice ? () => handleMouseEnter('following') : undefined}
             onMouseLeave={!isTouchDevice ? handleMouseLeave : undefined}
+            onFocus={() => handleFocus('following')}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
             onClick={() => handleCardClick('following')}
             style={isTouchDevice ? { cursor: 'pointer' } : undefined}
             aria-describedby={activeTooltip === 'following' ? 'following-tooltip' : undefined}
