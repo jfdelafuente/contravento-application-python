@@ -91,11 +91,11 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T022 [P] [US1] E2E test: Hover "Seguidores" card for 500ms → tooltip appears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T023 [P] [US1] E2E test: Tooltip shows correct number of followers (max 8) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T024 [P] [US1] E2E test: Mouse leave for 200ms → tooltip disappears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T025 [P] [US1] E2E test: Quick hover (<500ms) → no tooltip appears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
-- [ ] T026 [P] [US1] E2E test: Move mouse from card to tooltip → tooltip stays visible in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T022 [P] [US1] E2E test: Hover "Seguidores" card for 500ms → tooltip appears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T023 [P] [US1] E2E test: Tooltip shows correct number of followers (max 8) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T024 [P] [US1] E2E test: Mouse leave for 200ms → tooltip disappears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T025 [P] [US1] E2E test: Quick hover (<500ms) → no tooltip appears in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
+- [X] T026 [P] [US1] E2E test: Move mouse from card to tooltip → tooltip stays visible in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
 
 ### Implementation for User Story 1
 

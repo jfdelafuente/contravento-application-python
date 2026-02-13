@@ -10,10 +10,114 @@
 
 import { test, expect } from '@playwright/test';
 
-// Placeholder - E2E tests will be written per user story (T022-T026, T029-T031, etc.)
-test.describe('Dashboard Tooltips', () => {
-  test('placeholder test', async ({ page }) => {
-    // Placeholder for E2E tests
-    expect(true).toBe(true);
+test.describe('Dashboard Tooltips - User Story 1: Followers Preview', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login as test user with followers
+    await page.goto('http://localhost:5173/login');
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="password"]', 'TestPass123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard');
+  });
+
+  // T022: Hover "Seguidores" card for 500ms → tooltip appears
+  test('T022: should show followers tooltip after 500ms hover', async ({ page }) => {
+    // Locate followers card (first social-stat-card)
+    const followersCard = page.locator('.social-stat-card').first();
+    await expect(followersCard).toBeVisible();
+
+    // Hover over followers card
+    await followersCard.hover();
+
+    // Wait for 500ms hover delay + buffer
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('Seguidores');
+  });
+
+  // T023: Tooltip shows correct number of followers (max 8)
+  test('T023: should show max 8 followers in tooltip', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.hover();
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+
+    // Should show user links (max 8)
+    const userLinks = page.locator('.social-stat-tooltip__user-link');
+    const userCount = await userLinks.count();
+    expect(userCount).toBeGreaterThan(0);
+    expect(userCount).toBeLessThanOrEqual(8);
+
+    // Should show usernames
+    await expect(page.locator('.social-stat-tooltip__username').first()).toBeVisible();
+  });
+
+  // T024: Mouse leave for 200ms → tooltip disappears
+  test('T024: should hide tooltip after 200ms mouse leave', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.hover();
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+
+    // Move mouse away from card
+    await page.mouse.move(0, 0);
+
+    // Wait for 200ms leave delay + buffer
+    await page.waitForTimeout(300);
+
+    // Tooltip should be hidden
+    await expect(tooltip).not.toBeVisible();
+  });
+
+  // T025: Quick hover (<500ms) → no tooltip appears
+  test('T025: should NOT show tooltip on quick hover (<500ms)', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+
+    // Quick hover (less than 500ms)
+    await followersCard.hover();
+    await page.waitForTimeout(300); // Only 300ms (< 500ms threshold)
+    await page.mouse.move(0, 0); // Move away quickly
+
+    // Wait a bit to ensure tooltip doesn't appear
+    await page.waitForTimeout(200);
+
+    // Tooltip should NOT be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).not.toBeVisible();
+  });
+
+  // T026: Move mouse from card to tooltip → tooltip stays visible
+  test('T026: should keep tooltip visible when moving from card to tooltip', async ({ page }) => {
+    const followersCard = page.locator('.social-stat-card').first();
+    await followersCard.hover();
+    await page.waitForTimeout(600);
+
+    // Tooltip should be visible
+    const tooltip = page.locator('.social-stat-tooltip');
+    await expect(tooltip).toBeVisible();
+
+    // Move mouse to tooltip (not away from it)
+    const tooltipBox = await tooltip.boundingBox();
+    if (tooltipBox) {
+      await page.mouse.move(
+        tooltipBox.x + tooltipBox.width / 2,
+        tooltipBox.y + tooltipBox.height / 2
+      );
+    }
+
+    // Wait a bit
+    await page.waitForTimeout(300);
+
+    // Tooltip should STILL be visible
+    await expect(tooltip).toBeVisible();
   });
 });
