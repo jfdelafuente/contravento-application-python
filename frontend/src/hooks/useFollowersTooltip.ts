@@ -44,15 +44,11 @@ export function useFollowersTooltip(
           : await getFollowing(username);
 
       // Solo primeros 8 para tooltip
-      const topUsers =
-        type === 'followers'
-          ? response.followers.slice(0, 8)
-          : response.following.slice(0, 8);
+      const userList = type === 'followers' ? response.followers : response.following;
+      const topUsers = (userList || []).slice(0, 8);
 
       setUsers(topUsers);
-      setTotalCount(
-        type === 'followers' ? response.total_count : response.total_count
-      );
+      setTotalCount(response.total_count || 0);
     } catch (err: any) {
       // Always use Spanish error message
       setError('Error al cargar usuarios');
