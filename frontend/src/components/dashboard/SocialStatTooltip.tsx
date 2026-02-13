@@ -12,7 +12,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import type { UserSummaryForFollow } from '../../types/follow';
+import type { UserSummaryForFollow } from '../../services/followService';
 import './SocialStatTooltip.css';
 
 interface SocialStatTooltipProps {
