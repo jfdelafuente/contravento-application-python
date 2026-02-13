@@ -1,0 +1,15 @@
+/**
+ * SocialStatTooltip Styles
+ *
+ * CSS for followers/following tooltip with:
+ * - Absolute positioning below card (8px gap)
+ * - Fade-in/fade-out animations (150ms)
+ * - Responsive breakpoints (mobile <768px)
+ * - Arrow pointing to card (CSS triangle)
+ *
+ * @see specs/019-followers-tooltip/IMPLEMENTATION_GUIDE.md § Task 3.1
+ * @see specs/019-followers-tooltip/research.md § 2 (Tooltip Positioning Strategy)
+ * @see specs/ANALISIS_TOOLTIP_FOLLOWERS.md lines 447-622
+ */
+
+/* Placeholder - will be implemented in T021 */

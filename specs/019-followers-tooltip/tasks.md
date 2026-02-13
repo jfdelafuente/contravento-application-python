@@ -19,12 +19,12 @@
 
 **Purpose**: Create new files and project structure
 
-- [ ] T001 [P] Create hook file `frontend/src/hooks/useFollowersTooltip.ts` with basic TypeScript exports
-- [ ] T002 [P] Create component file `frontend/src/components/dashboard/SocialStatTooltip.tsx` with placeholder component
-- [ ] T003 [P] Create CSS file `frontend/src/components/dashboard/SocialStatTooltip.css` with empty ruleset
-- [ ] T004 [P] Create unit test file `frontend/tests/unit/useFollowersTooltip.test.ts` with test suite setup
-- [ ] T005 [P] Create unit test file `frontend/tests/unit/SocialStatTooltip.test.tsx` with test suite setup
-- [ ] T006 [P] Create E2E test file `frontend/tests/e2e/dashboard-tooltips.spec.ts` with test suite setup
+- [X] T001 [P] Create hook file `frontend/src/hooks/useFollowersTooltip.ts` with basic TypeScript exports
+- [X] T002 [P] Create component file `frontend/src/components/dashboard/SocialStatTooltip.tsx` with placeholder component
+- [X] T003 [P] Create CSS file `frontend/src/components/dashboard/SocialStatTooltip.css` with empty ruleset
+- [X] T004 [P] Create unit test file `frontend/tests/unit/useFollowersTooltip.test.ts` with test suite setup
+- [X] T005 [P] Create unit test file `frontend/tests/unit/SocialStatTooltip.test.tsx` with test suite setup
+- [X] T006 [P] Create E2E test file `frontend/tests/e2e/dashboard-tooltips.spec.ts` with test suite setup
 
 ---
 
