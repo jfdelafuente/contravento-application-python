@@ -14,37 +14,16 @@ import './PublicHeader.css';
 
 export const PublicHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const handleLogin = () => {
     navigate('/login');
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Reload page to show anonymous state
-      window.location.reload();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Force reload anyway
-      window.location.reload();
-    }
-  };
-
-  const handleDashboardClick = () => {
-    navigate('/dashboard');
   };
 
   const handleLogoClick = () => {
     navigate('/');
   };
 
-  // Get first letter of username for avatar fallback
-  const getUserInitial = (): string => {
-    if (!user?.username) return '?';
-    return user.username.charAt(0).toUpperCase();
-  };
 
   return (
     <header className="dashboard-header dashboard-header--route-map">

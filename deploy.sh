@@ -54,6 +54,38 @@ print_header() {
     echo ""
 }
 
+# Pull images from Docker Hub
+pull_from_dockerhub() {
+    local env=$1
+    local tag=$2
+
+    print_info "🐳 Pulling images from Docker Hub..."
+    echo "  - Backend: jfdelafuente/contravento-backend:${tag}"
+    echo "  - Frontend: jfdelafuente/contravento-frontend:${tag}"
+    echo ""
+
+    # Pull images with specified tag
+    docker pull jfdelafuente/contravento-backend:${tag} || {
+        print_error "Failed to pull backend image with tag: ${tag}"
+        print_info "Make sure the image exists on Docker Hub: https://hub.docker.com/r/jfdelafuente/contravento-backend/tags"
+        exit 1
+    }
+
+    docker pull jfdelafuente/contravento-frontend:${tag} || {
+        print_error "Failed to pull frontend image with tag: ${tag}"
+        print_info "Make sure the image exists on Docker Hub: https://hub.docker.com/r/jfdelafuente/contravento-frontend/tags"
+        exit 1
+    }
+
+    # Re-tag as latest for docker-compose compatibility
+    print_info "Tagging images as latest for docker-compose..."
+    docker tag jfdelafuente/contravento-backend:${tag} jfdelafuente/contravento-backend:latest
+    docker tag jfdelafuente/contravento-frontend:${tag} jfdelafuente/contravento-frontend:latest
+
+    print_success "✅ Images pulled and tagged successfully"
+    echo ""
+}
+
 # Check if docker-compose is installed
 check_docker_compose() {
     if ! command -v docker-compose &> /dev/null; then
@@ -146,12 +178,66 @@ start_env() {
     local env=$1
     local with_frontend=$2  # --with-frontend flag
     local rebuild=$3        # --rebuild flag
+    local pull_option=$4    # --pull-latest, --pull-version, --rollback-to
+    local version=$5        # version for --pull-version or --rollback-to
     local compose_file="docker-compose.${env}.yml"
     local env_file=$(get_env_file "$env")
 
     print_header "Starting $env environment"
 
     check_env_file "$env"
+
+    # Handle Docker Hub pull options for staging/prod
+    if [ -n "$pull_option" ]; then
+        case "$pull_option" in
+            --pull-latest)
+                if [ "$env" = "staging" ]; then
+                    pull_from_dockerhub "$env" "staging-latest"
+                elif [ "$env" = "prod" ]; then
+                    print_error "❌ Error: Use --pull-version for production deployments"
+                    print_info "Example: ./deploy.sh prod --pull-version v1.3.0"
+                    exit 1
+                else
+                    print_warning "ℹ️  --pull-latest is only for staging/prod environments"
+                    print_info "Ignoring flag for $env environment"
+                fi
+                ;;
+            --pull-version)
+                if [ -z "$version" ]; then
+                    print_error "❌ Error: --pull-version requires a version argument"
+                    print_info "Example: ./deploy.sh prod --pull-version v1.3.0"
+                    exit 1
+                fi
+
+                if [ "$env" = "prod" ] || [ "$env" = "staging" ]; then
+                    pull_from_dockerhub "$env" "$version"
+                else
+                    print_warning "ℹ️  --pull-version is only for staging/prod environments"
+                    print_info "Ignoring flag for $env environment"
+                fi
+                ;;
+            --rollback-to)
+                if [ -z "$version" ]; then
+                    print_error "❌ Error: --rollback-to requires a version argument"
+                    print_info "Example: ./deploy.sh prod --rollback-to v1.2.0"
+                    exit 1
+                fi
+
+                if [ "$env" = "prod" ] || [ "$env" = "staging" ]; then
+                    print_warning "⚠️  ROLLBACK: Deploying version $version"
+                    pull_from_dockerhub "$env" "$version"
+                else
+                    print_warning "ℹ️  --rollback-to is only for staging/prod environments"
+                    print_info "Ignoring flag for $env environment"
+                fi
+                ;;
+            *)
+                print_error "Invalid pull option: $pull_option"
+                echo "Valid options: --pull-latest, --pull-version <version>, --rollback-to <version>"
+                exit 1
+                ;;
+        esac
+    fi
 
     print_info "Using configuration:"
     echo "  - Base: docker-compose.yml"
@@ -160,11 +246,17 @@ start_env() {
     if [ "$with_frontend" = "true" ]; then
         echo "  - Frontend: ENABLED (Vite dev server)"
     fi
+    if [ -n "$pull_option" ]; then
+        echo "  - Deploy mode: Docker Hub ($pull_option)"
+    fi
     echo ""
 
     # Confirmation for production
     if [ "$env" = "prod" ]; then
         print_warning "⚠️  You are about to deploy to PRODUCTION!"
+        if [ -n "$version" ]; then
+            print_info "Version: $version"
+        fi
         read -p "Are you sure? (yes/no): " confirm
         if [ "$confirm" != "yes" ]; then
             print_info "Deployment cancelled"
@@ -172,8 +264,8 @@ start_env() {
         fi
     fi
 
-    # Build frontend for staging/prod environments
-    if [ "$env" = "staging" ] || [ "$env" = "prod" ]; then
+    # Build frontend for staging/prod environments (skip if pulling from Docker Hub)
+    if [ -z "$pull_option" ] && ([ "$env" = "staging" ] || [ "$env" = "prod" ]); then
         print_info "Building frontend for $env..."
         cd frontend
 
@@ -194,17 +286,23 @@ start_env() {
         print_success "Frontend build complete!"
     fi
 
-    # Pull latest images
-    print_info "Pulling latest images..."
-    docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" pull
+    # Pull latest images (skip if already pulled from Docker Hub)
+    if [ -z "$pull_option" ]; then
+        print_info "Pulling latest images..."
+        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" pull
+    fi
 
-    # Build services
-    if [ "$rebuild" = "true" ]; then
-        print_info "Building services (--no-cache - forced rebuild)..."
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build --no-cache
+    # Build services (skip if using Docker Hub images)
+    if [ -z "$pull_option" ]; then
+        if [ "$rebuild" = "true" ]; then
+            print_info "Building services (--no-cache - forced rebuild)..."
+            docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build --no-cache
+        else
+            print_info "Building services..."
+            docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build
+        fi
     else
-        print_info "Building services..."
-        docker-compose -f docker-compose.yml -f "$compose_file" --env-file "$env_file" build
+        print_info "Skipping build (using pre-built images from Docker Hub)"
     fi
 
     # Start services (enable frontend if flag is set)
@@ -361,12 +459,16 @@ show_ps() {
 # Restart environment
 restart_env() {
     local env=$1
+    local with_frontend=$2
+    local rebuild=$3
+    local pull_option=$4
+    local version=$5
 
     print_header "Restarting $env environment"
 
     stop_env "$env"
     sleep 2
-    start_env "$env"
+    start_env "$env" "$with_frontend" "$rebuild" "$pull_option" "$version"
 }
 
 # Main
@@ -421,6 +523,18 @@ main() {
         echo "  --rebuild          Force rebuild all Docker images (ignore cache)"
         echo "                     Useful after: Dockerfile changes, dependency updates"
         echo ""
+        echo -e "${GREEN}DOCKER HUB DEPLOYMENT FLAGS (staging/prod only):${NC}"
+        echo "  --pull-latest                    Pull staging-latest images from Docker Hub"
+        echo "                                   Only for staging environment"
+        echo ""
+        echo "  --pull-version <version>         Pull specific version from Docker Hub"
+        echo "                                   Example: --pull-version v1.3.0"
+        echo "                                   Required for production deployments"
+        echo ""
+        echo "  --rollback-to <version>          Rollback to previous version"
+        echo "                                   Example: --rollback-to v1.2.0"
+        echo "                                   Works for staging and production"
+        echo ""
         echo -e "${GREEN}COMMANDS:${NC}"
         echo "  (none)             Start environment (default action)"
         echo "  down               Stop environment and remove containers"
@@ -455,14 +569,20 @@ main() {
         echo "  # Custom backend port"
         echo "  export BACKEND_PORT=9000 && $0 local"
         echo ""
+        echo "  # Deploy to staging (pull latest images from Docker Hub)"
+        echo "  $0 staging --pull-latest"
+        echo ""
+        echo "  # Deploy to production (pull specific version from Docker Hub)"
+        echo "  $0 prod --pull-version v1.3.0"
+        echo ""
+        echo "  # Rollback production to previous version"
+        echo "  $0 prod --rollback-to v1.2.0"
+        echo ""
         echo "  # View logs"
         echo "  $0 local logs"
         echo ""
         echo "  # Stop environment"
         echo "  $0 local down"
-        echo ""
-        echo "  # Deploy to staging"
-        echo "  $0 staging"
         echo ""
         echo -e "${GREEN}DOCUMENTATION:${NC}"
         echo "  📖 Complete guide: docs/deployment/README.md"
@@ -477,19 +597,50 @@ main() {
     local with_frontend=false
     local rebuild=false
     local command="up"
+    local pull_option=""
+    local version=""
 
     # Check for flags in any position
     shift  # Remove first argument (env)
-    for arg in "$@"; do
-        case "$arg" in
+    while [ $# -gt 0 ]; do
+        case "$1" in
             --with-frontend)
                 with_frontend=true
+                shift
                 ;;
             --rebuild)
                 rebuild=true
+                shift
+                ;;
+            --pull-latest)
+                pull_option="--pull-latest"
+                shift
+                ;;
+            --pull-version)
+                pull_option="--pull-version"
+                shift
+                if [ $# -gt 0 ] && [[ ! "$1" =~ ^-- ]]; then
+                    version="$1"
+                    shift
+                fi
+                ;;
+            --rollback-to)
+                pull_option="--rollback-to"
+                shift
+                if [ $# -gt 0 ] && [[ ! "$1" =~ ^-- ]]; then
+                    version="$1"
+                    shift
+                fi
                 ;;
             up|start|down|stop|logs|ps|status|restart)
-                command="$arg"
+                command="$1"
+                shift
+                ;;
+            *)
+                print_error "Unknown argument: $1"
+                echo "Valid flags: --with-frontend, --rebuild, --pull-latest, --pull-version <version>, --rollback-to <version>"
+                echo "Valid commands: up, down, logs, ps, restart"
+                exit 1
                 ;;
         esac
     done
@@ -498,7 +649,7 @@ main() {
 
     case $command in
         up|start)
-            start_env "$env" "$with_frontend" "$rebuild"
+            start_env "$env" "$with_frontend" "$rebuild" "$pull_option" "$version"
             ;;
         down|stop)
             stop_env "$env"
@@ -510,7 +661,7 @@ main() {
             show_ps "$env"
             ;;
         restart)
-            restart_env "$env"
+            restart_env "$env" "$with_frontend" "$rebuild" "$pull_option" "$version"
             ;;
         *)
             print_error "Invalid command: $command"

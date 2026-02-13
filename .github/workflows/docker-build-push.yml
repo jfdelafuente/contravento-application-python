@@ -1,24 +1,29 @@
-name: Docker Build and Push
+name: Docker Build and Push (Feature Branches)
 
 on:
   push:
     branches:
-      - develop
-      - main
       - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
   pull_request:
     branches:
       - develop
       - main
   workflow_dispatch:  # Permite ejecución manual
 
+# NOTE: This workflow is for feature branch validation only.
+# For staging/production builds, see:
+# - build-staging-image.yml (triggered on push to develop)
+# - build-production-image.yml (triggered on push to main)
+
 env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-  build-and-push:
-    name: Build and Push Docker Images
+  build-and-test:
+    name: Build and Test Docker Images (Feature Validation)
     runs-on: ubuntu-latest
 
     steps:
