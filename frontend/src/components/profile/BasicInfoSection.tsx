@@ -50,84 +50,89 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   const isAtLimit = remainingChars <= 0;
 
   return (
-    <section className="basic-info-section" aria-labelledby="basic-info-title">
-      <h2 id="basic-info-title" className="section-title">Información Básica</h2>
-
-      {/* Bio Field */}
-      <div className="form-group">
-        <label htmlFor="bio" className="form-label">
-          Bio
-          <span className="form-label-optional">(opcional)</span>
-        </label>
-        <div className="textarea-wrapper">
-          <textarea
-            id="bio"
-            {...register('bio')}
-            className={`form-textarea ${errors.bio ? 'form-textarea--error' : ''}`}
-            placeholder="Cuéntanos sobre ti, tus aventuras en bicicleta, tus rutas favoritas..."
-            rows={5}
-            maxLength={maxBioLength}
-          />
-          <div className="char-counter-wrapper">
-            <span
-              className={`char-counter ${
-                isAtLimit
-                  ? 'char-counter--limit'
-                  : isNearLimit
-                  ? 'char-counter--warning'
-                  : ''
-              }`}
-              aria-live="polite"
-              aria-label={`Caracteres utilizados: ${bioLength} de ${maxBioLength}`}
-            >
-              {bioLength} / {maxBioLength}
-            </span>
+    <section className="basic-info-section">
+      <div className="basic-info-grid">
+        {/* Left Column: Bio */}
+        <div className="basic-info-column">
+          <div className="form-group">
+            <label htmlFor="bio" className="form-label">
+              Bio
+              <span className="form-label-optional">(opcional)</span>
+            </label>
+            <div className="textarea-wrapper">
+              <textarea
+                id="bio"
+                {...register('bio')}
+                className={`form-textarea ${errors.bio ? 'form-textarea--error' : ''}`}
+                placeholder="Cuéntanos sobre ti, tus aventuras en bicicleta, tus rutas favoritas..."
+                rows={8}
+                maxLength={maxBioLength}
+              />
+              <div className="char-counter-wrapper">
+                <span
+                  className={`char-counter ${
+                    isAtLimit
+                      ? 'char-counter--limit'
+                      : isNearLimit
+                      ? 'char-counter--warning'
+                      : ''
+                  }`}
+                  aria-live="polite"
+                  aria-label={`Caracteres utilizados: ${bioLength} de ${maxBioLength}`}
+                >
+                  {bioLength} / {maxBioLength}
+                </span>
+              </div>
+            </div>
+            {errors.bio && (
+              <p className="form-error" role="alert">{errors.bio.message}</p>
+            )}
           </div>
         </div>
-        {errors.bio && (
-          <p className="form-error" role="alert">{errors.bio.message}</p>
-        )}
-      </div>
 
-      {/* Location Field */}
-      <div className="form-group">
-        <label htmlFor="location" className="form-label">
-          Ubicación
-          <span className="form-label-optional">(opcional)</span>
-        </label>
-        <input
-          type="text"
-          id="location"
-          {...register('location')}
-          className={`form-input ${errors.location ? 'form-input--error' : ''}`}
-          placeholder="Barcelona, España"
-        />
-        {errors.location && (
-          <p className="form-error" role="alert">{errors.location.message}</p>
-        )}
-      </div>
+        {/* Right Column: Location + Cycling Type */}
+        <div className="basic-info-column">
+          {/* Location Field */}
+          <div className="form-group">
+            <label htmlFor="location" className="form-label">
+              Ubicación
+              <span className="form-label-optional">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              id="location"
+              {...register('location')}
+              className={`form-input ${errors.location ? 'form-input--error' : ''}`}
+              placeholder="Barcelona, España"
+            />
+            {errors.location && (
+              <p className="form-error" role="alert">{errors.location.message}</p>
+            )}
+          </div>
 
-      {/* Cycling Type Field */}
-      <div className="form-group">
-        <label htmlFor="cycling_type" className="form-label">
-          Tipo de Ciclismo
-          <span className="form-label-optional">(opcional)</span>
-        </label>
-        <select
-          id="cycling_type"
-          {...register('cycling_type')}
-          className={`form-select ${errors.cycling_type ? 'form-select--error' : ''}`}
-        >
-          <option value="">Selecciona tu estilo preferido</option>
-          {CYCLING_TYPES.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </select>
-        {errors.cycling_type && (
-          <p className="form-error" role="alert">{errors.cycling_type.message}</p>
-        )}
+          {/* Cycling Type Field */}
+          <div className="form-group">
+            <label htmlFor="cycling_type" className="form-label">
+              Tipo de Ciclismo
+              <span className="form-label-optional">(opcional)</span>
+            </label>
+            <select
+              id="cycling_type"
+              {...register('cycling_type')}
+              className={`form-select ${errors.cycling_type ? 'form-select--error' : ''}`}
+            >
+              <option value="">Selecciona tu estilo preferido</option>
+              {CYCLING_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+            {errors.cycling_type && (
+              <p className="form-error" role="alert">{errors.cycling_type.message}</p>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

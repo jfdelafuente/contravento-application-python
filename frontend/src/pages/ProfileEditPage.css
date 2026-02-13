@@ -1,162 +1,228 @@
-/* ProfileEditPage.css - Rustic travel aesthetic for profile editing */
+/**
+ * ProfileEditPage Styles - "Trail Journal Checkpoints"
+ *
+ * Intent: Cyclist updating trail journal before next leg - organized, sequential, warm
+ * Palette: Cream parchment (#fff8dc), olive markers (#6b8e23), amber alerts (#ea580c)
+ * Depth: Borders-only with subtle paper texture
+ * Typography: Inter for clarity and warmth
+ * Spacing: 8px base unit, generous 2.5rem between sections
+ */
+
+/* ============================================================================
+   Page Container
+   ============================================================================ */
 
 .profile-edit-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f1e8 0%, #e8dfc8 100%);
-  padding: var(--space-6) var(--space-4);
-}
-
-.profile-edit-container {
-  width: 100%;
-  margin: 0 auto;
-  background: white;
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-/* Header */
-.profile-edit-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
-  padding: var(--space-6);
-  color: var(--color-cream);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: #fff8dc; /* Cream parchment */
   position: relative;
 }
 
-.profile-edit-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: repeating-linear-gradient(
-    45deg,
-    var(--color-earth) 0px,
-    var(--color-earth) 10px,
-    transparent 10px,
-    transparent 20px
-  );
-  opacity: 0.3;
-}
+/* ============================================================================
+   Header - Using DashboardPage Header (dashboard-header--route-map)
+   ============================================================================ */
 
-.profile-edit-title {
-  font-family: var(--font-serif);
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  margin: 0;
-  color: var(--color-cream);
-}
+/* Header styles are imported from DashboardPage.css - no custom styles needed */
 
-.btn-cancel {
-  padding: var(--space-2) var(--space-4);
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid var(--color-cream);
-  border-radius: var(--radius-lg);
-  color: var(--color-cream);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
+/* ============================================================================
+   Main Container - Asymmetric Layout
+   ============================================================================ */
 
-.btn-cancel:hover {
-  background: var(--color-cream);
-  color: var(--color-forest);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-/* Content Container - full width */
-.profile-edit-content-wrapper {
+.profile-edit-container {
+  max-width: 1600px; /* Increased from 900px to use more screen width */
+  margin: 0 auto;
+  padding: 2rem 3rem 3rem 3rem; /* Increased side padding from 1.5rem to 3rem */
   width: 100%;
-  padding: var(--space-8);
-  box-sizing: border-box;
 }
 
-/* Row layout for sections */
-.profile-edit-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
+/* ============================================================================
+   Page Title Bar
+   ============================================================================ */
+
+.profile-edit-title-section {
+  margin-bottom: 2.5rem;
 }
 
-.profile-edit-row.full-width {
-  grid-template-columns: 1fr;
+.profile-edit-page-title {
+  margin: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: -0.02em;
 }
 
-/* Section Cards */
-.profile-edit-section {
-  background: #fafaf8;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-  min-width: 0;
-}
+/* ============================================================================
+   Section Stack - Vertical Layout
+   ============================================================================ */
 
-.section-content {
-  padding: var(--space-6);
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-/* Section Actions (buttons) */
-.section-actions {
-  padding: var(--space-4) var(--space-6);
-  background: #f5f1e8;
-  border-top: 1px solid var(--color-border);
+.profile-edit-sections {
   display: flex;
   flex-direction: column;
+  gap: 2.5rem; /* Generous breathing room between checkpoints */
+}
+
+/* ============================================================================
+   Section Card - Trail Checkpoint
+   ============================================================================ */
+
+.profile-edit-section {
+  background: #ffffff;
+  border: 1px solid rgba(210, 180, 140, 0.3);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Paper texture overlay */
+.profile-edit-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03' /%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================================
+   Section Header - Trail Marker Badge + Title
+   ============================================================================ */
+
+.profile-edit-section-header {
+  position: relative;
+  padding: 1.25rem 2rem;
+  border-bottom: 2px solid #6b8e23; /* Olive accent line */
+  z-index: 2;
+}
+
+.profile-edit-section-number {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  width: 36px;
+  height: 36px;
+  background: #6b8e23;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: center;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(107, 142, 35, 0.2);
+}
+
+.profile-edit-section-title {
+  margin: 0 0 0 3.5rem; /* Offset for badge */
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #6b8e23;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-edit-section-title svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   Section Description - Form Wrapper
+   ============================================================================ */
+
+.profile-edit-section-description {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.profile-edit-section-description form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+   Section Content - Form Fields Zone
+   ============================================================================ */
+
+.profile-edit-section-content {
+  position: relative;
+  padding: 2rem 1.5rem; /* Reduced horizontal padding to give more width to columns */
+  z-index: 2;
+}
+
+/* ============================================================================
+   Section Actions - Save Button + Unsaved Indicator
+   ============================================================================ */
+
+.profile-edit-section-actions {
+  position: relative;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid rgba(210, 180, 140, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  z-index: 2;
 }
 
 .btn-save {
-  width: 100%;
-  max-width: 300px;
-  padding: var(--space-3) var(--space-5);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-forest) 100%);
-  border: none;
-  border-radius: var(--radius-lg);
-  color: var(--color-cream);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #6b8e23;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(107, 142, 35, 0.2);
 }
 
 .btn-save:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background: #5a7a1e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(107, 142, 35, 0.3);
 }
 
 .btn-save:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: var(--shadow-sm);
 }
 
 .btn-save:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
+.btn-save svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Loading spinner */
 .spinner {
   display: inline-block;
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -167,90 +233,281 @@
   }
 }
 
+/* Unsaved changes indicator */
 .unsaved-indicator {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  color: #d97706;
+  gap: 0.5rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.875rem;
+  color: #ea580c;
   font-weight: 600;
 }
 
 .unsaved-dot {
   width: 8px;
   height: 8px;
-  background: #d97706;
+  background: #ea580c;
   border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes pulse-dot {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.6;
+    transform: scale(1.2);
   }
 }
 
-.temp-message {
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-  text-align: center;
-  padding: var(--space-8);
-  background: var(--color-cream);
-  border: 2px dashed var(--color-earth-light);
-  border-radius: var(--radius-lg);
+/* ============================================================================
+   Form Groups - Compact Spacing
+   ============================================================================ */
+
+.form-group {
+  margin-bottom: 1.5rem;
 }
 
-/* Responsive */
-@media (max-width: 968px) {
-  .profile-edit-row {
-    grid-template-columns: 1fr;
+.form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1c1917;
+  letter-spacing: -0.01em;
+}
+
+.form-label-optional {
+  font-weight: 400;
+  color: #78716c;
+  font-size: 0.8125rem;
+  margin-left: 0.25rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.9375rem;
+  color: #1c1917;
+  background: #ffffff;
+  border: 1px solid rgba(210, 180, 140, 0.3);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #a8a29e;
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2378716c' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+  appearance: none;
+}
+
+/* Error state */
+.form-input--error,
+.form-textarea--error,
+.form-select--error {
+  border-color: #dc2626;
+}
+
+.form-input--error:focus,
+.form-textarea--error:focus,
+.form-select--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.form-error svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Helper text */
+.form-helper {
+  margin-top: 0.5rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  color: #78716c;
+  line-height: 1.5;
+}
+
+/* Character counter */
+.form-counter {
+  margin-top: 0.5rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: right;
+  transition: color 0.2s ease;
+}
+
+.form-counter--ok {
+  color: #6b8e23;
+}
+
+.form-counter--warning {
+  color: #ea580c;
+}
+
+.form-counter--danger {
+  color: #dc2626;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+/* Medium screens (< 1200px) - Reduce side padding */
+@media (max-width: 1200px) {
+  .profile-edit-container {
+    padding: 2rem 2rem 3rem 2rem;
   }
 }
 
+/* Tablet (< 768px) */
 @media (max-width: 768px) {
-  .profile-edit-page {
-    padding: var(--space-4) var(--space-2);
+  .profile-edit-container {
+    padding: 1.5rem 1rem 2rem 1rem;
   }
 
-  .profile-edit-header {
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: flex-start;
+  .profile-edit-title-section {
+    margin-bottom: 2rem;
   }
 
-  .profile-edit-title {
-    font-size: var(--text-2xl);
+  .profile-edit-page-title {
+    font-size: 1.5rem;
   }
 
-  .profile-edit-content-wrapper {
-    padding: var(--space-6) var(--space-4);
+  .profile-edit-sections {
+    gap: 2rem;
   }
 
-  .section-content {
-    padding: var(--space-4);
+  .profile-edit-section-header {
+    padding: 1rem 1.5rem;
   }
 
-  .section-actions {
-    padding: var(--space-3) var(--space-4);
+  .profile-edit-section-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.6875rem;
+    top: 0.875rem;
+    left: 1.25rem;
+  }
+
+  .profile-edit-section-title {
+    margin-left: 3rem;
+    font-size: 1rem;
+  }
+
+  .profile-edit-section-content {
+    padding: 1.5rem;
+  }
+
+  .profile-edit-section-actions {
+    padding: 1.25rem 1.5rem;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .unsaved-indicator {
+    width: 100%;
+    justify-content: center;
   }
 }
 
+/* Mobile (< 480px) */
 @media (max-width: 480px) {
-  .profile-edit-title {
-    font-size: var(--text-xl);
+  .profile-edit-container {
+    padding: 1rem 0.75rem 1.5rem 0.75rem;
   }
 
-  .profile-edit-content-wrapper {
-    padding: var(--space-4) var(--space-3);
+  .profile-edit-page-title {
+    font-size: 1.25rem;
   }
 
-  .section-content {
-    padding: var(--space-3);
+  .profile-edit-sections {
+    gap: 1.5rem;
+  }
+
+  .profile-edit-section-header {
+    padding: 0.875rem 1rem;
+  }
+
+  .profile-edit-section-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.625rem;
+    top: 0.75rem;
+    left: 1rem;
+  }
+
+  .profile-edit-section-title {
+    margin-left: 2.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .profile-edit-section-title svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .profile-edit-section-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .profile-edit-section-actions {
+    padding: 1rem;
+  }
+
+  .btn-save {
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
   }
 }

@@ -1,76 +1,95 @@
-/* ProfilePage.css - Modern Minimalist Design */
+/**
+ * ProfilePage Styles - "Trail Journal Identity"
+ *
+ * Intent: Personal identity verification - cyclist reviewing credentials
+ * Palette: Cream parchment (#fff8dc), olive (#6b8e23), amber (#ea580c)
+ * Depth: Borders-only with subtle layered shadows
+ * Typography: Inter for warm, readable hierarchy
+ */
+
+/* ============================================================================
+   Page Container - Trail Journal Canvas
+   ============================================================================ */
 
 .profile-page {
   min-height: 100vh;
-  background: var(--color-gray-50);
+  background: #fff8dc; /* Cream parchment - journal pages */
   position: relative;
 }
 
-.profile-header {
-  background: var(--color-white);
-  color: var(--color-forest);
-  padding: var(--space-5) var(--space-6);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 2px solid var(--color-primary);
-}
+/* ============================================================================
+   Header - Using DashboardPage Header (dashboard-header--route-map)
+   ============================================================================ */
 
-.profile-header .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* Header styles are imported from DashboardPage.css - no custom styles needed */
 
-.profile-header h1 {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  color: var(--color-primary);
-  letter-spacing: -0.02em;
-}
+/* ============================================================================
+   Main Content Area
+   ============================================================================ */
 
 .profile-main {
-  padding: var(--space-6) var(--space-6);
+  padding: 1.5rem 1rem 2rem 1rem; /* Compact padding */
   position: relative;
   z-index: 1;
 }
 
 .profile-content {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
+/* ============================================================================
+   Identity Card - Horizontal Band Layout
+   ============================================================================ */
+
 .profile-card {
-  background: var(--color-white);
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--color-gray-200);
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-6);
-  align-items: start;
+  background: #ffffff; /* Clean white card */
+  padding: 1.5rem; /* Reduced from 2rem - compact */
+  border-radius: 8px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.04); /* Layered photo stack shadows */
+  border: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 8px base × 3 */
   animation: slideUp 0.3s ease-out;
+}
+
+/* ============================================================================
+   Identity Band - Two Column Layout (Avatar+Button Left, Username+Bio Right)
+   ============================================================================ */
+
+.profile-identity-band {
+  display: flex;
+  gap: 1.5rem; /* Space between columns */
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth separator */
+  align-items: flex-start;
+}
+
+/* Left Column - Avatar + Button Vertical Stack */
+.profile-identity-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem; /* Space between avatar and button */
+  flex-shrink: 0;
 }
 
 .profile-avatar-large {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: #6b8e23; /* Olive trail marker */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-sans);
-  font-size: var(--text-3xl);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 2.5rem;
   font-weight: 600;
-  color: var(--color-white);
-  box-shadow: 0 2px 8px rgba(107, 114, 59, 0.2);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(107, 142, 35, 0.2);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -89,150 +108,189 @@
   height: 100%;
 }
 
-/* Left Column - Avatar and Edit Button */
-.profile-left {
-  display: flex;
-  flex-direction: column;
+/* Edit Profile Button - Below Avatar */
+.btn-edit-profile {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-4);
+  justify-content: center;
+  gap: 0.5rem; /* Space between icon and text */
+  padding: 0.5rem 0.875rem;
+  height: 40px;
+  background: #6b8e23; /* Olive trail marker */
+  color: #ffffff;
+  border: 1px solid #6b8e23;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: 100%; /* Full width of left column */
 }
 
-/* Right Column - Profile Info */
-.profile-right {
+.btn-edit-profile svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn-edit-profile-text {
+  line-height: 1;
+}
+
+/* Right Column - Username + Bio */
+.profile-identity-right {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink if needed */
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
+  gap: 1rem;
+}
+
+.profile-identity-right h2 {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #1c1917; /* Dark text */
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  word-wrap: break-word;
+}
+
+/* Bio inside identity band */
+.profile-identity-band .profile-bio {
+  margin: 0; /* Remove margin since it's in a flex container */
+}
+
+/* Legacy support - hide old columns */
+.profile-left,
+.profile-right {
+  display: none;
 }
 
 .profile-header-section {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-4);
+  gap: 1rem;
 }
 
-.profile-card h2 {
-  margin: 0;
-  font-family: var(--font-sans);
-  color: var(--color-forest);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-}
+/* ============================================================================
+   Profile Bio - Warm Card
+   ============================================================================ */
 
-/* Edit Profile Button */
-.btn-edit-profile {
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-primary);
-  color: var(--color-white);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-/* Profile Bio */
 .profile-bio {
-  padding: var(--space-4);
-  background: var(--color-gray-50);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-primary);
+  padding: 1rem; /* Compact padding */
+  background: rgba(255, 248, 220, 0.5); /* Warm cream tint */
+  border-radius: 8px;
+  border-left: 3px solid #ea580c; /* Amber accent marker */
 }
 
 .profile-bio p {
   margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 0.9375rem;
   line-height: 1.6;
-  color: var(--color-gray-700);
+  color: #44403c; /* Warm dark text */
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
+/* ============================================================================
+   Edit Profile Button States
+   ============================================================================ */
+
 .btn-edit-profile:hover {
-  background: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-  box-shadow: 0 2px 4px rgba(107, 114, 59, 0.2);
+  background: #5a7a1e; /* Darker olive */
+  border-color: #5a7a1e;
+  box-shadow: 0 2px 4px rgba(107, 142, 35, 0.2);
 }
 
 .btn-edit-profile:active {
-  transform: translateY(1px);
+  transform: scale(0.98);
 }
 
 .btn-edit-profile:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid #ea580c; /* Amber focus ring */
   outline-offset: 2px;
 }
+
+/* ============================================================================
+   Profile Info Grid - Warm Info Items
+   ============================================================================ */
 
 .profile-info {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-3);
+  gap: 0.75rem; /* 8px base × 1.5 - compact grid */
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  background: var(--color-gray-50);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  gap: 0.75rem;
+  padding: 0.75rem; /* Compact padding */
+  background: rgba(255, 248, 220, 0.3); /* Subtle cream tint */
+  border-radius: 8px;
+  border: 1px solid rgba(210, 180, 140, 0.2); /* Subtle warm earth */
+  transition: all 0.15s ease-in-out;
 }
 
 .info-item:hover {
-  background: var(--color-gray-100);
+  background: rgba(255, 248, 220, 0.5); /* Warmer on hover */
+  border-color: rgba(210, 180, 140, 0.4);
 }
 
 .info-label {
-  font-family: var(--font-sans);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
   font-weight: 500;
-  font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  font-size: 0.75rem; /* Small label */
+  color: #78716c; /* Warm tertiary */
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .info-value {
-  font-family: var(--font-sans);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
   font-weight: 600;
-  font-size: var(--text-sm);
-  color: var(--color-gray-900);
+  font-size: 0.9375rem;
+  color: #1c1917; /* Dark text */
   flex: 1;
 }
 
 .verified-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  color: var(--color-primary);
+  gap: 0.25rem;
+  color: #6b8e23; /* Olive accent */
   padding: 0;
-  margin-left: var(--space-2);
+  margin-left: 0.5rem;
 }
 
 .verified-icon {
   width: 1rem;
   height: 1rem;
-  color: var(--color-primary);
+  color: #6b8e23; /* Olive accent */
 }
 
+/* ============================================================================
+   Placeholder Section - Warm Dashed Card
+   ============================================================================ */
+
 .profile-placeholder {
-  margin-top: var(--space-6);
-  padding: var(--space-4);
-  background: var(--color-gray-50);
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--color-gray-300);
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 248, 220, 0.3); /* Subtle cream tint */
+  border-radius: 8px;
+  border: 1px dashed rgba(210, 180, 140, 0.5); /* Dashed warm earth */
 }
 
 .profile-placeholder h3 {
-  margin: 0 0 var(--space-3) 0;
-  font-family: var(--font-sans);
-  color: var(--color-gray-700);
-  font-size: var(--text-base);
+  margin: 0 0 0.75rem 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #78716c; /* Warm tertiary */
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -242,76 +300,103 @@
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-2);
+  gap: 0.5rem;
 }
 
 .profile-placeholder li {
-  padding: var(--space-2);
-  font-family: var(--font-sans);
-  color: var(--color-gray-500);
-  font-size: var(--text-xs);
+  padding: 0.5rem;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #9ca3af; /* Light gray */
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
 .profile-placeholder li::before {
   content: '•';
-  margin-right: var(--space-2);
-  color: var(--color-primary);
+  margin-right: 0.5rem;
+  color: #ea580c; /* Amber accent */
 }
+
+/* ============================================================================
+   Loading State
+   ============================================================================ */
 
 .loading-spinner {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  font-family: var(--font-sans);
-  font-size: var(--text-xl);
-  color: var(--color-gray-600);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 1.25rem;
+  color: #78716c; /* Warm tertiary */
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .profile-header {
-    padding: var(--space-3) var(--space-4);
-  }
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
 
-  .profile-header h1 {
-    font-size: var(--text-lg);
-  }
-
+/* Tablet and below (< 640px) - Stack identity band vertically */
+@media (max-width: 640px) {
   .profile-main {
-    padding: var(--space-4);
+    padding: 1rem;
   }
 
   .profile-card {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-    padding: var(--space-4);
+    padding: 1rem;
   }
 
-  .profile-left {
-    flex-direction: row;
-    justify-content: space-between;
+  /* Stack left and right columns vertically on mobile */
+  .profile-identity-band {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .profile-identity-left {
     width: 100%;
+    max-width: 200px; /* Limit width on mobile */
+  }
+
+  .profile-identity-right {
+    width: 100%;
+    text-align: center; /* Center text on mobile */
+  }
+
+  .profile-avatar-large {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+  }
+
+  .profile-identity-right h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn-edit-profile {
+    height: 44px; /* Larger touch target */
+  }
+}
+
+/* Extra Small Mobile (< 480px) - Very compact */
+@media (max-width: 480px) {
+  .profile-header {
+    padding: 0.875rem 1rem;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  .profile-header h1 {
+    font-size: 1.25rem;
   }
 
   .profile-avatar-large {
     width: 80px;
     height: 80px;
-    font-size: var(--text-2xl);
+    font-size: 2rem;
   }
 
-  .profile-header-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .profile-card h2 {
-    font-size: var(--text-xl);
-  }
-
-  .btn-edit-profile {
-    width: 100%;
+  .profile-identity-right h2 {
+    font-size: 1.25rem;
   }
 
   .profile-info {
@@ -321,7 +406,7 @@
   .info-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-1);
+    gap: 0.25rem;
   }
 
   .profile-placeholder ul {
@@ -329,68 +414,92 @@
   }
 }
 
-/* Privacy Settings Section (Feature 013) */
+/* Very Small Mobile (< 400px) - Ultra compact */
+@media (max-width: 400px) {
+  .profile-avatar-large {
+    width: 72px;
+    height: 72px;
+    font-size: 1.75rem;
+  }
+
+  .profile-identity-right h2 {
+    font-size: 1.125rem;
+  }
+
+  .btn-edit-profile {
+    font-size: 0.8125rem; /* Slightly smaller text */
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* ============================================================================
+   Privacy Settings Section - Warm Card (No Cold Gradients)
+   ============================================================================ */
+
 .profile-privacy-section {
-  margin-top: var(--space-4);
-  padding: var(--space-4);
-  background: linear-gradient(135deg, rgba(107, 114, 59, 0.05) 0%, rgba(107, 114, 59, 0.02) 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 248, 220, 0.4); /* Warm cream tint */
+  border-radius: 8px;
+  border: 1px solid rgba(210, 180, 140, 0.4); /* Warm earth border */
 }
 
 .privacy-section-title {
-  margin: 0 0 var(--space-3) 0;
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
+  margin: 0 0 0.75rem 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--color-forest);
+  color: #1c1917; /* Dark text */
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 0.5rem;
 }
 
 .privacy-section-title::before {
   content: '🔒';
-  font-size: var(--text-lg);
+  font-size: 1.125rem;
 }
 
-/* Privacy Badge Styling */
+/* ============================================================================
+   Privacy Badge Styling - Warm Colors
+   ============================================================================ */
+
 .privacy-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs);
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px; /* Rounded badge */
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease-in-out;
 }
 
-/* Public visibility */
+/* Public visibility - Warm green */
 .privacy-badge[data-visibility="public"] {
-  background: rgba(34, 197, 94, 0.1);
-  color: #166534;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(107, 142, 35, 0.1); /* Olive tint */
+  color: #3d5a0f; /* Dark olive */
+  border: 1px solid rgba(107, 142, 35, 0.3);
 }
 
-/* Followers visibility */
+/* Followers visibility - Warm amber */
 .privacy-badge[data-visibility="followers"] {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1e40af;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(234, 88, 12, 0.1); /* Amber tint */
+  color: #9a3412; /* Dark amber */
+  border: 1px solid rgba(234, 88, 12, 0.3);
 }
 
-/* Private visibility */
+/* Private visibility - Warm brown */
 .privacy-badge[data-visibility="private"] {
-  background: rgba(239, 68, 68, 0.1);
-  color: #991b1b;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(120, 113, 108, 0.1); /* Warm gray tint */
+  color: #44403c; /* Dark warm gray */
+  border: 1px solid rgba(120, 113, 108, 0.3);
 }
 
 .privacy-badge::before {
-  font-size: var(--text-sm);
+  font-size: 0.875rem;
 }
 
 .privacy-badge[data-visibility="public"]::before {

@@ -20,9 +20,9 @@
 
 .dashboard-page--route-map {
   /* Surface Elevation (fondos claros, orgánicos) */
-  --surface-base: #e5e8e5;        /* Canvas - Verde grisáceo */
+  --surface-base: #fff8dc;        /* Canvas - Crema cálido (cornsilk) */
   --surface-elevated: #ffffff;    /* Blanco puro para cards */
-  --surface-interactive: #d8dbd8; /* Hover/activo */
+  --surface-interactive: #fef3c7; /* Hover/activo - Crema más claro */
 
   /* Accent Colors (orgánico, terroso) */
   --accent-amber: #ea580c;        /* Atardecer, acción */
@@ -79,10 +79,10 @@
 }
 
 /* ============================================================================
-   HEADER - Sticky, verde oliva oscuro
+   HEADER - Sticky, oliva amarillento
    ============================================================================ */
 .dashboard-header--route-map {
-  background: #6b7c3a;
+  background: #6b8e23;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   border-bottom-left-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
@@ -188,7 +188,7 @@
   display: grid;
   grid-template-columns: 35fr 55fr; /* Left: 35% | Right: 55% (38.8% vs 61.1% with gap) */
   gap: var(--space-6);
-  align-items: start;
+  align-items: stretch; /* Stretch both columns to match height */
   width: 100%;
   box-sizing: border-box;
 }
@@ -205,9 +205,9 @@
 .dashboard-feed {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
   min-width: 0; /* Allow shrinking below content size */
   width: 100%;
+  height: 100%; /* Take full height of grid row */
   box-sizing: border-box;
 }
 

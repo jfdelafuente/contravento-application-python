@@ -1,88 +1,62 @@
 /**
- * PublicFeedPage Component Styles (Feature 013 - T030)
+ * PublicFeedPage Styles - "Trail Discovery Canvas"
  *
- * Homepage layout for public trips feed.
- * Estética Rústica de Viajes - Mobile-first responsive design.
+ * Intent: Public exploration - discovering cycling adventures, open community
+ * Palette: Cream parchment (#fff8dc), olive markers (#6b8e23), amber golden hour (#ea580c)
+ * Depth: Layered photo stack shadows
+ * Typography: Inter for clarity, warm hierarchy
  */
 
-/* ========================================================================== */
-/* PAGE LAYOUT */
-/* ========================================================================== */
+/* ============================================================================
+   Page Container - Trail Discovery Canvas
+   ============================================================================ */
 
 .public-feed {
   min-height: 100vh;
-  background: linear-gradient(135deg,
-    #FFF8DC 0%,       /* cream */
-    #FFFAF0 50%,      /* cream-light */
-    #F5F5F0 100%      /* gray-100 */
-  );
-  position: relative;
-  padding: 2rem 1rem;
+  background: #fff8dc; /* Cream parchment - aged trail map */
+  padding: 0 1rem 1rem 1rem; /* Reduced bottom padding - content-first */
 }
 
-/* Textura diagonal de fondo */
-.public-feed::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(139, 115, 85, 0.02) 10px,
-      rgba(139, 115, 85, 0.02) 20px
-    );
-  pointer-events: none;
-}
-
-/* ========================================================================== */
-/* HEADER SECTION */
-/* ========================================================================== */
+/* ============================================================================
+   Header Section - Compact Title Strip
+   ============================================================================ */
 
 .public-feed__header {
   text-align: center;
-  margin-bottom: 3rem;
-  padding: 1.5rem 0;
-  position: relative;
-  z-index: 1;
+  margin-bottom: 1.5rem; /* Reduced from 3rem - grid starts sooner */
+  padding: 1rem 0 0.75rem 0; /* Reduced from 2rem 0 1.5rem 0 - thin strip */
 }
 
 .public-feed__title {
-  font-family: 'Playfair Display', 'Georgia', serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2F4F2F;  /* forest */
-  margin: 0 0 0.5rem 0;
-  line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(75, 70, 60, 0.1);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 1.25rem; /* Reduced from 2.25rem - compact */
+  font-weight: 700; /* Reduced from 800 - less heavy */
+  line-height: 1.3;
+  color: #1c1917; /* Dark text */
+  margin: 0 0 0.375rem 0; /* Reduced margin */
+  letter-spacing: -0.01em; /* Tighter tracking */
 }
 
 .public-feed__subtitle {
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 1rem;
-  color: #4A4A42;  /* gray-600 */
-  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem; /* Reduced from 1.125rem - subtle */
   line-height: 1.5;
+  color: #9ca3af; /* Lighter gray - recedes */
+  margin: 0 0 0.5rem 0; /* Reduced margin */
   font-weight: 400;
 }
 
 .public-feed__count {
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 0.875rem;
-  color: #8B4513;  /* secondary (saddle brown) */
+  font-size: 0.8125rem; /* Reduced from 0.9375rem - inline badge size */
+  color: #ea580c; /* Amber accent */
   margin: 0;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-/* ========================================================================== */
-/* LOADING STATE */
-/* ========================================================================== */
+/* ============================================================================
+   Loading State
+   ============================================================================ */
 
 .public-feed__loading {
   display: flex;
@@ -96,27 +70,31 @@
 .public-feed__loading .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #F5DEB3;  /* cream-dark */
-  border-top: 4px solid #6B8E23;  /* primary (olive green) */
+  border: 4px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
+  border-top: 4px solid #6b8e23; /* Olive */
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .public-feed__loading p {
   font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 1rem;
-  color: #4A4A42;  /* gray-600 */
+  color: #6b7280; /* Text secondary */
   margin: 0;
 }
 
-/* ========================================================================== */
-/* ERROR STATE */
-/* ========================================================================== */
+/* ============================================================================
+   Error State
+   ============================================================================ */
 
 .public-feed__error {
   display: flex;
@@ -131,63 +109,54 @@
 .public-feed__error-icon {
   width: 64px;
   height: 64px;
-  color: #A0522D;  /* error (sienna) */
+  color: #ea580c; /* Amber accent */
   margin-bottom: 0.5rem;
 }
 
 .public-feed__error h2 {
-  font-family: 'Merriweather', 'Georgia', serif;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2C2C26;  /* gray-700 */
+  color: #1c1917; /* Dark text */
   margin: 0;
 }
 
 .public-feed__error p {
   font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 1rem;
-  color: #4A4A42;  /* gray-600 */
+  color: #6b7280; /* Text secondary */
   margin: 0;
   max-width: 500px;
 }
 
 .public-feed__error-button {
   margin-top: 1rem;
-  padding: 1.25rem 2rem;
-  background: linear-gradient(135deg,
-    #6B8E23 0%,      /* primary */
-    #556B2F 100%     /* primary-dark */
-  );
-  color: #FFF8DC;  /* cream */
-  border: 2px solid #556B2F;  /* primary-dark */
-  border-radius: 0.75rem;  /* radius-lg */
+  padding: 12px 24px;
+  background-color: #ea580c; /* Amber golden hour */
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 1.125rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 250ms ease-in-out;
-  box-shadow: 0 4px 12px rgba(75, 70, 60, 0.12);
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25);
 }
 
 .public-feed__error-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(75, 70, 60, 0.15);
-  background: linear-gradient(135deg,
-    #556B2F 0%,      /* primary-dark */
-    #2F4F2F 100%     /* forest */
-  );
+  background-color: #dc2626; /* Darker amber */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
 }
 
 .public-feed__error-button:active {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(75, 70, 60, 0.12);
 }
 
-/* ========================================================================== */
-/* EMPTY STATE */
-/* ========================================================================== */
+/* ============================================================================
+   Empty State
+   ============================================================================ */
 
 .public-feed__empty {
   display: flex;
@@ -202,370 +171,254 @@
 .public-feed__empty-icon {
   width: 64px;
   height: 64px;
-  color: #A8A89E;  /* gray-400 */
+  color: #9ca3af; /* Text tertiary */
   margin-bottom: 0.5rem;
 }
 
 .public-feed__empty h2 {
-  font-family: 'Merriweather', 'Georgia', serif;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2C2C26;  /* gray-700 */
+  color: #1c1917; /* Dark text */
   margin: 0;
 }
 
 .public-feed__empty p {
   font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 1rem;
-  color: #4A4A42;  /* gray-600 */
+  color: #6b7280; /* Text secondary */
   margin: 0;
   max-width: 500px;
 }
 
-/* ========================================================================== */
-/* GRID LAYOUT */
-/* ========================================================================== */
+/* ============================================================================
+   Grid Layout - Hero Grid Immediate
+   ============================================================================ */
 
 .public-feed__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-bottom: 3rem;
-  padding: 0 0.25rem;
-  position: relative;
-  z-index: 1;
+  gap: 32px; /* Increased from 24px - more breathing room for cards */
+  margin-bottom: 2rem; /* Reduced from 40px - tighter rhythm */
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* ========================================================================== */
-/* PAGINATION */
-/* ========================================================================== */
+/* ============================================================================
+   Pagination
+   ============================================================================ */
 
 .public-feed__pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  padding: 2.5rem 0 3rem 0;
-  margin-top: 1.5rem;
-  border-top: 2px solid #D2B48C;  /* earth-light (tan) */
-  background: linear-gradient(to bottom,
-    transparent 0%,
-    rgba(193, 154, 107, 0.08) 100%  /* earth */
-  );
-  position: relative;
-  z-index: 1;
+  gap: 16px;
+  padding: 2rem 0 1rem 0;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .public-feed__pagination-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  background: #FFFFFF;  /* white */
-  color: #8B4513;  /* secondary (saddle brown) */
-  border: 2px solid #8B4513;  /* secondary */
-  border-radius: 0.75rem;  /* radius-lg */
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1c1917; /* Dark text */
+  background-color: #ffffff;
+  border: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 250ms ease-in-out;
-  box-shadow: 0 2px 4px rgba(75, 70, 60, 0.08);
-  min-width: 130px;
-  justify-content: center;
+  transition: all 0.15s ease-in-out;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 .public-feed__pagination-button svg {
   width: 20px;
   height: 20px;
-  transition: transform 250ms ease-in-out;
+  transition: transform 0.2s ease-in-out;
 }
 
 .public-feed__pagination-button:hover:not(:disabled) {
-  background: #8B4513;  /* secondary */
-  color: #FFF8DC;  /* cream */
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(75, 70, 60, 0.15);
+  background-color: rgba(234, 88, 12, 0.08); /* Amber glow */
+  border-color: rgba(234, 88, 12, 0.4);
+  color: #ea580c; /* Amber accent */
 }
 
 .public-feed__pagination-button:hover:not(:disabled) svg {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .public-feed__pagination-button:active:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(75, 70, 60, 0.12);
+  transform: scale(0.98);
 }
 
 .public-feed__pagination-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #A8A89E;  /* gray-400 */
-  border-color: #6B6B61;  /* gray-500 */
-  color: #6B6B61;  /* gray-500 */
-  box-shadow: none;
 }
 
 .public-feed__pagination-info {
   font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 0.875rem;
-  color: #2F4F2F;  /* forest */
+  color: #6b7280; /* Text secondary */
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  min-width: 150px;
+  min-width: 120px;
   text-align: center;
-  padding: 0.75rem 1.25rem;
-  background: rgba(107, 142, 35, 0.08);  /* primary with alpha */
-  border-radius: 0.5rem;  /* radius-md */
-  border: 1px solid #D2B48C;  /* earth-light */
+  padding: 10px 16px;
+  background-color: #ffffff;
+  border: 1px solid rgba(210, 180, 140, 0.3); /* Warm earth dust */
+  border-radius: 8px;
 }
 
-/* ========================================================================== */
-/* RESPONSIVE DESIGN */
-/* ========================================================================== */
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
 
 /* Tablet (640px and up) */
 @media (min-width: 640px) {
   .public-feed {
-    padding: 2.5rem 2rem;
+    padding: 0 1.5rem 1.5rem 1.5rem; /* Reduced padding - content-first */
   }
 
   .public-feed__header {
-    margin-bottom: 3.5rem;
-    padding: 2rem 0;
+    margin-bottom: 2rem; /* Reduced from 3.5rem - grid starts sooner */
+    padding: 1.25rem 0 1rem 0; /* Reduced from 2.5rem - compact strip */
   }
 
   .public-feed__title {
-    font-size: 1.875rem;
+    font-size: 1.5rem; /* Reduced from 2.5rem - still compact */
   }
 
   .public-feed__subtitle {
-    font-size: 1.125rem;
-  }
-
-  .public-feed__count {
-    font-size: 0.9375rem;
+    font-size: 0.9375rem; /* Reduced from 1.25rem - subtle */
   }
 
   .public-feed__grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 2.25rem;
+    gap: 32px; /* Consistent gap - breathing room */
   }
 
   .public-feed__pagination {
-    padding: 2.5rem 0 3rem 0;
-    gap: 2rem;
+    gap: 20px;
   }
 
   .public-feed__pagination-button {
-    min-width: 140px;
-    padding: 1.125rem 1.75rem;
+    padding: 12px 20px;
   }
 
   .public-feed__pagination-info {
-    min-width: 170px;
+    min-width: 140px;
   }
 }
 
 /* Desktop (1024px and up) */
 @media (min-width: 1024px) {
   .public-feed {
-    padding: 3rem 2.5rem;
+    padding: 0 2rem 2rem 2rem; /* Reduced from 2.5rem/3rem - content-first */
   }
 
   .public-feed__header {
-    margin-bottom: 4rem;
+    margin-bottom: 2.5rem; /* Reduced from 4rem - grid starts sooner */
+    padding: 1.5rem 0 1.25rem 0; /* Reduced - compact strip */
   }
 
   .public-feed__title {
-    font-size: 2.25rem;
+    font-size: 1.75rem; /* Reduced from 3rem - compact */
   }
 
   .public-feed__subtitle {
-    font-size: 1.25rem;
+    font-size: 1rem; /* Reduced from 1.375rem - subtle */
   }
 
   .public-feed__grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 2.5rem;
+    gap: 40px; /* Increased - more breathing room for larger cards */
   }
 
   .public-feed__pagination {
-    gap: 2.5rem;
+    gap: 24px;
   }
 
   .public-feed__pagination-button {
-    padding: 1.25rem 2rem;
-    min-width: 150px;
+    padding: 12px 24px;
+    min-width: 140px;
   }
 
   .public-feed__pagination-info {
-    min-width: 190px;
+    min-width: 160px;
     font-size: 1rem;
   }
 }
 
 /* Large Desktop (1280px and up) */
 @media (min-width: 1280px) {
-  .public-feed {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 3.5rem 3rem;
-  }
-
-  .public-feed__header {
-    margin-bottom: 4.5rem;
-  }
-
-  .public-feed__title {
-    font-size: 2.5rem;
-  }
-
   .public-feed__grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 2.75rem;
+    gap: 40px; /* Generous gap - showcase cards */
   }
 }
 
-/* ========================================================================== */
-/* TOUCH DEVICE OPTIMIZATIONS */
-/* ========================================================================== */
-
-@media (hover: none) and (pointer: coarse) {
-  .public-feed__pagination-button {
-    min-height: 48px;
-    padding: 1.25rem 1.75rem;
-  }
-
-  .public-feed__pagination-button:hover {
-    transform: none;
-    box-shadow: 0 2px 4px rgba(75, 70, 60, 0.08);
-  }
-
-  .public-feed__pagination-button:active:not(:disabled) {
-    opacity: 0.85;
-    transform: scale(0.98);
-  }
-
-  .public-feed__error-button:hover {
-    transform: none;
-  }
-
-  .public-feed__error-button:active {
-    opacity: 0.85;
-    transform: scale(0.98);
-  }
-}
-
-/* ========================================================================== */
-/* HIGH CONTRAST MODE SUPPORT */
-/* ========================================================================== */
-
-@media (prefers-contrast: high) {
-  .public-feed__title {
-    color: #0F0F0D;  /* black */
-  }
-
-  .public-feed__pagination-button {
-    border-width: 3px;
-  }
-}
-
-/* ========================================================================== */
-/* DARK MODE SUPPORT */
-/* ========================================================================== */
+/* ============================================================================
+   Dark Mode Support
+   ============================================================================ */
 
 @media (prefers-color-scheme: dark) {
   .public-feed {
-    background: linear-gradient(135deg,
-      #2C2C26 0%,      /* gray-700 */
-      #1A1A16 50%,     /* gray-800 */
-      #0F0F0D 100%     /* black */
-    );
+    background: #1f2937;
   }
 
   .public-feed__title {
-    color: #FFF8DC;  /* cream */
+    color: #f9fafb;
   }
 
   .public-feed__subtitle,
   .public-feed__loading p,
-  .public-feed__empty p {
-    color: #D1D1C7;  /* gray-300 */
+  .public-feed__empty p,
+  .public-feed__error p {
+    color: #d1d5db;
   }
 
   .public-feed__count {
-    color: #D4A574;  /* warning */
+    color: #fbbf24;
   }
 
   .public-feed__error h2,
   .public-feed__empty h2 {
-    color: #FAFAF8;  /* off-white */
+    color: #f9fafb;
   }
 
-  .public-feed__error p {
-    color: #D1D1C7;  /* gray-300 */
+  .public-feed__error-icon {
+    color: #f59e0b;
+  }
+
+  .public-feed__empty-icon {
+    color: #6b7280;
   }
 
   .public-feed__loading .spinner {
-    border-color: #4A4A42;  /* gray-600 */
-    border-top-color: #8FBC8F;  /* primary-light */
-  }
-
-  .public-feed__pagination {
-    border-top-color: #4A4A42;  /* gray-600 */
-    background: linear-gradient(to bottom,
-      transparent 0%,
-      rgba(139, 115, 85, 0.1) 100%
-    );
+    border-color: #374151;
+    border-top-color: #8FBC8F;
   }
 
   .public-feed__pagination-button {
-    background: #1A1A16;  /* gray-800 */
-    border-color: #C19A6B;  /* earth */
-    color: #C19A6B;  /* earth */
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
   }
 
   .public-feed__pagination-button:hover:not(:disabled) {
-    background: #8B4513;  /* secondary */
-    color: #FFF8DC;  /* cream */
-  }
-
-  .public-feed__pagination-button:disabled {
-    border-color: #4A4A42;  /* gray-600 */
-    color: #6B6B61;  /* gray-500 */
-    background: #2C2C26;  /* gray-700 */
+    background-color: #111827;
+    border-color: #3b82f6;
+    color: #93c5fd;
   }
 
   .public-feed__pagination-info {
-    background: rgba(139, 115, 85, 0.15);
-    border-color: #4A4A42;  /* gray-600 */
-    color: #8FBC8F;  /* primary-light */
-  }
-}
-
-/* ========================================================================== */
-/* PRINT STYLES */
-/* ========================================================================== */
-
-@media print {
-  .public-feed__pagination {
-    display: none;
-  }
-
-  .public-feed__grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .public-feed {
-    background: white;
-  }
-
-  .public-feed::before {
-    display: none;
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #d1d5db;
   }
 }

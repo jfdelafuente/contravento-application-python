@@ -64,14 +64,14 @@
 }
 
 .trip-sort-dropdown__select:hover:not(:disabled) {
-  border-color: var(--primary-color, #2563eb);
+  border-color: var(--primary-color, #ea580c);
   background-color: var(--bg-secondary, #f9fafb);
 }
 
 .trip-sort-dropdown__select:focus {
   outline: none;
-  border-color: var(--primary-color, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary-color, #ea580c);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
 }
 
 .trip-sort-dropdown__select:disabled {

@@ -5,13 +5,18 @@
   position: relative;
 }
 
-.section-title {
-  font-family: var(--font-serif);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--color-forest);
-  margin: 0 0 var(--space-6) 0;
-  padding-top: var(--space-2);
+/* Two Column Grid Layout - 50% left, 50% right */
+.basic-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; /* 24px gap between columns - reduced to give more width to each column */
+  align-items: start;
+}
+
+.basic-info-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 24px gap between form groups in right column */
 }
 
 /* Form Groups */
@@ -178,8 +183,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .section-title {
-    font-size: var(--text-xl);
+  /* Stack columns vertically on tablet and mobile */
+  .basic-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .form-group {

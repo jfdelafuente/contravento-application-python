@@ -129,6 +129,9 @@ export const DashboardPage: React.FC = () => {
 
             {/* Achievements Section */}
             <AchievementsSection />
+
+            {/* Recent Trips Section */}
+            <RecentTripsSection />
           </div>
         </section>
 
@@ -136,11 +139,6 @@ export const DashboardPage: React.FC = () => {
         <aside className="dashboard-feed">
           <SocialFeedSection />
         </aside>
-      </div>
-
-      {/* Recent Trips Section - Full Width "Desplegando el Mapa" */}
-      <div className="dashboard-layout">
-        <RecentTripsSection />
       </div>
     </div>
   );
