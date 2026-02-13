@@ -53,13 +53,13 @@
 
 ### Implementation for Foundational Components
 
-- [ ] T019 [Foundation] Implement useFollowersTooltip hook in `frontend/src/hooks/useFollowersTooltip.ts` (see IMPLEMENTATION_GUIDE.md § Task 2.1, research.md § 5, data-model.md § 4 lines 88-115)
+- [X] T019 [Foundation] Implement useFollowersTooltip hook in `frontend/src/hooks/useFollowersTooltip.ts` (see IMPLEMENTATION_GUIDE.md § Task 2.1, research.md § 5, data-model.md § 4 lines 88-115)
   - Initial state: users=[], totalCount=0, isLoading=false, error=null
   - fetchUsers() function using followService.getFollowers() or getFollowing()
   - Slice to 8 users: response.followers.slice(0, 8)
   - Error handling with Spanish message: "Error al cargar usuarios"
   - useCallback for fetchUsers to prevent re-renders
-- [ ] T020 [Foundation] Implement SocialStatTooltip component in `frontend/src/components/dashboard/SocialStatTooltip.tsx` (see IMPLEMENTATION_GUIDE.md § Task 2.2, data-model.md § 5 lines 119-157, ANALISIS lines 203-291)
+- [X] T020 [Foundation] Implement SocialStatTooltip component in `frontend/src/components/dashboard/SocialStatTooltip.tsx` (see IMPLEMENTATION_GUIDE.md § Task 2.2, data-model.md § 5 lines 119-157, ANALISIS lines 203-291)
   - Props interface: users, totalCount, type, username, isLoading, error, visible
   - Conditional rendering: !visible → return null
   - Loading state: spinner + "Cargando..." message
@@ -67,7 +67,7 @@
   - Empty state: "No tienes seguidores aún" or "No sigues a nadie aún"
   - User list: map over users, display avatar + username
   - "Ver todos" link: show when remaining > 0, calculate "+ X más · Ver todos"
-- [ ] T021 [Foundation] Implement tooltip CSS in `frontend/src/components/dashboard/SocialStatTooltip.css` (see IMPLEMENTATION_GUIDE.md § Task 3.1, research.md § 2, ANALISIS lines 447-622)
+- [X] T021 [Foundation] Implement tooltip CSS in `frontend/src/components/dashboard/SocialStatTooltip.css` (see IMPLEMENTATION_GUIDE.md § Task 3.1, research.md § 2, ANALISIS lines 447-622)
   - Absolute positioning below card with 8px gap
   - Max-width: 280px for desktop, 200px for mobile
   - Arrow pointing to card (CSS triangle)
