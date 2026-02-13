@@ -46,60 +46,6 @@ const SocialFeedItem: React.FC<SocialFeedItemProps> = ({ activity, style }) => {
     }
   };
 
-  const getActivityText = () => {
-    const username = activity.user.username;
-
-    switch (activity.type) {
-      case 'route_published':
-        return (
-          <>
-            <strong>{username}</strong> publicó una nueva ruta
-          </>
-        );
-      case 'achievement':
-        return (
-          <>
-            <strong>{username}</strong> consiguió un logro
-          </>
-        );
-      case 'photo_uploaded':
-        return (
-          <>
-            <strong>{username}</strong> subió una foto
-          </>
-        );
-      case 'new_follower':
-        return (
-          <>
-            <strong>{username}</strong> te está siguiendo
-          </>
-        );
-      case 'comment_added':
-        return (
-          <>
-            <strong>{username}</strong> comentó en una ruta
-          </>
-        );
-      case 'trip_liked':
-        return (
-          <>
-            <strong>{username}</strong> le gustó tu viaje
-          </>
-        );
-      case 'route_completed':
-        return (
-          <>
-            <strong>{username}</strong> completó una ruta
-          </>
-        );
-      case 'profile_updated':
-        return (
-          <>
-            <strong>{username}</strong> actualizó su perfil
-          </>
-        );
-    }
-  };
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -114,8 +60,6 @@ const SocialFeedItem: React.FC<SocialFeedItemProps> = ({ activity, style }) => {
     if (diffDays < 7) return `hace ${diffDays}d`;
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   };
-
-  const activityTypeClass = `social-feed-item--${activity.type.replace('_', '-')}`;
 
   return (
     <>
