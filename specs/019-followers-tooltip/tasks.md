@@ -254,7 +254,7 @@
 
 **Purpose**: Improvements that affect multiple user stories, final validation
 
-- [ ] T053 [P] Update CLAUDE.md Active Technologies section with Feature 019 in `CLAUDE.md` (see IMPLEMENTATION_GUIDE.md § Task 8.1)
+- [X] T053 [P] Update CLAUDE.md Active Technologies section with Feature 019 in `CLAUDE.md` (see IMPLEMENTATION_GUIDE.md § Task 8.1)
   - Add: TypeScript 5 (frontend-only, no backend changes)
   - Add: React 18 + React Router 6 + Axios (existing)
   - Add: Uses existing /users/{username}/followers endpoints
@@ -271,9 +271,9 @@
 - [ ] T056 [P] Performance validation: Verify no layout shift (CLS = 0) in `frontend/tests/e2e/dashboard-tooltips.spec.ts`
   - Measure Cumulative Layout Shift during tooltip appearance
   - Assert: CLS = 0 (tooltip uses absolute positioning)
-- [ ] T057 Code cleanup: Remove console.log statements and debug code from all new files
-- [ ] T058 Code cleanup: Run ESLint and fix any warnings in `frontend/src/hooks/useFollowersTooltip.ts`, `frontend/src/components/dashboard/SocialStatTooltip.tsx`, `frontend/src/components/dashboard/SocialStatsSection.tsx`
-- [ ] T059 Code cleanup: Run TypeScript compiler (tsc --noEmit) and fix any type errors
+- [X] T057 Code cleanup: Remove console.log statements and debug code from all new files
+- [X] T058 Code cleanup: Run ESLint and fix any warnings in `frontend/src/hooks/useFollowersTooltip.ts`, `frontend/src/components/dashboard/SocialStatTooltip.tsx`, `frontend/src/components/dashboard/SocialStatsSection.tsx`
+- [X] T059 Code cleanup: Run TypeScript compiler (tsc --noEmit) and fix any type errors
 - [ ] T060 [P] Run quickstart.md validation: Manual testing of all 18 test scenarios (see `specs/019-followers-tooltip/quickstart.md`)
   - Verify Followers Tooltip (hover, display, timing)
   - Verify Following Tooltip
