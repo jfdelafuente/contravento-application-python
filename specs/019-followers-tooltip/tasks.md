@@ -38,18 +38,18 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T007 [P] [Foundation] Unit test: useFollowersTooltip returns correct initial state in `frontend/tests/unit/useFollowersTooltip.test.ts`
-- [ ] T008 [P] [Foundation] Unit test: useFollowersTooltip fetchUsers() calls getFollowers API in `frontend/tests/unit/useFollowersTooltip.test.ts`
-- [ ] T009 [P] [Foundation] Unit test: useFollowersTooltip slices response to 8 users in `frontend/tests/unit/useFollowersTooltip.test.ts`
-- [ ] T010 [P] [Foundation] Unit test: useFollowersTooltip handles loading state correctly in `frontend/tests/unit/useFollowersTooltip.test.ts`
-- [ ] T011 [P] [Foundation] Unit test: useFollowersTooltip handles errors with Spanish message in `frontend/tests/unit/useFollowersTooltip.test.ts`
-- [ ] T012 [P] [Foundation] Unit test: useFollowersTooltip handles empty followers (0 count) in `frontend/tests/unit/useFollowersTooltip.test.ts`
-- [ ] T013 [P] [Foundation] Unit test: SocialStatTooltip renders loading state with spinner in `frontend/tests/unit/SocialStatTooltip.test.tsx`
-- [ ] T014 [P] [Foundation] Unit test: SocialStatTooltip renders user list with 8 users in `frontend/tests/unit/SocialStatTooltip.test.tsx`
-- [ ] T015 [P] [Foundation] Unit test: SocialStatTooltip renders empty state message in `frontend/tests/unit/SocialStatTooltip.test.tsx`
-- [ ] T016 [P] [Foundation] Unit test: SocialStatTooltip renders "Ver todos" link when remaining > 0 in `frontend/tests/unit/SocialStatTooltip.test.tsx`
-- [ ] T017 [P] [Foundation] Unit test: SocialStatTooltip does not render "Ver todos" when totalCount ≤ 8 in `frontend/tests/unit/SocialStatTooltip.test.tsx`
-- [ ] T018 [P] [Foundation] Unit test: SocialStatTooltip hides when visible=false in `frontend/tests/unit/SocialStatTooltip.test.tsx`
+- [X] T007 [P] [Foundation] Unit test: useFollowersTooltip returns correct initial state in `frontend/tests/unit/useFollowersTooltip.test.ts`
+- [X] T008 [P] [Foundation] Unit test: useFollowersTooltip fetchUsers() calls getFollowers API in `frontend/tests/unit/useFollowersTooltip.test.ts`
+- [X] T009 [P] [Foundation] Unit test: useFollowersTooltip slices response to 8 users in `frontend/tests/unit/useFollowersTooltip.test.ts`
+- [X] T010 [P] [Foundation] Unit test: useFollowersTooltip handles loading state correctly in `frontend/tests/unit/useFollowersTooltip.test.ts`
+- [X] T011 [P] [Foundation] Unit test: useFollowersTooltip handles errors with Spanish message in `frontend/tests/unit/useFollowersTooltip.test.ts`
+- [X] T012 [P] [Foundation] Unit test: useFollowersTooltip handles empty followers (0 count) in `frontend/tests/unit/useFollowersTooltip.test.ts`
+- [X] T013 [P] [Foundation] Unit test: SocialStatTooltip renders loading state with spinner in `frontend/tests/unit/SocialStatTooltip.test.tsx`
+- [X] T014 [P] [Foundation] Unit test: SocialStatTooltip renders user list with 8 users in `frontend/tests/unit/SocialStatTooltip.test.tsx`
+- [X] T015 [P] [Foundation] Unit test: SocialStatTooltip renders empty state message in `frontend/tests/unit/SocialStatTooltip.test.tsx`
+- [X] T016 [P] [Foundation] Unit test: SocialStatTooltip renders "Ver todos" link when remaining > 0 in `frontend/tests/unit/SocialStatTooltip.test.tsx`
+- [X] T017 [P] [Foundation] Unit test: SocialStatTooltip does not render "Ver todos" when totalCount ≤ 8 in `frontend/tests/unit/SocialStatTooltip.test.tsx`
+- [X] T018 [P] [Foundation] Unit test: SocialStatTooltip hides when visible=false in `frontend/tests/unit/SocialStatTooltip.test.tsx`
 
 ### Implementation for Foundational Components
 
