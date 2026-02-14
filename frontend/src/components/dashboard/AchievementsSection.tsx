@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Achievement } from '../../types/achievement';
 import { getUserAchievements } from '../../services/achievementsService';
 import { useAuth } from '../../contexts/AuthContext';
 import AchievementCard from './AchievementCard';
 import './AchievementsSection.css';
+
+/**
+ * Performance: rerender-memo - Prevents re-renders when parent re-renders
+ * Performance: rendering-conditional-render - Early returns for loading/error/empty states
+ */
 
 /**
  * AchievementsSection component - Display user achievements with icons and descriptions
@@ -42,44 +47,69 @@ const AchievementsSection: React.FC = () => {
   // TODO: Use earnedCount for stats display
   // const earnedCount = achievements.filter(a => a.is_earned).length;
 
+  // Performance: rendering-conditional-render - Early return for loading state
+  if (loading) {
+    return (
+      <section className="achievements-section" aria-labelledby="achievements-heading">
+        <h2 id="achievements-heading" className="achievements-section__title">
+          Hitos
+        </h2>
+        <div className="achievements-section__loading">
+          <div className="spinner"></div>
+        </div>
+      </section>
+    );
+  }
+
+  // Performance: rendering-conditional-render - Early return for error state
+  if (error) {
+    return (
+      <section className="achievements-section" aria-labelledby="achievements-heading">
+        <h2 id="achievements-heading" className="achievements-section__title">
+          Hitos
+        </h2>
+        <div className="achievements-section__error">
+          <p>{error}</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Performance: rendering-conditional-render - Early return for empty state
+  if (achievements.length === 0) {
+    return (
+      <section className="achievements-section" aria-labelledby="achievements-heading">
+        <h2 id="achievements-heading" className="achievements-section__title">
+          Hitos
+        </h2>
+        <div className="achievements-section__empty">
+          <p>No hay logros disponibles</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Main render - only when we have achievements
   return (
     <section className="achievements-section" aria-labelledby="achievements-heading">
       <h2 id="achievements-heading" className="achievements-section__title">
         Hitos
       </h2>
-
-      {loading && (
-        <div className="achievements-section__loading">
-          <div className="spinner"></div>
-        </div>
-      )}
-
-      {error && (
-        <div className="achievements-section__error">
-          <p>{error}</p>
-        </div>
-      )}
-
-      {!loading && !error && achievements.length === 0 && (
-        <div className="achievements-section__empty">
-          <p>No hay logros disponibles</p>
-        </div>
-      )}
-
-      {!loading && !error && achievements.length > 0 && (
-        <div className="achievements-section__grid">
-          {achievements.slice(0, 4).map((achievement, index) => (
-            <div
-              key={achievement.achievement_id}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <AchievementCard achievement={achievement} />
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="achievements-section__grid">
+        {achievements.slice(0, 4).map((achievement, index) => (
+          <div
+            key={achievement.achievement_id}
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <AchievementCard achievement={achievement} />
+          </div>
+        ))}
+      </div>
     </section>
   );
 };
 
-export default AchievementsSection;
+// Performance: rerender-memo - Add display name for better debugging
+AchievementsSection.displayName = 'AchievementsSection';
+
+export default memo(AchievementsSection);

@@ -1,9 +1,48 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { memo, useEffect, useRef, useCallback, useMemo } from 'react';
 import { FeedItem } from '../../services/feedService';
 import { useInfiniteFeed } from '../../hooks/useFeed';
 import SocialFeedItem from './SocialFeedItem';
 import SkeletonLoader from '../common/SkeletonLoader';
 import './SocialFeedSection.css';
+
+/**
+ * Performance: rerender-memo - Prevents re-renders when parent re-renders
+ * Performance: rerender-functional-setstate - Already uses useCallback for event handlers
+ * Performance: js-cache-property-access - Already uses useMemo for activities conversion
+ * Performance: rendering-hoist-jsx - Static error/empty state icons can be hoisted
+ */
+
+// Performance: rendering-hoist-jsx - Static SVG icons outside component
+const ERROR_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
+
+const EMPTY_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+    />
+  </svg>
+);
+
+const LOADING_SPINNER = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" opacity="0.25" />
+    <path d="M12 2a10 10 0 0 1 10 10" opacity="0.75" />
+  </svg>
+);
+
+const END_OF_FEED_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
 
 export interface FeedActivity {
   id: string;
@@ -74,12 +113,12 @@ const SocialFeedSection: React.FC = () => {
   // Intersection Observer ref for infinite scroll
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Convert real trips to activities
+  // Performance: js-cache-property-access - Memoize activities conversion
   const activities = useMemo(() => {
     return trips.map(convertTripToActivity);
   }, [trips]);
 
-  // Handle intersection for infinite scroll
+  // Performance: rerender-functional-setstate - Stable intersection callback
   const handleIntersection = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
@@ -118,11 +157,7 @@ const SocialFeedSection: React.FC = () => {
           Tu Pelotón
         </h2>
         <div className="social-feed-section__error" role="alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          {ERROR_ICON}
           <p>{error}</p>
         </div>
       </section>
@@ -154,13 +189,7 @@ const SocialFeedSection: React.FC = () => {
         /* Empty state */
         <div className="social-feed-section__empty">
           <div className="social-feed-section__empty-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
+            {EMPTY_ICON}
           </div>
           <h3 className="social-feed-section__empty-title">Tu pelotón está vacío</h3>
           <p className="social-feed-section__empty-text">
@@ -184,10 +213,7 @@ const SocialFeedSection: React.FC = () => {
           {isLoadingMore && (
             <div className="social-feed-section__loading-more">
               <div className="social-feed-section__spinner" aria-label="Cargando más actividades">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" opacity="0.25" />
-                  <path d="M12 2a10 10 0 0 1 10 10" opacity="0.75" />
-                </svg>
+                {LOADING_SPINNER}
               </div>
               <p>Cargando más actividades...</p>
             </div>
@@ -199,9 +225,7 @@ const SocialFeedSection: React.FC = () => {
           {/* End of feed message */}
           {!hasMore && activities.length > 0 && (
             <div className="social-feed-section__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              {END_OF_FEED_ICON}
               <p>Has visto toda la actividad reciente</p>
             </div>
           )}
@@ -211,4 +235,7 @@ const SocialFeedSection: React.FC = () => {
   );
 };
 
-export default SocialFeedSection;
+// Performance: rerender-memo - Add display name for better debugging
+SocialFeedSection.displayName = 'SocialFeedSection';
+
+export default memo(SocialFeedSection);
