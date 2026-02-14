@@ -17,37 +17,37 @@
 
 ### 1. Followers Tooltip - Basic Functionality
 
-- [ ] **Hover over "Seguidores" card for 500ms** → Tooltip appears
-- [ ] **Tooltip shows max 8 users** with avatars and usernames
-- [ ] **Tooltip shows header** "SEGUIDORES" in uppercase
-- [ ] **Quick hover (<500ms)** → NO tooltip appears (prevents accidental triggers)
-- [ ] **Mouse leave for 200ms** → Tooltip disappears
+- [X] **Hover over "Seguidores" card for 500ms** → Tooltip appears
+- [X] **Tooltip shows max 8 users** with avatars and usernames
+- [X] **Tooltip shows header** "SEGUIDORES" in uppercase
+- [X] **Quick hover (<500ms)** → NO tooltip appears (prevents accidental triggers)
+- [X] **Mouse leave for 200ms** → Tooltip disappears
 
 ### 2. Following Tooltip - Basic Functionality
 
-- [ ] **Hover over "Siguiendo" card for 500ms** → Tooltip appears
-- [ ] **Tooltip shows max 8 users** with avatars and usernames
-- [ ] **Tooltip shows header** "SIGUIENDO" in uppercase
-- [ ] **Mouse leave for 200ms** → Tooltip disappears
+- [X] **Hover over "Siguiendo" card for 500ms** → Tooltip appears
+- [X] **Tooltip shows max 8 users** with avatars and usernames
+- [X] **Tooltip shows header** "SIGUIENDO" in uppercase
+- [X] **Mouse leave for 200ms** → Tooltip disappears
 
 ### 3. "Ver todos" Link
 
 **Prerequisite**: Test user must have 9+ followers
 
-- [ ] **Hover followers card** → "Ver todos" link visible at bottom
-- [ ] **Click "Ver todos"** → Navigate to `/users/testuser/followers`
-- [ ] **Back to dashboard** → Hover following card → Click "Ver todos" → Navigate to `/users/testuser/following`
+- [X] **Hover followers card** → "Ver todos" link visible at bottom
+- [X] **Click "Ver todos"** → Navigate to `/users/testuser/followers`
+- [X] **Back to dashboard** → Hover following card → Click "Ver todos" → Navigate to `/users/testuser/following`
 
 **If user has ≤8 followers**:
-- [ ] **"Ver todos" link does NOT appear** (expected behavior)
+- [X] **"Ver todos" link does NOT appear** (expected behavior)
 
 ### 4. Empty State
 
 **Prerequisite**: Use a test user with 0 followers
 
-- [ ] **Hover followers card (0 followers)** → Tooltip shows "No tienes seguidores aún"
-- [ ] **No user list shown**, only empty message
-- [ ] **"Ver todos" link NOT visible**
+- [X] **Hover followers card (0 followers)** → Tooltip shows "No tienes seguidores aún"
+- [X] **No user list shown**, only empty message
+- [X] **"Ver todos" link NOT visible**
 
 ### 5. Loading State
 
@@ -121,23 +121,23 @@
 
 ### 12. Tooltip Positioning
 
-- [ ] **Tooltip appears centered below card** (8px gap)
-- [ ] **Arrow points up to card** (CSS triangle)
-- [ ] **Tooltip within viewport** (doesn't overflow off-screen)
-- [ ] **On narrow screens** → Tooltip shrinks to fit (min-width: 200px)
+- [X] **Tooltip appears centered below card** (8px gap)
+- [X] **Arrow points up to card** (CSS triangle)
+- [X] **Tooltip within viewport** (doesn't overflow off-screen)
+- [X] **On narrow screens** → Tooltip shrinks to fit (min-width: 200px)
 
 ### 13. Username Link Navigation
 
-- [ ] **Click username in tooltip** → Navigate to `/users/{username}` profile page
-- [ ] **Profile page loads correctly**
-- [ ] **Back button** → Return to dashboard
+- [X] **Click username in tooltip** → Navigate to `/users/{username}` profile page
+- [X] **Profile page loads correctly**
+- [X] **Back button** → Return to dashboard
 
 ### 14. Hover from Card to Tooltip
 
-- [ ] **Hover over "Seguidores" card** → Tooltip appears
-- [ ] **Move mouse from card into tooltip** → Tooltip stays visible (200ms leave delay)
-- [ ] **Hover over username link** → Background changes to light gray
-- [ ] **Move mouse out of tooltip** → After 200ms, tooltip disappears
+- [X] **Hover over "Seguidores" card** → Tooltip appears
+- [X] **Move mouse from card into tooltip** → Tooltip stays visible (200ms leave delay)
+- [X] **Hover over username link** → Background changes to light gray
+- [X] **Move mouse out of tooltip** → After 200ms, tooltip disappears
 
 ### 15. Contrast & Readability
 
@@ -156,9 +156,9 @@
 
 ### 17. Concurrent Tooltips
 
-- [ ] **Hover "Seguidores" card** → Tooltip appears
-- [ ] **Move to "Siguiendo" card** → First tooltip disappears, second appears
-- [ ] **Only 1 tooltip visible at a time** (expected behavior)
+- [X] **Hover "Seguidores" card** → Tooltip appears
+- [X] **Move to "Siguiendo" card** → First tooltip disappears, second appears
+- [X] **Only 1 tooltip visible at a time** (expected behavior)
 
 ### 18. Responsive Design (Desktop → Mobile)
 
@@ -176,9 +176,10 @@
 ## Summary
 
 **Total Scenarios**: 18
-**Passed**: ___ / 18
-**Failed**: ___
-**Blocked**: ___
+**Passed**: 8 / 18 (Scenarios: 1, 2, 3, 4, 12, 13, 14, 17)
+**Failed**: 0
+**Blocked**: 0
+**Pending**: 10 (Scenarios: 5, 6, 7, 8, 9, 10, 11, 15, 16, 18)
 
 ## Issues Found
 
