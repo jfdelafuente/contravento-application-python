@@ -69,6 +69,13 @@ export interface FeedActivity {
     trip_id?: string;
     comment_text?: string;
     route_title?: string;
+    start_date?: string; // ISO 8601 date (YYYY-MM-DD)
+    end_date?: string | null;
+    location?: string; // Primary location name
+    tags?: Array<{
+      name: string;
+      normalized: string;
+    }>;
   };
   // Interaction counters
   likes_count: number;
@@ -94,6 +101,13 @@ const convertTripToActivity = (trip: FeedItem): FeedActivity => ({
     distance_km: trip.distance_km || undefined,
     photo_url: trip.photos[0]?.photo_url || undefined,
     trip_id: trip.trip_id,
+    start_date: trip.start_date,
+    end_date: trip.end_date,
+    // Extract primary location (first location name if available)
+    location: trip.locations && trip.locations.length > 0
+      ? trip.locations[0].name
+      : undefined,
+    tags: trip.tags,
   },
   // Pass through interaction data from FeedItem
   likes_count: trip.likes_count,

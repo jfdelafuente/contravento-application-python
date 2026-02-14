@@ -1,66 +1,120 @@
-/* SocialFeedItem.css - "Cycling Club Vintage Notice Board" - Pinned Journal Entry */
+/* SocialFeedItem.css - "Annotated Vintage Postcard" - Information-Rich Trip Card */
 
-/* Intent: Horizontal feed item as pinned journal entry on cork board
- * Layout: 120x120px vintage photo | handwritten journal notes
- * Typography: Caveat (handwritten title), Inter (metadata)
- * Depth: Polaroid shadow, pin at top, aged paper texture
+/* Intent: Enhanced feed item as detailed cycling trip postcard with annotations
+ * Layout: 100x100px photo + two-column content (main + sidebar annotations) + tag strip
+ * Typography: Caveat (handwritten), Special Elite (typewriter data), Inter (metadata)
+ * Depth: Postcard shadow, edge wear, postage stamps, margin notes
+ * Information Density: Photo, user, title, date, location, distance, tags, interactions
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&display=swap');
 
 .social-feed-item {
-  display: flex;
-  gap: 10px; /* Reverted back from 8px */
-  /* Weathered paper effect - matching SocialStats */
+  display: grid;
+  grid-template-columns: 210px 1fr; /* Wider thumbnail with 3:2 aspect ratio */
+  grid-template-rows: auto auto;
+  gap: 0;
+
+  /* Weathered postcard paper */
   background:
-    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.04) 100%),
     linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
-  border: 2px solid #d2b48c; /* Warm tan border */
+
+  border: 2px solid #d2b48c;
   border-radius: 6px;
-  padding: 10px; /* Reverted back from 8px */
+  padding: 0;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
+
+  /* Postcard shadow with edge depth */
   box-shadow:
-    2px 3px 8px rgba(0, 0, 0, 0.16), /* Paper shadow */
+    2px 3px 8px rgba(0, 0, 0, 0.16),
     inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+
   position: relative;
+  overflow: hidden;
 }
 
-/* Thumbtack pin at top */
+/* Subtle paper grain texture */
+.social-feed-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  border-radius: 4px;
+  z-index: 0;
+}
+
+/* Thumbtack pin at top-left */
 .social-feed-item::before {
   content: '';
   position: absolute;
   top: -6px;
-  left: 25%;
+  left: 16%;
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle at 30% 30%, #8FBC8F, #6b8e23); /* Olive pin */
+  background: radial-gradient(circle at 30% 30%, #8FBC8F, #6b8e23);
   border-radius: 50%;
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.25),
     inset -1px -1px 2px rgba(0, 0, 0, 0.2);
-  z-index: 1;
+  z-index: 10;
 }
 
 .social-feed-item:hover {
-  transform: translateY(-2px) rotate(-0.3deg); /* Slight lift and tilt */
+  transform: translateY(-3px) rotate(-0.4deg);
   box-shadow:
-    3px 5px 12px rgba(0, 0, 0, 0.22),
+    4px 7px 16px rgba(0, 0, 0, 0.24),
     inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  border-color: #c19a6b; /* Darker tan on hover */
+  border-color: #c19a6b;
 }
 
-/* Thumbnail - 100x100px polaroid photo */
+/* Hover effect: Highlight annotations */
+.social-feed-item:hover .social-feed-item__annotations {
+  background: rgba(234, 88, 12, 0.04);
+}
+
+/* Grid Layout Areas */
 .social-feed-item__thumbnail {
-  width: 100px;
-  height: 100px;
+  grid-row: 1 / 3;
+  grid-column: 1;
+}
+
+.social-feed-item__content {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.social-feed-item__tags-strip {
+  grid-row: 2;
+  grid-column: 2; /* Only below Content area, not spanning both columns */
+}
+
+/* Thumbnail - 210x140px vintage photo with postcard border (3:2 aspect ratio) */
+.social-feed-item__thumbnail {
+  width: 210px;
+  height: 140px;
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: 4px 0 0 0;
+  overflow: visible;
+  background: #f5f5dc;
+  border-right: 2px dashed rgba(210, 180, 140, 0.4); /* Postcard perforation */
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 1;
+}
+
+.social-feed-item__thumbnail-inner {
+  width: 100%;
+  height: 100%;
+  border: 3px solid #fefcf8; /* White postcard margin */
+  box-sizing: border-box;
   overflow: hidden;
-  background: #f5f5dc; /* Beige background */
-  border: 2px solid #d2b48c;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  position: relative;
 }
 
 .social-feed-item__thumbnail-img {
@@ -68,8 +122,8 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 0.95; /* Slightly faded vintage */
-  filter: sepia(0.12) contrast(0.96); /* Vintage photo effect */
+  opacity: 0.95;
+  filter: sepia(0.15) contrast(0.96);
 }
 
 .social-feed-item__thumbnail-placeholder {
@@ -78,37 +132,58 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8b7355; /* Warm brown */
+  color: #8b7355;
   background: rgba(210, 180, 140, 0.15);
 }
 
 .social-feed-item__thumbnail-placeholder svg {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   opacity: 0.45;
 }
 
-/* Content - Handwritten journal notes */
+/* Date text - Below title */
+.social-feed-item__date {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: #8b7355;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* Content Area - Two columns: Main + Annotations */
 .social-feed-item__content {
-  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 90px;
+  gap: 0;
+  padding: 10px 10px 8px 10px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Main Column - Title, user, description */
+.social-feed-item__main {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 0; /* Allow text truncation */
+  gap: 6px;
+  min-width: 0;
+  padding-right: 8px;
 }
 
 /* Header - Avatar + Username + Timestamp inline */
 .social-feed-item__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-size: 13px;
   line-height: 1;
 }
 
 .social-feed-item__avatar {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -128,113 +203,236 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #8b7355 0%, #a0826d 100%); /* Warm brown gradient */
+  background: linear-gradient(135deg, #8b7355 0%, #a0826d 100%);
   color: white;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
 .social-feed-item__username {
-  font-family: 'Caveat', cursive; /* Handwritten username */
-  font-size: 17px;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
   font-weight: 600;
-  color: #3e2723; /* Very dark brown */
+  color: #3e2723;
+  letter-spacing: 0.01em;
 }
 
 .social-feed-item__dot {
-  color: #a0826d; /* Light brown */
+  color: #a0826d;
   font-weight: 400;
 }
 
 .social-feed-item__timestamp {
   font-family: 'Inter', sans-serif;
-  color: #8b7355; /* Medium brown */
-  font-size: 12px;
+  color: #8b7355;
+  font-size: 11px;
   font-weight: 500;
 }
 
-/* Title - Handwritten journal entry */
+/* Title - Handwritten postcard message */
 .social-feed-item__title {
   margin: 0;
-  font-family: 'Caveat', cursive; /* Handwritten title */
-  font-size: 18px;
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
   font-weight: 700;
-  color: #3e2723; /* Very dark brown */
-  line-height: 1.25;
+  color: #2d2d2d;
+  line-height: 1.3;
   letter-spacing: 0.01em;
+
+  /* Allow 2 lines max */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  text-shadow: 0 0 0.5px rgba(45, 45, 45, 0.2);
+}
+
+/* Annotation Sidebar - Handwritten margin notes */
+.social-feed-item__annotations {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 6px;
+
+  /* Subtle margin note background */
+  background: linear-gradient(to left, rgba(234, 88, 12, 0.02), transparent);
+  border-left: 1px dashed rgba(139, 115, 85, 0.2);
+
+  transition: background 0.2s ease;
+}
+
+.social-feed-item__annotation {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.social-feed-item__annotation-label {
+  font-family: 'Caveat', cursive;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8b7355;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.social-feed-item__annotation-value {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: #3e2723;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+
+  /* Truncate long text */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Distance - Inline with icon (chocolate accent) */
-.social-feed-item__distance {
-  display: inline-flex;
+/* Distance with icon */
+.social-feed-item__annotation-value--distance {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  gap: 3px;
+  color: #d2691e;
   font-weight: 600;
-  color: #d2691e; /* Chocolate accent */
 }
 
-.social-feed-item__distance svg {
-  width: 15px;
-  height: 15px;
+.social-feed-item__annotation-value--distance svg {
+  width: 11px;
+  height: 11px;
   flex-shrink: 0;
 }
 
-/* Interactions - Inline buttons, vintage style */
+/* Location with pin icon */
+.social-feed-item__annotation-value--location {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.social-feed-item__annotation-value--location svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  color: #d64545;
+}
+
+/* Tags + Interactions Strip */
+.social-feed-item__tags-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 10px 10px;
+  border-top: 1px dashed rgba(210, 180, 140, 0.3);
+  background: linear-gradient(to bottom, transparent, rgba(101, 67, 33, 0.02));
+  position: relative;
+  z-index: 1;
+}
+
+/* Tags as vintage postage stamps */
+.social-feed-item__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.social-feed-item__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+
+  /* Postage stamp style */
+  background: linear-gradient(135deg, rgba(74, 111, 165, 0.12), rgba(74, 111, 165, 0.08));
+  border: 1.5px solid rgba(74, 111, 165, 0.3);
+  border-radius: 2px;
+
+  /* Stamp perforation effect */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+
+  font-family: 'Special Elite', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: #4a6fa5;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
+
+  transition: all 0.2s ease;
+}
+
+.social-feed-item__tag:hover {
+  background: linear-gradient(135deg, rgba(74, 111, 165, 0.18), rgba(74, 111, 165, 0.12));
+  border-color: rgba(74, 111, 165, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Max 3 tags visible, then "+N" */
+.social-feed-item__tag--more {
+  background: rgba(139, 115, 85, 0.1);
+  border-color: rgba(139, 115, 85, 0.25);
+  color: #704214;
+}
+
+/* Interactions - Compact inline buttons */
 .social-feed-item__interactions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 4px;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto; /* Always push to right edge */
 }
 
 .social-feed-item__interaction-button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: transparent;
   border: none;
-  padding: 5px 10px;
+  padding: 4px 6px;
   border-radius: 4px;
   cursor: pointer;
-  color: #8b7355; /* Medium brown */
+  color: #8b7355;
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .social-feed-item__interaction-button:hover {
-  color: #5d4037; /* Darker brown */
-  background: rgba(210, 180, 140, 0.2); /* Tan glow */
+  color: #5d4037;
+  background: rgba(210, 180, 140, 0.2);
 }
 
 .social-feed-item__interaction-icon {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
 }
 
 .social-feed-item__interaction-count {
-  min-width: 18px;
+  min-width: 16px;
   text-align: left;
+  font-size: 11px;
 }
 
 /* Accessibility */
 .social-feed-item:focus-visible {
-  outline: 3px solid #6b8e23; /* Olive focus */
+  outline: 3px solid #6b8e23;
   outline-offset: 3px;
 }
 
-/* Responsive - Mobile: Smaller thumbnail, tighter spacing */
+/* Responsive - Mobile: Simplified layout */
 @media (max-width: 768px) {
   .social-feed-item {
-    gap: 10px;
-    padding: 10px;
+    grid-template-columns: 135px 1fr; /* 3:2 aspect ratio maintained */
   }
 
   .social-feed-item::before {
@@ -243,73 +441,141 @@
   }
 
   .social-feed-item__thumbnail {
-    width: 80px;
-    height: 80px;
+    width: 135px;
+    height: 90px; /* 3:2 aspect ratio */
   }
 
-  .social-feed-item__thumbnail-placeholder svg {
-    width: 32px;
-    height: 32px;
+  .social-feed-item__thumbnail-inner {
+    border-width: 2px;
   }
 
-  .social-feed-item__header {
-    font-size: 12px;
-  }
-
-  .social-feed-item__avatar {
-    width: 22px;
-    height: 22px;
-  }
-
-  .social-feed-item__avatar-placeholder {
+  .social-feed-item__date {
     font-size: 10px;
   }
 
+  .social-feed-item__content {
+    grid-template-columns: 1fr 75px;
+    padding: 8px 8px 6px 8px;
+  }
+
+  .social-feed-item__main {
+    gap: 5px;
+    padding-right: 6px;
+  }
+
+  .social-feed-item__header {
+    gap: 6px;
+  }
+
+  .social-feed-item__avatar {
+    width: 20px;
+    height: 20px;
+  }
+
+  .social-feed-item__avatar-placeholder {
+    font-size: 9px;
+  }
+
   .social-feed-item__username {
-    font-size: 15px;
+    font-size: 14px;
+  }
+
+  .social-feed-item__timestamp {
+    font-size: 10px;
   }
 
   .social-feed-item__title {
-    font-size: 16px;
+    font-size: 15px;
+    -webkit-line-clamp: 2;
   }
 
-  .social-feed-item__distance {
-    font-size: 12px;
+  .social-feed-item__annotations {
+    gap: 4px;
+    padding: 3px 5px;
   }
 
-  .social-feed-item__distance svg {
+  .social-feed-item__annotation-label {
+    font-size: 10px;
+  }
+
+  .social-feed-item__annotation-value {
+    font-size: 10px;
+  }
+
+  .social-feed-item__annotation-value--distance svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .social-feed-item__annotation-value--location svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .social-feed-item__tags-strip {
+    padding: 6px 8px 8px 8px;
+    gap: 6px;
+  }
+
+  .social-feed-item__tags {
+    gap: 5px;
+  }
+
+  .social-feed-item__tag {
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+
+  .social-feed-item__interactions {
+    gap: 8px;
+  }
+
+  .social-feed-item__interaction-button {
+    padding: 3px 5px;
+    font-size: 11px;
+  }
+
+  .social-feed-item__interaction-icon {
     width: 13px;
     height: 13px;
   }
 
-  .social-feed-item__interactions {
-    gap: 10px;
-  }
-
-  .social-feed-item__interaction-button {
-    font-size: 12px;
-    padding: 4px 8px;
-  }
-
-  .social-feed-item__interaction-icon {
-    width: 15px;
-    height: 15px;
+  .social-feed-item__interaction-count {
+    font-size: 10px;
   }
 }
 
-/* Animation - Paper slide in from side */
-@keyframes paperSlideIn {
+/* Animation - Postcard drop-in with subtle rotation */
+@keyframes postcardDropIn {
   from {
     opacity: 0;
-    transform: translateX(-20px) rotate(-2deg);
+    transform: translateY(-15px) rotate(-3deg) scale(0.96);
+  }
+  60% {
+    transform: translateY(2px) rotate(0.2deg) scale(1.01);
   }
   to {
     opacity: 1;
-    transform: translateX(0) rotate(0deg);
+    transform: translateY(0) rotate(0deg) scale(1);
   }
 }
 
 .social-feed-item {
-  animation: paperSlideIn 0.4s ease-out;
+  animation: postcardDropIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   animation-fill-mode: both;
+}
+
+/* Reduced Motion (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .social-feed-item {
+    animation: none !important;
+  }
+
+  .social-feed-item:hover {
+    transform: none !important;
+  }
+
+  .social-feed-item__tag:hover {
+    transform: none !important;
+  }
 }
