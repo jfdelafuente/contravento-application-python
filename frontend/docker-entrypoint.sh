@@ -4,8 +4,8 @@
 
 set -e
 
-# Default values
-: ${BACKEND_INTERNAL_PORT:=8000}
+# Default values - EXPORT to make available for envsubst
+export BACKEND_INTERNAL_PORT=${BACKEND_INTERNAL_PORT:-8000}
 
 echo "🔧 Configuring Nginx with BACKEND_INTERNAL_PORT=${BACKEND_INTERNAL_PORT}"
 
