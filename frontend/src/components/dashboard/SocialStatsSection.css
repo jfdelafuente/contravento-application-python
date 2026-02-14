@@ -130,12 +130,12 @@
 
   border: none;
   border-radius: 3px;
-  padding: 22px 18px 18px;
+  padding: 10px; /* Reduced from 22px 18px 18px */
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px; /* Reduced from 10px */
 
   /* Paper lifted from surface */
   box-shadow:
@@ -241,8 +241,8 @@
 
 /* Icon - Hand-drawn circle badges */
 .social-stat-card__icon {
-  width: 50px;
-  height: 50px;
+  width: 36px; /* Reduced from 50px */
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -256,8 +256,8 @@
 }
 
 .social-stat-card__icon svg {
-  width: 24px;
-  height: 24px;
+  width: 18px; /* Reduced from 24px */
+  height: 18px;
 }
 
 /* Followers icon - Amber heart */
@@ -295,7 +295,7 @@
 /* Label - Handwritten casual text */
 .social-stat-card__label {
   font-family: 'Caveat', cursive;
-  font-size: 18px;
+  font-size: 14px; /* Reduced from 18px */
   font-weight: 600;
   color: #3a4a1f;
   margin: 0;
@@ -309,7 +309,7 @@
 /* Value - Typewriter stamped numbers */
 .social-stat-card__value {
   font-family: 'Special Elite', monospace;
-  font-size: 42px;
+  font-size: 28px; /* Reduced from 42px */
   font-weight: 400;
   color: #2d2416;
   margin: 0;
@@ -361,25 +361,25 @@
   }
 
   .social-stat-card {
-    padding: 18px 14px 16px;
+    padding: 10px; /* Reduced from 18px 14px 16px */
   }
 
   .social-stat-card__icon {
-    width: 44px;
-    height: 44px;
+    width: 32px; /* Reduced from 44px */
+    height: 32px;
   }
 
   .social-stat-card__icon svg {
-    width: 22px;
-    height: 22px;
+    width: 16px; /* Reduced from 22px */
+    height: 16px;
   }
 
   .social-stat-card__label {
-    font-size: 16px;
+    font-size: 13px; /* Reduced from 16px */
   }
 
   .social-stat-card__value {
-    font-size: 36px;
+    font-size: 24px; /* Reduced from 36px */
   }
 }
 
