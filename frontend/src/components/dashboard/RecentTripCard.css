@@ -26,7 +26,7 @@
   text-decoration: none;
   color: inherit;
   transition: all 0.25s ease;
-  height: 160px;
+  height: 130px; /* Reduced from 160px */
   box-sizing: border-box;
   box-shadow:
     2px 3px 8px rgba(0, 0, 0, 0.18), /* Polaroid shadow */
@@ -108,11 +108,11 @@
 
 /* Content - Handwritten notes */
 .recent-trip-card__content {
-  padding: 16px 20px;
+  padding: 12px 16px; /* Reduced from 16px 20px */
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
+  gap: 6px; /* Reduced from 10px */
   box-sizing: border-box;
   /* Same weathered paper effect as card */
   background:
@@ -122,7 +122,7 @@
 
 .recent-trip-card__title {
   font-family: 'Caveat', cursive; /* Handwritten title */
-  font-size: 22px;
+  font-size: 18px; /* Reduced from 22px */
   font-weight: 700;
   color: #3e2723; /* Very dark brown */
   margin: 0;

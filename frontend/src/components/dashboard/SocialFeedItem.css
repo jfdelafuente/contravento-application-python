@@ -10,14 +10,14 @@
 
 .social-feed-item {
   display: flex;
-  gap: 8px; /* Reduced from 10px */
+  gap: 10px; /* Reverted back from 8px */
   /* Weathered paper effect - matching SocialStats */
   background:
     linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
     linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
   border: 2px solid #d2b48c; /* Warm tan border */
   border-radius: 6px;
-  padding: 8px; /* Reduced from 10px */
+  padding: 10px; /* Reverted back from 8px */
   cursor: pointer;
   transition: all 0.25s ease;
   box-sizing: border-box;
@@ -51,10 +51,10 @@
   border-color: #c19a6b; /* Darker tan on hover */
 }
 
-/* Thumbnail - 90x90px polaroid photo (reduced from 100px) */
+/* Thumbnail - 100x100px polaroid photo */
 .social-feed-item__thumbnail {
-  width: 90px;
-  height: 90px;
+  width: 100px;
+  height: 100px;
   flex-shrink: 0;
   border-radius: 4px;
   overflow: hidden;
