@@ -15,11 +15,11 @@
     linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
   border: 2px solid #d2b48c; /* Warm tan paper edge */
   border-radius: 6px;
-  padding: 16px;
+  padding: 12px; /* Reduced from 16px */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* Reduced from 8px */
   transition: all 0.25s ease;
   box-sizing: border-box;
   position: relative;
@@ -55,8 +55,8 @@
 
 /* Icon wrapper - Circular stamp */
 .stats-card__icon-wrapper {
-  width: 44px;
-  height: 44px;
+  width: 36px; /* Reduced from 44px */
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -67,8 +67,8 @@
 }
 
 .stats-card__icon-wrapper svg {
-  width: 22px;
-  height: 22px;
+  width: 18px; /* Reduced from 22px */
+  height: 18px;
   color: #d2691e; /* Chocolate brown */
 }
 
@@ -95,7 +95,7 @@
 
 .stats-card__value {
   font-family: 'Special Elite', 'Courier New', monospace; /* Typewriter numbers */
-  font-size: 32px;
+  font-size: 26px; /* Reduced from 32px */
   font-weight: 400;
   color: #3e2723; /* Very dark brown */
   margin: 0;
