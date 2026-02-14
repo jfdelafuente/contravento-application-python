@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserMenu } from '../auth/UserMenu';
 import HeaderQuickActions from '../dashboard/HeaderQuickActions';
+import '../../pages/DashboardPage.css'; // Dashboard header styles
 import './PublicHeader.css';
 
 export const PublicHeader: React.FC = () => {
