@@ -192,7 +192,7 @@
 /* Two-column layout */
 .dashboard-layout--two-column {
   display: grid;
-  grid-template-columns: 35fr 55fr; /* Left: 35% | Right: 55% (38.8% vs 61.1% with gap) */
+  grid-template-columns: 30fr 60fr; /* Left: 30% | Right: 60% (33.3% vs 66.6% with gap) */
   gap: var(--space-6);
   align-items: stretch; /* Stretch both columns to match height */
   width: 100%;
