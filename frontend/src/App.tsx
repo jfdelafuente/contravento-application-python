@@ -39,6 +39,9 @@ const FeedPage = lazy(() => import('./pages/FeedPage').then(module => ({ default
 // User Profile (Feature 004 - Social Network)
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then(module => ({ default: module.UserProfilePage })));
 
+// Follow List Page (Feature 019 - Dashboard Tooltips)
+const FollowListPage = lazy(() => import('./pages/FollowListPage').then(module => ({ default: module.FollowListPage })));
+
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
   <div className="loading-container">
@@ -165,6 +168,16 @@ function App() {
                     <GPXTripEditPage />
                   </ProtectedRoute>
                 }
+              />
+
+              {/* Follow Lists (Feature 019 - Dashboard Tooltips) - MUST come before /users/:username */}
+              <Route
+                path="/users/:username/followers"
+                element={<FollowListPage type="followers" />}
+              />
+              <Route
+                path="/users/:username/following"
+                element={<FollowListPage type="following" />}
               />
 
               {/* User Profile (Feature 004 - Social Network) */}
