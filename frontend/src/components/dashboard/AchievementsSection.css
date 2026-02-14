@@ -1,65 +1,108 @@
-/* AchievementsSection.css - "Hitos" Section - Mapa de Ruta Style */
-
-/* Intent: Show 4 achievement badges in compact 2x2 grid for narrow column
- * Layout: 2x2 grid with equal sizing
- * Depth: Borders-only, subtle hover lift
+/**
+ * AchievementsSection.css - "Hitos" Achievement Badges
+ *
+ * Design Direction: Retro cycling club aesthetic (1970s-inspired)
+ * - Achievement badges as vintage merit pins/patches
+ * - 2x2 grid of paper cards with pushpins
+ * - Handwritten typography
+ * - Staggered rotations
+ *
+ * @see SocialStatsSection.css (matching design system)
  */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');
 
 .achievements-section {
   width: 100%;
   box-sizing: border-box;
 }
 
+/* Section title - Handwritten achievements header */
 .achievements-section__title {
-  margin: 0 0 var(--space-4) 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+  margin: 0 0 20px 0;
+  font-family: 'Caveat', cursive;
+  font-size: 28px;
+  font-weight: 700;
+  color: #3a4a1f;
+  letter-spacing: 0.01em;
   padding: 0 var(--space-2);
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
+  position: relative;
+}
+
+.achievements-section__title::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 80px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(107, 142, 35, 0.4) 0px,
+    rgba(107, 142, 35, 0.4) 4px,
+    transparent 4px,
+    transparent 8px
+  );
 }
 
 .achievements-section__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
+  gap: 16px;
   width: 100%;
+  padding: 0 4px;
+  overflow: visible;
 }
 
 /* Stagger animation for achievement cards */
 .achievements-section__grid > *:nth-child(1) {
-  animation-delay: 0s;
+  animation-delay: 50ms;
 }
 
 .achievements-section__grid > *:nth-child(2) {
-  animation-delay: 0.05s;
+  animation-delay: 100ms;
 }
 
 .achievements-section__grid > *:nth-child(3) {
-  animation-delay: 0.1s;
+  animation-delay: 150ms;
 }
 
 .achievements-section__grid > *:nth-child(4) {
-  animation-delay: 0.15s;
+  animation-delay: 200ms;
 }
 
-/* Loading, error, empty states */
+/* Loading state - Typewriter */
 .achievements-section__loading,
 .achievements-section__error,
 .achievements-section__empty {
   text-align: center;
-  padding: var(--space-8) var(--space-2);
-  color: var(--text-secondary);
+  padding: 40px 16px;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: none;
+  border-radius: 3px;
+  box-shadow:
+    0 4px 8px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.achievements-section__loading {
+  font-family: 'Special Elite', monospace;
+  font-size: 13px;
+  color: #654321;
+  letter-spacing: 0.05em;
 }
 
 .achievements-section__loading .spinner {
   width: 32px;
   height: 32px;
-  margin: 0 auto;
-  border: 3px solid var(--border-default);
-  border-top-color: var(--accent-amber);
+  margin: 0 auto 12px;
+  border: 3px solid rgba(107, 142, 35, 0.2);
+  border-top-color: #6b8e23;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.9s ease-in-out infinite;
 }
 
 @keyframes spin {
@@ -67,22 +110,38 @@
 }
 
 .achievements-section__error {
-  color: #dc2626;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  font-weight: 600;
+  color: #c73e1d;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    rgba(199, 62, 29, 0.3) 8px,
+    rgba(199, 62, 29, 0.3) 10px
+  );
+  background-position: 0 100%;
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
 }
 
 .achievements-section__empty {
-  font-size: 14px;
-  color: var(--text-tertiary);
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  color: #8b7355;
+  font-style: italic;
+  opacity: 0.75;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .achievements-section__title {
-    font-size: 18px;
-    margin-bottom: var(--space-3);
+    font-size: 24px;
+    margin-bottom: 16px;
   }
 
   .achievements-section__grid {
-    gap: var(--space-2);
+    gap: 12px;
   }
 }
