@@ -287,6 +287,14 @@
   margin-bottom: 0;
 }
 
+/* Text container - inline title + subtitle */
+.dashboard-hero__header > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 20px; /* Increased spacing between title and subtitle */
+  flex-wrap: wrap; /* Allow wrapping on very small screens */
+}
+
 .dashboard-hero__greeting {
   margin: 0;
   font-family: 'Caveat', cursive; /* Handwritten greeting */
@@ -299,7 +307,7 @@
 }
 
 .dashboard-hero__subtitle {
-  margin: 8px 0 0 0;
+  margin: 0; /* Remove top margin since now inline */
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 500;
