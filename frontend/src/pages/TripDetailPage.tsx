@@ -732,7 +732,20 @@ export const TripDetailPage: React.FC = () => {
                     onClick={handlePublish}
                     disabled={isPublishing}
                   >
-                    {isPublishing ? 'Publicando...' : 'Publicar'}
+                    <svg
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span>{isPublishing ? 'Publicando...' : 'Publicar'}</span>
                   </button>
                 </div>
               )}
@@ -747,7 +760,20 @@ export const TripDetailPage: React.FC = () => {
                   }
                   className="trip-detail-page__action-button trip-detail-page__action-button--edit"
                 >
-                  Editar
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  <span>Editar</span>
                 </Link>
 
                 <button
@@ -755,7 +781,20 @@ export const TripDetailPage: React.FC = () => {
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  <span>{isDeleting ? 'Eliminando...' : 'Eliminar'}</span>
                 </button>
               </div>
             </div>
@@ -807,7 +846,6 @@ export const TripDetailPage: React.FC = () => {
         {/* GPX Section (Feature 003 - GPS Routes Interactive) */}
         {trip.gpx_file && (
           <section className="trip-detail-page__section">
-            <h2 className="trip-detail-page__section-title">Ruta GPS</h2>
             <GPXStats
               metadata={trip.gpx_file}
               gpxFileId={trip.gpx_file.gpx_file_id}
@@ -870,7 +908,7 @@ export const TripDetailPage: React.FC = () => {
         {/* Show map if there are locations OR if there's a GPX file (Feature 003) */}
         {/* Use trip.gpx_file (metadata) instead of gpxTrack (hook result) to avoid loading state issues */}
         {((trip.locations && trip.locations.length > 0) || trip.gpx_file) && (
-          <section className="trip-detail-page__section">
+          <section className={`trip-detail-page__section ${trip.gpx_file && gpxTrack?.trackpoints?.length ? 'trip-detail-page__section--map-with-elevation' : ''}`}>
             {/* Add POI button (Feature 003 - User Story 4) - Owner only */}
             {isOwner && (
               <div className="trip-detail-page__map-actions">
@@ -916,7 +954,7 @@ export const TripDetailPage: React.FC = () => {
 
         {/* Elevation Profile (Feature 003 - User Story 3) */}
         {trip.gpx_file && gpxTrack && gpxTrack.trackpoints && gpxTrack.trackpoints.length > 0 && (
-          <section className="trip-detail-page__section">
+          <section className="trip-detail-page__section trip-detail-page__section--elevation">
             <ElevationProfile
               trackpoints={gpxTrack.trackpoints}
               hasElevation={trip.gpx_file.has_elevation}
