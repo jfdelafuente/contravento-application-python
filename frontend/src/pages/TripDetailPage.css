@@ -11,7 +11,9 @@
 
 .trip-detail-page {
   min-height: 100vh;
-  background-color: var(--bg-primary, #ffffff);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.02) 100%),
+    linear-gradient(to bottom, #fff8dc 0%, #fefcf8 100%);
 }
 
 /* ============================================================================
@@ -113,25 +115,70 @@
    ============================================================================ */
 
 .trip-detail-page__header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
   margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  padding: 24px;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: none;
+  border-radius: 3px;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    0 12px 24px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  overflow: visible;
+}
+
+.trip-detail-page__header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
+}
+
+.trip-detail-page__header::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ea580c 0%, #c2410c 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .trip-detail-page__header-content {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .trip-detail-page__title {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-family: 'Caveat', cursive;
+  font-size: 2.75rem;
+  font-weight: 700;
   line-height: 1.2;
-  color: var(--text-primary, #111827);
+  color: #3a4a1f;
   margin: 0 0 16px 0;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
 }
 
 /* Metadata + Author Container (Feature 004) */
@@ -141,6 +188,8 @@
   gap: 16px;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  z-index: 1;
 }
 
 /* Author Section (Feature 004) - Right-aligned in meta row */
@@ -269,6 +318,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .trip-detail-page__actions-row {
@@ -282,13 +333,18 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  border: 1px solid transparent;
-  border-radius: 8px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  border: 2px solid transparent;
+  border-radius: 3px;
   cursor: pointer;
   transition: all 0.15s ease-in-out;
   text-decoration: none;
+  box-shadow:
+    0 1px 0 0 rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .trip-detail-page__action-button:disabled {
@@ -367,12 +423,15 @@
 }
 
 .trip-detail-page__section-title {
-  font-size: 1.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.875rem;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: #3a4a1f;
   margin: 0 0 20px 0;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--border-color, #e5e7eb);
+  border-bottom: 2px solid rgba(101, 67, 33, 0.2);
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
 }
 
 .trip-detail-page__photo-count {
@@ -432,21 +491,34 @@
 
 .trip-detail-page__tag {
   display: inline-block;
-  padding: 8px 16px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-secondary, #6b7280);
-  background-color: var(--bg-tertiary, #f3f4f6);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #2d2416;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.02) 100%),
+    linear-gradient(to bottom, #fffef9 0%, #fefcf8 100%);
+  border: 1px solid rgba(101, 67, 33, 0.25);
+  border-radius: 3px;
   text-decoration: none;
+  letter-spacing: 0.05em;
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.12),
+    0 2px 4px rgba(45, 35, 20, 0.1);
   transition: all 0.15s ease-in-out;
 }
 
 .trip-detail-page__tag:hover {
-  background-color: var(--primary-light, #dbeafe);
-  color: var(--primary-color, #2563eb);
-  border-color: var(--primary-color, #2563eb);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(234, 88, 12, 0.05) 100%),
+    linear-gradient(to bottom, #fff9f0 0%, #fef5e8 100%);
+  color: #ea580c;
+  border-color: #ea580c;
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 0 rgba(234, 88, 12, 0.2),
+    0 3px 6px rgba(234, 88, 12, 0.2);
 }
 
 /* Map Loading */
@@ -510,8 +582,15 @@
 
 .trip-detail-page__footer {
   margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  padding: 24px;
+  border: none;
+  border-radius: 3px;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.02) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 4px 8px rgba(45, 35, 20, 0.15);
 }
 
 .trip-detail-page__back-button {
@@ -519,20 +598,33 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-  background-color: var(--bg-secondary, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 8px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #2d2416;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.02) 100%),
+    linear-gradient(to bottom, #fffef9 0%, #fefcf8 100%);
+  border: 1px solid rgba(101, 67, 33, 0.25);
+  border-radius: 3px;
   text-decoration: none;
+  letter-spacing: 0.05em;
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.12),
+    0 2px 4px rgba(45, 35, 20, 0.1);
   transition: all 0.15s ease-in-out;
 }
 
 .trip-detail-page__back-button:hover {
-  background-color: var(--bg-tertiary, #f3f4f6);
-  border-color: var(--primary-color, #2563eb);
-  color: var(--primary-color, #2563eb);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(234, 88, 12, 0.05) 100%),
+    linear-gradient(to bottom, #fff9f0 0%, #fef5e8 100%);
+  border-color: #ea580c;
+  color: #ea580c;
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 0 rgba(234, 88, 12, 0.2),
+    0 3px 6px rgba(234, 88, 12, 0.2);
 }
 
 .trip-detail-page__back-button svg {
@@ -805,13 +897,32 @@
 }
 
 .trip-detail-page__delete-dialog {
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid rgba(101, 67, 33, 0.3);
+  border-radius: 3px;
+  box-shadow:
+    0 4px 0 0 rgba(101, 67, 33, 0.15),
+    0 12px 24px rgba(45, 35, 20, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   max-width: 480px;
   width: 100%;
   padding: 32px;
   animation: slideIn 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.trip-detail-page__delete-dialog::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  z-index: 0;
 }
 
 @keyframes slideIn {
@@ -830,41 +941,57 @@
   height: 64px;
   margin: 0 auto 24px;
   color: #dc2626;
+  position: relative;
+  z-index: 1;
 }
 
 .trip-detail-page__delete-dialog-title {
-  font-size: 1.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.875rem;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: #3a4a1f;
   margin: 0 0 16px 0;
   text-align: center;
   line-height: 1.3;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .trip-detail-page__delete-dialog-text {
   font-size: 1rem;
-  color: var(--text-secondary, #6b7280);
+  color: #654321;
   line-height: 1.6;
   margin: 0 0 32px 0;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .trip-detail-page__delete-dialog-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .trip-detail-page__delete-dialog-button {
   flex: 1;
   padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
   border: 2px solid;
-  border-radius: 8px;
+  border-radius: 3px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   text-align: center;
+  box-shadow:
+    0 1px 0 0 rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .trip-detail-page__delete-dialog-button:disabled {
@@ -900,7 +1027,7 @@
 @media (max-width: 640px) {
   .trip-detail-page__delete-dialog {
     padding: 24px;
-    border-radius: 12px;
+    border-radius: 3px;
   }
 
   .trip-detail-page__delete-dialog-icon {
