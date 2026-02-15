@@ -1,16 +1,88 @@
 /**
  * ElevationProfile Component Styles
  * Feature 003 - User Story 3: Interactive Elevation Profile
+ *
+ * Design Direction: Retro cycling club aesthetic (1970s-inspired)
+ * - Weathered paper index card
+ * - Handwritten typography (Caveat) + typewriter numbers (Special Elite)
+ * - Brass pushpin at top center
+ * - Paper grain texture overlay
+ * - Organic rotation (-1.2deg)
  */
 
-/* Main container */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');
+
+/* Main container - Paper index card */
 .elevation-profile {
   width: 100%;
-  background: #ffffff;
-  border-radius: 12px;
+
+  /* Weathered paper effect */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+
+  border: none;
+  border-radius: 3px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* Paper lifted from surface */
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15), /* Pushpin shadow at top */
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    0 12px 24px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5); /* Paper highlight */
+
   margin-bottom: 2rem;
+  position: relative;
+  overflow: visible;
+
+  /* Organic tilt */
+  transform: rotate(-1.2deg);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.elevation-profile::before {
+  /* Paper grain texture overlay */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
+}
+
+.elevation-profile::after {
+  /* Brass pushpin at top center */
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+
+  /* Amber/gold pushpin (elevation = "high") */
+  background: radial-gradient(circle, #ea580c 0%, #c2410c 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  pointer-events: none;
+  z-index: 2;
+}
+
+.elevation-profile:hover {
+  /* Straighten on hover */
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Header with title and legend */
@@ -21,34 +93,55 @@
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
+/* Title - Handwritten club header */
 .profile-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1e293b;
+  font-family: 'Caveat', cursive;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #3a4a1f;
   margin: 0;
+  letter-spacing: 0.01em;
+
+  /* Ink bleed effect */
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
 }
 
-/* Legend (gradient indicators) */
+/* Legend (gradient indicators) - Vintage style */
 .profile-legend {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #64748b;
+
+  /* Handwritten legend labels */
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3a4a1f;
+  letter-spacing: 0.01em;
+
+  /* Subtle ink bleed */
+  text-shadow: 0 0 0.5px rgba(58, 74, 31, 0.2);
 }
 
 .legend-color {
   width: 20px;
   height: 12px;
   border-radius: 2px;
+
+  /* Subtle border for hand-drawn effect */
+  border: 1px solid rgba(58, 74, 31, 0.2);
 }
 
 .legend-uphill {
@@ -63,14 +156,40 @@
   background: #94a3b8;
 }
 
-/* Custom tooltip (appears on hover) */
+/* Custom tooltip - Vintage paper note */
 .elevation-tooltip {
-  background: rgba(30, 41, 59, 0.95);
-  border: none;
-  border-radius: 8px;
+  /* Weathered paper background */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+
+  border: 1px solid rgba(101, 67, 33, 0.2);
+  border-radius: 2px;
   padding: 0.75rem 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
+
+  /* Paper shadow */
+  box-shadow:
+    0 2px 6px rgba(45, 35, 20, 0.25),
+    0 6px 12px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  /* Slight organic rotation */
+  transform: rotate(-0.5deg);
+
+  /* Paper grain texture */
+  position: relative;
+  overflow: hidden;
+}
+
+.elevation-tooltip::before {
+  /* Paper grain overlay */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
 }
 
 .tooltip-row {
@@ -78,44 +197,63 @@
   justify-content: space-between;
   gap: 1.5rem;
   margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .tooltip-row:last-child {
   margin-bottom: 0;
 }
 
+/* Handwritten tooltip labels */
 .tooltip-label {
-  color: #cbd5e1;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3a4a1f;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 0.5px rgba(58, 74, 31, 0.2);
 }
 
+/* Typewriter tooltip values */
 .tooltip-value {
-  color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #2d2416;
   text-align: right;
+  letter-spacing: 0.05em;
+
+  /* Typewriter ink impression */
+  text-shadow:
+    0 0 0.5px rgba(45, 36, 22, 0.3),
+    1px 1px 0 rgba(45, 36, 22, 0.1);
 }
 
 .tooltip-gradient {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8125rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+
+  /* Pencil underline effect */
+  border-bottom: 2px solid currentColor;
 }
 
 .tooltip-gradient[data-gradient="uphill"] {
-  background: #16a34a;
-  color: #ffffff;
+  background: rgba(22, 163, 74, 0.15);
+  color: #16a34a;
+  border-bottom-color: #16a34a;
 }
 
 .tooltip-gradient[data-gradient="downhill"] {
-  background: #2563eb;
-  color: #ffffff;
+  background: rgba(37, 99, 235, 0.15);
+  color: #2563eb;
+  border-bottom-color: #2563eb;
 }
 
-/* Empty state (no elevation data) */
+/* Empty state (no elevation data) - Vintage paper note */
 .elevation-profile-empty {
   display: flex;
   flex-direction: column;
@@ -123,10 +261,39 @@
   justify-content: center;
   min-height: 300px;
   padding: 3rem 2rem;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 2px dashed #cbd5e1;
+
+  /* Weathered paper background */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+
+  border-radius: 3px;
+
+  /* Dashed pencil sketch border */
+  border: 2px dashed rgba(101, 67, 33, 0.3);
+
+  /* Paper shadow */
+  box-shadow:
+    0 4px 8px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
   text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  /* Slight organic rotation */
+  transform: rotate(-0.8deg);
+}
+
+.elevation-profile-empty::before {
+  /* Paper grain texture */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
 }
 
 .icon-mountain {
@@ -134,27 +301,55 @@
   height: 64px;
   color: #94a3b8;
   margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+  opacity: 0.6;
 }
 
+/* Handwritten empty state messages */
 .message-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #475569;
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3a4a1f;
   margin: 0 0 0.5rem 0;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .message-subtitle {
-  font-size: 0.9375rem;
-  color: #64748b;
+  font-family: 'Caveat', cursive;
+  font-size: 1.125rem;
+  font-weight: 400;
+  color: #654321;
   margin: 0;
   max-width: 400px;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 1;
+}
+
+/* Chart container - above paper texture */
+.recharts-wrapper {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
 }
 
 /* Responsive: Mobile devices */
 @media (max-width: 768px) {
   .elevation-profile {
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 3px;
+
+    /* Less rotation on mobile */
+    transform: rotate(-0.6deg);
+  }
+
+  .elevation-profile:hover {
+    transform: rotate(0deg) translateY(-1px);
   }
 
   .profile-header {
@@ -164,7 +359,7 @@
   }
 
   .profile-title {
-    font-size: 1.125rem;
+    font-size: 1.5rem;
   }
 
   .profile-legend {
@@ -173,7 +368,7 @@
   }
 
   .legend-item {
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
   }
 
   .legend-color {
@@ -183,16 +378,21 @@
 
   .elevation-tooltip {
     padding: 0.625rem 0.875rem;
+    transform: rotate(-0.3deg);
   }
 
-  .tooltip-label,
+  .tooltip-label {
+    font-size: 0.9375rem;
+  }
+
   .tooltip-value {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
 
   .elevation-profile-empty {
     min-height: 250px;
     padding: 2rem 1rem;
+    transform: rotate(-0.5deg);
   }
 
   .icon-mountain {
@@ -201,11 +401,11 @@
   }
 
   .message-title {
-    font-size: 1rem;
+    font-size: 1.25rem;
   }
 
   .message-subtitle {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 }
 
@@ -225,35 +425,68 @@
   }
 }
 
-/* Chart hover effects */
-.recharts-wrapper {
-  cursor: pointer;
-}
-
+/* Chart grid - Vintage graph paper */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke-opacity: 0.5;
+  stroke: rgba(101, 67, 33, 0.15);
+  stroke-opacity: 0.6;
 }
 
-/* Active dot on hover */
+/* Active dot on hover - Amber pushpin effect */
 .recharts-active-dot {
-  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.4));
+  filter: drop-shadow(0 2px 4px rgba(234, 88, 12, 0.5));
 }
 
 /* Smooth transitions */
 .elevation-profile,
 .elevation-tooltip {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Print styles */
+/* Reduced Motion (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .elevation-profile,
+  .elevation-tooltip,
+  .elevation-profile-empty {
+    animation: none !important;
+    transition: none !important;
+    transform: rotate(0deg) !important;
+  }
+
+  .elevation-profile:hover {
+    transform: translateY(-1px) !important;
+  }
+
+  .elevation-tooltip {
+    transform: none !important;
+  }
+}
+
+/* Print styles - Black and white, no shadows */
 @media print {
-  .elevation-profile {
+  .elevation-profile,
+  .elevation-profile-empty {
     box-shadow: none;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #94a3b8;
+    transform: rotate(0deg);
+    background: #ffffff;
+  }
+
+  .elevation-profile::before,
+  .elevation-profile::after,
+  .elevation-tooltip::before,
+  .elevation-profile-empty::before {
+    display: none;
   }
 
   .elevation-tooltip {
     display: none;
+  }
+
+  .profile-title,
+  .legend-item,
+  .message-title,
+  .message-subtitle {
+    text-shadow: none;
   }
 }
