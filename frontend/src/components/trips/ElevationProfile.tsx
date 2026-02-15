@@ -315,25 +315,6 @@ export const ElevationProfile: React.FC<ElevationProfileProps> = ({
       onMouseMove={handleNativeMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="profile-header">
-        <h3 className="profile-title">Perfil de Elevación</h3>
-        <div className="profile-legend">
-          <div className="legend-item">
-            <div className="legend-color legend-uphill" />
-            <span>Subida</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color legend-downhill" />
-            <span>Bajada</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color legend-flat" />
-            <span>Llano</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Responsive container (FR-022) */}
       <ResponsiveContainer width="100%" height={height}>
         <ComposedChart
           data={chartData}
