@@ -401,6 +401,7 @@
   justify-content: center;
   gap: 10px;
   min-width: 140px;
+  width: auto;
   padding: 14px 28px;
   font-family: 'Special Elite', monospace;
   font-size: 0.9375rem;
@@ -419,6 +420,7 @@
   overflow: hidden;
   flex: 0 0 auto;
   min-height: 48px;
+  white-space: nowrap;
 }
 
 .trip-detail-page__action-button::before {
