@@ -1,5 +1,6 @@
 /**
- * CommentList Component Styles (Feature 004 - US3: Comentarios)
+ * CommentList Component Styles - Retro Cycling Club Aesthetic
+ * Feature 004 - US3: Comentarios
  *
  * Styles for the comments list container with pagination.
  */
@@ -19,14 +20,17 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  border-bottom: 2px solid rgba(107, 142, 35, 0.3);
 }
 
 .comment-list-title {
-  font-size: 1.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-text-primary, #111827);
+  color: #3a4a1f;
   margin: 0;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
 }
 
 /* ============================================================
@@ -44,28 +48,52 @@
 .comment-list-login-prompt {
   text-align: center;
   padding: 2rem 1.5rem;
-  background-color: var(--color-background-secondary, #f9fafb);
-  border-radius: 12px;
-  border: 2px solid var(--color-border, #e5e7eb);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid rgba(107, 142, 35, 0.3);
+  border-radius: 3px;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 4px 8px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  position: relative;
   margin-bottom: 1rem;
 }
 
+.comment-list-login-prompt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
+}
+
 .comment-list-login-prompt p {
-  font-size: 1rem;
-  color: var(--color-text-secondary, #6b7280);
+  font-family: 'Caveat', cursive;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #654321;
   margin: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .comment-list-login-prompt a {
-  color: var(--color-primary, #2563eb);
-  font-weight: 600;
+  color: #6b8e23;
+  font-weight: 700;
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid rgba(107, 142, 35, 0.3);
 }
 
 .comment-list-login-prompt a:hover {
-  color: var(--color-primary-dark, #1d4ed8);
-  text-decoration: underline;
+  color: #556b1a;
+  border-bottom-color: #556b1a;
 }
 
 /* ============================================================
@@ -90,26 +118,57 @@
 
 .comment-list-load-more-button {
   padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--color-primary, #2563eb);
-  background-color: transparent;
-  border: 2px solid var(--color-primary, #2563eb);
-  border-radius: 8px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6b8e23 0%, #556b1a 100%);
+  border: 2px solid #556b1a;
+  border-radius: 3px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 4px 8px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.comment-list-load-more-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
 }
 
 .comment-list-load-more-button:hover:not(:disabled) {
-  background-color: var(--color-primary, #2563eb);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+  background: linear-gradient(135deg, #556b1a 0%, #445611 100%);
+  border-color: #445611;
+  transform: translateY(-2px);
+  box-shadow:
+    0 3px 0 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(107, 142, 35, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.comment-list-load-more-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.15),
+    0 2px 4px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .comment-list-load-more-button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* ============================================================
@@ -129,21 +188,48 @@
 .comment-list-empty {
   text-align: center;
   padding: 3rem 1.5rem;
-  background-color: var(--color-background-secondary, #f9fafb);
-  border-radius: 12px;
-  border: 2px dashed var(--color-border, #e5e7eb);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px dashed rgba(107, 142, 35, 0.4);
+  border-radius: 3px;
+  position: relative;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.1),
+    0 4px 8px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.comment-list-empty::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
 }
 
 .comment-list-empty p {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary, #6b7280);
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #654321;
   margin: 0 0 0.5rem 0;
+  position: relative;
+  z-index: 1;
 }
 
 .comment-list-empty-hint {
-  font-size: 0.875rem;
-  color: var(--color-text-tertiary, #9ca3af);
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #78716c;
   font-style: italic;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================================
@@ -152,31 +238,136 @@
 
 .comment-list-error {
   padding: 1.5rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #dc2626;
+  background:
+    linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(185, 28, 28, 0.03) 100%),
+    linear-gradient(to bottom, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid rgba(220, 38, 38, 0.3);
+  border-radius: 3px;
+  color: #991b1b;
+  box-shadow:
+    0 2px 0 0 rgba(220, 38, 38, 0.15),
+    0 4px 8px rgba(220, 38, 38, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+
+.comment-list-error::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
 }
 
 .comment-list-error p {
+  font-family: 'Caveat', cursive;
+  font-size: 1.125rem;
+  font-weight: 600;
   margin: 0 0 1rem 0;
-  font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
 
 .comment-list-retry {
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1.25rem;
+  font-family: 'Special Elite', monospace;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.05em;
   color: white;
-  background-color: #dc2626;
-  border: none;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: 2px solid #b91c1c;
+  border-radius: 3px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 2px 0 0 rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(220, 38, 38, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.comment-list-retry::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
 }
 
 .comment-list-retry:hover {
-  background-color: #b91c1c;
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  border-color: #991b1b;
+  transform: translateY(-2px);
+  box-shadow:
+    0 3px 0 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(220, 38, 38, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.comment-list-retry:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 0 rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(220, 38, 38, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================================
+ * Print Styles
+ * ============================================================ */
+
+@media print {
+  .comment-list-load-more-button,
+  .comment-list-retry,
+  .comment-list-login-prompt {
+    box-shadow: none;
+    border: 1px solid #94a3b8;
+  }
+
+  .comment-list-load-more-button::before,
+  .comment-list-retry::before,
+  .comment-list-login-prompt::before,
+  .comment-list-empty::before,
+  .comment-list-error::before {
+    display: none;
+  }
+
+  .comment-list-title,
+  .comment-list-empty p,
+  .comment-list-error p {
+    text-shadow: none;
+  }
+
+  .comment-list-load-more-button,
+  .comment-list-retry {
+    text-shadow: none;
+  }
+}
+
+/* ============================================================
+ * Reduced Motion
+ * ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .comment-list-load-more-button,
+  .comment-list-retry {
+    transition: none !important;
+  }
+
+  .comment-list-load-more-button:hover:not(:disabled),
+  .comment-list-retry:hover {
+    transform: translateY(-1px) !important;
+  }
 }
 
 /* ============================================================
@@ -185,7 +376,7 @@
 
 @media (max-width: 640px) {
   .comment-list-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
   .comment-list-empty {
@@ -193,7 +384,7 @@
   }
 
   .comment-list-empty p {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 
   .comment-list-load-more-button {

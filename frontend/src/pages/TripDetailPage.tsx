@@ -846,7 +846,6 @@ export const TripDetailPage: React.FC = () => {
         {/* GPX Section (Feature 003 - GPS Routes Interactive) */}
         {trip.gpx_file && (
           <section className="trip-detail-page__section">
-            <h2 className="trip-detail-page__section-title">Ruta GPS</h2>
             <GPXStats
               metadata={trip.gpx_file}
               gpxFileId={trip.gpx_file.gpx_file_id}
@@ -909,7 +908,7 @@ export const TripDetailPage: React.FC = () => {
         {/* Show map if there are locations OR if there's a GPX file (Feature 003) */}
         {/* Use trip.gpx_file (metadata) instead of gpxTrack (hook result) to avoid loading state issues */}
         {((trip.locations && trip.locations.length > 0) || trip.gpx_file) && (
-          <section className="trip-detail-page__section">
+          <section className={`trip-detail-page__section ${trip.gpx_file && gpxTrack?.trackpoints?.length ? 'trip-detail-page__section--map-with-elevation' : ''}`}>
             {/* Add POI button (Feature 003 - User Story 4) - Owner only */}
             {isOwner && (
               <div className="trip-detail-page__map-actions">
@@ -955,7 +954,7 @@ export const TripDetailPage: React.FC = () => {
 
         {/* Elevation Profile (Feature 003 - User Story 3) */}
         {trip.gpx_file && gpxTrack && gpxTrack.trackpoints && gpxTrack.trackpoints.length > 0 && (
-          <section className="trip-detail-page__section">
+          <section className="trip-detail-page__section trip-detail-page__section--elevation">
             <ElevationProfile
               trackpoints={gpxTrack.trackpoints}
               hasElevation={trip.gpx_file.has_elevation}

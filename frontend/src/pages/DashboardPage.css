@@ -7,6 +7,8 @@
  * Typography: Inter (geométrica, señalización)
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
 /* ============================================================================
    CSS VARIABLES - "Mapa de Ruta" Light Design Tokens
    ============================================================================ */
@@ -238,8 +240,6 @@
 /* ============================================================================
    HERO SECTION - "Cycling Club Vintage Notice Board" - Welcome Note
    ============================================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
 
 .dashboard-hero {
   /* Weathered paper effect - matching SocialStats */

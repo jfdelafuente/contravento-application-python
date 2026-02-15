@@ -515,24 +515,36 @@
 
 .trip-detail-page__action-button--primary {
   color: #ffffff;
-  background-color: var(--primary-color, #2563eb);
-  border-color: var(--primary-color, #2563eb);
+  background: linear-gradient(135deg, #6b8e23 0%, #556b1a 100%);
+  border-color: #556b1a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .trip-detail-page__action-button--primary:hover:not(:disabled) {
-  background-color: #1d4ed8;
-  border-color: #1d4ed8;
+  background: linear-gradient(135deg, #556b1a 0%, #445611 100%);
+  border-color: #445611;
+  transform: translateY(-3px);
+  box-shadow:
+    0 3px 0 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(107, 142, 35, 0.4);
 }
 
 .trip-detail-page__action-button--cancel {
-  color: #dc2626;
-  background-color: #fee2e2;
+  color: #7f1d1d;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border-color: #dc2626;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .trip-detail-page__action-button--cancel:hover:not(:disabled) {
-  background-color: #dc2626;
   color: #ffffff;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #991b1b;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+  box-shadow:
+    0 3px 0 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(220, 38, 38, 0.4);
 }
 
 /* Map Actions (POI button positioned above map) */
@@ -548,6 +560,56 @@
 
 .trip-detail-page__section {
   margin-bottom: 40px;
+}
+
+/* Map and Elevation Profile grouped together */
+.trip-detail-page__section--map-with-elevation {
+  margin-bottom: 0;
+  padding-bottom: 20px;
+  border-bottom: none;
+  position: relative;
+}
+
+.trip-detail-page__section--map-with-elevation::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(107, 142, 35, 0.2) 15%,
+    rgba(107, 142, 35, 0.4) 50%,
+    rgba(107, 142, 35, 0.2) 85%,
+    transparent 100%
+  );
+}
+
+.trip-detail-page__section--elevation {
+  margin-top: 0;
+  padding-top: 20px;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.015) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #ffffff 100%);
+  border-radius: 0 0 3px 3px;
+  position: relative;
+}
+
+.trip-detail-page__section--elevation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.2;
+  mix-blend-mode: multiply;
+  border-radius: 0 0 3px 3px;
+  z-index: 0;
 }
 
 .trip-detail-page__section-title {

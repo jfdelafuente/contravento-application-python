@@ -1,8 +1,7 @@
 /**
- * GPXStats Styles
+ * GPXStats Styles - Retro Cycling Club Aesthetic
  *
  * Feature 003 - GPS Routes Interactive
- * Card-based layout for displaying route statistics
  */
 
 .gpx-stats {
@@ -10,13 +9,15 @@
 }
 
 .gpx-stats__title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2d3748;
+  font-family: 'Caveat', cursive;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #3a4a1f;
   margin: 0 0 1.5rem 0;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
 }
 
-/* Grid Layout - Single row with 5 columns */
 .gpx-stats__grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -24,35 +25,78 @@
   margin-bottom: 1.5rem;
 }
 
-/* Stat Card - More compact */
 .gpx-stat-card {
-  background: #ffffff;
-  border-radius: 0.5rem;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: none;
+  border-radius: 3px;
   padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    0 12px 24px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
   text-align: center;
+  position: relative;
+  overflow: visible;
+}
+
+.gpx-stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
+}
+
+.gpx-stat-card::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ea580c 0%, #c2410c 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .gpx-stat-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-3px);
 }
 
-/* Icon Wrapper - Smaller and centered */
 .gpx-stat-card__icon-wrapper {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: 0.5rem;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 0.25rem;
+  border: 2px solid currentColor;
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-stat-card__icon {
@@ -60,72 +104,78 @@
   height: 20px;
 }
 
-/* Content - Centered */
 .gpx-stat-card__content {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   align-items: center;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-stat-card__label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #718096;
+  font-family: 'Caveat', cursive;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #3a4a1f;
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  text-shadow: 0 0 0.5px rgba(58, 74, 31, 0.2);
 }
 
 .gpx-stat-card__value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
+  font-family: 'Special Elite', monospace;
+  font-size: 1.375rem;
+  font-weight: 400;
+  color: #2d2416;
   margin: 0;
   line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-shadow:
+    0 0 0.5px rgba(45, 36, 22, 0.3),
+    1px 1px 0 rgba(45, 36, 22, 0.1);
 }
 
 .gpx-stat-card__unit {
-  font-size: 0.875rem;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.75rem;
   font-weight: 400;
-  color: #718096;
+  color: #654321;
+  letter-spacing: 0.05em;
 }
 
-/* Card Color Variants */
-
-/* Distance - Blue */
 .gpx-stat-card--distance .gpx-stat-card__icon-wrapper {
-  background-color: #bfdbfe !important;
-  color: #1e40af !important;
+  background: rgba(59, 130, 246, 0.12);
+  color: #1e40af;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
-/* Elevation Gain - Green (uphill) */
 .gpx-stat-card--gain .gpx-stat-card__icon-wrapper {
-  background-color: #bbf7d0 !important;
-  color: #15803d !important;
+  background: rgba(21, 128, 61, 0.12);
+  color: #15803d;
+  border-color: rgba(21, 128, 61, 0.3);
 }
 
-/* Elevation Loss - Orange (downhill) */
 .gpx-stat-card--loss .gpx-stat-card__icon-wrapper {
-  background-color: #fed7aa !important;
-  color: #c2410c !important;
+  background: rgba(234, 88, 12, 0.12);
+  color: #c2410c;
+  border-color: rgba(234, 88, 12, 0.3);
 }
 
-/* Max Elevation - Purple (peak) */
 .gpx-stat-card--max .gpx-stat-card__icon-wrapper {
-  background-color: #e9d5ff !important;
-  color: #7c3aed !important;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.3);
 }
 
-/* Min Elevation - Teal (valley) */
 .gpx-stat-card--min .gpx-stat-card__icon-wrapper {
-  background-color: #99f6e4 !important;
-  color: #0f766e !important;
+  background: rgba(15, 118, 110, 0.12);
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.3);
 }
 
-/* Action Buttons */
 .gpx-stats__actions {
   display: flex;
   justify-content: center;
@@ -135,112 +185,198 @@
   flex-wrap: wrap;
 }
 
-/* Download Button (Blue) */
 .gpx-stats__download-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 500;
+  justify-content: center;
+  gap: 10px;
+  min-width: 140px;
+  width: auto;
+  padding: 14px 28px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
+  color: #14532d;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #16a34a;
+  border-radius: 3px;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+.gpx-stats__download-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
 }
 
 .gpx-stats__download-btn:hover {
-  background-color: #2563eb;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
+  color: #ffffff;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border-color: #15803d;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-3px);
 }
 
 .gpx-stats__download-btn:active {
-  background-color: #1d4ed8;
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.15),
+    0 2px 4px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .gpx-stats__download-btn:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+  outline: 2px dashed #16a34a;
+  outline-offset: 3px;
 }
 
 .gpx-stats__download-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
-/* Delete Button (Red/Danger) */
 .gpx-stats__delete-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #dc2626;
-  color: #ffffff;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 500;
+  justify-content: center;
+  gap: 10px;
+  min-width: 140px;
+  width: auto;
+  padding: 14px 28px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
+  color: #7f1d1d;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #dc2626;
+  border-radius: 3px;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+.gpx-stats__delete-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
 }
 
 .gpx-stats__delete-btn:hover {
-  background-color: #b91c1c;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
+  color: #ffffff;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #b91c1c;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-3px);
 }
 
 .gpx-stats__delete-btn:active {
-  background-color: #991b1b;
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.15),
+    0 2px 4px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .gpx-stats__delete-btn:focus {
-  outline: 2px solid #dc2626;
-  outline-offset: 2px;
+  outline: 2px dashed #dc2626;
+  outline-offset: 3px;
 }
 
 .gpx-stats__delete-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
-/* No Elevation Message */
 .gpx-stats__no-elevation {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   padding: 1.25rem;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  color: #718096;
-  font-size: 0.9375rem;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid rgba(234, 88, 12, 0.3);
+  border-left: 4px solid #ea580c;
+  border-radius: 3px;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.gpx-stats__no-elevation::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
 }
 
 .gpx-stats__no-elevation-icon {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  color: #a0aec0;
+  color: #ea580c;
+  margin-top: 2px;
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-stats__no-elevation p {
   margin: 0;
   line-height: 1.5;
+  font-family: 'Caveat', cursive;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #654321;
+  position: relative;
+  z-index: 1;
 }
 
-/* Mobile Responsive - Stack cards vertically */
 @media (max-width: 640px) {
   .gpx-stats__grid {
     grid-template-columns: 1fr;
@@ -270,24 +406,24 @@
   }
 
   .gpx-stat-card__label {
-    font-size: 0.7rem;
+    font-size: 0.8125rem;
   }
 
   .gpx-stat-card__value {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
 
   .gpx-stat-card__unit {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
   }
 
   .gpx-stats__title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     margin-bottom: 1rem;
   }
 
-  /* Download button full width on mobile */
-  .gpx-stats__download-btn {
+  .gpx-stats__download-btn,
+  .gpx-stats__delete-btn {
     width: 100%;
     justify-content: center;
     padding: 1rem;
@@ -296,6 +432,44 @@
   .gpx-stats__actions {
     margin-top: 1rem;
     margin-bottom: 1rem;
+  }
+
+  .gpx-delete-modal {
+    padding: 1.5rem;
+  }
+
+  .gpx-delete-modal__icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1rem;
+  }
+
+  .gpx-delete-modal__icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .gpx-delete-modal__title {
+    font-size: 1.5rem;
+  }
+
+  .gpx-delete-modal__description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .gpx-delete-modal__actions {
+    flex-direction: column;
+  }
+
+  .gpx-delete-modal__button {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .gpx-stats__actions {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }
 
@@ -322,14 +496,13 @@
   }
 }
 
-/* Delete Confirmation Modal */
 .gpx-delete-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,13 +512,33 @@
 }
 
 .gpx-delete-modal {
-  background: #ffffff;
-  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid rgba(101, 67, 33, 0.2);
+  border-radius: 3px;
   padding: 2rem;
   max-width: 480px;
   width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 4px 0 0 rgba(101, 67, 33, 0.2),
+    0 12px 24px rgba(45, 35, 20, 0.3),
+    0 24px 48px rgba(45, 35, 20, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   animation: gpx-modal-fade-in 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gpx-delete-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
 }
 
 @keyframes gpx-modal-fade-in {
@@ -363,11 +556,17 @@
   width: 64px;
   height: 64px;
   margin: 0 auto 1.5rem;
-  background-color: #fee2e2;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 3px solid #dc2626;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    0 2px 4px rgba(220, 38, 38, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-delete-modal__icon svg {
@@ -377,123 +576,182 @@
 }
 
 .gpx-delete-modal__title {
-  font-size: 1.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #3a4a1f;
   text-align: center;
   margin: 0 0 1rem 0;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-delete-modal__description {
-  font-size: 1rem;
-  color: #6b7280;
+  font-family: 'Caveat', cursive;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #654321;
   text-align: center;
   line-height: 1.6;
   margin: 0 0 2rem 0;
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-delete-modal__actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .gpx-delete-modal__button {
   flex: 1;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 500;
+  padding: 14px 28px;
+  border-radius: 3px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   max-width: 200px;
+  min-height: 48px;
+  position: relative;
+}
+
+.gpx-delete-modal__button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
 }
 
 .gpx-delete-modal__button--cancel {
-  background-color: #f3f4f6;
-  color: #374151;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #f7fafc 0%, #e2e8f0 100%);
+  color: #2d3748;
+  border: 2px solid #a0aec0;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .gpx-delete-modal__button--cancel:hover {
-  background-color: #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.05) 100%),
+    linear-gradient(to bottom, #edf2f7 0%, #cbd5e0 100%);
+  border-color: #718096;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 .gpx-delete-modal__button--cancel:active {
-  background-color: #d1d5db;
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.15),
+    0 2px 4px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .gpx-delete-modal__button--cancel:focus {
-  outline: 2px solid #9ca3af;
-  outline-offset: 2px;
+  outline: 2px dashed #718096;
+  outline-offset: 3px;
 }
 
 .gpx-delete-modal__button--confirm {
-  background-color: #dc2626;
-  color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fef2f2 0%, #fee2e2 100%);
+  color: #7f1d1d;
+  border: 2px solid #dc2626;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .gpx-delete-modal__button--confirm:hover {
-  background-color: #b91c1c;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #b91c1c;
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-3px);
 }
 
 .gpx-delete-modal__button--confirm:active {
-  background-color: #991b1b;
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 0 rgba(101, 67, 33, 0.15),
+    0 2px 4px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .gpx-delete-modal__button--confirm:focus {
-  outline: 2px solid #dc2626;
-  outline-offset: 2px;
+  outline: 2px dashed #dc2626;
+  outline-offset: 3px;
 }
 
-/* Mobile responsive modal */
-@media (max-width: 640px) {
-  .gpx-delete-modal {
-    padding: 1.5rem;
-  }
-
-  .gpx-delete-modal__icon {
-    width: 56px;
-    height: 56px;
-    margin-bottom: 1rem;
-  }
-
-  .gpx-delete-modal__icon svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  .gpx-delete-modal__title {
-    font-size: 1.25rem;
-  }
-
-  .gpx-delete-modal__description {
-    font-size: 0.9375rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .gpx-delete-modal__actions {
-    flex-direction: column;
-  }
-
-  .gpx-delete-modal__button {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .gpx-stats__actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
+@media print {
+  .gpx-stat-card,
   .gpx-stats__download-btn,
-  .gpx-stats__delete-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 1rem;
+  .gpx-stats__delete-btn,
+  .gpx-delete-modal,
+  .gpx-stats__no-elevation {
+    box-shadow: none;
+    border: 1px solid #94a3b8;
+    background: #ffffff;
+  }
+
+  .gpx-stat-card::before,
+  .gpx-stat-card::after,
+  .gpx-delete-modal::before,
+  .gpx-stats__no-elevation::before,
+  .gpx-stats__download-btn::before,
+  .gpx-stats__delete-btn::before,
+  .gpx-delete-modal__button::before {
+    display: none;
+  }
+
+  .gpx-stats__title,
+  .gpx-delete-modal__title,
+  .gpx-delete-modal__description {
+    text-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gpx-stat-card,
+  .gpx-stats__download-btn,
+  .gpx-stats__delete-btn,
+  .gpx-delete-modal__button,
+  .gpx-delete-modal {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .gpx-stat-card:hover {
+    transform: translateY(-1px) !important;
+  }
+
+  .gpx-stats__download-btn:hover,
+  .gpx-stats__delete-btn:hover,
+  .gpx-delete-modal__button--confirm:hover {
+    transform: translateY(-1px) !important;
   }
 }
