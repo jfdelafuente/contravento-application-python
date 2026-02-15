@@ -197,7 +197,7 @@
   flex-wrap: wrap;
   gap: 16px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   position: relative;
   z-index: 1;
 }
@@ -208,6 +208,7 @@
   align-items: center;
   gap: 12px;
   margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .trip-detail-page__author-link {
