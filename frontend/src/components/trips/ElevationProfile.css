@@ -1,48 +1,23 @@
-/**
- * ElevationProfile Component Styles
- * Feature 003 - User Story 3: Interactive Elevation Profile
- *
- * Design Direction: Retro cycling club aesthetic (1970s-inspired)
- * - Weathered paper index card
- * - Handwritten typography (Caveat) + typewriter numbers (Special Elite)
- * - Brass pushpin at top center
- * - Paper grain texture overlay
- * - Organic rotation (-1.2deg)
- *
- * Note: Caveat and Special Elite fonts are imported globally in SocialStatsSection.css
- */
-
-/* Main container - Paper index card */
 .elevation-profile {
   width: 100%;
-
-  /* Weathered paper effect */
   background:
     linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
     linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
-
   border: none;
   border-radius: 3px;
   padding: 1.5rem;
-
-  /* Paper lifted from surface */
   box-shadow:
-    0 2px 0 0 rgba(101, 67, 33, 0.15), /* Pushpin shadow at top */
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
     0 6px 12px rgba(45, 35, 20, 0.2),
     0 12px 24px rgba(45, 35, 20, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5); /* Paper highlight */
-
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   margin-bottom: 2rem;
   position: relative;
   overflow: visible;
-
-  /* Organic tilt */
-  transform: rotate(-1.2deg);
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .elevation-profile::before {
-  /* Paper grain texture overlay */
   content: '';
   position: absolute;
   inset: 0;
@@ -55,7 +30,6 @@
 }
 
 .elevation-profile::after {
-  /* Brass pushpin at top center */
   content: '';
   position: absolute;
   top: -7px;
@@ -64,20 +38,16 @@
   width: 13px;
   height: 13px;
   border-radius: 50%;
-
-  /* Amber/gold pushpin (elevation = "high") */
   background: radial-gradient(circle, #ea580c 0%, #c2410c 100%);
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-
   pointer-events: none;
   z-index: 2;
 }
 
 .elevation-profile:hover {
-  /* Straighten on hover */
-  transform: rotate(0deg) translateY(-2px);
+  transform: translateY(-2px);
   box-shadow:
     0 2px 0 0 rgba(101, 67, 33, 0.2),
     0 8px 16px rgba(45, 35, 20, 0.25),
@@ -85,7 +55,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-/* Header with title and legend */
 .profile-header {
   display: flex;
   justify-content: space-between;
@@ -97,7 +66,6 @@
   z-index: 1;
 }
 
-/* Title - Handwritten club header */
 .profile-title {
   font-family: 'Caveat', cursive;
   font-size: 1.75rem;
@@ -105,12 +73,9 @@
   color: #3a4a1f;
   margin: 0;
   letter-spacing: 0.01em;
-
-  /* Ink bleed effect */
   text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
 }
 
-/* Legend (gradient indicators) - Vintage style */
 .profile-legend {
   display: flex;
   gap: 1.5rem;
@@ -123,15 +88,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-
-  /* Handwritten legend labels */
   font-family: 'Caveat', cursive;
   font-size: 1rem;
   font-weight: 600;
   color: #3a4a1f;
   letter-spacing: 0.01em;
-
-  /* Subtle ink bleed */
   text-shadow: 0 0 0.5px rgba(58, 74, 31, 0.2);
 }
 
@@ -139,8 +100,6 @@
   width: 20px;
   height: 12px;
   border-radius: 2px;
-
-  /* Subtle border for hand-drawn effect */
   border: 1px solid rgba(58, 74, 31, 0.2);
 }
 
@@ -156,33 +115,22 @@
   background: #94a3b8;
 }
 
-/* Custom tooltip - Vintage paper note */
 .elevation-tooltip {
-  /* Weathered paper background */
   background:
     linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
     linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
-
   border: 1px solid rgba(101, 67, 33, 0.2);
   border-radius: 2px;
   padding: 0.75rem 1rem;
-
-  /* Paper shadow */
   box-shadow:
     0 2px 6px rgba(45, 35, 20, 0.25),
     0 6px 12px rgba(45, 35, 20, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
-
-  /* Slight organic rotation */
-  transform: rotate(-0.5deg);
-
-  /* Paper grain texture */
   position: relative;
   overflow: hidden;
 }
 
 .elevation-tooltip::before {
-  /* Paper grain overlay */
   content: '';
   position: absolute;
   inset: 0;
@@ -205,7 +153,6 @@
   margin-bottom: 0;
 }
 
-/* Handwritten tooltip labels */
 .tooltip-label {
   font-family: 'Caveat', cursive;
   font-size: 1rem;
@@ -215,7 +162,6 @@
   text-shadow: 0 0 0.5px rgba(58, 74, 31, 0.2);
 }
 
-/* Typewriter tooltip values */
 .tooltip-value {
   font-family: 'Special Elite', monospace;
   font-size: 0.8125rem;
@@ -223,8 +169,6 @@
   color: #2d2416;
   text-align: right;
   letter-spacing: 0.05em;
-
-  /* Typewriter ink impression */
   text-shadow:
     0 0 0.5px rgba(45, 36, 22, 0.3),
     1px 1px 0 rgba(45, 36, 22, 0.1);
@@ -236,8 +180,6 @@
   padding: 0.125rem 0.5rem;
   border-radius: 2px;
   font-size: 0.75rem;
-
-  /* Pencil underline effect */
   border-bottom: 2px solid currentColor;
 }
 
@@ -253,7 +195,6 @@
   border-bottom-color: #2563eb;
 }
 
-/* Empty state (no elevation data) - Vintage paper note */
 .elevation-profile-empty {
   display: flex;
   flex-direction: column;
@@ -261,32 +202,20 @@
   justify-content: center;
   min-height: 300px;
   padding: 3rem 2rem;
-
-  /* Weathered paper background */
   background:
     linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
     linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
-
   border-radius: 3px;
-
-  /* Dashed pencil sketch border */
   border: 2px dashed rgba(101, 67, 33, 0.3);
-
-  /* Paper shadow */
   box-shadow:
     0 4px 8px rgba(45, 35, 20, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
-
   text-align: center;
   position: relative;
   overflow: hidden;
-
-  /* Slight organic rotation */
-  transform: rotate(-0.8deg);
 }
 
 .elevation-profile-empty::before {
-  /* Paper grain texture */
   content: '';
   position: absolute;
   inset: 0;
@@ -306,7 +235,6 @@
   opacity: 0.6;
 }
 
-/* Handwritten empty state messages */
 .message-title {
   font-family: 'Caveat', cursive;
   font-size: 1.5rem;
@@ -331,25 +259,20 @@
   z-index: 1;
 }
 
-/* Chart container - above paper texture */
 .recharts-wrapper {
   position: relative;
   z-index: 1;
   cursor: pointer;
 }
 
-/* Responsive: Mobile devices */
 @media (max-width: 768px) {
   .elevation-profile {
     padding: 1rem;
     border-radius: 3px;
-
-    /* Less rotation on mobile */
-    transform: rotate(-0.6deg);
   }
 
   .elevation-profile:hover {
-    transform: rotate(0deg) translateY(-1px);
+    transform: translateY(-1px);
   }
 
   .profile-header {
@@ -378,7 +301,6 @@
 
   .elevation-tooltip {
     padding: 0.625rem 0.875rem;
-    transform: rotate(-0.3deg);
   }
 
   .tooltip-label {
@@ -392,7 +314,6 @@
   .elevation-profile-empty {
     min-height: 250px;
     padding: 2rem 1rem;
-    transform: rotate(-0.5deg);
   }
 
   .icon-mountain {
@@ -409,7 +330,6 @@
   }
 }
 
-/* Responsive: Small mobile devices */
 @media (max-width: 480px) {
   .profile-legend {
     width: 100%;
@@ -425,50 +345,39 @@
   }
 }
 
-/* Chart grid - Vintage graph paper */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
   stroke: rgba(101, 67, 33, 0.15);
   stroke-opacity: 0.6;
 }
 
-/* Active dot on hover - Amber pushpin effect */
 .recharts-active-dot {
   filter: drop-shadow(0 2px 4px rgba(234, 88, 12, 0.5));
 }
 
-/* Smooth transitions */
 .elevation-profile,
 .elevation-tooltip {
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Reduced Motion (Accessibility) */
 @media (prefers-reduced-motion: reduce) {
   .elevation-profile,
   .elevation-tooltip,
   .elevation-profile-empty {
     animation: none !important;
     transition: none !important;
-    transform: rotate(0deg) !important;
   }
 
   .elevation-profile:hover {
     transform: translateY(-1px) !important;
   }
-
-  .elevation-tooltip {
-    transform: none !important;
-  }
 }
 
-/* Print styles - Black and white, no shadows */
 @media print {
   .elevation-profile,
   .elevation-profile-empty {
     box-shadow: none;
     border: 1px solid #94a3b8;
-    transform: rotate(0deg);
     background: #ffffff;
   }
 
