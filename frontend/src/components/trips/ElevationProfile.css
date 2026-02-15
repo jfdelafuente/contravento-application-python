@@ -8,9 +8,9 @@
  * - Brass pushpin at top center
  * - Paper grain texture overlay
  * - Organic rotation (-1.2deg)
+ *
+ * Note: Caveat and Special Elite fonts are imported globally in SocialStatsSection.css
  */
-
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');
 
 /* Main container - Paper index card */
 .elevation-profile {
