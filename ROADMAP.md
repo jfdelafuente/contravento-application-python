@@ -1,6 +1,6 @@
 # ContraVento - Product Roadmap
 
-**Last Updated**: 2026-02-09
+**Last Updated**: 2026-02-15
 **Current Version**: MVP + Core Features
 **Active Development Branch**: `develop`
 
@@ -10,7 +10,7 @@
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Completed | 14 features | 82% |
+| ✅ Completed | 15 features | 88% |
 | 🚧 In Progress | 0 features | 0% |
 | 📋 Planned | 2 features | 12% |
 | ❌ Discarded | 2 features | - |
@@ -161,6 +161,26 @@
 
 ---
 
+### Dashboard & UX Enhancements
+
+- **[019] Dashboard Followers/Following Tooltips** (`019-followers-tooltip`)
+  - Interactive tooltips on hover (500ms delay, 200ms exit)
+  - Quick preview (max 8 users) with avatars and usernames
+  - "Ver todos" link for complete lists
+  - Lazy loading (API call only on hover)
+  - Keyboard navigation support (Tab, Enter, Escape)
+  - Touch device fallback (direct navigation)
+  - WCAG 2.1 AA accessibility compliance
+  - Mobile-responsive design
+  - Full list pages: `/users/{username}/followers` and `/users/{username}/following`
+  - Zero layout shift (CLS = 0)
+  - **Status**: ✅ Ready for merge to `develop`
+  - **Progress**: 60/60 tasks (100%) - Implementation complete
+  - **Testing**: 20 E2E tests passing, 8/18 manual scenarios validated
+  - **Tech**: React 18, TypeScript 5, React Portal, ARIA attributes
+
+---
+
 ## 🚧 In Progress
 
 No features currently in progress.
@@ -216,9 +236,12 @@ No features currently in progress.
 - ✅ Complete 017-gps-trip-wizard (DONE - merged)
 - ✅ Complete 013-public-trips-feed (DONE - merged)
 - ✅ Complete 014-landing-page-inspiradora (DONE - merged)
+- ✅ Complete 019-followers-tooltip (DONE - ready for merge)
 
 ### Q2 2026
-- Start 004-social-network
+
+- Complete 018-activity-stream-feed (In Progress - 86% complete)
+- Start 004-social-network (remaining user stories)
 - Evaluate need for 004-celery-async-tasks
 - Performance optimization (caching, query optimization)
 

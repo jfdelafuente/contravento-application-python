@@ -1,45 +1,75 @@
-/* StatsCard.css - "Bitácora" Stat Card - Mapa de Ruta Style */
+/* StatsCard.css - "Cycling Club Vintage Notice Board" - Pinned Stat Note */
 
-/* Intent: Compact stat display with organic colors and map-like feel
- * Layout: Vertical stack (icon → value → label)
- * Depth: Borders-only, subtle hover lift
+/* Intent: Stat card as pinned note on cork board - handwritten numbers, typewriter labels
+ * Palette: Cream parchment paper, olive pins, warm brown ink
+ * Typography: Special Elite (typewriter numbers), Caveat (handwritten labels)
+ * Depth: Paper texture border, pin shadow
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&display=swap');
+
 .stats-card {
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  /* Weathered paper effect - matching SocialStats */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid #d2b48c; /* Warm tan paper edge */
+  border-radius: 6px;
+  padding: 10px; /* Reduced from 12px */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  transition: all 0.2s ease;
+  gap: 4px; /* Reduced from 6px */
+  transition: all 0.25s ease;
   box-sizing: border-box;
   position: relative;
+  box-shadow:
+    2px 2px 6px rgba(0, 0, 0, 0.15), /* Paper shadow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5); /* Inner paper glow */
+}
+
+/* Thumbtack pin at top */
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle at 30% 30%, #8FBC8F, #6b8e23); /* Olive pin */
+  border-radius: 50%;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 .stats-card:hover {
-  border-color: var(--border-emphasis);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-3px) rotate(0.5deg); /* Slight lift and tilt */
+  box-shadow:
+    3px 5px 12px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  border-color: #c19a6b; /* Darker tan on hover */
 }
 
-/* Icon wrapper - Circular with colored background */
+/* Icon wrapper - Circular stamp */
 .stats-card__icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 32px; /* Reduced from 36px */
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(234, 88, 12, 0.1); /* Default amber */
+  background: radial-gradient(circle at 40% 40%, rgba(234, 88, 12, 0.18), rgba(234, 88, 12, 0.12)); /* Amber stamp */
+  border: 2px solid rgba(234, 88, 12, 0.25);
 }
 
 .stats-card__icon-wrapper svg {
-  width: 20px;
-  height: 20px;
+  width: 16px; /* Reduced from 18px */
+  height: 16px;
+  color: #d2691e; /* Chocolate brown */
 }
 
 /* Content - Vertical stack */
@@ -47,35 +77,40 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
+  gap: 6px;
   width: 100%;
 }
 
 .stats-card__title {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-tertiary);
+  font-family: 'Caveat', cursive; /* Handwritten label */
+  font-size: 15px;
+  font-weight: 600;
+  color: #5d4037; /* Dark brown ink */
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
   text-align: center;
+  line-height: 1.2;
 }
 
 .stats-card__value {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-family: 'Special Elite', 'Courier New', monospace; /* Typewriter numbers */
+  font-size: 22px; /* Reduced from 26px */
+  font-weight: 400;
+  color: #3e2723; /* Very dark brown */
   margin: 0;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.05em;
+  text-shadow: 1px 1px 0 rgba(255, 248, 220, 0.5); /* Subtle emboss */
 }
 
 .stats-card__subtitle {
-  font-size: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: #795548; /* Medium brown */
   margin: 0;
-  font-style: normal;
+  font-style: italic;
   text-align: center;
   line-height: 1.3;
 }
@@ -83,23 +118,27 @@
 /* Loading state */
 .stats-card--loading {
   pointer-events: none;
+  opacity: 0.7;
 }
 
 .stats-card--loading:hover {
   transform: none;
-  box-shadow: none;
-  border-color: var(--border-default);
+  box-shadow:
+    2px 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 /* Error state */
 .stats-card--error {
-  border-color: rgba(220, 38, 38, 0.3);
-  background: rgba(220, 38, 38, 0.05);
+  border-color: rgba(139, 69, 19, 0.4); /* Saddle brown */
+  background: rgba(255, 235, 205, 0.9); /* Blanched almond */
 }
 
 .stats-card__error-message {
-  font-size: 11px;
-  color: #dc2626;
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8b4513; /* Saddle brown */
   margin: 0;
   text-align: center;
 }
@@ -107,50 +146,53 @@
 /* Responsive */
 @media (max-width: 768px) {
   .stats-card {
-    padding: var(--space-3);
+    padding: 14px;
   }
 
   .stats-card__icon-wrapper {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .stats-card__icon-wrapper svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .stats-card__value {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .stats-card__title {
-    font-size: 10px;
+    font-size: 14px;
   }
 
   .stats-card__subtitle {
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 
 /* Accessibility */
 .stats-card:focus-within {
-  outline: 2px solid var(--accent-amber);
-  outline-offset: 2px;
+  outline: 3px solid #6b8e23; /* Olive focus */
+  outline-offset: 3px;
 }
 
-/* Animation on mount */
-@keyframes slideUp {
-  from {
+/* Animation on mount - Paper flutter */
+@keyframes paperFlutter {
+  0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-20px) rotate(-5deg);
   }
-  to {
+  60% {
+    transform: translateY(5px) rotate(1deg);
+  }
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) rotate(0deg);
   }
 }
 
 .stats-card {
-  animation: slideUp 0.4s ease-out both;
+  animation: paperFlutter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }

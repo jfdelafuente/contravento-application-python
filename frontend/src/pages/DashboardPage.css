@@ -95,22 +95,22 @@
 .dashboard-header__content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-6);
+  padding: var(--space-2) var(--space-4);
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-4);
 }
 
 .dashboard-header__brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   flex: 0 0 auto; /* Don't grow or shrink */
 }
 
 .dashboard-header__logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   color: white;
   flex-shrink: 0;
 }
@@ -118,33 +118,35 @@
 .dashboard-header__brand-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .dashboard-header__brand-name {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: white;
+  line-height: 1.2;
 }
 
 .dashboard-header__brand-tagline {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.85);
+  line-height: 1.2;
 }
 
 /* Responsive header adjustments */
 @media (max-width: 1024px) {
   .dashboard-header__content {
-    gap: var(--space-4);
+    gap: var(--space-3);
   }
 }
 
 @media (max-width: 768px) {
   .dashboard-header__content {
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
   }
 
   .dashboard-header__brand {
@@ -152,12 +154,16 @@
   }
 
   .dashboard-header__logo-icon {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
   }
 
   .dashboard-header__brand-name {
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  .dashboard-header__brand-tagline {
+    font-size: 9px;
   }
 }
 
@@ -174,19 +180,19 @@
   box-sizing: border-box;
 }
 
-/* Hero wrapper - full width */
+/* Hero wrapper - full width, reduced height */
 .dashboard-hero {
   max-width: min(1400px, 100%);
   margin: 0 auto;
   width: 100%;
-  padding: var(--space-6) var(--space-6) 0;
+  padding: var(--space-4) var(--space-6) 0; /* Reduced top padding from 24px to 16px */
   box-sizing: border-box;
 }
 
 /* Two-column layout */
 .dashboard-layout--two-column {
   display: grid;
-  grid-template-columns: 35fr 55fr; /* Left: 35% | Right: 55% (38.8% vs 61.1% with gap) */
+  grid-template-columns: 30fr 60fr; /* Left: 30% | Right: 60% (33.3% vs 66.6% with gap) */
   gap: var(--space-6);
   align-items: stretch; /* Stretch both columns to match height */
   width: 100%;
@@ -230,21 +236,46 @@
 }
 
 /* ============================================================================
-   HERO SECTION - Compact version for Valle Compartido
+   HERO SECTION - "Cycling Club Vintage Notice Board" - Welcome Note
    ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
 .dashboard-hero {
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  /* Weathered paper effect - matching SocialStats */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid #d2b48c; /* Warm tan border */
+  border-radius: 8px;
+  padding: 16px 24px; /* Reduced vertical padding from 24px to 16px */
+  box-shadow:
+    2px 3px 10px rgba(0, 0, 0, 0.18), /* Paper shadow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   box-sizing: border-box;
+  position: relative;
+}
+
+/* Thumbtack pin at top-left corner */
+.dashboard-hero::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 30px;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 30% 30%, #8FBC8F, #6b8e23); /* Olive pin */
+  border-radius: 50%;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.3),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 .dashboard-hero--compact {
-  padding: var(--space-5) var(--space-6);
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-6);
+  padding: 14px 24px; /* Reduced vertical padding from 20px to 14px */
+  margin-top: 16px;
+  margin-bottom: 24px;
   box-sizing: border-box;
 }
 
@@ -252,47 +283,84 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-4);
-  margin-bottom: 0; /* No margin needed without stats below */
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+/* Text container - inline title + subtitle */
+.dashboard-hero__header > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 20px; /* Increased spacing between title and subtitle */
+  flex-wrap: wrap; /* Allow wrapping on very small screens */
 }
 
 .dashboard-hero__greeting {
   margin: 0;
-  font-size: 28px;
+  font-family: 'Caveat', cursive; /* Handwritten greeting */
+  font-size: 36px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #3e2723; /* Very dark brown ink */
+  line-height: 1.1;
+  text-shadow: 1px 1px 0 rgba(255, 248, 220, 0.6);
 }
 
 .dashboard-hero__subtitle {
-  margin: var(--space-2) 0 0 0;
-  font-size: 14px;
+  margin: 0; /* Remove top margin since now inline */
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
   font-weight: 500;
-  color: var(--text-tertiary);
+  color: #8b7355; /* Medium brown */
+  font-style: italic;
 }
 
+/* Verified badge - Vintage seal/stamp */
 .dashboard-hero__badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: var(--accent-moss-light);
-  border: 1px solid var(--accent-moss);
-  border-radius: var(--radius-md);
+  gap: 8px;
+  padding: 10px 14px;
+  background: radial-gradient(circle at 40% 40%, rgba(107, 142, 35, 0.18), rgba(107, 142, 35, 0.12)); /* Olive stamp */
+  border: 2px solid rgba(107, 142, 35, 0.4);
+  border-radius: 6px;
   flex-shrink: 0;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.12),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+/* Vintage stamp texture effect */
+.dashboard-hero__badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    rgba(107, 142, 35, 0.03) 2px,
+    rgba(107, 142, 35, 0.03) 4px
+  );
+  pointer-events: none;
 }
 
 .dashboard-hero__badge-icon {
-  width: 16px;
-  height: 16px;
-  color: var(--accent-moss);
+  width: 18px;
+  height: 18px;
+  color: #556b2f; /* Dark olive green */
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
 }
 
 .dashboard-hero__badge-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent-moss);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #556b2f; /* Dark olive green */
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 /* ============================================================================
@@ -405,20 +473,28 @@
   }
 
   .dashboard-hero {
-    padding: var(--space-4) var(--space-4) 0;
+    padding: 16px 16px 0;
   }
 
   .dashboard-hero--compact {
-    padding: var(--space-4);
+    padding: 16px;
   }
 
   .dashboard-hero__greeting {
-    font-size: 22px;
+    font-size: 28px; /* Slightly smaller on mobile but still handwritten */
   }
 
   .dashboard-hero__header {
     flex-direction: column;
-    margin-bottom: var(--space-3);
+    margin-bottom: 12px;
+  }
+
+  .dashboard-hero__badge {
+    align-self: flex-start; /* Left-aligned on mobile */
+  }
+
+  .dashboard-hero__subtitle {
+    font-size: 14px;
   }
 
   .route-preview--horizontal {

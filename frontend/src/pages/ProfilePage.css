@@ -714,3 +714,159 @@
     transform: translateY(0);
   }
 }
+
+/* ============================================================================
+   Follow List Page - Followers/Following List
+   ============================================================================ */
+
+.follow-list-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.follow-list-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.follow-list-back-button {
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  cursor: pointer;
+  color: var(--color-gray-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.follow-list-back-button:hover {
+  background: var(--color-gray-100);
+  color: var(--color-forest);
+}
+
+.follow-list-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-forest);
+  margin: 0;
+}
+
+.follow-list-subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+  margin: var(--space-1) 0 0 0;
+}
+
+.follow-list-count {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-gray-600);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.follow-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.follow-list-item {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.follow-list-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 4px rgba(107, 114, 59, 0.1);
+}
+
+.follow-list-item-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+}
+
+.follow-list-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--color-gray-200);
+}
+
+.follow-list-avatar-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.follow-list-username {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-forest);
+}
+
+.follow-list-item:hover .follow-list-username {
+  color: var(--color-primary);
+}
+
+.follow-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.follow-list-empty p {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.follow-list-error {
+  padding: var(--space-4);
+  background: rgba(220, 38, 38, 0.05);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+.follow-list-error p {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: #dc2626;
+  margin: 0;
+}

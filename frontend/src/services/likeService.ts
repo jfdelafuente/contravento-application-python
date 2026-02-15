@@ -49,8 +49,8 @@ export interface UnlikeResponse {
  * @throws Error if already liked, self-like, or unauthorized
  */
 export async function likeTrip(tripId: string): Promise<LikeResponse> {
-  const response = await api.post<LikeResponse>(`/trips/${tripId}/like`);
-  return response.data;
+  const response = await api.post<{success: boolean; data: LikeResponse; error: null}>(`/trips/${tripId}/like`);
+  return response.data.data;
 }
 
 /**
@@ -61,8 +61,8 @@ export async function likeTrip(tripId: string): Promise<LikeResponse> {
  * @throws Error if not liked or unauthorized
  */
 export async function unlikeTrip(tripId: string): Promise<UnlikeResponse> {
-  const response = await api.delete<UnlikeResponse>(`/trips/${tripId}/like`);
-  return response.data;
+  const response = await api.delete<{success: boolean; data: UnlikeResponse; error: null}>(`/trips/${tripId}/like`);
+  return response.data.data;
 }
 
 /**
@@ -80,8 +80,8 @@ export async function getTripLikes(
   page: number = 1,
   limit: number = 20
 ): Promise<LikesListResponse> {
-  const response = await api.get<LikesListResponse>(`/trips/${tripId}/likes`, {
+  const response = await api.get<{success: boolean; data: LikesListResponse; error: null}>(`/trips/${tripId}/likes`, {
     params: { page, limit },
   });
-  return response.data;
+  return response.data.data;
 }

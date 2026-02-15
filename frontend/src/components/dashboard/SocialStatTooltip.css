@@ -1,0 +1,497 @@
+/**
+ * SocialStatTooltip Styles - "Cycling Club Vintage Notice Board"
+ *
+ * Design Direction: Retro cycling club aesthetic (1970s-inspired)
+ * - Handwritten/typewriter typography (Caveat, Special Elite)
+ * - Weathered paper texture with torn edges
+ * - Pushpin shadow effect
+ * - Organic, asymmetric layout
+ * - Warm, nostalgic color palette
+ *
+ * Typography Stack:
+ * - Display: "Caveat" (handwritten, casual)
+ * - Body: "Special Elite" (typewriter, vintage)
+ * - Fallback: Georgia, cursive
+ *
+ * @see specs/019-followers-tooltip/IMPLEMENTATION_GUIDE.md § Task 3.1
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');
+
+/* Container for social stat card with tooltip */
+.social-stat-card--with-tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Tooltip base styles - Vintage paper note with pushpin */
+.social-stat-tooltip {
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.2deg); /* Slight tilt for organic feel */
+
+  /* Weathered paper effect */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+
+  /* Torn paper edges using filter + custom border */
+  border: none;
+  border-radius: 2px 2px 4px 4px;
+
+  /* Dramatic shadow (paper lifted from surface + pushpin) */
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15), /* Top edge shadow (pushpin) */
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5); /* Paper texture highlight */
+
+  padding: 18px 16px 14px;
+  min-width: 240px;
+  max-width: 300px;
+  z-index: 9999;
+
+  /* Staggered reveal animation */
+  animation: tooltip-notice-board-reveal 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Subtle paper texture */
+  position: relative;
+  overflow: hidden;
+}
+
+.social-stat-tooltip::before {
+  /* Paper grain texture overlay */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+}
+
+.social-stat-tooltip::after {
+  /* Pushpin shadow/indicator at top center */
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, #6b8e23 0%, #5a7a1e 100%);
+  border-radius: 50%;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Portal variant (rendered via createPortal) */
+.social-stat-tooltip--portal {
+  /* Inherit all base styles */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Notice board reveal animation - drops in with slight bounce */
+@keyframes tooltip-notice-board-reveal {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-16px) rotate(-3deg) scale(0.92);
+  }
+  60% {
+    transform: translateX(-50%) translateY(2px) rotate(-0.8deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) rotate(-1.2deg) scale(1);
+  }
+}
+
+/* Spinner animation (typewriter carriage return) */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tooltip header - Handwritten title */
+.social-stat-tooltip__header {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed rgba(107, 142, 35, 0.3); /* Dashed pencil line */
+  position: relative;
+}
+
+.social-stat-tooltip__title {
+  font-family: 'Caveat', cursive;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3a4a1f;
+  text-transform: none; /* Natural handwriting */
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.2;
+
+  /* Subtle ink bleed effect */
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
+}
+
+/* Loading state - Typewriter style */
+.social-stat-tooltip__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px;
+  color: #654321;
+}
+
+.social-stat-tooltip__loading .spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(107, 142, 35, 0.2);
+  border-top-color: #6b8e23;
+  border-radius: 50%;
+  animation: spin 0.9s ease-in-out infinite;
+}
+
+.social-stat-tooltip__loading p {
+  font-family: 'Special Elite', monospace;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* Error state - Red pen correction */
+.social-stat-tooltip__error {
+  padding: 16px;
+  text-align: center;
+  color: #c73e1d;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  font-weight: 600;
+
+  /* Red pen underline effect */
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    rgba(199, 62, 29, 0.3) 8px,
+    rgba(199, 62, 29, 0.3) 10px
+  );
+  background-position: 0 100%;
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
+}
+
+.social-stat-tooltip__error p {
+  margin: 0;
+}
+
+/* Empty state - Faded pencil note */
+.social-stat-tooltip__empty {
+  padding: 20px 16px;
+  text-align: center;
+  color: #8b7355;
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.social-stat-tooltip__empty p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+/* User list - Hand-written roster */
+.social-stat-tooltip__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+
+  /* Custom scrollbar (vintage brass) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 142, 35, 0.4) transparent;
+}
+
+.social-stat-tooltip__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.social-stat-tooltip__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.social-stat-tooltip__list::-webkit-scrollbar-thumb {
+  background: rgba(107, 142, 35, 0.4);
+  border-radius: 3px;
+}
+
+.social-stat-tooltip__list::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 142, 35, 0.6);
+}
+
+.social-stat-tooltip__item {
+  margin: 0;
+  padding: 0;
+
+  /* Staggered fade-in for list items */
+  animation: item-fade-in 250ms ease-out backwards;
+}
+
+.social-stat-tooltip__item:nth-child(1) { animation-delay: 50ms; }
+.social-stat-tooltip__item:nth-child(2) { animation-delay: 100ms; }
+.social-stat-tooltip__item:nth-child(3) { animation-delay: 150ms; }
+.social-stat-tooltip__item:nth-child(4) { animation-delay: 200ms; }
+.social-stat-tooltip__item:nth-child(5) { animation-delay: 250ms; }
+.social-stat-tooltip__item:nth-child(6) { animation-delay: 300ms; }
+.social-stat-tooltip__item:nth-child(7) { animation-delay: 350ms; }
+.social-stat-tooltip__item:nth-child(8) { animation-delay: 400ms; }
+
+@keyframes item-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.social-stat-tooltip__user-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: 2px;
+  text-decoration: none;
+  color: #2d2416;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.social-stat-tooltip__user-link::before {
+  /* Pencil checkmark on hover */
+  content: '✓';
+  position: absolute;
+  left: -12px;
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  font-weight: 700;
+  color: #6b8e23;
+  opacity: 0;
+  transform: scale(0.5) rotate(-15deg);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.social-stat-tooltip__user-link:hover {
+  background: rgba(107, 142, 35, 0.08);
+  transform: translateX(4px);
+}
+
+.social-stat-tooltip__user-link:hover::before {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+/* Keyboard Focus Styles (WCAG 2.1 AA) - Vintage stamp effect */
+.social-stat-tooltip__user-link:focus {
+  outline: 2px dashed #6b8e23;
+  outline-offset: 2px;
+  background: rgba(254, 243, 199, 0.3);
+}
+
+.social-stat-tooltip__user-link:focus:not(:focus-visible) {
+  outline: none;
+  background: transparent;
+}
+
+.social-stat-tooltip__user-link:focus-visible {
+  outline: 2px dashed #6b8e23;
+  outline-offset: 2px;
+  background: rgba(254, 243, 199, 0.3);
+}
+
+/* Avatar - Polaroid photo style */
+.social-stat-tooltip__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 2px; /* Slight square corners */
+  object-fit: cover;
+  flex-shrink: 0;
+
+  /* Polaroid border effect */
+  border: 2px solid #f9f6ee;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+
+  /* Slight rotation for organic feel */
+  transform: rotate(-2deg);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.social-stat-tooltip__user-link:hover .social-stat-tooltip__avatar {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.social-stat-tooltip__avatar--placeholder {
+  background: linear-gradient(135deg, #6b8e23 0%, #5a7a1e 100%);
+  color: #fefcf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Username - Typewriter text */
+.social-stat-tooltip__username {
+  font-family: 'Special Elite', monospace;
+  font-size: 13px;
+  font-weight: 400;
+  color: #2d2416;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
+
+  /* Typewriter ink effect */
+  text-shadow: 0 0 0.5px rgba(45, 36, 22, 0.3);
+}
+
+/* View all link - Rubber stamp effect */
+.social-stat-tooltip__view-all {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  font-weight: 700;
+  color: #6b8e23;
+  text-decoration: none;
+  border-top: 2px dashed rgba(107, 142, 35, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+
+  /* Rubber stamp background (appears on hover) */
+  background: transparent;
+}
+
+.social-stat-tooltip__view-all::before {
+  /* Stamp border effect */
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 2px dashed rgba(107, 142, 35, 0.3);
+  border-radius: 4px;
+  opacity: 0;
+  transform: rotate(-2deg) scale(0.9);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.social-stat-tooltip__view-all:hover {
+  color: #4a6118;
+  background: rgba(107, 142, 35, 0.08);
+  transform: scale(1.02);
+}
+
+.social-stat-tooltip__view-all:hover::before {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Keyboard Focus for "Ver todos" Link - Stamp press effect */
+.social-stat-tooltip__view-all:focus {
+  outline: 2px dashed #6b8e23;
+  outline-offset: 3px;
+  background: rgba(254, 243, 199, 0.3);
+}
+
+.social-stat-tooltip__view-all:focus:not(:focus-visible) {
+  outline: none;
+  background: transparent;
+}
+
+.social-stat-tooltip__view-all:focus-visible {
+  outline: 2px dashed #6b8e23;
+  outline-offset: 3px;
+  background: rgba(254, 243, 199, 0.3);
+}
+
+/* Touch Device Fallback (Progressive Enhancement) */
+@media (hover: none) {
+  /* Hide tooltips on touch devices - users tap cards for direct navigation */
+  .social-stat-tooltip {
+    display: none !important;
+  }
+
+  .social-stat-card--with-tooltip {
+    cursor: pointer;
+  }
+
+  .social-stat-card:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+    transition: all 0.1s ease;
+  }
+}
+
+/* Responsive (Mobile) - Slightly smaller paper */
+@media (max-width: 768px) {
+  .social-stat-tooltip {
+    min-width: 220px;
+    max-width: 260px;
+    padding: 16px 14px 12px;
+  }
+
+  .social-stat-tooltip__title {
+    font-size: 20px;
+  }
+
+  .social-stat-tooltip__username {
+    font-size: 12px;
+  }
+
+  .social-stat-tooltip__avatar {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Reduced Motion (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .social-stat-tooltip,
+  .social-stat-tooltip__item,
+  .social-stat-tooltip__user-link,
+  .social-stat-tooltip__avatar,
+  .social-stat-tooltip__view-all::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .social-stat-tooltip {
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  .social-stat-tooltip__avatar {
+    transform: rotate(0deg);
+  }
+}

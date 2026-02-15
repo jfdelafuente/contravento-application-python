@@ -1,174 +1,405 @@
-/* SocialStatsSection.css - "Pelotón" Social Stats - Mapa de Ruta Style */
-
-/* Intent: Compact social connection stats with organic, map-like feel
- * Palette: Amber #ea580c (warm), Moss #059669 (organic)
- * Depth: Borders-only, subtle hover lift
- * Layout: Horizontal 2-column for desktop, stacked for mobile
+/**
+ * SocialStatsSection.css - "Pelotón" Cycling Club Notice Board
+ *
+ * Design Direction: Retro cycling club aesthetic (1970s-inspired)
+ * - Paper index cards pinned to cork board
+ * - Handwritten typography (Caveat) + typewriter numbers (Special Elite)
+ * - Brass pushpins with shadows
+ * - Weathered paper texture
+ * - Organic rotations and asymmetry
+ *
+ * Typography Stack:
+ * - Display: "Caveat" (handwritten, casual)
+ * - Numbers: "Special Elite" (typewriter, vintage)
+ *
+ * @see frontend/src/components/dashboard/SocialStatTooltip.css (matching design system)
  */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');
 
 .social-stats-section {
   width: 100%;
   box-sizing: border-box;
+  overflow: visible;
 }
 
+/* Section title - Handwritten club header */
 .social-stats-section__title {
-  margin: 0 0 var(--space-4) 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+  margin: 0 0 20px 0;
+  font-family: 'Caveat', cursive;
+  font-size: 28px;
+  font-weight: 700;
+  color: #3a4a1f;
+  letter-spacing: 0.01em;
   padding: 0 var(--space-2);
+
+  /* Ink bleed effect */
+  text-shadow: 0 0 1px rgba(58, 74, 31, 0.2);
+
+  /* Decorative underline - pencil sketch */
+  position: relative;
+}
+
+.social-stats-section__title::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 120px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(107, 142, 35, 0.4) 0px,
+    rgba(107, 142, 35, 0.4) 4px,
+    transparent 4px,
+    transparent 8px
+  );
 }
 
 .social-stats-section__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
+  gap: 20px;
   width: 100%;
+  overflow: visible;
+  padding: 0 4px; /* Prevent pushpin shadows from clipping */
 }
 
-/* Loading and error states */
+/* Loading state - Typewriter ribbon */
 .social-stats-section__loading,
 .social-stats-section__error {
   text-align: center;
-  padding: var(--space-6) var(--space-4);
-  color: var(--text-secondary);
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
+  padding: 32px 24px;
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: none;
+  border-radius: 2px;
+  box-shadow:
+    0 2px 8px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.social-stats-section__loading {
+  font-family: 'Special Elite', monospace;
+  font-size: 13px;
+  color: #654321;
+  letter-spacing: 0.05em;
 }
 
 .social-stats-section__loading .spinner {
-  width: 28px;
-  height: 28px;
-  margin: 0 auto;
-  border: 2px solid var(--border-soft);
-  border-top-color: var(--accent-amber);
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 12px;
+  border: 3px solid rgba(107, 142, 35, 0.2);
+  border-top-color: #6b8e23;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.9s ease-in-out infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
+/* Error state - Red pen stamp */
 .social-stats-section__error {
-  color: #dc2626;
-  background: rgba(220, 38, 38, 0.05);
-  border-color: rgba(220, 38, 38, 0.2);
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  font-weight: 600;
+  color: #c73e1d;
+
+  /* Red pen underline */
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    rgba(199, 62, 29, 0.3) 8px,
+    rgba(199, 62, 29, 0.3) 10px
+  );
+  background-position: 0 100%;
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
 }
 
-/* Social stat card - Compact horizontal */
+/* Social stat card - Paper index card with pushpin */
 .social-stat-card {
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  /* Weathered paper effect */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+
+  border: none;
+  border-radius: 3px;
+  padding: 10px; /* Reduced from 22px 18px 18px */
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  transition: all 0.2s ease;
+  gap: 6px; /* Reduced from 10px */
+
+  /* Paper lifted from surface */
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.15), /* Pushpin shadow at top */
+    0 6px 12px rgba(45, 35, 20, 0.2),
+    0 12px 24px rgba(45, 35, 20, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5); /* Paper highlight */
+
+  /* Organic tilt */
+  transform: rotate(-0.8deg);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
   box-sizing: border-box;
+  overflow: visible;
+  position: relative;
+
+  /* Cursor indicating interactivity */
+  cursor: pointer;
+}
+
+.social-stat-card::before {
+  /* Paper grain texture overlay */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+}
+
+.social-stat-card::after {
+  /* Brass pushpin at top center */
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Followers card - Amber/gold pushpin */
+.social-stat-card:nth-child(1)::after {
+  background: radial-gradient(circle, #ea580c 0%, #c2410c 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Following card - Olive/green pushpin */
+.social-stat-card:nth-child(2)::after {
+  background: radial-gradient(circle, #6b8e23 0%, #5a7a1e 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Followers card - slight right tilt */
+.social-stat-card:nth-child(1) {
+  transform: rotate(0.6deg);
+}
+
+/* Following card - slight left tilt */
+.social-stat-card:nth-child(2) {
+  transform: rotate(-1.2deg);
 }
 
 .social-stat-card:hover {
-  border-color: var(--border-emphasis);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  /* Lift and straighten on hover */
+  transform: rotate(0deg) translateY(-3px) scale(1.02);
+  box-shadow:
+    0 2px 0 0 rgba(101, 67, 33, 0.2),
+    0 8px 16px rgba(45, 35, 20, 0.25),
+    0 16px 32px rgba(45, 35, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
+/* Keyboard Focus Styles (WCAG 2.1 AA) - Dashed outline */
+.social-stat-card:focus {
+  outline: 2px dashed #6b8e23;
+  outline-offset: 3px;
+  background:
+    linear-gradient(135deg, rgba(254, 243, 199, 0.1) 0%, rgba(101, 67, 33, 0.05) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+}
+
+.social-stat-card:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.social-stat-card:focus-visible {
+  outline: 2px dashed #6b8e23;
+  outline-offset: 3px;
+  background:
+    linear-gradient(135deg, rgba(254, 243, 199, 0.1) 0%, rgba(101, 67, 33, 0.05) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+}
+
+/* Icon - Hand-drawn circle badges */
 .social-stat-card__icon {
-  width: 40px;
-  height: 40px;
+  width: 36px; /* Reduced from 50px */
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  /* Slightly rough edge (organic feel) */
+  border: 2px solid currentColor;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .social-stat-card__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px; /* Reduced from 24px */
+  height: 18px;
 }
 
-/* Followers - Amber accent (warm connection) */
+/* Followers icon - Amber heart */
 .social-stat-card__icon--followers {
-  background: rgba(234, 88, 12, 0.1);
-  color: var(--accent-amber);
+  background: rgba(234, 88, 12, 0.12);
+  color: #ea580c;
+  border-color: rgba(234, 88, 12, 0.3);
 }
 
 .social-stat-card:hover .social-stat-card__icon--followers {
-  background: rgba(234, 88, 12, 0.15);
+  background: rgba(234, 88, 12, 0.2);
+  transform: rotate(-5deg) scale(1.1);
 }
 
-/* Following - Moss accent (organic growth) */
+/* Following icon - Moss user-plus */
 .social-stat-card__icon--following {
-  background: rgba(5, 150, 105, 0.1);
-  color: var(--accent-moss);
+  background: rgba(107, 142, 35, 0.12);
+  color: #6b8e23;
+  border-color: rgba(107, 142, 35, 0.3);
 }
 
 .social-stat-card:hover .social-stat-card__icon--following {
-  background: rgba(5, 150, 105, 0.15);
+  background: rgba(107, 142, 35, 0.2);
+  transform: rotate(5deg) scale(1.1);
 }
 
 .social-stat-card__content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
+  gap: 6px;
   width: 100%;
 }
 
+/* Label - Handwritten casual text */
 .social-stat-card__label {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-tertiary);
+  font-family: 'Caveat', cursive;
+  font-size: 14px; /* Reduced from 18px */
+  font-weight: 600;
+  color: #3a4a1f;
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none; /* Natural handwriting */
+  letter-spacing: 0.01em;
+
+  /* Subtle ink bleed */
+  text-shadow: 0 0 0.5px rgba(58, 74, 31, 0.2);
 }
 
+/* Value - Typewriter stamped numbers */
 .social-stat-card__value {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-family: 'Special Elite', monospace;
+  font-size: 28px; /* Reduced from 42px */
+  font-weight: 400;
+  color: #2d2416;
   margin: 0;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.05em;
+
+  /* Typewriter ink impression */
+  text-shadow:
+    0 0 0.5px rgba(45, 36, 22, 0.3),
+    1px 1px 0 rgba(45, 36, 22, 0.1);
 }
 
-/* Responsive */
+/* Staggered entrance animation */
+.social-stat-card {
+  animation: card-drop-in 350ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.social-stat-card:nth-child(1) {
+  animation-delay: 100ms;
+}
+
+.social-stat-card:nth-child(2) {
+  animation-delay: 200ms;
+}
+
+@keyframes card-drop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(-8deg) scale(0.9);
+  }
+  60% {
+    transform: translateY(2px) rotate(-1deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(-0.8deg) scale(1);
+  }
+}
+
+/* Responsive - Slightly smaller cards on mobile */
 @media (max-width: 768px) {
   .social-stats-section__title {
-    font-size: 18px;
-    margin-bottom: var(--space-3);
+    font-size: 24px;
+    margin-bottom: 16px;
   }
 
   .social-stats-section__grid {
-    gap: var(--space-2);
+    gap: 14px;
   }
 
   .social-stat-card {
-    padding: var(--space-3);
+    padding: 10px; /* Reduced from 18px 14px 16px */
   }
 
   .social-stat-card__icon {
-    width: 36px;
-    height: 36px;
+    width: 32px; /* Reduced from 44px */
+    height: 32px;
   }
 
   .social-stat-card__icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .social-stat-card__value {
-    font-size: 24px;
+    width: 16px; /* Reduced from 22px */
+    height: 16px;
   }
 
   .social-stat-card__label {
-    font-size: 10px;
+    font-size: 13px; /* Reduced from 16px */
+  }
+
+  .social-stat-card__value {
+    font-size: 24px; /* Reduced from 36px */
+  }
+}
+
+/* Reduced Motion (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .social-stat-card {
+    animation: none !important;
+    transition: none !important;
+    transform: rotate(0deg) !important;
+  }
+
+  .social-stat-card:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+  }
+
+  .social-stat-card__icon {
+    transition: none !important;
+  }
+
+  .social-stat-card:hover .social-stat-card__icon {
+    transform: scale(1.05) !important;
   }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import './QuickActionButton.css';
 
 export interface QuickActionButtonProps {
@@ -11,8 +11,11 @@ export interface QuickActionButtonProps {
 /**
  * QuickActionButton component - Button for quick access to key features
  * Used in dashboard for common user actions
+ *
+ * Performance optimizations:
+ * - rerender-memo: Memoized to prevent unnecessary re-renders when parent re-renders
  */
-const QuickActionButton: React.FC<QuickActionButtonProps> = ({
+const QuickActionButton: React.FC<QuickActionButtonProps> = memo(({
   label,
   icon,
   onClick,
@@ -29,6 +32,8 @@ const QuickActionButton: React.FC<QuickActionButtonProps> = ({
       <span className="quick-action-button__label">{label}</span>
     </button>
   );
-};
+});
+
+QuickActionButton.displayName = 'QuickActionButton';
 
 export default QuickActionButton;

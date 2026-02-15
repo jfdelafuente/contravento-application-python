@@ -15,12 +15,15 @@ COPY . .
 # Build with production environment variables
 # VITE_API_URL should be passed as build arg
 ARG VITE_API_URL
+# Cloudflare Turnstile Site Key (public, not sensitive - exposed in frontend JavaScript)
+# hadolint ignore=SecretsUsedInArgOrEnv
 ARG VITE_TURNSTILE_SITE_KEY
 ARG VITE_ENV=production
 ARG VITE_DEBUG=false
 ARG VITE_USE_PROXY=true  # Default to true for production (uses nginx /api/ proxy)
 
 ENV VITE_API_URL=$VITE_API_URL
+# hadolint ignore=SecretsUsedInArgOrEnv
 ENV VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY
 ENV VITE_ENV=$VITE_ENV
 ENV VITE_DEBUG=$VITE_DEBUG
@@ -31,6 +34,9 @@ RUN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
+
+# Install envsubst (required for template substitution)
+RUN apk add --no-cache gettext
 
 # Copy built static files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html

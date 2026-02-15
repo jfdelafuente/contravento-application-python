@@ -74,8 +74,8 @@ export async function unfollowUser(username: string): Promise<UnfollowResponse> 
  * @returns List of followers
  */
 export async function getFollowers(username: string): Promise<FollowersListResponse> {
-  const response = await api.get<FollowersListResponse>(`/users/${username}/followers`);
-  return response.data;
+  const response = await api.get<{success: boolean; data: FollowersListResponse; error: null}>(`/users/${username}/followers`);
+  return response.data.data;
 }
 
 /**
@@ -87,6 +87,6 @@ export async function getFollowers(username: string): Promise<FollowersListRespo
  * @returns List of users being followed
  */
 export async function getFollowing(username: string): Promise<FollowingListResponse> {
-  const response = await api.get<FollowingListResponse>(`/users/${username}/following`);
-  return response.data;
+  const response = await api.get<{success: boolean; data: FollowingListResponse; error: null}>(`/users/${username}/following`);
+  return response.data.data;
 }

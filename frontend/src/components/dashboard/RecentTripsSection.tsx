@@ -1,9 +1,38 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRecentTrips } from '../../hooks/useRecentTrips';
 import RecentTripCard from './RecentTripCard';
 import SkeletonLoader from '../common/SkeletonLoader';
 import './RecentTripsSection.css';
+
+/**
+ * Performance: rerender-memo - Prevents re-renders when parent re-renders
+ * Performance: rendering-conditional-render - Early return for error state
+ * Performance: rendering-hoist-jsx - Static JSX hoisted outside component
+ */
+
+// Performance: rendering-hoist-jsx - Static error icon outside component
+const ERROR_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
+
+const VIEW_ALL_ARROW = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+
+const EMPTY_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
 
 /**
  * RecentTripsSection component - Display user's recent published trips
@@ -13,6 +42,7 @@ const RecentTripsSection: React.FC = () => {
   const { user } = useAuth();
   const { trips, loading, error } = useRecentTrips(user?.username || '', 4);
 
+  // Performance: rendering-conditional-render - Early return for error state
   if (error) {
     return (
       <section className="recent-trips-section" aria-labelledby="recent-trips-heading">
@@ -20,11 +50,7 @@ const RecentTripsSection: React.FC = () => {
           Viajes Recientes
         </h2>
         <div className="recent-trips-section__error" role="alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          {ERROR_ICON}
           <p>{error}</p>
         </div>
       </section>
@@ -40,10 +66,7 @@ const RecentTripsSection: React.FC = () => {
         {trips.length > 0 && (
           <a href="/trips" className="recent-trips-section__view-all">
             Ver todos los viajes
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            {VIEW_ALL_ARROW}
           </a>
         )}
       </div>
@@ -70,10 +93,7 @@ const RecentTripsSection: React.FC = () => {
       ) : trips.length === 0 ? (
         <div className="recent-trips-section__empty">
           <div className="recent-trips-section__empty-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+            {EMPTY_ICON}
           </div>
           <h3 className="recent-trips-section__empty-title">Aún no has publicado viajes</h3>
           <p className="recent-trips-section__empty-text">
@@ -100,4 +120,7 @@ const RecentTripsSection: React.FC = () => {
   );
 };
 
-export default RecentTripsSection;
+// Performance: rerender-memo - Add display name for better debugging
+RecentTripsSection.displayName = 'RecentTripsSection';
+
+export default memo(RecentTripsSection);

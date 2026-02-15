@@ -1,96 +1,137 @@
-/* AchievementCard.css - Compact Achievement Badge - Mapa de Ruta Style */
+/* AchievementCard.css - "Cycling Club Vintage Notice Board" - Pinned Badge */
 
-/* Intent: Compact achievement display with organic colors
- * Layout: Vertical stack (icon → name → status)
- * Depth: Borders-only, subtle hover lift
+/* Intent: Achievement as pinned merit badge on cork board
+ * Layout: Vertical stack (emoji badge → handwritten name → date)
+ * Typography: Caveat (handwritten), Inter (metadata)
+ * Depth: Badge shadow, pin at top, vintage paper texture
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
 .achievement-card {
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  /* Weathered paper effect - matching SocialStats */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(101, 67, 33, 0.03) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #f9f6ee 100%);
+  border: 2px solid #d2b48c; /* Warm tan border */
+  border-radius: 6px;
+  padding: 10px; /* Reduced from 12px */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  transition: all 0.2s ease;
+  gap: 6px; /* Reduced from 8px */
+  transition: all 0.25s ease;
   box-sizing: border-box;
   position: relative;
+  box-shadow:
+    2px 2px 6px rgba(0, 0, 0, 0.15), /* Paper shadow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* Thumbtack pin at top */
+.achievement-card::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle at 30% 30%, #8FBC8F, #6b8e23); /* Olive pin */
+  border-radius: 50%;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 .achievement-card:hover {
-  border-color: var(--border-emphasis);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-3px) rotate(0.8deg); /* Lift and tilt */
+  box-shadow:
+    3px 5px 12px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  border-color: #c19a6b; /* Darker tan on hover */
 }
 
-/* Earned achievements - amber accent */
+/* Earned achievements - gold accent border */
 .achievement-card--earned {
-  border-color: rgba(234, 88, 12, 0.3);
+  border-color: rgba(218, 165, 32, 0.5); /* Goldenrod */
+  /* Enhanced weathered paper for earned achievements */
+  background:
+    linear-gradient(135deg, transparent 0%, rgba(218, 165, 32, 0.08) 100%),
+    linear-gradient(to bottom, #fefcf8 0%, #fef9e7 100%);
 }
 
 .achievement-card--earned:hover {
-  border-color: var(--accent-amber);
+  border-color: #daa520; /* Goldenrod */
+}
+
+.achievement-card--earned::before {
+  background: radial-gradient(circle at 30% 30%, #ffd700, #daa520); /* Gold pin for earned */
 }
 
 /* Locked achievements - subdued appearance */
 .achievement-card--locked {
-  opacity: 0.6;
+  opacity: 0.65;
+  filter: grayscale(0.4);
 }
 
 .achievement-card--locked:hover {
   opacity: 0.8;
-  transform: translateY(-1px);
+  transform: translateY(-2px) rotate(0.3deg);
 }
 
-/* Icon wrapper - Circular with background */
+/* Icon wrapper - Circular merit badge */
 .achievement-card__icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 36px; /* Reduced from 40px */
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   position: relative;
-  background: rgba(234, 88, 12, 0.1); /* Amber background */
+  background: radial-gradient(circle at 40% 40%, rgba(218, 165, 32, 0.2), rgba(210, 180, 140, 0.15)); /* Gold stamp */
+  border: 2.5px solid rgba(218, 165, 32, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .achievement-card--locked .achievement-card__icon-wrapper {
-  background: rgba(5, 150, 105, 0.1); /* Moss background for locked */
+  background: rgba(139, 115, 85, 0.12); /* Brown for locked */
+  border-color: rgba(139, 115, 85, 0.25);
 }
 
 .achievement-card__emoji {
-  font-size: 20px;
+  font-size: 18px; /* Reduced from 20px */
   line-height: 1;
   display: block;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
 }
 
 .achievement-card--locked .achievement-card__emoji {
-  filter: grayscale(100%);
-  opacity: 0.4;
+  filter: grayscale(100%) opacity(0.5);
 }
 
-/* Checkmark badge for earned achievements */
+/* Checkmark badge for earned achievements - vintage stamp */
 .achievement-card__badge {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 16px;
-  height: 16px;
-  background: var(--accent-moss);
+  bottom: -3px;
+  right: -3px;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle at 40% 40%, #6b8e23, #556b2f); /* Olive gradient */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--surface-elevated);
+  border: 2px solid #fefcf8; /* Match paper background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .achievement-card__badge svg {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   color: white;
 }
 
@@ -99,37 +140,40 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
+  gap: 6px;
   width: 100%;
 }
 
 .achievement-card__name {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-family: 'Caveat', cursive; /* Handwritten name */
+  font-size: 16px;
+  font-weight: 600;
+  color: #3e2723; /* Very dark brown */
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
   text-align: center;
   line-height: 1.3;
 }
 
 .achievement-card__date,
 .achievement-card__locked-text {
-  font-size: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--text-tertiary);
+  color: #8b7355; /* Medium brown */
   margin: 0;
   text-align: center;
   font-style: normal;
 }
 
 .achievement-card--earned .achievement-card__date {
-  color: var(--accent-amber);
+  color: #d2691e; /* Chocolate accent for earned */
+  font-weight: 600;
 }
 
 .achievement-card__locked-text {
-  color: var(--text-tertiary);
+  color: #a0826d; /* Lighter brown */
   font-style: italic;
 }
 
@@ -138,28 +182,32 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  margin-top: 2px;
 }
 
 .achievement-card__progress-bar {
   width: 100%;
-  height: 4px;
-  background-color: var(--border-default);
-  border-radius: 2px;
+  height: 5px;
+  background-color: rgba(210, 180, 140, 0.3); /* Tan background */
+  border-radius: 3px;
   overflow: hidden;
+  border: 1px solid rgba(139, 115, 85, 0.2);
 }
 
 .achievement-card__progress-fill {
   height: 100%;
-  background: var(--accent-moss);
+  background: linear-gradient(90deg, #6b8e23, #8FBC8F); /* Olive gradient */
   border-radius: 2px;
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 .achievement-card__progress-text {
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #5d4037; /* Dark brown */
   text-align: center;
   margin: 0;
 }
@@ -167,47 +215,53 @@
 /* Responsive */
 @media (max-width: 768px) {
   .achievement-card {
-    padding: var(--space-3);
+    padding: 14px;
   }
 
   .achievement-card__icon-wrapper {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
 
   .achievement-card__emoji {
-    font-size: 18px;
+    font-size: 22px;
   }
 
   .achievement-card__name {
-    font-size: 10px;
+    font-size: 15px;
   }
 
   .achievement-card__date,
   .achievement-card__locked-text,
   .achievement-card__progress-text {
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 
 /* Accessibility */
 .achievement-card:focus-within {
-  outline: 2px solid var(--accent-amber);
-  outline-offset: 2px;
+  outline: 3px solid #6b8e23; /* Olive focus */
+  outline-offset: 3px;
 }
 
-/* Animation on mount */
-@keyframes slideUp {
-  from {
+/* Animation on mount - Paper drop and settle */
+@keyframes badgeDrop {
+  0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-30px) rotate(-8deg);
   }
-  to {
+  50% {
+    transform: translateY(8px) rotate(2deg);
+  }
+  70% {
+    transform: translateY(-3px) rotate(-1deg);
+  }
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) rotate(0deg);
   }
 }
 
 .achievement-card {
-  animation: slideUp 0.4s ease-out both;
+  animation: badgeDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
